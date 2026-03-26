@@ -1,8 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: 185 60% 97%;
+    --foreground: 200 40% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 40% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 40% 15%;
+    --primary: 178 85% 35%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 100% 92%;
+    --secondary-foreground: 200 40% 15%;
+    --muted: 185 30% 94%;
+    --muted-foreground: 200 20% 45%;
+    --accent: 32 100% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 185 20% 88%;
+    --input: 185 20% 88%;
+    --ring: 178 85% 35%;
+    --radius: 1rem;
+    --chart-1: 178 85% 35%;
+    --chart-2: 32 100% 60%;
+    --chart-3: 280 65% 60%;
+    --chart-4: 340 75% 60%;
+    --chart-5: 120 60% 50%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 200 40% 15%;
+    --sidebar-primary: 178 85% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 185 30% 94%;
+    --sidebar-accent-foreground: 200 40% 15%;
+    --sidebar-border: 185 20% 88%;
+    --sidebar-ring: 178 85% 35%;
+    --font-fredoka: 'Fredoka', sans-serif;
+  }
+
+  .dark {
+    --background: 200 40% 8%;
+    --foreground: 185 30% 95%;
+    --card: 200 35% 10%;
+    --card-foreground: 185 30% 95%;
+    --popover: 200 35% 10%;
+    --popover-foreground: 185 30% 95%;
+    --primary: 178 85% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 30% 15%;
+    --secondary-foreground: 185 30% 95%;
+    --muted: 200 30% 15%;
+    --muted-foreground: 185 20% 60%;
+    --accent: 32 100% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 200 25% 18%;
+    --input: 200 25% 18%;
+    --ring: 178 85% 42%;
+    --chart-1: 178 85% 42%;
+    --chart-2: 32 100% 55%;
+    --chart-3: 280 65% 60%;
+    --chart-4: 340 75% 55%;
+    --chart-5: 120 60% 45%;
+    --sidebar-background: 200 40% 6%;
+    --sidebar-foreground: 185 30% 90%;
+    --sidebar-primary: 178 85% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 30% 12%;
+    --sidebar-accent-foreground: 185 30% 90%;
+    --sidebar-border: 200 25% 14%;
+    --sidebar-ring: 178 85% 42%;
+  }
+
+
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -83,6 +158,6 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-fredoka;
   }
 }
