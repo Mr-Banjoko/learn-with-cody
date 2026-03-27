@@ -1,0 +1,284 @@
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Camera, Save, Check } from "lucide-react";
+import html2canvas from "html2canvas";
+import { shortAWords } from "../lib/shortAWords";
+
+const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
+
+function LetterBlock({ letter, index }) {
+  return (
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ delay: index * 0.07, type: "spring", stiffness: 400, damping: 22 }}
+      style={{
+        width: 72,
+        height: 72,
+        borderRadius: 18,
+        background: LETTER_COLORS[index % LETTER_COLORS.length],
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 42,
+        fontWeight: 700,
+        color: "#1E3A5F",
+        fontFamily: "Fredoka, sans-serif",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
+      }}
+    >
+      {letter}
+    </motion.div>
+  );
+}
+
+export default function FlashcardScreen({ onBack }) {
+  const [index, setIndex] = useState(0);
+  const [customImages, setCustomImages] = useState({});
+  const [saved, setSaved] = useState({});
+  const [justSaved, setJustSaved] = useState(false);
+  const cardRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const card = shortAWords[index];
+  const total = shortAWords.length;
+  const currentImage = customImages[index] || card.image;
+  const hasCustom = !!customImages[index];
+
+  const handleCamera = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setCustomImages((prev) => ({ ...prev, [index]: ev.target.result }));
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleSave = async () => {
+    if (!cardRef.current) return;
+    const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true, allowTaint: true });
+    const dataUrl = canvas.toDataURL("image/png");
+    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+    const entry = {
+      id: Date.now(),
+      word: card.word,
+      snapshot: dataUrl,
+      date: new Date().toLocaleDateString(),
+    };
+    album.unshift(entry);
+    localStorage.setItem("cody_album", JSON.stringify(album));
+    setSaved((prev) => ({ ...prev, [index]: true }));
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
+  };
+
+  return (
+    <div
+      className="min-h-full flex flex-col pb-32"
+      style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          background: "#A8D0E6",
+          borderBottomLeftRadius: 28,
+          borderBottomRightRadius: 28,
+          padding: "16px 20px 20px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
+        <button
+          onClick={onBack}
+          style={{
+            width: 40, height: 40, borderRadius: 20,
+            background: "rgba(255,255,255,0.7)", border: "none",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer",
+          }}
+        >
+          <ArrowLeft size={22} color="#1E3A5F" />
+        </button>
+        <h1
+          style={{
+            flex: 1, textAlign: "center",
+            fontSize: 24, fontWeight: 700, color: "#1E3A5F",
+            marginRight: 40,
+          }}
+        >
+          Short a Words
+        </h1>
+      </div>
+
+      {/* Flashcard Area */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-6 gap-6">
+        <div ref={cardRef} className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
+          {/* Decorative shapes */}
+          <div style={{
+            position: "absolute", top: -20, right: -10,
+            width: 160, height: 140, borderRadius: 40,
+            background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)",
+          }} />
+          <div style={{
+            position: "absolute", bottom: -20, left: -10,
+            width: 140, height: 140, borderRadius: "50%",
+            background: "#FFF59D", zIndex: 0,
+          }} />
+
+          {/* White card frame */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.94 }}
+              transition={{ duration: 0.22 }}
+              style={{
+                position: "relative", zIndex: 1,
+                background: "white",
+                borderRadius: 28,
+                padding: 14,
+                boxShadow: "0 12px 48px rgba(30,58,95,0.15)",
+                width: "100%",
+              }}
+            >
+              <img
+                src={currentImage}
+                alt={card.word}
+                onError={(e) => { e.target.src = `https://raw.githubusercontent.com/Mr-banjoko/learn-with-cody/main/phonics_app_images/cvc_words/a_vowel/${card.word}.jpg`; }}
+                style={{
+                  width: "100%",
+                  aspectRatio: "1/1",
+                  objectFit: "cover",
+                  borderRadius: 18,
+                  display: "block",
+                }}
+              />
+
+              {/* Camera button */}
+              <button
+                onClick={handleCamera}
+                style={{
+                  position: "absolute", bottom: 18, right: 18,
+                  width: 48, height: 48, borderRadius: 24,
+                  background: "white",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+                  border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  zIndex: 2,
+                }}
+              >
+                <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
+              </button>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Save button */}
+        <AnimatePresence>
+          {hasCustom && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              onClick={handleSave}
+              style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "12px 28px", borderRadius: 999,
+                background: justSaved ? "#4ECDC4" : "#5B8DEF",
+                color: "white", border: "none", cursor: "pointer",
+                fontSize: 18, fontWeight: 600,
+                fontFamily: "Fredoka, sans-serif",
+                boxShadow: "0 6px 20px rgba(91,141,239,0.35)",
+                transition: "background 0.3s",
+              }}
+            >
+              {justSaved ? <Check size={20} /> : <Save size={20} />}
+              {justSaved ? "Saved to Album!" : "Save to Album"}
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        {/* Letter blocks */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`letters-${index}`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            style={{ display: "flex", gap: 10, justifyContent: "center" }}
+          >
+            {card.word.split("").map((letter, i) => (
+              <LetterBlock key={i} letter={letter} index={i} />
+            ))}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Bottom nav */}
+      <div
+        style={{
+          position: "fixed", bottom: 80, left: 0, right: 0,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "0 28px",
+          maxWidth: 480, margin: "0 auto",
+        }}
+      >
+        <button
+          onClick={() => { if (index > 0) setIndex(index - 1); }}
+          disabled={index === 0}
+          style={{
+            padding: "14px 28px", borderRadius: 999,
+            background: index === 0 ? "#C5DCF0" : "#A8C8E0",
+            color: index === 0 ? "#9CB8CC" : "#1E3A5F",
+            border: "none", cursor: index === 0 ? "not-allowed" : "pointer",
+            fontSize: 18, fontWeight: 600,
+            fontFamily: "Fredoka, sans-serif",
+            opacity: index === 0 ? 0.6 : 1,
+            minWidth: 110,
+          }}
+        >
+          Previous
+        </button>
+
+        <span style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>
+          {index + 1}/{total}
+        </span>
+
+        <button
+          onClick={() => { if (index < total - 1) setIndex(index + 1); }}
+          disabled={index === total - 1}
+          style={{
+            padding: "14px 28px", borderRadius: 999,
+            background: index === total - 1 ? "#C5DCF0" : "#4A90C4",
+            color: index === total - 1 ? "#9CB8CC" : "white",
+            border: "none", cursor: index === total - 1 ? "not-allowed" : "pointer",
+            fontSize: 18, fontWeight: 600,
+            fontFamily: "Fredoka, sans-serif",
+            opacity: index === total - 1 ? 0.6 : 1,
+            minWidth: 110,
+          }}
+        >
+          Next
+        </button>
+      </div>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: "none" }}
+        onChange={handleFileChange}
+      />
+    </div>
+  );
+}

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TabBar from "./TabBar";
 import ParentSettings from "./ParentSettings";
 import Home from "../pages/Home";
 import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
+import Album from "../pages/Album";
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("learn");
@@ -23,6 +24,8 @@ export default function AppShell() {
         return <LearnPhonics />;
       case "games":
         return <Games />;
+      case "album":
+        return <Album />;
       default:
         return <LearnPhonics />;
     }
