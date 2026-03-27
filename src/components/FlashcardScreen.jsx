@@ -38,6 +38,7 @@ export default function FlashcardScreen({ onBack }) {
   const [saved, setSaved] = useState({});
   const [justSaved, setJustSaved] = useState(false);
   const cardRef = useRef(null);
+  const compositeRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // Preload all images on mount
@@ -69,8 +70,8 @@ export default function FlashcardScreen({ onBack }) {
   };
 
   const handleSave = async () => {
-    if (!cardRef.current) return;
-    const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true, allowTaint: true });
+    if (!compositeRef.current) return;
+    const canvas = await html2canvas(compositeRef.current, { scale: 2, useCORS: true, allowTaint: true });
     const dataUrl = canvas.toDataURL("image/png");
     const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
     const entry = {
@@ -275,6 +276,77 @@ export default function FlashcardScreen({ onBack }) {
         >
           Next
         </button>
+      </div>
+
+      {/* Hidden composite for snapshot capture */}
+      <div
+        ref={compositeRef}
+        style={{
+          position: "fixed",
+          left: -9999,
+          top: 0,
+          width: 360,
+          height: 480,
+          background: "#D6EEFF",
+          fontFamily: "Fredoka, sans-serif",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 20,
+          padding: 24,
+          zIndex: -1,
+        }}
+      >
+        {/* Decorative shapes */}
+        <div style={{
+          position: "absolute", top: 20, right: 20,
+          width: 120, height: 100, borderRadius: 32,
+          background: "#FFCDD2", transform: "rotate(8deg)",
+        }} />
+        <div style={{
+          position: "absolute", bottom: 60, left: 20,
+          width: 110, height: 110, borderRadius: "50%",
+          background: "#FFF59D",
+        }} />
+        {/* White card */}
+        <div style={{
+          position: "relative", zIndex: 1,
+          background: "white",
+          borderRadius: 28,
+          padding: 12,
+          boxShadow: "0 12px 48px rgba(30,58,95,0.15)",
+          width: "100%",
+        }}>
+          <img
+            src={customImages[index] || card.image}
+            alt={card.word}
+            style={{
+              width: "100%",
+              height: 260,
+              objectFit: "cover",
+              borderRadius: 18,
+              display: "block",
+            }}
+          />
+        </div>
+        {/* Letter blocks */}
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", zIndex: 1 }}>
+          {card.word.split("").map((letter, i) => (
+            <div
+              key={i}
+              style={{
+                width: 64, height: 64, borderRadius: 16,
+                background: LETTER_COLORS[i % LETTER_COLORS.length],
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 38, fontWeight: 700, color: "#1E3A5F",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
+              }}
+            >
+              {letter}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Hidden file input */}
