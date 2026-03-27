@@ -8,10 +8,7 @@ const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
 function LetterBlock({ letter, index }) {
   return (
-    <motion.div
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ delay: index * 0.07, type: "spring", stiffness: 400, damping: 22 }}
+    <div
       style={{
         width: 72,
         height: 72,
@@ -28,17 +25,15 @@ function LetterBlock({ letter, index }) {
       }}
     >
       {letter}
-    </motion.div>
+    </div>
   );
 }
 
 export default function FlashcardScreen({ onBack }) {
   const [index, setIndex] = useState(0);
   const [customImages, setCustomImages] = useState({});
-  const [saved, setSaved] = useState({});
   const [justSaved, setJustSaved] = useState(false);
-  const cardRef = useRef(null);
-  const compositeRef = useRef(null);
+  const captureRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // Preload all images on mount
@@ -54,9 +49,7 @@ export default function FlashcardScreen({ onBack }) {
   const currentImage = customImages[index] || card.image;
   const hasCustom = !!customImages[index];
 
-  const handleCamera = () => {
-    fileInputRef.current.click();
-  };
+  const handleCamera = () => fileInputRef.current.click();
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -70,19 +63,17 @@ export default function FlashcardScreen({ onBack }) {
   };
 
   const handleSave = async () => {
-    if (!compositeRef.current) return;
-    const canvas = await html2canvas(compositeRef.current, { scale: 2, useCORS: true, allowTaint: true });
+    if (!captureRef.current) return;
+    const canvas = await html2canvas(captureRef.current, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#D6EEFF",
+    });
     const dataUrl = canvas.toDataURL("image/png");
     const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    const entry = {
-      id: Date.now(),
-      word: card.word,
-      snapshot: dataUrl,
-      date: new Date().toLocaleDateString(),
-    };
-    album.unshift(entry);
+    album.unshift({ id: Date.now(), word: card.word, snapshot: dataUrl, date: new Date().toLocaleDateString() });
     localStorage.setItem("cody_album", JSON.stringify(album));
-    setSaved((prev) => ({ ...prev, [index]: true }));
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2000);
   };
@@ -92,7 +83,7 @@ export default function FlashcardScreen({ onBack }) {
       className="min-h-full flex flex-col pb-32"
       style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}
     >
-      {/* Header */}
+      {/* Header — NOT included in capture */}
       <div
         style={{
           background: "#A8D0E6",
@@ -102,6 +93,7 @@ export default function FlashcardScreen({ onBack }) {
           display: "flex",
           alignItems: "center",
           gap: 12,
+          flexShrink: 0,
         }}
       >
         <button
@@ -115,20 +107,25 @@ export default function FlashcardScreen({ onBack }) {
         >
           <ArrowLeft size={22} color="#1E3A5F" />
         </button>
-        <h1
-          style={{
-            flex: 1, textAlign: "center",
-            fontSize: 24, fontWeight: 700, color: "#1E3A5F",
-            marginRight: 40,
-          }}
-        >
+        <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E3A5F", marginRight: 40 }}>
           Short a Words
         </h1>
       </div>
 
-      {/* Flashcard Area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-6 gap-6">
-        <div ref={cardRef} className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
+      {/* ── CAPTURE ZONE: image card + save button + letter blocks ── */}
+      <div
+        ref={captureRef}
+        style={{
+          background: "#D6EEFF",
+          padding: "28px 24px 28px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 22,
+        }}
+      >
+        {/* Card with decorative shapes */}
+        <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
           {/* Decorative shapes */}
           <div style={{
             position: "absolute", top: -20, right: -10,
@@ -169,7 +166,6 @@ export default function FlashcardScreen({ onBack }) {
                   display: "block",
                 }}
               />
-
               {/* Camera button */}
               <button
                 onClick={handleCamera}
@@ -189,7 +185,7 @@ export default function FlashcardScreen({ onBack }) {
           </AnimatePresence>
         </div>
 
-        {/* Save button */}
+        {/* Save button — inside capture zone */}
         <AnimatePresence>
           {hasCustom && (
             <motion.button
@@ -206,6 +202,7 @@ export default function FlashcardScreen({ onBack }) {
                 fontFamily: "Fredoka, sans-serif",
                 boxShadow: "0 6px 20px rgba(91,141,239,0.35)",
                 transition: "background 0.3s",
+                zIndex: 1,
               }}
             >
               {justSaved ? <Check size={20} /> : <Save size={20} />}
@@ -214,23 +211,16 @@ export default function FlashcardScreen({ onBack }) {
           )}
         </AnimatePresence>
 
-        {/* Letter blocks */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`letters-${index}`}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            style={{ display: "flex", gap: 10, justifyContent: "center" }}
-          >
-            {card.word.split("").map((letter, i) => (
-              <LetterBlock key={i} letter={letter} index={i} />
-            ))}
-          </motion.div>
-        </AnimatePresence>
+        {/* Letter blocks — inside capture zone */}
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", zIndex: 1 }}>
+          {card.word.split("").map((letter, i) => (
+            <LetterBlock key={i} letter={letter} index={i} />
+          ))}
+        </div>
       </div>
+      {/* ── END CAPTURE ZONE ── */}
 
-      {/* Bottom nav */}
+      {/* Bottom nav — NOT included in capture */}
       <div
         style={{
           position: "fixed", bottom: 80, left: 0, right: 0,
@@ -276,77 +266,6 @@ export default function FlashcardScreen({ onBack }) {
         >
           Next
         </button>
-      </div>
-
-      {/* Hidden composite for snapshot capture */}
-      <div
-        ref={compositeRef}
-        style={{
-          position: "fixed",
-          left: -9999,
-          top: 0,
-          width: 360,
-          height: 480,
-          background: "#D6EEFF",
-          fontFamily: "Fredoka, sans-serif",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 20,
-          padding: 24,
-          zIndex: -1,
-        }}
-      >
-        {/* Decorative shapes */}
-        <div style={{
-          position: "absolute", top: 20, right: 20,
-          width: 120, height: 100, borderRadius: 32,
-          background: "#FFCDD2", transform: "rotate(8deg)",
-        }} />
-        <div style={{
-          position: "absolute", bottom: 60, left: 20,
-          width: 110, height: 110, borderRadius: "50%",
-          background: "#FFF59D",
-        }} />
-        {/* White card */}
-        <div style={{
-          position: "relative", zIndex: 1,
-          background: "white",
-          borderRadius: 28,
-          padding: 12,
-          boxShadow: "0 12px 48px rgba(30,58,95,0.15)",
-          width: "100%",
-        }}>
-          <img
-            src={customImages[index] || card.image}
-            alt={card.word}
-            style={{
-              width: "100%",
-              height: 260,
-              objectFit: "cover",
-              borderRadius: 18,
-              display: "block",
-            }}
-          />
-        </div>
-        {/* Letter blocks */}
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", zIndex: 1 }}>
-          {card.word.split("").map((letter, i) => (
-            <div
-              key={i}
-              style={{
-                width: 64, height: 64, borderRadius: 16,
-                background: LETTER_COLORS[i % LETTER_COLORS.length],
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 38, fontWeight: 700, color: "#1E3A5F",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-              }}
-            >
-              {letter}
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Hidden file input */}
