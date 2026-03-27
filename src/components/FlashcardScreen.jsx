@@ -152,7 +152,6 @@ export default function FlashcardScreen({ onBack }) {
               <img
                 src={currentImage}
                 alt={card.word}
-                onError={(e) => { e.target.src = `https://raw.githubusercontent.com/Mr-banjoko/learn-with-cody/main/phonics_app_images/cvc_words/a_vowel/${card.word}.jpg`; }}
                 style={{
                   width: "100%",
                   aspectRatio: "1/1",
