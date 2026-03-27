@@ -72,7 +72,7 @@ export default function FlashcardScreen({ onBack }) {
     });
     const dataUrl = canvas.toDataURL("image/png");
     const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    album.unshift({ id: Date.now(), word: card.word, snapshot: dataUrl, date: new Date().toLocaleDateString() });
+    album.push({ id: Date.now(), word: card.word, snapshot: dataUrl, date: new Date().toLocaleDateString() });
     localStorage.setItem("cody_album", JSON.stringify(album));
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2000);
