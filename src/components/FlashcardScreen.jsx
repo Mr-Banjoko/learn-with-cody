@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera, Save, Check } from "lucide-react";
 import html2canvas from "html2canvas";
@@ -39,6 +39,14 @@ export default function FlashcardScreen({ onBack }) {
   const [justSaved, setJustSaved] = useState(false);
   const cardRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Preload all images on mount
+  useEffect(() => {
+    shortAWords.forEach((card) => {
+      const img = new Image();
+      img.src = card.image;
+    });
+  }, []);
 
   const card = shortAWords[index];
   const total = shortAWords.length;
