@@ -84,7 +84,7 @@ export default function LearnPhonics() {
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>{group.label}</p>
                 <p style={{ fontSize: 13, color: "#7BACC8" }}>
-                  {group.active ? "31 flashcards · Tap to open" : "Coming soon"}
+                  {group.active ? "41 flashcards · Tap to open" : "Coming soon"}
                 </p>
               </div>
               {group.active ? (
