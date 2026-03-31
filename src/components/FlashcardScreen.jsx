@@ -102,6 +102,14 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
       })
       .filter(Boolean);
 
+    // Append full word audio at the end of the letter sequence
+    if (card.audio) {
+      steps.push({
+        url: card.audio,
+        onStart: () => setActiveLetterIndex(null),
+      });
+    }
+
     const cancel = playAudioSequence(steps, () => {
       setActiveLetterIndex(null);
       sequenceRef.current = null;
