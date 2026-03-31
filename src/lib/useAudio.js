@@ -1,5 +1,5 @@
 // Bump version to bust stale cache from old letter sound files
-const CACHE_NAME = "cody-audio-v2";
+const CACHE_NAME = "cody-audio-v3";
 
 // Best-practice inter-phoneme gap for beginner CVC blending (research: 400ms)
 // Based on Ehri et al. (2001) phoneme blending norms and programs like Jolly Phonics / Starfall
