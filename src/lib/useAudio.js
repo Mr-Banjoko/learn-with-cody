@@ -1,22 +1,54 @@
 const CACHE_NAME = "cody-audio-v1";
 let currentAudio = null;
 
+// Pre-resolved blob URL map: remoteUrl -> blobUrl
+const resolvedBlobUrls = new Map();
+
 async function getCachedAudioUrl(remoteUrl) {
+  // Return pre-resolved blob URL if available (zero async overhead)
+  if (resolvedBlobUrls.has(remoteUrl)) return resolvedBlobUrls.get(remoteUrl);
   try {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(remoteUrl);
     if (cached) {
       const blob = await cached.blob();
-      return URL.createObjectURL(blob);
+      const blobUrl = URL.createObjectURL(blob);
+      resolvedBlobUrls.set(remoteUrl, blobUrl);
+      return blobUrl;
     }
     const response = await fetch(remoteUrl);
     if (!response.ok) return remoteUrl;
     await cache.put(remoteUrl, response.clone());
     const blob = await response.blob();
-    return URL.createObjectURL(blob);
+    const blobUrl = URL.createObjectURL(blob);
+    resolvedBlobUrls.set(remoteUrl, blobUrl);
+    return blobUrl;
   } catch {
     return remoteUrl;
   }
+}
+
+/**
+ * Pre-resolve a list of remote URLs into blob URLs and warm up the audio engine.
+ * Call this on component mount so first taps are instant.
+ */
+export async function warmupAudio(urls) {
+  for (const url of urls) {
+    if (!resolvedBlobUrls.has(url)) {
+      // Resolve into blob URL silently
+      getCachedAudioUrl(url).catch(() => {});
+    }
+  }
+  // Warm up the browser audio engine with a silent zero-duration audio
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+    ctx.close();
+  } catch {}
 }
 
 export async function playAudio(remoteUrl) {

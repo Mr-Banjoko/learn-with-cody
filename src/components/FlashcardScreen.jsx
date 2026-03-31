@@ -5,7 +5,7 @@ import html2canvas from "html2canvas";
 import { shortAWords } from "../lib/shortAWords";
 import { getLetterSoundUrl } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
-import { playAudio, preloadAudio, playAudioSequence } from "../lib/useAudio";
+import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/useAudio";
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
@@ -54,11 +54,11 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     // Preload word audio
     const audioUrls = wordList.map((c) => c.audio).filter(Boolean);
     if (audioUrls.length > 0) preloadAudio(audioUrls);
-    // Preload all letter sounds if enabled
+    // Preload and warm up all letter sounds if enabled
     if (enableLetterSounds) {
-      const letters = [...new Set(wordList.flatMap((c) => c.word.split("")))];
-      const letterUrls = letters.map(getLetterSoundUrl).filter(Boolean);
-      if (letterUrls.length > 0) preloadAudio(letterUrls);
+      const letters = [...new Set(wordList.flatMap((c) => c.word.split("")))];      const letterUrls = letters.map(getLetterSoundUrl).filter(Boolean);
+      // warmupAudio: resolves blob URLs + warms browser audio engine so first tap is instant
+      if (letterUrls.length > 0) warmupAudio(letterUrls);
     }
   }, []);
 
