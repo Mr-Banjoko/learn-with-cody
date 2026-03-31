@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import FlashcardScreen from "../components/FlashcardScreen";
+import { shortEWords } from "../lib/shortEWords";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
 
 const vowelGroups = [
   { id: "short-a", label: "Short a", emoji: "🍎", active: true },
-  { id: "short-e", label: "Short e", emoji: "🥚", active: false },
+  { id: "short-e", label: "Short e", emoji: "🥚", active: true },
   { id: "short-i", label: "Short i", emoji: "🐟", active: false },
   { id: "short-o", label: "Short o", emoji: "🐙", active: false },
   { id: "short-u", label: "Short u", emoji: "☂️", active: false },
@@ -17,6 +18,9 @@ export default function LearnPhonics() {
 
   if (openFolder === "short-a") {
     return <FlashcardScreen onBack={() => setOpenFolder(null)} />;
+  }
+  if (openFolder === "short-e") {
+    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortEWords} title="Short e Words" />;
   }
 
   return (
@@ -84,7 +88,9 @@ export default function LearnPhonics() {
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>{group.label}</p>
                 <p style={{ fontSize: 13, color: "#7BACC8" }}>
-                  {group.active ? "41 flashcards · Tap to open" : "Coming soon"}
+                  {group.id === "short-a" && "41 flashcards · Tap to open"}
+                  {group.id === "short-e" && "23 flashcards · Tap to open"}
+                  {!group.active && "Coming soon"}
                 </p>
               </div>
               {group.active ? (

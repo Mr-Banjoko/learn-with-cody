@@ -1,0 +1,27 @@
+const BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/e_vowel";
+
+export const shortEWords = [
+  { word: "get", image: `${BASE}/get.webp` },
+  { word: "men", image: `${BASE}/men.webp` },
+  { word: "ten", image: `${BASE}/ten.webp` },
+  { word: "red", image: `${BASE}/red.webp` },
+  { word: "bed", image: `${BASE}/bed.webp` },
+  { word: "bet", image: `${BASE}/bet.webp` },
+  { word: "met", image: `${BASE}/met.webp` },
+  { word: "pen", image: `${BASE}/pen.webp` },
+  { word: "fed", image: `${BASE}/fed.webp` },
+  { word: "leg", image: `${BASE}/leg.webp` },
+  { word: "net", image: `${BASE}/net.webp` },
+  { word: "pet", image: `${BASE}/pet.webp` },
+  { word: "wet", image: `${BASE}/wet.webp` },
+  { word: "jet", image: `${BASE}/jet.webp` },
+  { word: "vet", image: `${BASE}/vet.webp` },
+  { word: "beg", image: `${BASE}/beg.webp` },
+  { word: "den", image: `${BASE}/den.webp` },
+  { word: "hen", image: `${BASE}/hen.webp` },
+  { word: "gem", image: `${BASE}/gem.webp` },
+  { word: "hem", image: `${BASE}/hem.webp` },
+  { word: "wed", image: `${BASE}/wed.webp` },
+  { word: "peg", image: `${BASE}/peg.webp` },
+  { word: "keg", image: `${BASE}/keg.webp` },
+];

@@ -23,7 +23,9 @@ function LetterBlock({ letter, index }) {
   );
 }
 
-export default function FlashcardScreen({ onBack }) {
+export default function FlashcardScreen({ onBack, words, title }) {
+  const wordList = words || shortAWords;
+  const screenTitle = title || "Short a Words";
   const [index, setIndex] = useState(0);
   const [customImages, setCustomImages] = useState({});
   const [justSaved, setJustSaved] = useState(false);
@@ -31,14 +33,14 @@ export default function FlashcardScreen({ onBack }) {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    shortAWords.forEach((card) => {
+    wordList.forEach((card) => {
       const img = new Image();
       img.src = card.image;
     });
   }, []);
 
-  const card = shortAWords[index];
-  const total = shortAWords.length;
+  const card = wordList[index];
+  const total = wordList.length;
   const currentImage = customImages[index] || card.image;
   const hasCustom = !!customImages[index];
 
@@ -74,7 +76,7 @@ export default function FlashcardScreen({ onBack }) {
         <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <ArrowLeft size={22} color="#1E3A5F" />
         </button>
-        <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E3A5F", marginRight: 40 }}>Short a Words</h1>
+        <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E3A5F", marginRight: 40 }}>{screenTitle}</h1>
       </div>
 
       <div ref={captureRef} style={{ background: "#D6EEFF", padding: "28px 24px 28px", display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
