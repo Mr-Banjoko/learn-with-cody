@@ -1,5 +1,9 @@
 // Bump version to bust stale cache from old letter sound files
 const CACHE_NAME = "cody-audio-v2";
+
+// Best-practice inter-phoneme gap for beginner CVC blending (research: 400ms)
+// Based on Ehri et al. (2001) phoneme blending norms and programs like Jolly Phonics / Starfall
+const BLEND_GAP_MS = 400;
 let currentAudio = null;
 
 // Pre-resolved blob URL map: remoteUrl -> blobUrl
@@ -95,7 +99,7 @@ export function playAudioSequence(steps, onDone) {
       currentAudio = audio;
       audio.onended = () => {
         if (currentAudio === audio) currentAudio = null;
-        if (!cancelled) playStep(i + 1);
+        if (!cancelled) setTimeout(() => { if (!cancelled) playStep(i + 1); }, BLEND_GAP_MS);
       };
       // If play fails, move to next step anyway
       audio.play().catch(() => {
