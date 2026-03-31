@@ -1,0 +1,27 @@
+const BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/u_vowel";
+
+export const shortUWords = [
+  { word: "sun", image: `${BASE}/sun.webp` },
+  { word: "fun", image: `${BASE}/fun.webp` },
+  { word: "bus", image: `${BASE}/bus.webp` },
+  { word: "cup", image: `${BASE}/cup.webp` },
+  { word: "pup", image: `${BASE}/pup.webp` },
+  { word: "rub", image: `${BASE}/rub.webp` },
+  { word: "rug", image: `${BASE}/rug.webp` },
+  { word: "hug", image: `${BASE}/hug.webp` },
+  { word: "gun", image: `${BASE}/gun.webp` },
+  { word: "mud", image: `${BASE}/mud.webp` },
+  { word: "mug", image: `${BASE}/mug.webp` },
+  { word: "nut", image: `${BASE}/nut.webp` },
+  { word: "bug", image: `${BASE}/bug.webp` },
+  { word: "sum", image: `${BASE}/sum.webp` },
+  { word: "cub", image: `${BASE}/cub.webp` },
+  { word: "bun", image: `${BASE}/bun.webp` },
+  { word: "gum", image: `${BASE}/gum.webp` },
+  { word: "jug", image: `${BASE}/jug.webp` },
+  { word: "tug", image: `${BASE}/tug.webp` },
+  { word: "sub", image: `${BASE}/sub.webp` },
+  { word: "bud", image: `${BASE}/bud.webp` },
+  { word: "pug", image: `${BASE}/pug.webp` },
+  { word: "hut", image: `${BASE}/hut.webp` },
+];
