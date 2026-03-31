@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { games } from "../lib/content";
 import { Lock } from "lucide-react";
-import RearrangePictures from "../components/games/RearrangePictures";
+import PicSliceGame from "./PicSliceGame";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
 
@@ -12,12 +12,8 @@ const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];
 export default function Games() {
   const [activeGame, setActiveGame] = useState(null);
 
-  if (activeGame === "rearrange-pictures") {
-    return (
-      <div className="min-h-full pb-32" style={{ background: "#D6EEFF" }}>
-        <RearrangePictures onBack={() => setActiveGame(null)} />
-      </div>
-    );
+  if (activeGame === "pic-slice") {
+    return <PicSliceGame onBack={() => setActiveGame(null)} />;
   }
 
   return (
@@ -36,71 +32,54 @@ export default function Games() {
 
       {/* Game Cards */}
       <div className="px-4 flex flex-col gap-4">
-        {games.map((game, i) => (
-          <motion.div
-            key={game.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            onClick={() => game.available && setActiveGame(game.id)}
-            className="relative rounded-3xl overflow-hidden p-5"
-            style={{
-              background: gameBgs[i % gameBgs.length],
-              border: `2px solid ${gameColors[i % gameColors.length]}25`,
-              boxShadow: `0 8px 32px ${gameColors[i % gameColors.length]}15`,
-              cursor: game.available ? "pointer" : "default",
-            }}
-          >
-            {/* Lock overlay for unavailable */}
-            {!game.available && (
-              <div
-                className="absolute inset-0 flex items-center justify-end p-5"
-                style={{ pointerEvents: "none" }}
-              >
+        {games.map((game, i) => {
+          const isPlayable = game.available === true;
+          return (
+            <motion.div
+              key={game.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              onClick={() => isPlayable && setActiveGame(game.id)}
+              className="relative rounded-3xl overflow-hidden p-5"
+              style={{
+                background: gameBgs[i % gameBgs.length],
+                border: `2px solid ${gameColors[i % gameColors.length]}25`,
+                boxShadow: `0 8px 32px ${gameColors[i % gameColors.length]}15`,
+                cursor: isPlayable ? "pointer" : "default",
+              }}
+            >
+              {!isPlayable && (
+                <div className="absolute inset-0 flex items-center justify-end p-5" style={{ pointerEvents: "none" }}>
+                  <div className="rounded-full p-2" style={{ background: `${gameColors[i % gameColors.length]}18` }}>
+                    <Lock size={20} style={{ color: gameColors[i % gameColors.length], opacity: 0.5 }} />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-4">
                 <div
-                  className="rounded-full p-2"
-                  style={{ background: `${gameColors[i % gameColors.length]}18` }}
+                  className="rounded-2xl text-3xl flex items-center justify-center"
+                  style={{ width: 64, height: 64, background: "white", boxShadow: `0 4px 16px ${gameColors[i % gameColors.length]}25`, flexShrink: 0 }}
                 >
-                  <Lock size={20} style={{ color: gameColors[i % gameColors.length], opacity: 0.5 }} />
+                  {game.emoji}
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>{game.label}</h3>
+                  <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>{game.description}</p>
+                  <div
+                    className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold"
+                    style={{ background: `${gameColors[i % gameColors.length]}18`, color: gameColors[i % gameColors.length] }}
+                  >
+                    {isPlayable ? "Play Now! 🎮" : "Coming Soon ✨"}
+                  </div>
                 </div>
               </div>
-            )}
 
-            <div className="flex items-center gap-4">
-              <div
-                className="rounded-2xl text-3xl flex items-center justify-center"
-                style={{
-                  width: 64,
-                  height: 64,
-                  background: "white",
-                  boxShadow: `0 4px 16px ${gameColors[i % gameColors.length]}25`,
-                  flexShrink: 0,
-                }}
-              >
-                {game.emoji}
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>
-                  {game.label}
-                </h3>
-                <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>
-                  {game.description}
-                </p>
-                <div
-                  className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{
-                    background: game.available ? `${gameColors[i % gameColors.length]}22` : `${gameColors[i % gameColors.length]}18`,
-                    color: gameColors[i % gameColors.length],
-                  }}
-                >
-                  {game.available ? "Play Now! 🎮" : "Coming Soon ✨"}
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute top-3 right-12 text-lg opacity-30">✨</div>
-          </motion.div>
-        ))}
+              <div className="absolute top-3 right-12 text-lg opacity-30">✨</div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Cody encouragement */}
