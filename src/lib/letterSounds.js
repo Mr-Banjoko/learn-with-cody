@@ -17,3 +17,12 @@ export const letterSoundUrls = Object.fromEntries(
 export function getLetterSoundUrl(letter) {
   return letterSoundUrls[letter.toLowerCase()] || null;
 }
+
+// Per-letter gain overrides — boost letters that are noticeably quieter than others
+const LETTER_GAIN = {
+  p: 3.0,
+};
+
+export function getLetterGain(letter) {
+  return LETTER_GAIN[letter.toLowerCase()] || 1;
+}

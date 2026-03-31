@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera, Save, Check } from "lucide-react";
 import html2canvas from "html2canvas";
 import { shortAWords } from "../lib/shortAWords";
-import { getLetterSoundUrl } from "../lib/letterSounds";
+import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/useAudio";
 
@@ -83,7 +83,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     const url = getLetterSoundUrl(letter);
     if (!url) return;
     setActiveLetterIndex(i);
-    playAudio(url);
+    playAudio(url, getLetterGain(letter));
     activeTimerRef.current = setTimeout(() => setActiveLetterIndex(null), 900);
   }, [cancelSequence]);
 
@@ -97,6 +97,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
         if (!url) return null;
         return {
           url,
+          gain: getLetterGain(letter),
           onStart: () => setActiveLetterIndex(i),
         };
       })

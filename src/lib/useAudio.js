@@ -56,7 +56,7 @@ export async function warmupAudio(urls) {
   } catch {}
 }
 
-export async function playAudio(remoteUrl) {
+export async function playAudio(remoteUrl, gain = 1) {
   if (!remoteUrl) return;
   if (currentAudio) {
     currentAudio.pause();
@@ -66,6 +66,14 @@ export async function playAudio(remoteUrl) {
   const src = await getCachedAudioUrl(remoteUrl);
   const audio = new Audio(src);
   currentAudio = audio;
+  if (gain !== 1) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = ctx.createMediaElementSource(audio);
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = gain;
+    source.connect(gainNode);
+    gainNode.connect(ctx.destination);
+  }
   audio.play().catch(() => {});
   audio.onended = () => {
     if (currentAudio === audio) currentAudio = null;
@@ -91,12 +99,20 @@ export function playAudioSequence(steps, onDone) {
       if (!cancelled) onDone && onDone();
       return;
     }
-    const { url, onStart } = steps[i];
+    const { url, onStart, gain = 1 } = steps[i];
     onStart && onStart(i);
     getCachedAudioUrl(url).then((src) => {
       if (cancelled) return;
       const audio = new Audio(src);
       currentAudio = audio;
+      if (gain !== 1) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = ctx.createMediaElementSource(audio);
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = gain;
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+      }
       audio.onended = () => {
         if (currentAudio === audio) currentAudio = null;
         if (!cancelled) setTimeout(() => { if (!cancelled) playStep(i + 1); }, BLEND_GAP_MS);
