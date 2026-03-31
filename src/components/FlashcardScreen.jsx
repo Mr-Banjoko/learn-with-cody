@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera, Save, Check } from "lucide-react";
 import html2canvas from "html2canvas";
 import { shortAWords } from "../lib/shortAWords";
+import { playAudio, preloadAudio } from "../lib/useAudio";
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
@@ -37,6 +38,9 @@ export default function FlashcardScreen({ onBack, words, title }) {
       const img = new Image();
       img.src = card.image;
     });
+    // Preload all audio files into cache for offline playback
+    const audioUrls = wordList.map((c) => c.audio).filter(Boolean);
+    if (audioUrls.length > 0) preloadAudio(audioUrls);
   }, []);
 
   const card = wordList[index];
@@ -85,7 +89,12 @@ export default function FlashcardScreen({ onBack, words, title }) {
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
           <AnimatePresence mode="wait">
             <motion.div key={index} initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }} style={{ position: "relative", zIndex: 1, background: "white", borderRadius: 28, padding: 14, boxShadow: "0 12px 48px rgba(30,58,95,0.15)", width: "100%" }}>
-              <img src={currentImage} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
+              <img
+                src={currentImage}
+                alt={card.word}
+                onClick={() => card.audio && playAudio(card.audio)}
+                style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
+              />
               <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
                 <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
               </button>
