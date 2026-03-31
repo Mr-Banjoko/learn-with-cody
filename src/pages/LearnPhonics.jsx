@@ -23,16 +23,16 @@ export default function LearnPhonics() {
     return <FlashcardScreen onBack={() => setOpenFolder(null)} enableLetterSounds />;
   }
   if (openFolder === "short-e") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortEWords} title="Short e Words" />;
+    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortEWords} title="Short e Words" enableLetterSounds />;
   }
   if (openFolder === "short-i") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortIWords} title="Short i Words" />;
+    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortIWords} title="Short i Words" enableLetterSounds />;
   }
   if (openFolder === "short-o") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortOWords} title="Short o Words" />;
+    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortOWords} title="Short o Words" enableLetterSounds />;
   }
   if (openFolder === "short-u") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortUWords} title="Short u Words" />;
+    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortUWords} title="Short u Words" enableLetterSounds />;
   }
 
   return (
