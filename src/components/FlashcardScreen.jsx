@@ -3,12 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Camera, Save, Check } from "lucide-react";
 import html2canvas from "html2canvas";
 import { shortAWords } from "../lib/shortAWords";
-import { getLetterSoundUrl, letterSoundUrls } from "../lib/letterSounds";
+import { getLetterSoundUrl } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
 import { playAudio, preloadAudio } from "../lib/useAudio";
 
-
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
+
+// Pacing for beginner phoneme blending: 700ms between each letter sound
+const LETTER_SOUND_PACE = 700;
 
 function LetterBlock({ letter, index }) {
   return (
@@ -32,78 +34,81 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const screenTitle = title || "Short a Words";
   const [index, setIndex] = useState(0);
   const [customImages, setCustomImages] = useState({});
-  const [activeLetterIdx, setActiveLetterIdx] = useState(null);
-  const sequenceRef = useRef(null);
   const [justSaved, setJustSaved] = useState(false);
+  const [activeLetterIndex, setActiveLetterIndex] = useState(null);
+  const sequenceRef = useRef(null);
+  const activeTimerRef = useRef(null);
   const captureRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Cancel any running sequence when card changes
+  useEffect(() => {
+    cancelSequence();
+    setActiveLetterIndex(null);
+  }, [index]);
 
   useEffect(() => {
     wordList.forEach((card) => {
       const img = new Image();
       img.src = card.image;
     });
-    // Preload all audio files into cache for offline playback
+    // Preload word audio
     const audioUrls = wordList.map((c) => c.audio).filter(Boolean);
     if (audioUrls.length > 0) preloadAudio(audioUrls);
     // Preload all letter sounds if enabled
     if (enableLetterSounds) {
-      const letterUrls = Object.values(letterSoundUrls);
-      preloadAudio(letterUrls);
+      const letters = [...new Set(wordList.flatMap((c) => c.word.split("")))];
+      const letterUrls = letters.map(getLetterSoundUrl).filter(Boolean);
+      if (letterUrls.length > 0) preloadAudio(letterUrls);
     }
   }, []);
-
-  // Clear active letter when card changes
-  useEffect(() => {
-    stopSequence();
-    setActiveLetterIdx(null);
-  }, [index]);
-
-  const stopSequence = useCallback(() => {
-    if (sequenceRef.current) {
-      clearTimeout(sequenceRef.current);
-      sequenceRef.current = null;
-    }
-    setActiveLetterIdx(null);
-  }, []);
-
-  const playLetterAt = useCallback((letters, idx, onDone) => {
-    if (idx >= letters.length) {
-      setActiveLetterIdx(null);
-      if (onDone) onDone();
-      return;
-    }
-    const letter = letters[idx].toLowerCase();
-    const url = getLetterSoundUrl(letter);
-    setActiveLetterIdx(idx);
-    if (url) playAudio(url);
-    // ~700ms per letter — gives kids time to hear and process each phoneme
-    sequenceRef.current = setTimeout(() => {
-      playLetterAt(letters, idx + 1, onDone);
-    }, 700);
-  }, []);
-
-  const handleLetterTap = useCallback((letter, idx) => {
-    if (!enableLetterSounds) return;
-    stopSequence();
-    const url = getLetterSoundUrl(letter);
-    setActiveLetterIdx(idx);
-    if (url) playAudio(url);
-    // Clear glow after 800ms
-    sequenceRef.current = setTimeout(() => setActiveLetterIdx(null), 800);
-  }, [enableLetterSounds, stopSequence]);
-
-  const handlePlaySequence = useCallback(() => {
-    if (!enableLetterSounds) return;
-    stopSequence();
-    const letters = card.word.split("");
-    playLetterAt(letters, 0);
-  }, [enableLetterSounds, card, stopSequence, playLetterAt]);
 
   const card = wordList[index];
   const total = wordList.length;
   const currentImage = customImages[index] || card.image;
   const hasCustom = !!customImages[index];
+
+  const cancelSequence = useCallback(() => {
+    if (sequenceRef.current) {
+      sequenceRef.current.forEach(clearTimeout);
+      sequenceRef.current = null;
+    }
+    if (activeTimerRef.current) {
+      clearTimeout(activeTimerRef.current);
+      activeTimerRef.current = null;
+    }
+  }, []);
+
+  const handleLetterTap = useCallback((letter, i) => {
+    cancelSequence();
+    const url = getLetterSoundUrl(letter);
+    if (!url) return;
+    setActiveLetterIndex(i);
+    playAudio(url);
+    activeTimerRef.current = setTimeout(() => setActiveLetterIndex(null), 900);
+  }, [cancelSequence]);
+
+  const handlePlaySequence = useCallback(() => {
+    cancelSequence();
+    setActiveLetterIndex(null);
+    const letters = card.word.split("");
+    const timers = [];
+    letters.forEach((letter, i) => {
+      const t1 = setTimeout(() => {
+        setActiveLetterIndex(i);
+        const url = getLetterSoundUrl(letter);
+        if (url) playAudio(url);
+      }, i * LETTER_SOUND_PACE);
+      const t2 = setTimeout(() => setActiveLetterIndex(null), i * LETTER_SOUND_PACE + 650);
+      timers.push(t1, t2);
+    });
+    const tEnd = setTimeout(() => {
+      setActiveLetterIndex(null);
+      sequenceRef.current = null;
+    }, letters.length * LETTER_SOUND_PACE + 650);
+    timers.push(tEnd);
+    sequenceRef.current = timers;
+  }, [card, cancelSequence]);
 
   const handleCamera = () => fileInputRef.current.click();
 
@@ -168,43 +173,45 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
           )}
         </AnimatePresence>
 
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", alignItems: "center", zIndex: 1 }}>
-          {card.word.split("").map((letter, i) =>
-            enableLetterSounds ? (
-              <RainbowLetterBlock
-                key={i}
-                letter={letter}
-                index={i}
-                isActive={activeLetterIdx === i}
-                onClick={() => handleLetterTap(letter, i)}
-              />
-            ) : (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, zIndex: 1 }}>
+          {enableLetterSounds ? (
+            <>
+              {card.word.split("").map((letter, i) => (
+                <RainbowLetterBlock
+                  key={i}
+                  letter={letter}
+                  index={i}
+                  isActive={activeLetterIndex === i}
+                  onClick={() => handleLetterTap(letter, i)}
+                />
+              ))}
+              {/* Yellow play button */}
+              <button
+                onClick={handlePlaySequence}
+                style={{
+                  width: 56, height: 56, borderRadius: 28,
+                  background: "#FFD93D",
+                  border: "3px solid #F4B942",
+                  boxShadow: "0 4px 16px rgba(255,193,7,0.45)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", flexShrink: 0, marginLeft: 6,
+                  transition: "transform 0.12s",
+                }}
+                onMouseDown={e => e.currentTarget.style.transform = "scale(0.92)"}
+                onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+                onTouchStart={e => e.currentTarget.style.transform = "scale(0.92)"}
+                onTouchEnd={e => e.currentTarget.style.transform = "scale(1)"}
+                aria-label="Play letter sounds"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#1E3A5F">
+                  <polygon points="5,3 19,12 5,21" />
+                </svg>
+              </button>
+            </>
+          ) : (
+            card.word.split("").map((letter, i) => (
               <LetterBlock key={i} letter={letter} index={i} />
-            )
-          )}
-          {enableLetterSounds && (
-            <button
-              onClick={handlePlaySequence}
-              title="Play letter sounds"
-              style={{
-                marginLeft: 8,
-                width: 52,
-                height: 52,
-                borderRadius: 26,
-                background: "#FFD93D",
-                border: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 4px 14px rgba(255,200,0,0.45)",
-                flexShrink: 0,
-              }}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="#1E3A5F">
-                <polygon points="5,3 19,12 5,21" />
-              </svg>
-            </button>
+            ))
           )}
         </div>
       </div>
