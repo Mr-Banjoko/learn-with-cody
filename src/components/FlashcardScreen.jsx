@@ -5,12 +5,11 @@ import html2canvas from "html2canvas";
 import { shortAWords } from "../lib/shortAWords";
 import { getLetterSoundUrl } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
-import { playAudio, preloadAudio } from "../lib/useAudio";
+import { playAudio, preloadAudio, playAudioSequence } from "../lib/useAudio";
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
-// Pacing for beginner phoneme blending: 700ms between each letter sound
-const LETTER_SOUND_PACE = 700;
+
 
 function LetterBlock({ letter, index }) {
   return (
@@ -70,14 +69,14 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
 
   const cancelSequence = useCallback(() => {
     if (sequenceRef.current) {
-      sequenceRef.current.forEach(clearTimeout);
+      sequenceRef.current(); // call the cancel function returned by playAudioSequence
       sequenceRef.current = null;
     }
     if (activeTimerRef.current) {
       clearTimeout(activeTimerRef.current);
       activeTimerRef.current = null;
     }
-  }, []);
+  }, []); 
 
   const handleLetterTap = useCallback((letter, i) => {
     cancelSequence();
@@ -92,22 +91,22 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     cancelSequence();
     setActiveLetterIndex(null);
     const letters = card.word.split("");
-    const timers = [];
-    letters.forEach((letter, i) => {
-      const t1 = setTimeout(() => {
-        setActiveLetterIndex(i);
+    const steps = letters
+      .map((letter, i) => {
         const url = getLetterSoundUrl(letter);
-        if (url) playAudio(url);
-      }, i * LETTER_SOUND_PACE);
-      const t2 = setTimeout(() => setActiveLetterIndex(null), i * LETTER_SOUND_PACE + 650);
-      timers.push(t1, t2);
-    });
-    const tEnd = setTimeout(() => {
+        if (!url) return null;
+        return {
+          url,
+          onStart: () => setActiveLetterIndex(i),
+        };
+      })
+      .filter(Boolean);
+
+    const cancel = playAudioSequence(steps, () => {
       setActiveLetterIndex(null);
       sequenceRef.current = null;
-    }, letters.length * LETTER_SOUND_PACE + 650);
-    timers.push(tEnd);
-    sequenceRef.current = timers;
+    });
+    sequenceRef.current = cancel;
   }, [card, cancelSequence]);
 
   const handleCamera = () => fileInputRef.current.click();
