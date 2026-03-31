@@ -1,4 +1,5 @@
-const CACHE_NAME = "cody-audio-v1";
+// Bump version to bust stale cache from old letter sound files
+const CACHE_NAME = "cody-audio-v2";
 let currentAudio = null;
 
 // Pre-resolved blob URL map: remoteUrl -> blobUrl
