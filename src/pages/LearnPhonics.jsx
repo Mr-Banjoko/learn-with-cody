@@ -20,7 +20,7 @@ export default function LearnPhonics() {
   const [openFolder, setOpenFolder] = useState(null);
 
   if (openFolder === "short-a") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} />;
+    return <FlashcardScreen onBack={() => setOpenFolder(null)} enableLetterSounds />;
   }
   if (openFolder === "short-e") {
     return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortEWords} title="Short e Words" />;
