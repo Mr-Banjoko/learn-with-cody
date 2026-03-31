@@ -1,6 +1,8 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { games } from "../lib/content";
 import { Lock } from "lucide-react";
+import RearrangePictures from "../components/games/RearrangePictures";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
 
@@ -8,6 +10,16 @@ const gameColors = ["#FF6B6B", "#4D96FF", "#6BCB77"];
 const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];
 
 export default function Games() {
+  const [activeGame, setActiveGame] = useState(null);
+
+  if (activeGame === "rearrange-pictures") {
+    return (
+      <div className="min-h-full pb-32" style={{ background: "#D6EEFF" }}>
+        <RearrangePictures onBack={() => setActiveGame(null)} />
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-full pb-32 pt-4"
@@ -30,25 +42,29 @@ export default function Games() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
+            onClick={() => game.available && setActiveGame(game.id)}
             className="relative rounded-3xl overflow-hidden p-5"
             style={{
-              background: gameBgs[i],
-              border: `2px solid ${gameColors[i]}25`,
-              boxShadow: `0 8px 32px ${gameColors[i]}15`,
+              background: gameBgs[i % gameBgs.length],
+              border: `2px solid ${gameColors[i % gameColors.length]}25`,
+              boxShadow: `0 8px 32px ${gameColors[i % gameColors.length]}15`,
+              cursor: game.available ? "pointer" : "default",
             }}
           >
-            {/* Lock overlay */}
-            <div
-              className="absolute inset-0 flex items-center justify-end p-5"
-              style={{ pointerEvents: "none" }}
-            >
+            {/* Lock overlay for unavailable */}
+            {!game.available && (
               <div
-                className="rounded-full p-2"
-                style={{ background: `${gameColors[i]}18` }}
+                className="absolute inset-0 flex items-center justify-end p-5"
+                style={{ pointerEvents: "none" }}
               >
-                <Lock size={20} style={{ color: gameColors[i], opacity: 0.5 }} />
+                <div
+                  className="rounded-full p-2"
+                  style={{ background: `${gameColors[i % gameColors.length]}18` }}
+                >
+                  <Lock size={20} style={{ color: gameColors[i % gameColors.length], opacity: 0.5 }} />
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex items-center gap-4">
               <div
@@ -57,7 +73,7 @@ export default function Games() {
                   width: 64,
                   height: 64,
                   background: "white",
-                  boxShadow: `0 4px 16px ${gameColors[i]}25`,
+                  boxShadow: `0 4px 16px ${gameColors[i % gameColors.length]}25`,
                   flexShrink: 0,
                 }}
               >
@@ -72,14 +88,16 @@ export default function Games() {
                 </p>
                 <div
                   className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: `${gameColors[i]}18`, color: gameColors[i] }}
+                  style={{
+                    background: game.available ? `${gameColors[i % gameColors.length]}22` : `${gameColors[i % gameColors.length]}18`,
+                    color: gameColors[i % gameColors.length],
+                  }}
                 >
-                  Coming Soon ✨
+                  {game.available ? "Play Now! 🎮" : "Coming Soon ✨"}
                 </div>
               </div>
             </div>
 
-            {/* Sparkle decoration */}
             <div className="absolute top-3 right-12 text-lg opacity-30">✨</div>
           </motion.div>
         ))}

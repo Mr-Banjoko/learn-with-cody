@@ -96,6 +96,13 @@ export const activityTypes = [
 
 export const games = [
   {
+    id: "rearrange-pictures",
+    label: "Rearrange the Pictures",
+    emoji: "🧩",
+    description: "Drag picture pieces into the right slots!",
+    available: true,
+  },
+  {
     id: "word-match",
     label: "Word Match",
     emoji: "🎯",
@@ -105,7 +112,7 @@ export const games = [
   {
     id: "letter-catch",
     label: "Letter Catch",
-    emoji: "🧩",
+    emoji: "🧲",
     description: "Catch the right letters to make a word",
     available: false,
   },
