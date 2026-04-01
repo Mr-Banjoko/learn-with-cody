@@ -42,7 +42,7 @@ export default function AppShell() {
       <ParentSettings language={language} onLanguageChange={handleLanguageChange} />
 
       {/* Page content */}
-      <div className="absolute inset-0 overflow-y-auto" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+      <div className="absolute inset-0 overflow-y-auto" style={{ paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
