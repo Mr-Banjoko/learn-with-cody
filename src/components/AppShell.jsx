@@ -48,7 +48,16 @@ export default function AppShell() {
       <ParentSettings language={language} onLanguageChange={handleLanguageChange} />
 
       {/* Page content */}
-      <div className="absolute inset-0 overflow-y-auto" style={{ paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: isDeepScreen ? "0" : "calc(80px + env(safe-area-inset-bottom, 0px))" }}>
+      <div
+        className="absolute inset-0"
+        style={{
+          paddingTop: "env(safe-area-inset-top, 0px)",
+          paddingBottom: isDeepScreen ? "0" : "calc(80px + env(safe-area-inset-bottom, 0px))",
+          overflow: isDeepScreen ? "hidden" : "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -56,7 +65,7 @@ export default function AppShell() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
-            className="min-h-full"
+            style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
           >
             {renderPage()}
           </motion.div>

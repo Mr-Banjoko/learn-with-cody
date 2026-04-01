@@ -29,20 +29,20 @@ export default function LearnPhonics({ onDeepScreen }) {
     onDeepScreen && onDeepScreen(false);
   };
 
-  if (openFolder === "short-a") {
-    return <FlashcardScreen onBack={exitFolder} enableLetterSounds />;
-  }
-  if (openFolder === "short-e") {
-    return <FlashcardScreen onBack={exitFolder} words={shortEWords} title="Short e Words" enableLetterSounds />;
-  }
-  if (openFolder === "short-i") {
-    return <FlashcardScreen onBack={exitFolder} words={shortIWords} title="Short i Words" enableLetterSounds />;
-  }
-  if (openFolder === "short-o") {
-    return <FlashcardScreen onBack={exitFolder} words={shortOWords} title="Short o Words" enableLetterSounds />;
-  }
-  if (openFolder === "short-u") {
-    return <FlashcardScreen onBack={exitFolder} words={shortUWords} title="Short u Words" enableLetterSounds />;
+  if (openFolder) {
+    const wordMap = {
+      "short-a": { words: undefined, title: "Short a Words" },
+      "short-e": { words: shortEWords, title: "Short e Words" },
+      "short-i": { words: shortIWords, title: "Short i Words" },
+      "short-o": { words: shortOWords, title: "Short o Words" },
+      "short-u": { words: shortUWords, title: "Short u Words" },
+    };
+    const cfg = wordMap[openFolder];
+    return (
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100%" }}>
+        <FlashcardScreen onBack={exitFolder} words={cfg.words} title={cfg.title} enableLetterSounds />
+      </div>
+    );
   }
 
   return (

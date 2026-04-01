@@ -145,7 +145,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100%", background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "#D6EEFF", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "16px 20px 20px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
         <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <ArrowLeft size={22} color="#1E3A5F" />
