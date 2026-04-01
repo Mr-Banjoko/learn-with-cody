@@ -9,8 +9,6 @@ import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
-
-
 function LetterBlock({ letter, index }) {
   return (
     <div
@@ -40,7 +38,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const captureRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Cancel any running sequence when card changes
   useEffect(() => {
     cancelSequence();
     setActiveLetterIndex(null);
@@ -51,13 +48,11 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
       const img = new Image();
       img.src = card.image;
     });
-    // Preload word audio
     const audioUrls = wordList.map((c) => c.audio).filter(Boolean);
     if (audioUrls.length > 0) preloadAudio(audioUrls);
-    // Preload and warm up all letter sounds if enabled
     if (enableLetterSounds) {
-      const letters = [...new Set(wordList.flatMap((c) => c.word.split("")))];      const letterUrls = letters.map(getLetterSoundUrl).filter(Boolean);
-      // warmupAudio: resolves blob URLs + warms browser audio engine so first tap is instant
+      const letters = [...new Set(wordList.flatMap((c) => c.word.split("")))];
+      const letterUrls = letters.map(getLetterSoundUrl).filter(Boolean);
       if (letterUrls.length > 0) warmupAudio(letterUrls);
     }
   }, []);
@@ -69,14 +64,14 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
 
   const cancelSequence = useCallback(() => {
     if (sequenceRef.current) {
-      sequenceRef.current(); // call the cancel function returned by playAudioSequence
+      sequenceRef.current();
       sequenceRef.current = null;
     }
     if (activeTimerRef.current) {
       clearTimeout(activeTimerRef.current);
       activeTimerRef.current = null;
     }
-  }, []); 
+  }, []);
 
   const handleLetterTap = useCallback((letter, i) => {
     cancelSequence();
@@ -95,20 +90,12 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
       .map((letter, i) => {
         const url = getLetterSoundUrl(letter);
         if (!url) return null;
-        return {
-          url,
-          gain: getLetterGain(letter),
-          onStart: () => setActiveLetterIndex(i),
-        };
+        return { url, gain: getLetterGain(letter), onStart: () => setActiveLetterIndex(i) };
       })
       .filter(Boolean);
 
-    // Append full word audio at the end of the letter sequence
     if (card.audio) {
-      steps.push({
-        url: card.audio,
-        onStart: () => setActiveLetterIndex(null),
-      });
+      steps.push({ url: card.audio, onStart: () => setActiveLetterIndex(null) });
     }
 
     const cancel = playAudioSequence(steps, () => {
@@ -208,7 +195,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                   onClick={() => handleLetterTap(letter, i)}
                 />
               ))}
-              {/* Yellow play button */}
               <button
                 onClick={handlePlaySequence}
                 style={{
