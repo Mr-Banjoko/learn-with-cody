@@ -9,13 +9,7 @@ import Album from "../pages/Album";
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("learn");
-  const [isDeepScreen, setIsDeepScreen] = useState(false);
   const [language, setLanguage] = useState(() => localStorage.getItem("lang") || "en");
-
-  const handleTabChange = (tab) => {
-    setIsDeepScreen(false);
-    setActiveTab(tab);
-  };
 
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
@@ -25,15 +19,15 @@ export default function AppShell() {
   const renderPage = () => {
     switch (activeTab) {
       case "home":
-        return <Home onNavigate={handleTabChange} />;
+        return <Home onNavigate={setActiveTab} />;
       case "learn":
-        return <LearnPhonics onDeepScreen={setIsDeepScreen} />;
+        return <LearnPhonics />;
       case "games":
-        return <Games onDeepScreen={setIsDeepScreen} />;
+        return <Games />;
       case "album":
         return <Album />;
       default:
-        return <LearnPhonics onDeepScreen={setIsDeepScreen} />;
+        return <LearnPhonics />;
     }
   };
 
@@ -48,16 +42,7 @@ export default function AppShell() {
       <ParentSettings language={language} onLanguageChange={handleLanguageChange} />
 
       {/* Page content */}
-      <div
-        className="absolute inset-0"
-        style={{
-          paddingTop: "env(safe-area-inset-top, 0px)",
-          paddingBottom: isDeepScreen ? "0" : "calc(80px + env(safe-area-inset-bottom, 0px))",
-          overflow: isDeepScreen ? "hidden" : "auto",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <div className="absolute inset-0 overflow-y-auto" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -65,7 +50,7 @@ export default function AppShell() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
-            style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
+            className="min-h-full"
           >
             {renderPage()}
           </motion.div>
@@ -73,14 +58,12 @@ export default function AppShell() {
       </div>
 
       {/* Tab Bar */}
-      {!isDeepScreen && (
-        <TabBar
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          language={language}
-          showCodyInBar={true}
-        />
-      )}
+      <TabBar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        language={language}
+        showCodyInBar={true}
+      />
     </div>
   );
 }
