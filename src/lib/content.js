@@ -96,18 +96,11 @@ export const activityTypes = [
 
 export const games = [
   {
-    id: "pic-slice",
-    label: "Rearrange the Pictures",
-    emoji: "🖼️",
-    description: "Drag picture pieces into the right order",
-    available: true,
-  },
-  {
     id: "word-match",
     label: "Word Match",
     emoji: "🎯",
     description: "Match the word to the picture",
-    available: true,
+    available: false,
   },
   {
     id: "letter-catch",
