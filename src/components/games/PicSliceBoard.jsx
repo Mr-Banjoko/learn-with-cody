@@ -1,3 +1,10 @@
+import { useState, useEffect, useCallback } from "react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { motion, AnimatePresence } from "framer-motion";
+import { buildRoundPieces } from "../../lib/picSliceGameData";
+import { playAudio } from "../../lib/useAudio";
+import { getLetterGain } from "../../lib/letterSounds";
+
 // Renders one vertical slice of an image.
 // Strategy: render the full image scaled to (height = size), width = auto,
 // inside an overflow:hidden container of width=size.
@@ -26,7 +33,7 @@ function ImageSlice({ image, sliceIndex, size = 76, borderRadius = 10 }) {
         flexShrink: 0,
         pointerEvents: "none",
         backgroundImage: `url(${image})`,
-        backgroundSize: "auto 100%",
+        backgroundSize: "300% 100%",
         backgroundPosition: bgPositions[sliceIndex],
         backgroundRepeat: "no-repeat",
       }}
@@ -45,7 +52,7 @@ function buildInitialState(wordPair) {
   };
 }
 
-function PicSliceBoard({ wordPair, onRoundComplete }) {
+export default function PicSliceBoard({ wordPair, onRoundComplete }) {
   const [state, setState] = useState(() => buildInitialState(wordPair));
 
   // Reset when wordPair changes (new round)
