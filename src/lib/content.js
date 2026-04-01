@@ -107,7 +107,7 @@ export const games = [
     label: "Word Match",
     emoji: "🎯",
     description: "Match the word to the picture",
-    available: false,
+    available: true,
   },
   {
     id: "letter-catch",

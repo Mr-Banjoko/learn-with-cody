@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { games } from "../lib/content";
 import { Lock } from "lucide-react";
 import PicSliceGame from "./PicSliceGame";
+import WordMatch from "../components/games/WordMatch";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
 
@@ -14,6 +15,9 @@ export default function Games() {
 
   if (activeGame === "pic-slice") {
     return <PicSliceGame onBack={() => setActiveGame(null)} />;
+  }
+  if (activeGame === "word-match") {
+    return <WordMatch onBack={() => setActiveGame(null)} />;
   }
 
   return (
