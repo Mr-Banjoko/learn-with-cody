@@ -1,35 +1,13 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { games } from "../lib/content";
 import { Lock } from "lucide-react";
-import PicSliceGame from "./PicSliceGame";
-import WordMatch from "../components/games/WordMatch";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
 
 const gameColors = ["#FF6B6B", "#4D96FF", "#6BCB77"];
 const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];
 
-export default function Games({ onDeepScreen }) {
-  const [activeGame, setActiveGame] = useState(null);
-
-  const enterGame = (id) => {
-    setActiveGame(id);
-    onDeepScreen && onDeepScreen(true);
-  };
-
-  const exitGame = () => {
-    setActiveGame(null);
-    onDeepScreen && onDeepScreen(false);
-  };
-
-  if (activeGame === "pic-slice") {
-    return <PicSliceGame onBack={exitGame} />;
-  }
-  if (activeGame === "word-match") {
-    return <WordMatch onBack={exitGame} />;
-  }
-
+export default function Games() {
   return (
     <div
       className="min-h-full pb-32 pt-4"
@@ -46,54 +24,65 @@ export default function Games({ onDeepScreen }) {
 
       {/* Game Cards */}
       <div className="px-4 flex flex-col gap-4">
-        {games.map((game, i) => {
-          const isPlayable = game.available === true;
-          return (
-            <motion.div
-              key={game.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              onClick={() => isPlayable && enterGame(game.id)}
-              className="relative rounded-3xl overflow-hidden p-5"
-              style={{
-                background: gameBgs[i % gameBgs.length],
-                border: `2px solid ${gameColors[i % gameColors.length]}25`,
-                boxShadow: `0 8px 32px ${gameColors[i % gameColors.length]}15`,
-                cursor: isPlayable ? "pointer" : "default",
-              }}
+        {games.map((game, i) => (
+          <motion.div
+            key={game.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="relative rounded-3xl overflow-hidden p-5"
+            style={{
+              background: gameBgs[i],
+              border: `2px solid ${gameColors[i]}25`,
+              boxShadow: `0 8px 32px ${gameColors[i]}15`,
+            }}
+          >
+            {/* Lock overlay */}
+            <div
+              className="absolute inset-0 flex items-center justify-end p-5"
+              style={{ pointerEvents: "none" }}
             >
-              {!isPlayable && (
-                <div className="absolute inset-0 flex items-center justify-end p-5" style={{ pointerEvents: "none" }}>
-                  <div className="rounded-full p-2" style={{ background: `${gameColors[i % gameColors.length]}18` }}>
-                    <Lock size={20} style={{ color: gameColors[i % gameColors.length], opacity: 0.5 }} />
-                  </div>
-                </div>
-              )}
+              <div
+                className="rounded-full p-2"
+                style={{ background: `${gameColors[i]}18` }}
+              >
+                <Lock size={20} style={{ color: gameColors[i], opacity: 0.5 }} />
+              </div>
+            </div>
 
-              <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div
+                className="rounded-2xl text-3xl flex items-center justify-center"
+                style={{
+                  width: 64,
+                  height: 64,
+                  background: "white",
+                  boxShadow: `0 4px 16px ${gameColors[i]}25`,
+                  flexShrink: 0,
+                }}
+              >
+                {game.emoji}
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>
+                  {game.label}
+                </h3>
+                <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>
+                  {game.description}
+                </p>
                 <div
-                  className="rounded-2xl text-3xl flex items-center justify-center"
-                  style={{ width: 64, height: 64, background: "white", boxShadow: `0 4px 16px ${gameColors[i % gameColors.length]}25`, flexShrink: 0 }}
+                  className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold"
+                  style={{ background: `${gameColors[i]}18`, color: gameColors[i] }}
                 >
-                  {game.emoji}
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>{game.label}</h3>
-                  <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>{game.description}</p>
-                  <div
-                    className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold"
-                    style={{ background: `${gameColors[i % gameColors.length]}18`, color: gameColors[i % gameColors.length] }}
-                  >
-                    {isPlayable ? "Play Now! 🎮" : "Coming Soon ✨"}
-                  </div>
+                  Coming Soon ✨
                 </div>
               </div>
+            </div>
 
-              <div className="absolute top-3 right-12 text-lg opacity-30">✨</div>
-            </motion.div>
-          );
-        })}
+            {/* Sparkle decoration */}
+            <div className="absolute top-3 right-12 text-lg opacity-30">✨</div>
+          </motion.div>
+        ))}
       </div>
 
       {/* Cody encouragement */}
