@@ -1,0 +1,30 @@
+const BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/o_vowel";
+const AUDIO = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/audio-feature/letter_sound/words/o_words";
+
+export const shortOWords = [
+  { word: "mom", image: `${BASE}/mom.webp`, audio: `${AUDIO}/mom.mp3` },
+  { word: "dog", image: `${BASE}/dog.webp`, audio: `${AUDIO}/Dog.mp3` },
+  { word: "hot", image: `${BASE}/hot.webp`, audio: `${AUDIO}/hot.mp3` },
+  { word: "top", image: `${BASE}/top.webp`, audio: `${AUDIO}/top.mp3` },
+  { word: "pop", image: `${BASE}/pop.webp`, audio: `${AUDIO}/pop.mp3` },
+  { word: "not", image: `${BASE}/not.webp`, audio: `${AUDIO}/not.mp3` },
+  { word: "hop", image: `${BASE}/hop.webp`, audio: `${AUDIO}/hop.mp3` },
+  { word: "log", image: `${BASE}/log.webp`, audio: `${AUDIO}/log.mp3` },
+  { word: "rod", image: `${BASE}/rod.webp`, audio: `${AUDIO}/rod.mp3` },
+  { word: "rob", image: `${BASE}/rob.webp`, audio: `${AUDIO}/rob.mp3` },
+  { word: "pot", image: `${BASE}/pot.webp`, audio: `${AUDIO}/pot.mp3` },
+  { word: "mop", image: `${BASE}/mop.webp`, audio: `${AUDIO}/mop.mp3` },
+  { word: "box", image: `${BASE}/box.webp`, audio: `${AUDIO}/box.mp3` },
+  { word: "fox", image: `${BASE}/fox.webp`, audio: `${AUDIO}/fox.mp3` },
+  { word: "jog", image: `${BASE}/jog.webp`, audio: `${AUDIO}/jog.mp3` },
+  { word: "sob", image: `${BASE}/sob.webp`, audio: `${AUDIO}/sob.mp3` },
+  { word: "cod", image: `${BASE}/cod.webp`, audio: `${AUDIO}/cod.mp3` },
+  { word: "cop", image: `${BASE}/cop.webp`, audio: `${AUDIO}/cop.mp3` },
+  { word: "cot", image: `${BASE}/cot.webp`, audio: `${AUDIO}/cot.mp3` },
+  { word: "bog", image: `${BASE}/bog.webp`, audio: `${AUDIO}/bog.mp3` },
+  { word: "hog", image: `${BASE}/hog.webp`, audio: `${AUDIO}/hog.mp3` },
+  { word: "fog", image: `${BASE}/fog.webp`, audio: `${AUDIO}/Fog.mp3` },
+  { word: "cob", image: `${BASE}/cob.webp`, audio: `${AUDIO}/cob.mp3` },
+  { word: "cog", image: `${BASE}/cog.webp`, audio: `${AUDIO}/cog.mp3` },
+  { word: "jot", image: `${BASE}/jot.webp`, audio: `${AUDIO}/jot.mp3` },
+];

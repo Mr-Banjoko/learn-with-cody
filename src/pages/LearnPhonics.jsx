@@ -1,22 +1,48 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import FlashcardScreen from "../components/FlashcardScreen";
+import { shortEWords } from "../lib/shortEWords";
+import { shortIWords } from "../lib/shortIWords";
+import { shortOWords } from "../lib/shortOWords";
+import { shortUWords } from "../lib/shortUWords";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
 
 const vowelGroups = [
   { id: "short-a", label: "Short a", emoji: "🍎", active: true },
-  { id: "short-e", label: "Short e", emoji: "🥚", active: false },
-  { id: "short-i", label: "Short i", emoji: "🐟", active: false },
-  { id: "short-o", label: "Short o", emoji: "🐙", active: false },
-  { id: "short-u", label: "Short u", emoji: "☂️", active: false },
+  { id: "short-e", label: "Short e", emoji: "🥚", active: true },
+  { id: "short-i", label: "Short i", emoji: "🐟", active: true },
+  { id: "short-o", label: "Short o", emoji: "🐙", active: true },
+  { id: "short-u", label: "Short u", emoji: "☂️", active: true },
 ];
 
-export default function LearnPhonics() {
+export default function LearnPhonics({ onDeepScreen }) {
   const [openFolder, setOpenFolder] = useState(null);
 
-  if (openFolder === "short-a") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} />;
+  const enterFolder = (id) => {
+    setOpenFolder(id);
+    onDeepScreen && onDeepScreen(true);
+  };
+
+  const exitFolder = () => {
+    setOpenFolder(null);
+    onDeepScreen && onDeepScreen(false);
+  };
+
+  if (openFolder) {
+    const wordMap = {
+      "short-a": { words: undefined, title: "Short a Words" },
+      "short-e": { words: shortEWords, title: "Short e Words" },
+      "short-i": { words: shortIWords, title: "Short i Words" },
+      "short-o": { words: shortOWords, title: "Short o Words" },
+      "short-u": { words: shortUWords, title: "Short u Words" },
+    };
+    const cfg = wordMap[openFolder];
+    return (
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100%" }}>
+        <FlashcardScreen onBack={exitFolder} words={cfg.words} title={cfg.title} enableLetterSounds />
+      </div>
+    );
   }
 
   return (
@@ -55,7 +81,7 @@ export default function LearnPhonics() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.07 }}
               whileTap={group.active ? { scale: 0.97 } : {}}
-              onClick={() => group.active && setOpenFolder(group.id)}
+              onClick={() => group.active && enterFolder(group.id)}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -84,7 +110,12 @@ export default function LearnPhonics() {
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>{group.label}</p>
                 <p style={{ fontSize: 13, color: "#7BACC8" }}>
-                  {group.active ? "41 flashcards · Tap to open" : "Coming soon"}
+                  {group.id === "short-a" && "41 flashcards · Tap to open"}
+                  {group.id === "short-e" && "23 flashcards · Tap to open"}
+                  {group.id === "short-i" && "36 flashcards · Tap to open"}
+                  {group.id === "short-o" && "25 flashcards · Tap to open"}
+                  {group.id === "short-u" && "23 flashcards · Tap to open"}
+                  {!group.active && "Coming soon"}
                 </p>
               </div>
               {group.active ? (
