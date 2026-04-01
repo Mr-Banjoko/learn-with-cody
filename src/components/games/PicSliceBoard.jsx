@@ -1,9 +1,22 @@
-// Renders one vertical slice of an image using a clipped <img> tag.
-// The container is sized to one-third of the full image width (size × 3 total),
-// and the img is shifted left by (sliceIndex × size) pixels so only the correct
-// third is visible through the overflow:hidden container.
+// Renders one vertical slice of an image.
+// Strategy: render the full image scaled to (height = size), width = auto,
+// inside an overflow:hidden container of width=size.
+// Shift the image left by (sliceIndex / 3) of its natural rendered width
+// using a wrapper that is 3× wide, then clip to size.
 // sliceIndex: 0=left, 1=middle, 2=right
 function ImageSlice({ image, sliceIndex, size = 76, borderRadius = 10 }) {
+  // Use background-image with background-size: auto 100% so the image scales
+  // to fill the container height while preserving aspect ratio.
+  // background-position uses percentage values:
+  //   0% = left edge aligned, 50% = center, 100% = right edge aligned.
+  // These are the ONLY correct values for a 3-slice split with this technique.
+  const bgPositions = ["0% 50%", "50% 50%", "100% 50%"];
+
+  // However, percentage background-position is relative to the *overflow* space,
+  // not the image width — so for a square container with a wide image this works
+  // correctly only when backgroundSize is set to "auto 100%" (height-constrained).
+  // This means the image fills the full height and overflows horizontally,
+  // and the percentage shifts it to show the correct third.
   return (
     <div
       style={{
@@ -12,29 +25,12 @@ function ImageSlice({ image, sliceIndex, size = 76, borderRadius = 10 }) {
         borderRadius,
         flexShrink: 0,
         pointerEvents: "none",
-        overflow: "hidden",
-        position: "relative",
+        backgroundImage: `url(${image})`,
+        backgroundSize: "auto 100%",
+        backgroundPosition: bgPositions[sliceIndex],
+        backgroundRepeat: "no-repeat",
       }}
-    >
-      <img
-        src={image}
-        alt=""
-        draggable={false}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: -(sliceIndex * size),
-          width: size * 3,
-          height: size,
-          objectFit: "cover",
-          objectPosition: "center center",
-          display: "block",
-          userSelect: "none",
-          WebkitUserSelect: "none",
-          pointerEvents: "none",
-        }}
-      />
-    </div>
+    />
   );
 }
 
