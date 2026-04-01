@@ -33,7 +33,6 @@ export default function WordMatch({ onBack }) {
 
   return (
     <div className="min-h-full pb-32" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}>
-      {/* Header */}
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "16px 20px 22px", display: "flex", alignItems: "center", gap: 12 }}>
         <button
           onClick={onBack}
@@ -47,7 +46,6 @@ export default function WordMatch({ onBack }) {
         </div>
       </div>
 
-      {/* Vowel folders */}
       <div className="px-4 pt-6 flex flex-col gap-3">
         {VOWEL_GROUPS.map((group, i) => (
           <motion.button
