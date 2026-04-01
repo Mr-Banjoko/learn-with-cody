@@ -5,33 +5,26 @@ import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
 
-// Renders one vertical slice of an image
-function ImageSlice({ image, sliceIndex, size = 76 }) {
+// Renders one vertical slice of an image using background-image (reliable crop)
+// sliceIndex: 0=left, 1=middle, 2=right
+function ImageSlice({ image, sliceIndex, size = 76, borderRadius = 10 }) {
+  // background-size: 300% 100% means the full image spans 3× the container width
+  // background-position: 0%=left, 50%=middle, 100%=right
+  const positions = ["0% 50%", "50% 50%", "100% 50%"];
   return (
     <div
       style={{
         width: size,
         height: size,
-        overflow: "hidden",
-        borderRadius: 10,
+        borderRadius,
         flexShrink: 0,
         pointerEvents: "none",
+        backgroundImage: `url(${image})`,
+        backgroundSize: "300% 100%",
+        backgroundPosition: positions[sliceIndex],
+        backgroundRepeat: "no-repeat",
       }}
-    >
-      <img
-        src={image}
-        alt=""
-        draggable={false}
-        style={{
-          width: size * 3,
-          height: size,
-          objectFit: "cover",
-          marginLeft: -sliceIndex * size,
-          display: "block",
-          userSelect: "none",
-        }}
-      />
-    </div>
+    />
   );
 }
 
