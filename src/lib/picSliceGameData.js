@@ -1,6 +1,16 @@
-const BASE_IMG = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/a_vowel";
-const BASE_WORDS_A = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/audio-feature/letter_sound/words/a_words";
+import { shortAWords } from "./shortAWords";
+import { shortEWords } from "./shortEWords";
+import { shortIWords } from "./shortIWords";
+import { shortOWords } from "./shortOWords";
+import { shortUWords } from "./shortUWords";
+
 const BASE_LETTERS = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/audio-feature/letter_sound/letter_sounds";
+
+// Build a lookup map from word string → { image, audio } using the real asset URLs
+const WORD_LOOKUP = {};
+[...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords].forEach((w) => {
+  WORD_LOOKUP[w.word] = { image: w.image, audio: w.audio };
+});
 
 // Navigation: 5 vowel groups
 export const VOWEL_GROUPS = [
@@ -11,39 +21,29 @@ export const VOWEL_GROUPS = [
   { id: "short-u", label: "Short u", emoji: "☂️", available: false },
 ];
 
-// Rounds: each round is a pair of words
-// Scalable: add short-e, short-i etc. later
+// Rounds: each round is a pair of words — only include pairs where BOTH words have images
 export const GAME_ROUNDS = {
   "short-a": {
     easy: [
-      ["cat", "fat"],
-      ["bat", "hat"],
+      ["cat", "bat"],
+      ["hat", "mat"],
       ["can", "pan"],
       ["map", "tap"],
-      ["bag", "rag"],
+      ["bag", "tag"],
       ["jam", "ham"],
-      ["rat", "mat"],
-      ["sad", "dad"],
-    ],
-    difficult: [], // TBD
+      ["rat", "sat"],
+      ["sad", "mad"],
+    ].filter(([a, b]) => WORD_LOOKUP[a] && WORD_LOOKUP[b]),
+    difficult: [],
   },
 };
 
-function getImageBase(vowelId) {
-  // Extend for other vowels later
-  return BASE_IMG;
-}
-
-function getWordAudioBase(vowelId) {
-  if (vowelId === "short-a") return BASE_WORDS_A;
-  return BASE_WORDS_A; // fallback — extend later
-}
-
-export function buildWordData(word, vowelId = "short-a") {
+export function buildWordData(word) {
+  const assets = WORD_LOOKUP[word] || {};
   return {
     word,
-    image: `${getImageBase(vowelId)}/${word}.webp`,
-    audio: `${getWordAudioBase(vowelId)}/${word}.mp3`,
+    image: assets.image || "",
+    audio: assets.audio || "",
     phonemes: word.split("").map((letter) => ({
       letter,
       audio: `${BASE_LETTERS}/${letter}.mp3`,
@@ -58,7 +58,7 @@ export function buildRoundPieces(wordDataArr) {
   wordDataArr.forEach((wd, wordIndex) => {
     wd.phonemes.forEach((ph, sliceIndex) => {
       pieces.push({
-        id: `${wd.word}-${sliceIndex}`,
+        id: `${wd.word}-${sliceIndex}-${Date.now()}`,
         wordIndex,
         sliceIndex,
         phoneme: ph.letter,

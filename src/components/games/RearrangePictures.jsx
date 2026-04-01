@@ -170,7 +170,7 @@ export default function RearrangePictures({ onBack }) {
     const rounds = GAME_ROUNDS[vowelId]?.[difficulty] || [];
     const pair = rounds[index % rounds.length];
     if (pair) {
-      setWordPair(pair.map((w) => buildWordData(w, vowelId)));
+      setWordPair(pair.map((w) => buildWordData(w)));
     }
   };
 
