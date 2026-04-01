@@ -1,16 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { motion, AnimatePresence } from "framer-motion";
-import { buildRoundPieces } from "../../lib/picSliceGameData";
-import { playAudio } from "../../lib/useAudio";
-import { getLetterGain } from "../../lib/letterSounds";
-
-// Renders one vertical slice of an image using background-image (reliable crop)
+// Renders one vertical slice of an image using a clipped <img> tag.
+// The container is sized to one-third of the full image width (size × 3 total),
+// and the img is shifted left by (sliceIndex × size) pixels so only the correct
+// third is visible through the overflow:hidden container.
 // sliceIndex: 0=left, 1=middle, 2=right
 function ImageSlice({ image, sliceIndex, size = 76, borderRadius = 10 }) {
-  // background-size: 300% 100% means the full image spans 3× the container width
-  // background-position: 0%=left, 50%=middle, 100%=right
-  const positions = ["0% 50%", "50% 50%", "100% 50%"];
   return (
     <div
       style={{
@@ -19,12 +12,29 @@ function ImageSlice({ image, sliceIndex, size = 76, borderRadius = 10 }) {
         borderRadius,
         flexShrink: 0,
         pointerEvents: "none",
-        backgroundImage: `url(${image})`,
-        backgroundSize: "300% 100%",
-        backgroundPosition: positions[sliceIndex],
-        backgroundRepeat: "no-repeat",
+        overflow: "hidden",
+        position: "relative",
       }}
-    />
+    >
+      <img
+        src={image}
+        alt=""
+        draggable={false}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: -(sliceIndex * size),
+          width: size * 3,
+          height: size,
+          objectFit: "cover",
+          objectPosition: "center center",
+          display: "block",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          pointerEvents: "none",
+        }}
+      />
+    </div>
   );
 }
 
@@ -39,7 +49,7 @@ function buildInitialState(wordPair) {
   };
 }
 
-export default function PicSliceBoard({ wordPair, onRoundComplete }) {
+function PicSliceBoard({ wordPair, onRoundComplete }) {
   const [state, setState] = useState(() => buildInitialState(wordPair));
 
   // Reset when wordPair changes (new round)
