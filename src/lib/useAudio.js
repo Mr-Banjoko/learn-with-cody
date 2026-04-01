@@ -1,91 +1,105 @@
-// Bump version to bust stale cache from old letter sound files
+/**
+ * useAudio.js — Web Audio API-based playback
+ *
+ * Uses AudioContext + decodeAudioData for reliable, correct-speed playback
+ * on both desktop and mobile (especially iOS Safari where new Audio() is unreliable).
+ *
+ * Decoded AudioBuffers are cached in memory so subsequent plays are instant.
+ */
+
 const CACHE_NAME = "cody-audio-v3";
-
-// Best-practice inter-phoneme gap for beginner CVC blending (research: 400ms)
-// Based on Ehri et al. (2001) phoneme blending norms and programs like Jolly Phonics / Starfall
 const BLEND_GAP_MS = 400;
-let currentAudio = null;
 
-// Pre-resolved blob URL map: remoteUrl -> blobUrl
-const resolvedBlobUrls = new Map();
+// Shared AudioContext — created once, reused everywhere
+let _ctx = null;
+function getCtx() {
+  if (!_ctx || _ctx.state === "closed") {
+    _ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // iOS suspends context until user interaction — resume it
+  if (_ctx.state === "suspended") _ctx.resume().catch(() => {});
+  return _ctx;
+}
 
-async function getCachedAudioUrl(remoteUrl) {
-  // Return pre-resolved blob URL if available (zero async overhead)
-  if (resolvedBlobUrls.has(remoteUrl)) return resolvedBlobUrls.get(remoteUrl);
+// Cache: remoteUrl -> decoded AudioBuffer
+const bufferCache = new Map();
+
+// Currently playing source node (so we can stop it)
+let currentSource = null;
+
+function stopCurrent() {
+  if (currentSource) {
+    try { currentSource.stop(); } catch {}
+    currentSource = null;
+  }
+}
+
+/**
+ * Fetch audio bytes: tries Cache API first, then network.
+ * Returns ArrayBuffer.
+ */
+async function fetchAudioBytes(remoteUrl) {
   try {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(remoteUrl);
-    if (cached) {
-      const blob = await cached.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      resolvedBlobUrls.set(remoteUrl, blobUrl);
-      return blobUrl;
-    }
+    if (cached) return cached.arrayBuffer();
     const response = await fetch(remoteUrl);
-    if (!response.ok) return remoteUrl;
+    if (!response.ok) throw new Error("fetch failed");
     if (response.status === 200) await cache.put(remoteUrl, response.clone());
-    const blob = await response.blob();
-    const blobUrl = URL.createObjectURL(blob);
-    resolvedBlobUrls.set(remoteUrl, blobUrl);
-    return blobUrl;
+    return response.arrayBuffer();
   } catch {
-    return remoteUrl;
+    // Fallback: direct fetch without cache
+    const response = await fetch(remoteUrl);
+    return response.arrayBuffer();
   }
 }
 
 /**
- * Pre-resolve a list of remote URLs into blob URLs and warm up the audio engine.
- * Call this on component mount so first taps are instant.
+ * Decode and cache an AudioBuffer for a remote URL.
  */
-export async function warmupAudio(urls) {
-  for (const url of urls) {
-    if (!resolvedBlobUrls.has(url)) {
-      // Resolve into blob URL silently
-      getCachedAudioUrl(url).catch(() => {});
-    }
-  }
-  // Warm up the browser audio engine with a silent zero-duration audio
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const buf = ctx.createBuffer(1, 1, 22050);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.start(0);
-    ctx.close();
-  } catch {}
+async function getBuffer(remoteUrl) {
+  if (bufferCache.has(remoteUrl)) return bufferCache.get(remoteUrl);
+  const bytes = await fetchAudioBytes(remoteUrl);
+  const ctx = getCtx();
+  const buffer = await ctx.decodeAudioData(bytes);
+  bufferCache.set(remoteUrl, buffer);
+  return buffer;
 }
 
+/**
+ * Play a single audio URL immediately.
+ * Stops any currently playing audio first.
+ */
 export async function playAudio(remoteUrl, gain = 1) {
   if (!remoteUrl) return;
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-    currentAudio = null;
+  stopCurrent();
+  const ctx = getCtx();
+  const buffer = await getBuffer(remoteUrl);
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.playbackRate.value = 1.0;
+  if (gain !== 1) {
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = Math.min(1, Math.max(0, gain));
+    source.connect(gainNode);
+    gainNode.connect(ctx.destination);
+  } else {
+    source.connect(ctx.destination);
   }
-  const src = await getCachedAudioUrl(remoteUrl);
-  const audio = new Audio(src);
-  audio.playbackRate = 1.0;
-  audio.volume = Math.min(1, Math.max(0, gain));
-  currentAudio = audio;
-  audio.play().catch(() => {});
-  audio.onended = () => {
-    if (currentAudio === audio) currentAudio = null;
+  currentSource = source;
+  source.onended = () => {
+    if (currentSource === source) currentSource = null;
   };
+  source.start(0);
 }
 
 /**
- * Play an array of steps sequentially, each starting only after the previous ends.
- * Each step: { url: string, onStart: (index) => void }
+ * Play an array of steps sequentially (letter sounds → word).
+ * Each step: { url, gain?, onStart? }
  * Returns a cancel function.
  */
 export function playAudioSequence(steps, onDone) {
-  // Stop any currently playing audio first
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio = null;
-  }
-
+  stopCurrent();
   let cancelled = false;
 
   function playStep(i) {
@@ -95,20 +109,26 @@ export function playAudioSequence(steps, onDone) {
     }
     const { url, onStart, gain = 1 } = steps[i];
     onStart && onStart(i);
-    getCachedAudioUrl(url).then((src) => {
+    getBuffer(url).then((buffer) => {
       if (cancelled) return;
-      const audio = new Audio(src);
-      audio.playbackRate = 1.0;
-      audio.volume = Math.min(1, Math.max(0, gain));
-      currentAudio = audio;
-      audio.onended = () => {
-        if (currentAudio === audio) currentAudio = null;
+      const ctx = getCtx();
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.playbackRate.value = 1.0;
+      if (gain !== 1) {
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = Math.min(1, Math.max(0, gain));
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+      } else {
+        source.connect(ctx.destination);
+      }
+      currentSource = source;
+      source.onended = () => {
+        if (currentSource === source) currentSource = null;
         if (!cancelled) setTimeout(() => { if (!cancelled) playStep(i + 1); }, BLEND_GAP_MS);
       };
-      // If play fails, move to next step anyway
-      audio.play().catch(() => {
-        if (!cancelled) playStep(i + 1);
-      });
+      source.start(0);
     }).catch(() => {
       if (!cancelled) playStep(i + 1);
     });
@@ -118,25 +138,31 @@ export function playAudioSequence(steps, onDone) {
 
   return function cancel() {
     cancelled = true;
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio = null;
-    }
+    stopCurrent();
   };
 }
 
-export async function preloadAudio(urls) {
-  try {
-    const cache = await caches.open(CACHE_NAME);
-    for (const url of urls) {
-      const cached = await cache.match(url);
-      if (!cached) {
-        fetch(url)
-          .then((res) => { if (res.ok && res.status === 200) cache.put(url, res); })
-          .catch(() => {});
-      }
+/**
+ * Pre-decode and cache audio files so first taps are instant.
+ * Also resumes / initialises the AudioContext.
+ */
+export async function warmupAudio(urls) {
+  const ctx = getCtx(); // ensure context exists and is running
+  ctx.resume().catch(() => {});
+  for (const url of urls) {
+    if (!bufferCache.has(url)) {
+      getBuffer(url).catch(() => {});
     }
-  } catch {
-    // silently fail if Cache API is unavailable
+  }
+}
+
+/**
+ * Legacy compat: preload just caches the raw bytes.
+ */
+export async function preloadAudio(urls) {
+  for (const url of urls) {
+    if (!bufferCache.has(url)) {
+      getBuffer(url).catch(() => {});
+    }
   }
 }
