@@ -1,30 +1,56 @@
 /**
  * useAudio.js — Web Audio API-based playback
  *
- * Uses AudioContext + decodeAudioData for reliable, correct-speed playback
- * on both desktop and mobile (especially iOS Safari where new Audio() is unreliable).
- *
- * Decoded AudioBuffers are cached in memory so subsequent plays are instant.
+ * Key mobile fix: AudioContext must be resumed SYNCHRONOUSLY inside a user gesture.
+ * We do this by (a) calling resumeCtx() at the very start of play calls,
+ * and (b) registering a global unlock listener on first touch/click.
  */
 
 const CACHE_NAME = "cody-audio-v3";
 const BLEND_GAP_MS = 400;
 
-// Shared AudioContext — created once, reused everywhere
 let _ctx = null;
+
 function getCtx() {
   if (!_ctx || _ctx.state === "closed") {
     _ctx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  // iOS suspends context until user interaction — resume it
-  if (_ctx.state === "suspended") _ctx.resume().catch(() => {});
   return _ctx;
 }
+
+// Call this synchronously at the START of every user-gesture handler.
+// On iOS, resume() only works when called synchronously inside a gesture.
+function resumeCtx() {
+  const ctx = getCtx();
+  if (ctx.state === "suspended") {
+    ctx.resume(); // intentionally NOT awaited — must be sync call in gesture
+  }
+  return ctx;
+}
+
+// Global one-time unlock on first touch/click (handles cases where
+// the AudioContext is created before any gesture).
+let unlocked = false;
+function installUnlockListener() {
+  if (unlocked || typeof window === "undefined") return;
+  const unlock = () => {
+    if (unlocked) return;
+    unlocked = true;
+    resumeCtx();
+    window.removeEventListener("touchstart", unlock, true);
+    window.removeEventListener("touchend", unlock, true);
+    window.removeEventListener("click", unlock, true);
+  };
+  window.addEventListener("touchstart", unlock, true);
+  window.addEventListener("touchend", unlock, true);
+  window.addEventListener("click", unlock, true);
+}
+installUnlockListener();
 
 // Cache: remoteUrl -> decoded AudioBuffer
 const bufferCache = new Map();
 
-// Currently playing source node (so we can stop it)
+// Currently playing source node
 let currentSource = null;
 
 function stopCurrent() {
@@ -34,10 +60,6 @@ function stopCurrent() {
   }
 }
 
-/**
- * Fetch audio bytes: tries Cache API first, then network.
- * Returns ArrayBuffer.
- */
 async function fetchAudioBytes(remoteUrl) {
   try {
     const cache = await caches.open(CACHE_NAME);
@@ -48,33 +70,22 @@ async function fetchAudioBytes(remoteUrl) {
     if (response.status === 200) await cache.put(remoteUrl, response.clone());
     return response.arrayBuffer();
   } catch {
-    // Fallback: direct fetch without cache
     const response = await fetch(remoteUrl);
     return response.arrayBuffer();
   }
 }
 
-/**
- * Decode and cache an AudioBuffer for a remote URL.
- */
 async function getBuffer(remoteUrl) {
   if (bufferCache.has(remoteUrl)) return bufferCache.get(remoteUrl);
   const bytes = await fetchAudioBytes(remoteUrl);
+  // Use a fresh context reference here in case it was recreated
   const ctx = getCtx();
   const buffer = await ctx.decodeAudioData(bytes);
   bufferCache.set(remoteUrl, buffer);
   return buffer;
 }
 
-/**
- * Play a single audio URL immediately.
- * Stops any currently playing audio first.
- */
-export async function playAudio(remoteUrl, gain = 1) {
-  if (!remoteUrl) return;
-  stopCurrent();
-  const ctx = getCtx();
-  const buffer = await getBuffer(remoteUrl);
+function playBuffer(ctx, buffer, gain) {
   const source = ctx.createBufferSource();
   source.buffer = buffer;
   source.playbackRate.value = 1.0;
@@ -87,18 +98,23 @@ export async function playAudio(remoteUrl, gain = 1) {
     source.connect(ctx.destination);
   }
   currentSource = source;
-  source.onended = () => {
-    if (currentSource === source) currentSource = null;
-  };
+  return source;
+}
+
+export async function playAudio(remoteUrl, gain = 1) {
+  if (!remoteUrl) return;
+  // MUST resume synchronously before any await — iOS gesture context
+  const ctx = resumeCtx();
+  stopCurrent();
+  const buffer = await getBuffer(remoteUrl);
+  const source = playBuffer(ctx, buffer, gain);
+  source.onended = () => { if (currentSource === source) currentSource = null; };
   source.start(0);
 }
 
-/**
- * Play an array of steps sequentially (letter sounds → word).
- * Each step: { url, gain?, onStart? }
- * Returns a cancel function.
- */
 export function playAudioSequence(steps, onDone) {
+  // Resume synchronously at the start of the gesture
+  resumeCtx();
   stopCurrent();
   let cancelled = false;
 
@@ -112,18 +128,7 @@ export function playAudioSequence(steps, onDone) {
     getBuffer(url).then((buffer) => {
       if (cancelled) return;
       const ctx = getCtx();
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.playbackRate.value = 1.0;
-      if (gain !== 1) {
-        const gainNode = ctx.createGain();
-        gainNode.gain.value = Math.min(1, Math.max(0, gain));
-        source.connect(gainNode);
-        gainNode.connect(ctx.destination);
-      } else {
-        source.connect(ctx.destination);
-      }
-      currentSource = source;
+      const source = playBuffer(ctx, buffer, gain);
       source.onended = () => {
         if (currentSource === source) currentSource = null;
         if (!cancelled) setTimeout(() => { if (!cancelled) playStep(i + 1); }, BLEND_GAP_MS);
@@ -142,13 +147,8 @@ export function playAudioSequence(steps, onDone) {
   };
 }
 
-/**
- * Pre-decode and cache audio files so first taps are instant.
- * Also resumes / initialises the AudioContext.
- */
 export async function warmupAudio(urls) {
-  const ctx = getCtx(); // ensure context exists and is running
-  ctx.resume().catch(() => {});
+  resumeCtx();
   for (const url of urls) {
     if (!bufferCache.has(url)) {
       getBuffer(url).catch(() => {});
@@ -156,9 +156,6 @@ export async function warmupAudio(urls) {
   }
 }
 
-/**
- * Legacy compat: preload just caches the raw bytes.
- */
 export async function preloadAudio(urls) {
   for (const url of urls) {
     if (!bufferCache.has(url)) {
