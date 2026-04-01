@@ -23,7 +23,7 @@ async function getCachedAudioUrl(remoteUrl) {
     }
     const response = await fetch(remoteUrl);
     if (!response.ok) return remoteUrl;
-    await cache.put(remoteUrl, response.clone());
+    if (response.status === 200) await cache.put(remoteUrl, response.clone());
     const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
     resolvedBlobUrls.set(remoteUrl, blobUrl);
@@ -144,7 +144,7 @@ export async function preloadAudio(urls) {
       const cached = await cache.match(url);
       if (!cached) {
         fetch(url)
-          .then((res) => { if (res.ok) cache.put(url, res); })
+          .then((res) => { if (res.ok && res.status === 200) cache.put(url, res); })
           .catch(() => {});
       }
     }
