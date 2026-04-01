@@ -65,15 +65,9 @@ export async function playAudio(remoteUrl, gain = 1) {
   }
   const src = await getCachedAudioUrl(remoteUrl);
   const audio = new Audio(src);
+  audio.playbackRate = 1.0;
+  audio.volume = Math.min(1, Math.max(0, gain));
   currentAudio = audio;
-  if (gain !== 1) {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const source = ctx.createMediaElementSource(audio);
-    const gainNode = ctx.createGain();
-    gainNode.gain.value = gain;
-    source.connect(gainNode);
-    gainNode.connect(ctx.destination);
-  }
   audio.play().catch(() => {});
   audio.onended = () => {
     if (currentAudio === audio) currentAudio = null;
@@ -104,15 +98,9 @@ export function playAudioSequence(steps, onDone) {
     getCachedAudioUrl(url).then((src) => {
       if (cancelled) return;
       const audio = new Audio(src);
+      audio.playbackRate = 1.0;
+      audio.volume = Math.min(1, Math.max(0, gain));
       currentAudio = audio;
-      if (gain !== 1) {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = ctx.createMediaElementSource(audio);
-        const gainNode = ctx.createGain();
-        gainNode.gain.value = gain;
-        source.connect(gainNode);
-        gainNode.connect(ctx.destination);
-      }
       audio.onended = () => {
         if (currentAudio === audio) currentAudio = null;
         if (!cancelled) setTimeout(() => { if (!cancelled) playStep(i + 1); }, BLEND_GAP_MS);
