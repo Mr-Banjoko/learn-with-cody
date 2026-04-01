@@ -50,7 +50,6 @@ export default function LearnPhonics({ onDeepScreen }) {
       className="min-h-full pb-32"
       style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}
     >
-      {/* Header */}
       <div
         style={{
           background: "#A8D0E6",
@@ -68,7 +67,6 @@ export default function LearnPhonics({ onDeepScreen }) {
         </div>
       </div>
 
-      {/* Word Groups */}
       <div className="px-4 pt-6">
         <p style={{ fontSize: 15, fontWeight: 600, color: "#4A90C4", marginBottom: 14 }}>
           📂 Word Groups
