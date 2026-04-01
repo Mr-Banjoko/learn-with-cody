@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, Save, Check } from "lucide-react";
+import { ArrowLeft, Camera, Save, Check, BookImage } from "lucide-react";
 import html2canvas from "html2canvas";
 import { shortAWords } from "../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
@@ -145,7 +145,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   };
 
   return (
-    <div className="min-h-full flex flex-col" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif", paddingBottom: "calc(80px + env(safe-area-inset-bottom, 16px))" }}>
+    <div className="min-h-full flex flex-col" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif", paddingBottom: "env(safe-area-inset-bottom, 16px)" }}>
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "16px 20px 20px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
         <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
           <ArrowLeft size={22} color="#1E3A5F" />
@@ -153,7 +153,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
         <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E3A5F", marginRight: 40 }}>{screenTitle}</h1>
       </div>
 
-      <div ref={captureRef} style={{ background: "#D6EEFF", padding: "28px 24px 28px", display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
+      <div ref={captureRef} style={{ background: "#D6EEFF", padding: "28px 24px 28px", display: "flex", flexDirection: "column", alignItems: "center", gap: 22, position: "relative" }}>
         <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
           <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
@@ -174,9 +174,24 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
 
         <AnimatePresence>
           {hasCustom && (
-            <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} onClick={handleSave} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 28px", borderRadius: 999, background: justSaved ? "#4ECDC4" : "#5B8DEF", color: "white", border: "none", cursor: "pointer", fontSize: 18, fontWeight: 600, fontFamily: "Fredoka, sans-serif", boxShadow: "0 6px 20px rgba(91,141,239,0.35)", transition: "background 0.3s", zIndex: 1 }}>
-              {justSaved ? <Check size={20} /> : <Save size={20} />}
-              {justSaved ? "Saved to Album!" : "Save to Album"}
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={handleSave}
+              style={{
+                position: "absolute", top: 18, left: 18,
+                width: 48, height: 48, borderRadius: 24,
+                background: justSaved ? "#4ECDC4" : "#5B8DEF",
+                color: "white", border: "none", cursor: "pointer",
+                boxShadow: "0 4px 16px rgba(91,141,239,0.40)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                zIndex: 3, transition: "background 0.3s",
+                touchAction: "manipulation",
+              }}
+              aria-label="Save to Album"
+            >
+              {justSaved ? <Check size={22} /> : <BookImage size={22} />}
             </motion.button>
           )}
         </AnimatePresence>

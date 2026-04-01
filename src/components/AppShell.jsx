@@ -9,7 +9,13 @@ import Album from "../pages/Album";
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("learn");
+  const [isDeepScreen, setIsDeepScreen] = useState(false);
   const [language, setLanguage] = useState(() => localStorage.getItem("lang") || "en");
+
+  const handleTabChange = (tab) => {
+    setIsDeepScreen(false);
+    setActiveTab(tab);
+  };
 
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
@@ -19,15 +25,15 @@ export default function AppShell() {
   const renderPage = () => {
     switch (activeTab) {
       case "home":
-        return <Home onNavigate={setActiveTab} />;
+        return <Home onNavigate={handleTabChange} />;
       case "learn":
-        return <LearnPhonics />;
+        return <LearnPhonics onDeepScreen={setIsDeepScreen} />;
       case "games":
-        return <Games />;
+        return <Games onDeepScreen={setIsDeepScreen} />;
       case "album":
         return <Album />;
       default:
-        return <LearnPhonics />;
+        return <LearnPhonics onDeepScreen={setIsDeepScreen} />;
     }
   };
 
@@ -42,7 +48,7 @@ export default function AppShell() {
       <ParentSettings language={language} onLanguageChange={handleLanguageChange} />
 
       {/* Page content */}
-      <div className="absolute inset-0 overflow-y-auto" style={{ paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: "calc(80px + env(safe-area-inset-bottom, 0px))" }}>
+      <div className="absolute inset-0 overflow-y-auto" style={{ paddingTop: "env(safe-area-inset-top, 0px)", paddingBottom: isDeepScreen ? "0" : "calc(80px + env(safe-area-inset-bottom, 0px))" }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -58,12 +64,14 @@ export default function AppShell() {
       </div>
 
       {/* Tab Bar */}
-      <TabBar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        language={language}
-        showCodyInBar={true}
-      />
+      {!isDeepScreen && (
+        <TabBar
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          language={language}
+          showCodyInBar={true}
+        />
+      )}
     </div>
   );
 }

@@ -24,7 +24,7 @@ export default function Album() {
   };
 
   return (
-    <div className="min-h-full flex flex-col pb-32" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}>
+    <div className="min-h-full flex flex-col" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif", paddingBottom: "env(safe-area-inset-bottom, 16px)" }}>
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "16px 20px 20px", textAlign: "center" }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: "#1E3A5F" }}>My Album 📸</h1>
         <p style={{ fontSize: 14, color: "#3A6080", marginTop: 2 }}>Your saved flashcards</p>
@@ -59,9 +59,9 @@ export default function Album() {
         )}
       </div>
       {total > 0 && (
-        <div style={{ position: "fixed", bottom: 80, left: 0, right: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", maxWidth: 480, margin: "0 auto" }}>
-          <button onClick={() => { if (index > 0) setIndex(index - 1); }} disabled={index === 0} style={{ padding: "14px 28px", borderRadius: 999, background: index === 0 ? "#C5DCF0" : "#A8C8E0", color: index === 0 ? "#9CB8CC" : "#1E3A5F", border: "none", cursor: index === 0 ? "not-allowed" : "pointer", fontSize: 18, fontWeight: 600, fontFamily: "Fredoka, sans-serif", opacity: index === 0 ? 0.6 : 1, minWidth: 110 }}>Previous</button>
-          <button onClick={() => { if (index < total - 1) setIndex(index + 1); }} disabled={index === total - 1} style={{ padding: "14px 28px", borderRadius: 999, background: index === total - 1 ? "#C5DCF0" : "#4A90C4", color: index === total - 1 ? "#9CB8CC" : "white", border: "none", cursor: index === total - 1 ? "not-allowed" : "pointer", fontSize: 18, fontWeight: 600, fontFamily: "Fredoka, sans-serif", opacity: index === total - 1 ? 0.6 : 1, minWidth: 110 }}>Next</button>
+        <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 28px 8px", maxWidth: 480, width: "100%", alignSelf: "center", boxSizing: "border-box" }}>
+          <button onClick={() => { if (index > 0) setIndex(index - 1); }} disabled={index === 0} style={{ padding: "14px 28px", borderRadius: 999, background: index === 0 ? "#C5DCF0" : "#A8C8E0", color: index === 0 ? "#9CB8CC" : "#1E3A5F", border: "none", cursor: index === 0 ? "not-allowed" : "pointer", fontSize: 18, fontWeight: 600, fontFamily: "Fredoka, sans-serif", opacity: index === 0 ? 0.6 : 1, minWidth: 110, touchAction: "manipulation" }}>Previous</button>
+          <button onClick={() => { if (index < total - 1) setIndex(index + 1); }} disabled={index === total - 1} style={{ padding: "14px 28px", borderRadius: 999, background: index === total - 1 ? "#C5DCF0" : "#4A90C4", color: index === total - 1 ? "#9CB8CC" : "white", border: "none", cursor: index === total - 1 ? "not-allowed" : "pointer", fontSize: 18, fontWeight: 600, fontFamily: "Fredoka, sans-serif", opacity: index === total - 1 ? 0.6 : 1, minWidth: 110, touchAction: "manipulation" }}>Next</button>
         </div>
       )}
     </div>

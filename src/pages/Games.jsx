@@ -10,14 +10,24 @@ const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab18
 const gameColors = ["#FF6B6B", "#4D96FF", "#6BCB77"];
 const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];
 
-export default function Games() {
+export default function Games({ onDeepScreen }) {
   const [activeGame, setActiveGame] = useState(null);
 
+  const enterGame = (id) => {
+    setActiveGame(id);
+    onDeepScreen && onDeepScreen(true);
+  };
+
+  const exitGame = () => {
+    setActiveGame(null);
+    onDeepScreen && onDeepScreen(false);
+  };
+
   if (activeGame === "pic-slice") {
-    return <PicSliceGame onBack={() => setActiveGame(null)} />;
+    return <PicSliceGame onBack={exitGame} />;
   }
   if (activeGame === "word-match") {
-    return <WordMatch onBack={() => setActiveGame(null)} />;
+    return <WordMatch onBack={exitGame} />;
   }
 
   return (
@@ -44,7 +54,7 @@ export default function Games() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              onClick={() => isPlayable && setActiveGame(game.id)}
+              onClick={() => isPlayable && enterGame(game.id)}
               className="relative rounded-3xl overflow-hidden p-5"
               style={{
                 background: gameBgs[i % gameBgs.length],
