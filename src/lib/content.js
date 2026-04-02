@@ -128,7 +128,7 @@ export const games = [
     label: "Letter Catch",
     emoji: "🧩",
     description: "Catch the right letters to make a word",
-    available: false,
+    available: true,
   },
   {
     id: "sound-safari",
