@@ -7,7 +7,6 @@ const BLEND_GAP_MS = 200;
 
 let currentAudio = null;
 
-// Pre-resolved blob URL map: remoteUrl -> blobUrl
 const resolvedBlobUrls = new Map();
 
 async function getCachedAudioUrl(remoteUrl) {
@@ -145,6 +144,6 @@ export async function preloadAudio(urls) {
       }
     }
   } catch {
-    // silently fail if Cache API is unavailable
+    // silently fail
   }
 }
