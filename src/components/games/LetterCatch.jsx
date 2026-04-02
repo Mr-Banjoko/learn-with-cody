@@ -2,21 +2,27 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import ShortADifficulty from "./ShortADifficulty";
+import ShortEDifficulty from "./ShortEDifficulty";
+import ShortIDifficulty from "./ShortIDifficulty";
+import ShortODifficulty from "./ShortODifficulty";
+import ShortUDifficulty from "./ShortUDifficulty";
 
 const VOWEL_GROUPS = [
   { id: "short-a", label: "Short a", emoji: "🍎", color: "#FF6B6B", bg: "#FFF0F0", available: true },
-  { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", bg: "#FFFDE7", available: false },
-  { id: "short-i", label: "Short i", emoji: "🐟", color: "#6BCB77", bg: "#F0FFF4", available: false },
-  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", bg: "#EFF6FF", available: false },
-  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", available: false },
+  { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", bg: "#FFFDE7", available: true },
+  { id: "short-i", label: "Short i", emoji: "🐟", color: "#6BCB77", bg: "#F0FFF4", available: true },
+  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", bg: "#EFF6FF", available: true },
+  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", available: true },
 ];
 
 export default function LetterCatch({ onBack }) {
   const [selected, setSelected] = useState(null);
 
-  if (selected === "short-a") {
-    return <ShortADifficulty onBack={() => setSelected(null)} />;
-  }
+  if (selected === "short-a") return <ShortADifficulty onBack={() => setSelected(null)} />;
+  if (selected === "short-e") return <ShortEDifficulty onBack={() => setSelected(null)} />;
+  if (selected === "short-i") return <ShortIDifficulty onBack={() => setSelected(null)} />;
+  if (selected === "short-o") return <ShortODifficulty onBack={() => setSelected(null)} />;
+  if (selected === "short-u") return <ShortUDifficulty onBack={() => setSelected(null)} />;
 
   return (
     <div className="min-h-full pb-32" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}>
