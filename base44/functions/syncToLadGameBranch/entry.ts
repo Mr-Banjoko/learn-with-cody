@@ -12,6 +12,11 @@ const FILES_TO_COPY = [
   "src/components/games/WordMatch.jsx",
   "src/pages/Games.jsx",
   "src/lib/content.js",
+  "src/lib/shortAWords.js",
+  "src/lib/shortEWords.js",
+  "src/lib/shortIWords.js",
+  "src/lib/shortOWords.js",
+  "src/lib/shortUWords.js",
 ];
 
 // New files to add that don't exist on source branch yet
@@ -124,13 +129,17 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import DragTheLettersGame from "./DragTheLettersGame";
 import { shortAWords } from "../../lib/shortAWords";
+import { shortEWords } from "../../lib/shortEWords";
+import { shortIWords } from "../../lib/shortIWords";
+import { shortOWords } from "../../lib/shortOWords";
+import { shortUWords } from "../../lib/shortUWords";
 
 const VOWEL_GROUPS = [
-  { id: "short-a", label: "Short a", emoji: "🍎", color: "#FF6B6B", bg: "#FFF0F0", words: shortAWords, available: true },
-  { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", bg: "#FFFDE7", words: null, available: false },
-  { id: "short-i", label: "Short i", emoji: "🐟", color: "#6BCB77", bg: "#F0FFF4", words: null, available: false },
-  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", bg: "#EFF6FF", words: null, available: false },
-  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", words: null, available: false },
+  { id: "short-a", label: "Short a", emoji: "\u{1F34E}", color: "#FF6B6B", bg: "#FFF0F0", words: shortAWords, available: true },
+  { id: "short-e", label: "Short e", emoji: "\u{1F95A}", color: "#FFD93D", bg: "#FFFDE7", words: shortEWords, available: true },
+  { id: "short-i", label: "Short i", emoji: "\u{1F41F}", color: "#6BCB77", bg: "#F0FFF4", words: shortIWords, available: true },
+  { id: "short-o", label: "Short o", emoji: "\u{1F419}", color: "#4D96FF", bg: "#EFF6FF", words: shortOWords, available: true },
+  { id: "short-u", label: "Short u", emoji: "\u2602\uFE0F", color: "#C77DFF", bg: "#FAF0FF", words: shortUWords, available: true },
 ];
 
 export default function DragTheLetters({ onBack }) {
@@ -155,7 +164,7 @@ export default function DragTheLetters({ onBack }) {
           <ArrowLeft size={22} color="#1E3A5F" />
         </button>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>Drag the Letters ✋</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>Drag the Letters \u270b</h1>
           <p style={{ fontSize: 13, color: "#3A6080" }}>Pick a word group!</p>
         </div>
       </div>
@@ -177,7 +186,7 @@ export default function DragTheLetters({ onBack }) {
             </div>
             {group.available ? (
               <div style={{ width: 32, height: 32, borderRadius: 16, background: group.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ color: "white", fontSize: 18, lineHeight: 1 }}>›</span>
+                <span style={{ color: "white", fontSize: 18, lineHeight: 1 }}>\u203a</span>
               </div>
             ) : (
               <span style={{ fontSize: 11, fontWeight: 600, color: "#7BACC8", background: "#EEF6FF", padding: "3px 10px", borderRadius: 99 }}>Soon</span>
