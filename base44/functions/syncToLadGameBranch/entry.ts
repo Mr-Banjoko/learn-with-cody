@@ -197,7 +197,8 @@ import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
-const LETTER_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
+// Match Learn Phonics word-box color palette
+const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#FFAFC5"];
 
 function getDistractor(word) {
   const used = new Set(word.split(""));
@@ -347,8 +348,7 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
           onClick={() => card.audio && playAudio(card.audio)}
           style={{ background: "white", borderRadius: 28, padding: 10, boxShadow: "0 10px 40px rgba(30,58,95,0.15)", cursor: card.audio ? "pointer" : "default", touchAction: "manipulation", flexShrink: 0 }}
         >
-          <img src={card.image} alt={card.word} style={{ width: "min(200px, 42vw)", height: "min(200px, 42vw)", objectFit: "cover", borderRadius: 20, display: "block" }} />
-          <div style={{ textAlign: "center", marginTop: 6, fontSize: 12, color: "#7BACC8" }}>🔊 Tap to hear</div>
+          <img src={card.image} alt={card.word} style={{ width: "min(260px, 56vw)", height: "min(260px, 56vw)", objectFit: "cover", borderRadius: 20, display: "block" }} />
         </motion.div>
         <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {round.letters.map((correctLetter, i) => {
@@ -385,15 +385,16 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
             return (
               <motion.div
                 key={option.id}
-                animate={isPlaced ? { scale: 0.85, opacity: 0.3 } : isDraggingThis ? { scale: 1.1 } : { scale: 1, opacity: 1 }}
+                animate={isDraggingThis ? { scale: 1.1 } : { scale: 1, opacity: 1 }}
                 onTouchStart={(e) => { if (!isPlaced) { e.stopPropagation(); handleTouchStart(e, option); } }}
                 onClick={() => !isPlaced && handleLetterTap(option)}
-                style={{ width: "min(74px, 18vw)", height: "min(74px, 18vw)", borderRadius: 18, background: isPlaced ? "#E0EAF5" : bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(40px, 10vw)", fontWeight: 700, color: isPlaced ? "#aaa" : "#1E3A5F", boxShadow: isPlaced ? "none" : ("0 6px 18px " + bgColor + "66"), border: "3px solid " + (isPlaced ? "transparent" : "rgba(255,255,255,0.6)"), cursor: isPlaced ? "default" : "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : isPlaced ? 0.3 : 1 }}
+                style={{ width: "min(74px, 18vw)", height: "min(74px, 18vw)", borderRadius: 18, background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 12px rgba(0,0,0,0.10)", border: "3px solid rgba(255,255,255,0.7)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1 }}
               >
                 {option.letter}
               </motion.div>
             );
           })}
+        </div>
         </div>
       </div>
       <AnimatePresence>
@@ -419,7 +420,8 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
 // Old blobs (v3) had no explicit MIME → iOS used a slow generic decoder → half-speed playback.
 const CACHE_NAME = "cody-audio-v4";
 
-const BLEND_GAP_MS = 400;
+// Inter-phoneme gap for beginner CVC blending
+const BLEND_GAP_MS = 200;
 
 let currentAudio = null;
 

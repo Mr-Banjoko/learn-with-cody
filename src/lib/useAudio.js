@@ -2,8 +2,8 @@
 // Old blobs (v3) had no explicit MIME → iOS used a slow generic decoder → half-speed playback.
 const CACHE_NAME = "cody-audio-v4";
 
-// Best-practice inter-phoneme gap for beginner CVC blending
-const BLEND_GAP_MS = 400;
+// Inter-phoneme gap for beginner CVC blending
+const BLEND_GAP_MS = 200;
 
 let currentAudio = null;
 
