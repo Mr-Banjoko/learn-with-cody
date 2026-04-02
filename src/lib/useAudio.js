@@ -1,7 +1,13 @@
 // v4: force audio/mpeg MIME type on blobs to fix iOS Safari decoder selection.
+// Old blobs (v3) had no explicit MIME → iOS used a slow generic decoder → half-speed playback.
 const CACHE_NAME = "cody-audio-v4";
+
+// Inter-phoneme gap for beginner CVC blending
 const BLEND_GAP_MS = 200;
+
 let currentAudio = null;
+
+// Pre-resolved blob URL map: remoteUrl -> blobUrl
 const resolvedBlobUrls = new Map();
 
 async function getCachedAudioUrl(remoteUrl) {
@@ -15,23 +21,43 @@ async function getCachedAudioUrl(remoteUrl) {
       if (fetched.status === 200) await cache.put(remoteUrl, fetched.clone());
       response = fetched;
     }
+    // CRITICAL FIX: explicitly set audio/mpeg so iOS Safari uses the correct MP3 decoder.
+    // Without this, GitHub CDN serves blobs as application/octet-stream and iOS falls back
+    // to a slower decoder path that plays 22050 Hz files at ~half speed.
     const arrayBuffer = await response.arrayBuffer();
     const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
     const blobUrl = URL.createObjectURL(blob);
     resolvedBlobUrls.set(remoteUrl, blobUrl);
     return blobUrl;
-  } catch { return remoteUrl; }
-}
-
-export async function warmupAudio(urls) {
-  for (const url of urls) {
-    if (!resolvedBlobUrls.has(url)) getCachedAudioUrl(url).catch(() => {});
+  } catch {
+    return remoteUrl;
   }
 }
 
+/**
+ * Pre-resolve blob URLs for instant first-tap playback.
+ * NOTE: No AudioContext warmup — creating an AudioContext at a wrong sample rate
+ * can bleed into HTMLAudioElement playback on iOS, causing slow audio.
+ * Instead we rely on the audio session being unlocked by the first user-gesture .play() call.
+ */
+export async function warmupAudio(urls) {
+  for (const url of urls) {
+    if (!resolvedBlobUrls.has(url)) {
+      getCachedAudioUrl(url).catch(() => {});
+    }
+  }
+}
+
+/**
+ * Play a single audio file. Stops any currently playing audio first.
+ */
 export async function playAudio(remoteUrl, gain = 1) {
   if (!remoteUrl) return;
-  if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; currentAudio = null; }
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
+  }
   const src = await getCachedAudioUrl(remoteUrl);
   const audio = new Audio();
   audio.preload = "auto";
@@ -39,34 +65,72 @@ export async function playAudio(remoteUrl, gain = 1) {
   audio.volume = Math.min(1, Math.max(0, gain));
   audio.src = src;
   currentAudio = audio;
-  audio.onended = () => { if (currentAudio === audio) currentAudio = null; };
+  audio.onended = () => {
+    if (currentAudio === audio) currentAudio = null;
+  };
+  // audio.load() hints to iOS to start decoding immediately before play() is called,
+  // preventing the device from decoding lazily (which can cause timing drift).
   audio.load();
-  audio.play().catch(() => { if (currentAudio === audio) currentAudio = null; });
+  audio.play().catch(() => {
+    if (currentAudio === audio) currentAudio = null;
+  });
 }
 
+/**
+ * Play an array of steps sequentially, each starting only after the previous ends.
+ * Each step: { url, gain?, onStart? }
+ * Returns a cancel function.
+ */
 export function playAudioSequence(steps, onDone) {
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+
   let cancelled = false;
+
   function playStep(i) {
-    if (cancelled || i >= steps.length) { if (!cancelled) onDone && onDone(); return; }
+    if (cancelled || i >= steps.length) {
+      if (!cancelled) onDone && onDone();
+      return;
+    }
     const { url, onStart, gain = 1 } = steps[i];
     onStart && onStart(i);
+
     getCachedAudioUrl(url).then((src) => {
       if (cancelled) return;
+
       const audio = new Audio();
-      audio.preload = "auto"; audio.playbackRate = 1.0;
+      audio.preload = "auto";
+      audio.playbackRate = 1.0;
       audio.volume = Math.min(1, Math.max(0, gain));
-      audio.src = src; currentAudio = audio;
+      audio.src = src;
+      currentAudio = audio;
+
       audio.onended = () => {
         if (currentAudio === audio) currentAudio = null;
         if (!cancelled) setTimeout(() => { if (!cancelled) playStep(i + 1); }, BLEND_GAP_MS);
       };
+
       audio.load();
-      audio.play().catch(() => { if (currentAudio === audio) currentAudio = null; if (!cancelled) playStep(i + 1); });
-    }).catch(() => { if (!cancelled) playStep(i + 1); });
+      audio.play().catch(() => {
+        if (currentAudio === audio) currentAudio = null;
+        if (!cancelled) playStep(i + 1);
+      });
+    }).catch(() => {
+      if (!cancelled) playStep(i + 1);
+    });
   }
+
   playStep(0);
-  return function cancel() { cancelled = true; if (currentAudio) { currentAudio.pause(); currentAudio = null; } };
+
+  return function cancel() {
+    cancelled = true;
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
+  };
 }
 
 export async function preloadAudio(urls) {
@@ -74,7 +138,13 @@ export async function preloadAudio(urls) {
     const cache = await caches.open(CACHE_NAME);
     for (const url of urls) {
       const cached = await cache.match(url);
-      if (!cached) fetch(url).then((res) => { if (res.ok && res.status === 200) cache.put(url, res); }).catch(() => {});
+      if (!cached) {
+        fetch(url)
+          .then((res) => { if (res.ok && res.status === 200) cache.put(url, res); })
+          .catch(() => {});
+      }
     }
-  } catch {}
+  } catch {
+    // silently fail if Cache API is unavailable
+  }
 }
