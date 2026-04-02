@@ -5,7 +5,8 @@ import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
-const LETTER_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
+// Match Learn Phonics word-box color palette for visual consistency
+const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#FFAFC5"];
 
 function getDistractor(word) {
   const used = new Set(word.split(""));
@@ -35,17 +36,16 @@ function buildRound(card) {
 export default function DragTheLettersGame({ words, title, color, onBack }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [round, setRound] = useState(() => buildRound(words[0]));
-  const [placed, setPlaced] = useState([null, null, null]); // letter id placed in each box
-  const [shake, setShake] = useState(null); // box index that shook
+  const [placed, setPlaced] = useState([null, null, null]);
+  const [shake, setShake] = useState(null);
   const [completing, setCompleting] = useState(false);
-  const [dragState, setDragState] = useState(null); // { id, letter, x, y, startX, startY, originX, originY }
+  const [dragState, setDragState] = useState(null);
   const dropZoneRefs = useRef([]);
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
 
   const total = words.length;
 
-  // Reset on new round
   useEffect(() => {
     const newRound = buildRound(words[roundIndex]);
     setRound(newRound);
@@ -72,27 +72,16 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
     sequenceRef.current = cancel;
   }, [words]);
 
-  // Touch handlers
   const handleTouchStart = useCallback((e, option) => {
-    // Check if this letter is already placed
     if (placed.includes(option.id)) return;
-
     isDragging.current = false;
     const touch = e.touches[0];
     const rect = e.currentTarget.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-
     setDragState({
-      id: option.id,
-      letter: option.letter,
-      correctPos: option.correctPos,
-      x: cx,
-      y: cy,
-      startX: touch.clientX,
-      startY: touch.clientY,
-      originX: cx,
-      originY: cy,
+      id: option.id, letter: option.letter, correctPos: option.correctPos,
+      x: cx, y: cy, startX: touch.clientX, startY: touch.clientY, originX: cx, originY: cy,
     });
   }, [placed]);
 
@@ -112,14 +101,12 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
     if (!dragState) return;
 
     if (!isDragging.current) {
-      // It was a tap — play sound
       const url = getLetterSoundUrl(dragState.letter);
       if (url) playAudio(url, getLetterGain(dragState.letter));
       setDragState(null);
       return;
     }
 
-    // Find which drop zone was hit
     const touch = e.changedTouches[0];
     let hitBox = -1;
     dropZoneRefs.current.forEach((ref, i) => {
@@ -134,19 +121,15 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
     });
 
     if (hitBox !== -1 && placed[hitBox] === null && dragState.correctPos === hitBox) {
-      // Correct!
       const newPlaced = [...placed];
       newPlaced[hitBox] = dragState.id;
       setPlaced(newPlaced);
       setDragState(null);
       isDragging.current = false;
-
-      // Check completion
       if (newPlaced.every((p) => p !== null)) {
         setTimeout(() => playCompletion(round.card, round.letters), 300);
       }
     } else {
-      // Wrong box or wrong letter — reject with shake
       if (hitBox !== -1) setShake(hitBox);
       setTimeout(() => setShake(null), 500);
       setDragState(null);
@@ -154,7 +137,6 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
     }
   }, [dragState, placed, round, playCompletion]);
 
-  // Tap on letter tile (not dragging) 
   const handleLetterTap = useCallback((option) => {
     if (placed.includes(option.id)) return;
     const url = getLetterSoundUrl(option.letter);
@@ -169,8 +151,7 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
       style={{
         display: "flex", flexDirection: "column", height: "100%", flex: 1,
         background: "#D6EEFF", fontFamily: "Fredoka, sans-serif", overflow: "hidden",
-        touchAction: "none",
-        userSelect: "none",
+        touchAction: "none", userSelect: "none",
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -192,9 +173,9 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "12px 20px 16px", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0 }}>
 
-        {/* Picture */}
+        {/* Picture — ~30% bigger, no "tap to hear" text */}
         <motion.div
           key={roundIndex}
           initial={{ opacity: 0, scale: 0.9 }}
@@ -214,12 +195,8 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
           <img
             src={card.image}
             alt={card.word}
-            style={{ width: "min(200px, 42vw)", height: "min(200px, 42vw)", objectFit: "cover", borderRadius: 20, display: "block" }}
+            style={{ width: "min(260px, 56vw)", height: "min(260px, 56vw)", objectFit: "cover", borderRadius: 20, display: "block" }}
           />
-          {/* Tap hint */}
-          <div style={{ textAlign: "center", marginTop: 6, fontSize: 12, color: "#7BACC8" }}>
-            🔊 Tap to hear
-          </div>
         </motion.div>
 
         {/* Drop boxes */}
@@ -236,14 +213,10 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
                 animate={isShaking ? { x: [0, -8, 8, -6, 6, 0] } : {}}
                 transition={{ duration: 0.35 }}
                 style={{
-                  width: "min(76px, 20vw)",
-                  height: "min(76px, 20vw)",
-                  borderRadius: 18,
+                  width: "min(76px, 20vw)", height: "min(76px, 20vw)", borderRadius: 18,
                   background: placedOption ? "#B5EAD7" : "rgba(255,255,255,0.7)",
                   border: `3px solid ${placedOption ? "#4ECDC4" : isShaking ? "#FF6B6B" : "rgba(74,144,196,0.4)"}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  display: "flex", alignItems: "center", justifyContent: "center",
                   boxShadow: placedOption ? "0 4px 16px rgba(78,205,196,0.3)" : "inset 0 2px 8px rgba(0,0,0,0.06)",
                   transition: "background 0.2s, border 0.2s",
                 }}
@@ -271,43 +244,42 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
           {completing ? "🎉 Great job! Listen..." : progress === 0 ? "Drag the letters to spell the word!" : `${progress} of ${round.letters.length} placed`}
         </p>
 
-        {/* Letter tiles */}
+        {/* Letter tiles — placed tiles become invisible spacers (no ghost left behind) */}
         <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", flexShrink: 0, paddingBottom: 4 }}>
           {round.options.map((option, i) => {
             const isPlaced = placed.includes(option.id);
             const isDraggingThis = dragState?.id === option.id;
             const bgColor = LETTER_COLORS[i % LETTER_COLORS.length];
 
+            // Once placed, render an invisible same-size spacer to keep the row stable
+            if (isPlaced) {
+              return (
+                <div
+                  key={option.id}
+                  style={{ width: "min(74px, 18vw)", height: "min(74px, 18vw)", visibility: "hidden", flexShrink: 0 }}
+                />
+              );
+            }
+
             return (
               <motion.div
                 key={option.id}
-                animate={isPlaced ? { scale: 0.85, opacity: 0.3 } : isDraggingThis ? { scale: 1.1 } : { scale: 1, opacity: 1 }}
+                animate={isDraggingThis ? { scale: 1.1 } : { scale: 1, opacity: 1 }}
                 onTouchStart={(e) => {
-                  if (!isPlaced) {
-                    e.stopPropagation();
-                    handleTouchStart(e, option);
-                  }
+                  e.stopPropagation();
+                  handleTouchStart(e, option);
                 }}
-                onClick={() => !isPlaced && handleLetterTap(option)}
+                onClick={() => handleLetterTap(option)}
                 style={{
-                  width: "min(74px, 18vw)",
-                  height: "min(74px, 18vw)",
-                  borderRadius: 18,
-                  background: isPlaced ? "#E0EAF5" : bgColor,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "min(40px, 10vw)",
-                  fontWeight: 700,
-                  color: isPlaced ? "#aaa" : "#1E3A5F",
-                  boxShadow: isPlaced ? "none" : `0 6px 18px ${bgColor}66`,
-                  border: `3px solid ${isPlaced ? "transparent" : "rgba(255,255,255,0.6)"}`,
-                  cursor: isPlaced ? "default" : "grab",
-                  touchAction: "none",
-                  userSelect: "none",
-                  // Visibility: hidden instead of display:none so ref still works
+                  width: "min(74px, 18vw)", height: "min(74px, 18vw)", borderRadius: 18,
+                  background: bgColor,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F",
+                  boxShadow: `0 4px 12px rgba(0,0,0,0.10)`,
+                  border: "3px solid rgba(255,255,255,0.7)",
+                  cursor: "grab", touchAction: "none", userSelect: "none",
                   pointerEvents: isDraggingThis ? "none" : "auto",
-                  opacity: isDraggingThis ? 0.3 : isPlaced ? 0.3 : 1,
+                  opacity: isDraggingThis ? 0.3 : 1,
                 }}
               >
                 {option.letter}
@@ -323,21 +295,13 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
           <div
             style={{
               position: "fixed",
-              left: dragState.x,
-              top: dragState.y,
+              left: dragState.x, top: dragState.y,
               transform: "translate(-50%, -50%)",
-              zIndex: 9999,
-              pointerEvents: "none",
-              width: "min(80px, 20vw)",
-              height: "min(80px, 20vw)",
-              borderRadius: 18,
+              zIndex: 9999, pointerEvents: "none",
+              width: "min(80px, 20vw)", height: "min(80px, 20vw)", borderRadius: 18,
               background: LETTER_COLORS[round.options.findIndex((o) => o.id === dragState.id) % LETTER_COLORS.length],
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "min(44px, 11vw)",
-              fontWeight: 700,
-              color: "#1E3A5F",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "min(44px, 11vw)", fontWeight: 700, color: "#1E3A5F",
               boxShadow: "0 12px 36px rgba(0,0,0,0.25)",
               border: "3px solid rgba(255,255,255,0.8)",
             }}
@@ -351,18 +315,12 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
       <AnimatePresence>
         {completing && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{
-              position: "absolute",
-              inset: 0,
+              position: "absolute", inset: 0,
               background: "rgba(214,238,255,0.7)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 100,
-              pointerEvents: "none",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              zIndex: 100, pointerEvents: "none",
             }}
           >
             <motion.div
