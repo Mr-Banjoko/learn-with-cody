@@ -3,13 +3,17 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import MissingSoundGame from "./MissingSoundGame";
 import { shortAWords } from "../../lib/shortAWords";
+import { shortEWords } from "../../lib/shortEWords";
+import { shortIWords } from "../../lib/shortIWords";
+import { shortOWords } from "../../lib/shortOWords";
+import { shortUWords } from "../../lib/shortUWords";
 
 const VOWEL_GROUPS = [
   { id: "short-a", label: "Short a", emoji: "🍎", color: "#FF6B6B", bg: "#FFF0F0", words: shortAWords, available: true },
-  { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", bg: "#FFFDE7", words: null, available: false },
-  { id: "short-i", label: "Short i", emoji: "🐟", color: "#6BCB77", bg: "#F0FFF4", words: null, available: false },
-  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", bg: "#EFF6FF", words: null, available: false },
-  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", words: null, available: false },
+  { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", bg: "#FFFDE7", words: shortEWords, available: true },
+  { id: "short-i", label: "Short i", emoji: "🐟", color: "#6BCB77", bg: "#F0FFF4", words: shortIWords, available: true },
+  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", bg: "#EFF6FF", words: shortOWords, available: true },
+  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", words: shortUWords, available: true },
 ];
 
 export default function MissingSound({ onBack }) {
