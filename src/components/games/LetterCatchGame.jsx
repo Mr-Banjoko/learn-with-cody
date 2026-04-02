@@ -56,8 +56,7 @@ function CandyArrow({ direction, onPress }) {
 
   return (
     <button
-      onTouchStart={(e) => { e.preventDefault(); onPress(); }}
-      onClick={onPress}
+      onPointerDown={(e) => { e.preventDefault(); onPress(); }}
       style={{
         background: "transparent",
         border: "none",
@@ -65,12 +64,12 @@ function CandyArrow({ direction, onPress }) {
         cursor: "pointer",
         WebkitTapHighlightColor: "transparent",
         outline: "none",
-        // Large hit area
         width: 120,
         height: 88,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        touchAction: "manipulation",
       }}
     >
       <motion.div

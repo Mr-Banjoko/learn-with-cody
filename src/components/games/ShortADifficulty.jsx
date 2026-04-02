@@ -22,7 +22,7 @@ const DIFFICULTIES = [
     emoji: "⚡",
     color: "#FFD93D",
     bg: "#FFFDE7",
-    fallSpeed: 2.53,
+    fallSpeed: 3.38,
     desc: "A little faster — keep your eyes open!",
   },
   {
@@ -31,7 +31,7 @@ const DIFFICULTIES = [
     emoji: "🔥",
     color: "#FF6B6B",
     bg: "#FFF0F0",
-    fallSpeed: 3.38,
+    fallSpeed: 7.6,
     desc: "Super fast — can you catch them all?",
   },
 ];
