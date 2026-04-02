@@ -4,14 +4,14 @@ import { ArrowLeft, Play } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 
-const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
-const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#FFAFC5"];
+// Colors only used for top-row letter boxes
+const TOP_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 
 function getDistractors(word) {
+  const all = "abcdefghijklmnoprstw".split("");
   const used = new Set(word.split(""));
-  const pool = ALL_LETTERS.filter((l) => !used.has(l));
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, 2);
+  const pool = all.filter((l) => !used.has(l)).sort(() => Math.random() - 0.5);
+  return pool.slice(0, 2);
 }
 
 function shuffle(arr) {
@@ -26,10 +26,9 @@ function shuffle(arr) {
 function buildRound(card) {
   const letters = card.word.split("");
   const missingPos = Math.floor(Math.random() * 3);
-  const correctLetter = letters[missingPos];
   const distractors = getDistractors(card.word);
   const options = shuffle([
-    { id: "correct", letter: correctLetter, isCorrect: true },
+    { id: "correct", letter: letters[missingPos], isCorrect: true },
     { id: "distractor-0", letter: distractors[0], isCorrect: false },
     { id: "distractor-1", letter: distractors[1], isCorrect: false },
   ]);
@@ -43,14 +42,30 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
   const [feedback, setFeedback] = useState(null); // null | 'wrong' | 'completing'
   const [bouncingIndex, setBouncingIndex] = useState(null);
   const [dragState, setDragState] = useState(null);
+
+  // ─── Refs for stale-closure-safe handlers ────────────────────────────────────
   const dropZoneRef = useRef(null);
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
+  // Always-fresh mirrors so touch handlers never use stale closures
+  const placedOptionRef = useRef(null);
+  const roundRef = useRef(round);
+
+  // Keep refs in sync with state
+  useEffect(() => { roundRef.current = round; }, [round]);
+
+  const syncSetPlacedOption = useCallback((val) => {
+    placedOptionRef.current = val;
+    setPlacedOption(val);
+  }, []);
 
   const total = words.length;
 
   useEffect(() => {
-    setRound(buildRound(words[roundIndex]));
+    const newRound = buildRound(words[roundIndex]);
+    roundRef.current = newRound;
+    setRound(newRound);
+    placedOptionRef.current = null;
     setPlacedOption(null);
     setFeedback(null);
     setBouncingIndex(null);
@@ -59,6 +74,7 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
     if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
   }, [roundIndex]);
 
+  // ─── Completion sequence ─────────────────────────────────────────────────────
   const playCompletion = useCallback((card, letters) => {
     setFeedback("completing");
     const steps = letters.map((letter, i) => {
@@ -66,7 +82,6 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
       return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
     }).filter(Boolean);
     if (card.audio) steps.push({ url: card.audio, onStart: () => setBouncingIndex(null) });
-
     const cancel = playAudioSequence(steps, () => {
       sequenceRef.current = null;
       setBouncingIndex(null);
@@ -75,32 +90,41 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
     sequenceRef.current = cancel;
   }, [words]);
 
+  // ─── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = useCallback(() => {
-    if (!placedOption || feedback === "completing") return;
-    if (placedOption.isCorrect) {
-      playCompletion(round.card, round.letters);
+    const placed = placedOptionRef.current;
+    if (!placed || feedback === "completing") return;
+    if (placed.isCorrect) {
+      playCompletion(roundRef.current.card, roundRef.current.letters);
     } else {
       setFeedback("wrong");
       setTimeout(() => {
-        setPlacedOption(null);
+        syncSetPlacedOption(null);
         setFeedback(null);
       }, 700);
     }
-  }, [placedOption, feedback, round, playCompletion]);
+  }, [feedback, playCompletion, syncSetPlacedOption]);
 
+  // ─── Touch handlers — use refs, never stale closures ─────────────────────────
   const handleTouchStart = useCallback((e, option) => {
-    if (placedOption?.id === option.id) return;
+    // Don't start drag if this tile is already placed in the slot
+    if (placedOptionRef.current?.id === option.id) return;
     isDragging.current = false;
     const touch = e.touches[0];
     const rect = e.currentTarget.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
     setDragState({
-      id: option.id, letter: option.letter, isCorrect: option.isCorrect,
-      optionIndex: round.options.findIndex((o) => o.id === option.id),
-      x: cx, y: cy, startX: touch.clientX, startY: touch.clientY, originX: cx, originY: cy,
+      id: option.id,
+      letter: option.letter,
+      isCorrect: option.isCorrect,
+      optionIndex: roundRef.current.options.findIndex((o) => o.id === option.id),
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      originX: rect.left + rect.width / 2,
+      originY: rect.top + rect.height / 2,
     });
-  }, [placedOption, round]);
+  }, []);
 
   const handleTouchMove = useCallback((e) => {
     if (!dragState) return;
@@ -114,14 +138,16 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
 
   const handleTouchEnd = useCallback((e) => {
     if (!dragState) return;
-    // tap = silent; drag = check drop zone
+    // Tap (no move) = do nothing (bottom tiles are silent)
     if (!isDragging.current) {
       setDragState(null);
       return;
     }
     const touch = e.changedTouches[0];
+    // Use ref so we always have the current placedOption value, never a stale one
+    const alreadyPlaced = placedOptionRef.current;
     let hitDrop = false;
-    if (dropZoneRef.current && !placedOption) {
+    if (dropZoneRef.current && !alreadyPlaced) {
       const rect = dropZoneRef.current.getBoundingClientRect();
       hitDrop = (
         touch.clientX >= rect.left && touch.clientX <= rect.right &&
@@ -129,11 +155,16 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
       );
     }
     if (hitDrop) {
-      setPlacedOption({ id: dragState.id, letter: dragState.letter, isCorrect: dragState.isCorrect, optionIndex: dragState.optionIndex });
+      syncSetPlacedOption({
+        id: dragState.id,
+        letter: dragState.letter,
+        isCorrect: dragState.isCorrect,
+        optionIndex: dragState.optionIndex,
+      });
     }
     setDragState(null);
     isDragging.current = false;
-  }, [dragState, placedOption]);
+  }, [dragState, syncSetPlacedOption]);
 
   const handleTopLetterTap = useCallback((letter) => {
     const url = getLetterSoundUrl(letter);
@@ -141,17 +172,28 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
   }, []);
 
   const card = round.card;
-  const canSubmit = placedOption && feedback !== "completing";
+  const canSubmit = placedOption !== null && feedback !== "completing";
+  const accentColor = color || "#4A90C4";
 
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "#D6EEFF", fontFamily: "Fredoka, sans-serif", overflow: "hidden", touchAction: "none", userSelect: "none" }}
+      style={{
+        display: "flex", flexDirection: "column", height: "100%", flex: 1,
+        background: "#D6EEFF", fontFamily: "Fredoka, sans-serif",
+        overflow: "hidden", touchAction: "none", userSelect: "none",
+      }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Header */}
-      <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "14px 20px 18px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-        <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+      {/* ── Header ── */}
+      <div style={{
+        background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
+        padding: "14px 20px 18px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0,
+      }}>
+        <button
+          onClick={onBack}
+          style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+        >
           <ArrowLeft size={22} color="#1E3A5F" />
         </button>
         <div style={{ flex: 1, textAlign: "center", marginRight: 40 }}>
@@ -160,22 +202,37 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* ── Progress bar ── */}
       <div style={{ height: 6, background: "rgba(255,255,255,0.5)", margin: "0 24px", borderRadius: 99, flexShrink: 0 }}>
-        <div style={{ height: "100%", borderRadius: 99, background: color || "#4A90C4", width: `${(roundIndex / total) * 100}%`, transition: "width 0.4s" }} />
+        <div style={{ height: "100%", borderRadius: 99, background: accentColor, width: `${(roundIndex / total) * 100}%`, transition: "width 0.4s" }} />
       </div>
 
-      {/* Main content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "12px 20px 16px", minHeight: 0 }}>
+      {/* ── Main content ── */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "space-evenly",
+        padding: "10px 20px 14px", minHeight: 0,
+      }}>
 
-        {/* TOP LAYER: 3 large letter boxes */}
-        <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        {/* ── TOP LAYER: shared frame + 3 letter boxes ── */}
+        <div style={{
+          background: "rgba(255,255,255,0.55)",
+          borderRadius: 32,
+          padding: "18px 22px",
+          boxShadow: "0 8px 32px rgba(30,58,95,0.10)",
+          border: "2px solid rgba(255,255,255,0.85)",
+          display: "flex",
+          gap: "min(20px, 4vw)",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}>
           {round.letters.map((letter, i) => {
             const isMissing = i === round.missingPos;
             const isPlacedHere = isMissing && placedOption !== null;
             const isBouncing = bouncingIndex === i;
             const isWrong = isMissing && feedback === "wrong";
-            const boxColor = LETTER_COLORS[i];
+            const boxColor = TOP_COLORS[i];
 
             return (
               <motion.div
@@ -183,75 +240,85 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
                 ref={isMissing ? dropZoneRef : null}
                 animate={
                   isWrong
-                    ? { x: [0, -8, 8, -6, 6, 0] }
+                    ? { x: [0, -10, 10, -7, 7, 0] }
                     : isBouncing
-                    ? { y: [0, -18, 0, -8, 0, -4, 0] }
+                    ? { y: [0, -20, 0, -10, 0, -4, 0] }
                     : {}
                 }
-                transition={{ duration: isWrong ? 0.35 : 0.5 }}
+                transition={{ duration: isWrong ? 0.38 : 0.5 }}
                 onClick={!isMissing ? () => handleTopLetterTap(letter) : undefined}
                 style={{
-                  width: "min(96px, 25vw)", height: "min(96px, 25vw)", borderRadius: 24,
+                  width: "min(108px, 27vw)",
+                  height: "min(108px, 27vw)",
+                  borderRadius: 26,
                   background: isPlacedHere
-                    ? LETTER_COLORS[placedOption.optionIndex % LETTER_COLORS.length]
+                    ? TOP_COLORS[placedOption.optionIndex % TOP_COLORS.length]
                     : isMissing
-                    ? "rgba(255,255,255,0.45)"
+                    ? "rgba(255,255,255,0.5)"
                     : boxColor,
                   border: isMissing && !isPlacedHere
-                    ? "3px dashed rgba(74,144,196,0.5)"
-                    : "3px solid rgba(255,255,255,0.75)",
+                    ? `3px dashed ${accentColor}60`
+                    : "3px solid rgba(255,255,255,0.85)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: isMissing && !isPlacedHere ? "none" : "0 6px 24px rgba(0,0,0,0.10)",
+                  boxShadow: isMissing && !isPlacedHere
+                    ? "none"
+                    : "0 6px 20px rgba(0,0,0,0.10)",
                   cursor: isMissing ? "default" : "pointer",
-                  touchAction: isMissing ? "auto" : "manipulation",
+                  touchAction: "manipulation",
                   transition: "background 0.2s, border 0.2s",
+                  flexShrink: 0,
                 }}
               >
                 {isPlacedHere ? (
                   <motion.span
+                    key={`placed-${placedOption.id}`}
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    style={{ fontSize: "min(52px, 13vw)", fontWeight: 700, color: "#1E3A5F" }}
+                    transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                    style={{ fontSize: "min(58px, 14.5vw)", fontWeight: 700, color: "#1E3A5F" }}
                   >
                     {placedOption.letter}
                   </motion.span>
                 ) : isMissing ? (
-                  <span style={{ fontSize: "min(32px, 8vw)", color: "rgba(74,144,196,0.4)", fontWeight: 700 }}>?</span>
+                  <span style={{ fontSize: "min(34px, 8.5vw)", color: `${accentColor}60`, fontWeight: 700 }}>?</span>
                 ) : (
-                  <span style={{ fontSize: "min(52px, 13vw)", fontWeight: 700, color: "#1E3A5F" }}>{letter}</span>
+                  <span style={{ fontSize: "min(58px, 14.5vw)", fontWeight: 700, color: "#1E3A5F" }}>{letter}</span>
                 )}
               </motion.div>
             );
           })}
         </div>
 
-        {/* MIDDLE LAYER: Play full word button */}
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => card.audio && playAudio(card.audio)}
-          style={{
-            width: "min(72px, 18vw)", height: "min(72px, 18vw)", borderRadius: "50%",
-            background: color || "#4A90C4", border: "none",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: `0 6px 28px ${color || "#4A90C4"}55`,
-            cursor: "pointer", flexShrink: 0, touchAction: "manipulation",
-          }}
-        >
-          <Play size={28} color="white" fill="white" />
-        </motion.button>
+        {/* ── MIDDLE LAYER: Play full word ── */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            onClick={() => card.audio && playAudio(card.audio)}
+            style={{
+              width: "min(64px, 16vw)", height: "min(64px, 16vw)", borderRadius: "50%",
+              background: accentColor, border: "none",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: `0 6px 24px ${accentColor}55`,
+              cursor: "pointer", touchAction: "manipulation",
+            }}
+          >
+            <Play size={26} color="white" fill="white" />
+          </motion.button>
+          <span style={{ fontSize: 11, color: "#7BACC8", fontWeight: 600, letterSpacing: "0.03em" }}>hear the word</span>
+        </div>
 
-        {/* BOTTOM LAYER: 3 answer tiles */}
-        <div style={{ display: "flex", gap: 16, justifyContent: "center", flexShrink: 0 }}>
+        {/* ── BOTTOM LAYER: answer tiles ── */}
+        <div style={{ display: "flex", gap: "min(16px, 4vw)", justifyContent: "center", flexShrink: 0 }}>
           {round.options.map((option, i) => {
             const isPlaced = placedOption?.id === option.id;
             const isDraggingThis = dragState?.id === option.id;
-            const bgColor = LETTER_COLORS[i % LETTER_COLORS.length];
 
+            // Invisible spacer when this tile is in the slot
             if (isPlaced) {
               return (
                 <div
                   key={option.id}
-                  style={{ width: "min(86px, 21vw)", height: "min(86px, 21vw)", visibility: "hidden", flexShrink: 0 }}
+                  style={{ width: "min(74px, 19vw)", height: "min(74px, 19vw)", visibility: "hidden", flexShrink: 0 }}
                 />
               );
             }
@@ -259,16 +326,21 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
             return (
               <motion.div
                 key={option.id}
-                animate={isDraggingThis ? { scale: 1.08 } : { scale: 1, opacity: 1 }}
+                animate={isDraggingThis ? { scale: 1.06, opacity: 0.3 } : { scale: 1, opacity: 1 }}
                 onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, option); }}
                 style={{
-                  width: "min(86px, 21vw)", height: "min(86px, 21vw)", borderRadius: 22,
-                  background: bgColor, display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: "min(46px, 11.5vw)", fontWeight: 700, color: "#1E3A5F",
-                  boxShadow: "0 4px 14px rgba(0,0,0,0.10)", border: "3px solid rgba(255,255,255,0.7)",
+                  width: "min(74px, 19vw)",
+                  height: "min(74px, 19vw)",
+                  borderRadius: 20,
+                  // Neutral style: white with soft border
+                  background: "white",
+                  border: "2.5px solid rgba(168,208,230,0.55)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: "min(38px, 9.5vw)", fontWeight: 700, color: "#1E3A5F",
+                  boxShadow: "0 3px 12px rgba(30,58,95,0.08)",
                   cursor: "grab", touchAction: "none", userSelect: "none",
                   pointerEvents: isDraggingThis ? "none" : "auto",
-                  opacity: isDraggingThis ? 0.3 : 1,
+                  flexShrink: 0,
                 }}
               >
                 {option.letter}
@@ -277,16 +349,16 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
           })}
         </div>
 
-        {/* Submit button */}
+        {/* ── Submit ── */}
         <motion.button
           whileTap={canSubmit ? { scale: 0.95 } : {}}
           onClick={handleSubmit}
           style={{
-            padding: "15px 52px", borderRadius: 99, border: "none",
-            background: canSubmit ? (color || "#4A90C4") : "rgba(168,208,230,0.4)",
-            color: canSubmit ? "white" : "rgba(74,144,196,0.45)",
+            padding: "14px 52px", borderRadius: 99, border: "none",
+            background: canSubmit ? accentColor : "rgba(168,208,230,0.35)",
+            color: canSubmit ? "white" : "rgba(74,144,196,0.4)",
             fontSize: 20, fontWeight: 700,
-            boxShadow: canSubmit ? `0 6px 24px ${color || "#4A90C4"}50` : "none",
+            boxShadow: canSubmit ? `0 6px 24px ${accentColor}50` : "none",
             cursor: canSubmit ? "pointer" : "not-allowed",
             transition: "all 0.25s",
             flexShrink: 0, touchAction: "manipulation",
@@ -297,18 +369,22 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
 
       </div>
 
-      {/* Drag ghost */}
+      {/* ── Drag ghost ── */}
       <AnimatePresence>
         {dragState && isDragging.current && (
           <div
             style={{
-              position: "fixed", left: dragState.x, top: dragState.y,
-              transform: "translate(-50%, -50%)", zIndex: 9999, pointerEvents: "none",
-              width: "min(92px, 23vw)", height: "min(92px, 23vw)", borderRadius: 22,
-              background: LETTER_COLORS[dragState.optionIndex % LETTER_COLORS.length],
+              position: "fixed",
+              left: dragState.x, top: dragState.y,
+              transform: "translate(-50%, -50%)",
+              zIndex: 9999, pointerEvents: "none",
+              // Ghost matches bottom-tile neutral style
+              width: "min(78px, 20vw)", height: "min(78px, 20vw)", borderRadius: 20,
+              background: "white",
+              border: "2.5px solid rgba(168,208,230,0.7)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "min(50px, 12.5vw)", fontWeight: 700, color: "#1E3A5F",
-              boxShadow: "0 12px 36px rgba(0,0,0,0.25)", border: "3px solid rgba(255,255,255,0.8)",
+              fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F",
+              boxShadow: "0 14px 40px rgba(30,58,95,0.22)",
             }}
           >
             {dragState.letter}
