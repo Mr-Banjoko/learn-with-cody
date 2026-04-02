@@ -439,10 +439,10 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
                     boxShadow: showLetter ? `0 4px 14px ${boxColor}55` : "none",
                     fontFamily: "Fredoka, sans-serif",
                     WebkitTapHighlightColor: "transparent",
-                    textTransform: "uppercase", flexShrink: 0,
+                    flexShrink: 0,
                   }}
                 >
-                  {showLetter ? letter.toUpperCase() : "?"}
+                  {showLetter ? letter : "?"}
                 </motion.button>
               );
             })}
@@ -499,7 +499,6 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 34, fontWeight: 700, color: "white",
                   fontFamily: "Fredoka, sans-serif",
-                  textTransform: "uppercase",
                   boxShadow: isWrong
                     ? "0 0 0 6px rgba(255,80,80,0.55), 0 0 24px rgba(255,80,80,0.40)"
                     : `0 6px 20px ${tile.color}60`,
@@ -508,7 +507,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
                   userSelect: "none", pointerEvents: "none", zIndex: 10,
                 }}
               >
-                {tile.letter.toUpperCase()}
+                {tile.letter}
               </div>
             );
           })}
