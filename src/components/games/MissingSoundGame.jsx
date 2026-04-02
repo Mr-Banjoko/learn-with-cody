@@ -42,11 +42,13 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
   const [feedback, setFeedback] = useState(null); // null | 'wrong' | 'completing'
   const [bouncingIndex, setBouncingIndex] = useState(null);
   const [dragState, setDragState] = useState(null);
+  const [isActiveDrag, setIsActiveDrag] = useState(false);
 
   // ─── Refs for stale-closure-safe handlers ────────────────────────────────────
   const dropZoneRef = useRef(null);
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
+  const dragStateRef = useRef(null); // always-fresh mirror of dragState
   // Always-fresh mirrors so touch handlers never use stale closures
   const placedOptionRef = useRef(null);
   const roundRef = useRef(round);
@@ -69,7 +71,9 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
     setPlacedOption(null);
     setFeedback(null);
     setBouncingIndex(null);
+    dragStateRef.current = null;
     setDragState(null);
+    setIsActiveDrag(false);
     isDragging.current = false;
     if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
   }, [roundIndex]);
@@ -112,7 +116,7 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
     isDragging.current = false;
     const touch = e.touches[0];
     const rect = e.currentTarget.getBoundingClientRect();
-    setDragState({
+    const newDragState = {
       id: option.id,
       letter: option.letter,
       isCorrect: option.isCorrect,
@@ -123,48 +127,55 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
       startY: touch.clientY,
       originX: rect.left + rect.width / 2,
       originY: rect.top + rect.height / 2,
-    });
+    };
+    dragStateRef.current = newDragState;
+    setDragState(newDragState);
   }, []);
 
   const handleTouchMove = useCallback((e) => {
-    if (!dragState) return;
+    if (!dragStateRef.current) return;
     e.preventDefault();
     const touch = e.touches[0];
-    const dx = touch.clientX - dragState.startX;
-    const dy = touch.clientY - dragState.startY;
-    if (!isDragging.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) isDragging.current = true;
-    setDragState((prev) => prev ? { ...prev, x: prev.originX + dx, y: prev.originY + dy } : null);
-  }, [dragState]);
+    const dx = touch.clientX - dragStateRef.current.startX;
+    const dy = touch.clientY - dragStateRef.current.startY;
+    if (!isDragging.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      isDragging.current = true;
+      setIsActiveDrag(true);
+    }
+    const updated = { ...dragStateRef.current, x: dragStateRef.current.originX + dx, y: dragStateRef.current.originY + dy };
+    dragStateRef.current = updated;
+    setDragState(updated);
+  }, []);
 
   const handleTouchEnd = useCallback((e) => {
-    if (!dragState) return;
-    // Tap (no move) = do nothing (bottom tiles are silent)
-    if (!isDragging.current) {
-      setDragState(null);
-      return;
-    }
+    const ds = dragStateRef.current;
+    if (!ds) return;
     const touch = e.changedTouches[0];
-    // Use ref so we always have the current placedOption value, never a stale one
-    const alreadyPlaced = placedOptionRef.current;
-    let hitDrop = false;
-    if (dropZoneRef.current && !alreadyPlaced) {
-      const rect = dropZoneRef.current.getBoundingClientRect();
-      hitDrop = (
-        touch.clientX >= rect.left && touch.clientX <= rect.right &&
-        touch.clientY >= rect.top && touch.clientY <= rect.bottom
-      );
+    // Always attempt drop if we moved at all; tap (no move) = do nothing (bottom tiles are silent)
+    if (isDragging.current) {
+      const alreadyPlaced = placedOptionRef.current;
+      let hitDrop = false;
+      if (dropZoneRef.current && !alreadyPlaced) {
+        const rect = dropZoneRef.current.getBoundingClientRect();
+        hitDrop = (
+          touch.clientX >= rect.left && touch.clientX <= rect.right &&
+          touch.clientY >= rect.top && touch.clientY <= rect.bottom
+        );
+      }
+      if (hitDrop) {
+        syncSetPlacedOption({
+          id: ds.id,
+          letter: ds.letter,
+          isCorrect: ds.isCorrect,
+          optionIndex: ds.optionIndex,
+        });
+      }
     }
-    if (hitDrop) {
-      syncSetPlacedOption({
-        id: dragState.id,
-        letter: dragState.letter,
-        isCorrect: dragState.isCorrect,
-        optionIndex: dragState.optionIndex,
-      });
-    }
+    dragStateRef.current = null;
     setDragState(null);
+    setIsActiveDrag(false);
     isDragging.current = false;
-  }, [dragState, syncSetPlacedOption]);
+  }, [syncSetPlacedOption]);
 
   const handleTopLetterTap = useCallback((letter) => {
     const url = getLetterSoundUrl(letter);
@@ -332,7 +343,6 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
                   width: "min(74px, 19vw)",
                   height: "min(74px, 19vw)",
                   borderRadius: 20,
-                  // Neutral style: white with soft border
                   background: "white",
                   border: "2.5px solid rgba(168,208,230,0.55)",
                   display: "flex", alignItems: "center", justifyContent: "center",
@@ -371,14 +381,13 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
 
       {/* ── Drag ghost ── */}
       <AnimatePresence>
-        {dragState && isDragging.current && (
+        {dragState && isActiveDrag && (
           <div
             style={{
               position: "fixed",
               left: dragState.x, top: dragState.y,
               transform: "translate(-50%, -50%)",
               zIndex: 9999, pointerEvents: "none",
-              // Ghost matches bottom-tile neutral style
               width: "min(78px, 20vw)", height: "min(78px, 20vw)", borderRadius: 20,
               background: "white",
               border: "2.5px solid rgba(168,208,230,0.7)",
