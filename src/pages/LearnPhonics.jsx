@@ -6,7 +6,7 @@ import { shortIWords } from "../lib/shortIWords";
 import { shortOWords } from "../lib/shortOWords";
 import { shortUWords } from "../lib/shortUWords";
 
-const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
+const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 
 const vowelGroups = [
   { id: "short-a", label: "Short a", emoji: "🍎", active: true },
