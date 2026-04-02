@@ -16,23 +16,33 @@ const vowelGroups = [
   { id: "short-u", label: "Short u", emoji: "☂️", active: true },
 ];
 
-export default function LearnPhonics() {
+export default function LearnPhonics({ onDeepScreen }) {
   const [openFolder, setOpenFolder] = useState(null);
 
-  if (openFolder === "short-a") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} />;
-  }
-  if (openFolder === "short-e") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortEWords} title="Short e Words" />;
-  }
-  if (openFolder === "short-i") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortIWords} title="Short i Words" />;
-  }
-  if (openFolder === "short-o") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortOWords} title="Short o Words" />;
-  }
-  if (openFolder === "short-u") {
-    return <FlashcardScreen onBack={() => setOpenFolder(null)} words={shortUWords} title="Short u Words" />;
+  const enterFolder = (id) => {
+    setOpenFolder(id);
+    onDeepScreen && onDeepScreen(true);
+  };
+
+  const exitFolder = () => {
+    setOpenFolder(null);
+    onDeepScreen && onDeepScreen(false);
+  };
+
+  if (openFolder) {
+    const wordMap = {
+      "short-a": { words: undefined, title: "Short a Words" },
+      "short-e": { words: shortEWords, title: "Short e Words" },
+      "short-i": { words: shortIWords, title: "Short i Words" },
+      "short-o": { words: shortOWords, title: "Short o Words" },
+      "short-u": { words: shortUWords, title: "Short u Words" },
+    };
+    const cfg = wordMap[openFolder];
+    return (
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100%" }}>
+        <FlashcardScreen onBack={exitFolder} words={cfg.words} title={cfg.title} enableLetterSounds />
+      </div>
+    );
   }
 
   return (
@@ -71,7 +81,7 @@ export default function LearnPhonics() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.07 }}
               whileTap={group.active ? { scale: 0.97 } : {}}
-              onClick={() => group.active && setOpenFolder(group.id)}
+              onClick={() => group.active && enterFolder(group.id)}
               style={{
                 display: "flex",
                 alignItems: "center",
