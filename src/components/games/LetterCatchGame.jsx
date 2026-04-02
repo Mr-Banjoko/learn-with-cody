@@ -10,7 +10,7 @@ const CODY_IMG =
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
 const TICK_MS = 40;
-const FALL_SPEED = 1.9;
+const DEFAULT_FALL_SPEED = 1.9;
 const FIRST_SPAWN_MS = 1800;
 const SPAWN_INTERVAL_MS = 2800;
 const MAX_ACTIVE_TILES = 3;
@@ -187,7 +187,7 @@ function CandyArrow({ direction, onPress }) {
 
 // ── Single Round ──────────────────────────────────────────────────────────────
 
-function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
+function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpeed }) {
   const { word, image, audio } = wordData;
   const letters = word.split("");
   const [missingPos] = useState(() => Math.floor(Math.random() * 3));
@@ -279,7 +279,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
 
       tilesRef.current = tilesRef.current.map((tile) => {
         if (tile.status !== "falling") return tile;
-        const newY = tile.y + FALL_SPEED;
+        const newY = tile.y + fallSpeed;
 
         if (newY >= catchTop && newY <= catchBottom && tile.lane === codyLaneRef.current) {
           handleCatchRef.current(tile);
@@ -550,23 +550,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
           }}
         />
 
-        {/* Success sparkle overlay */}
-        <AnimatePresence>
-          {phase === "caught" && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                position: "absolute", inset: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                pointerEvents: "none", fontSize: 52,
-              }}
-            >
-              🌟
-            </motion.div>
-          )}
-        </AnimatePresence>
+
       </div>
 
       {/* ── Arrow controls — only LEFT and RIGHT ── */}
@@ -597,7 +581,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
 
 // ── Main Wrapper ──────────────────────────────────────────────────────────────
 
-export default function LetterCatchGame({ words, title, color, onBack }) {
+export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAULT_FALL_SPEED, onBack }) {
   const [roundIndex, setRoundIndex] = useState(0);
 
   const [gameWords] = useState(() =>
@@ -677,6 +661,7 @@ export default function LetterCatchGame({ words, title, color, onBack }) {
         totalRounds={gameWords.length}
         onSuccess={handleSuccess}
         onExit={onBack}
+        fallSpeed={fallSpeed}
       />
     </div>
   );

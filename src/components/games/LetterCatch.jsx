@@ -1,30 +1,21 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import LetterCatchGame from "./LetterCatchGame";
-import { shortAWords } from "../../lib/shortAWords";
+import ShortADifficulty from "./ShortADifficulty";
 
 const VOWEL_GROUPS = [
-  { id: "short-a", label: "Short a", emoji: "🍎", color: "#FF6B6B", bg: "#FFF0F0", words: shortAWords, available: true },
-  { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", bg: "#FFFDE7", words: null, available: false },
-  { id: "short-i", label: "Short i", emoji: "🐟", color: "#6BCB77", bg: "#F0FFF4", words: null, available: false },
-  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", bg: "#EFF6FF", words: null, available: false },
-  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", words: null, available: false },
+  { id: "short-a", label: "Short a", emoji: "🍎", color: "#FF6B6B", bg: "#FFF0F0", available: true },
+  { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", bg: "#FFFDE7", available: false },
+  { id: "short-i", label: "Short i", emoji: "🐟", color: "#6BCB77", bg: "#F0FFF4", available: false },
+  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", bg: "#EFF6FF", available: false },
+  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", available: false },
 ];
 
 export default function LetterCatch({ onBack }) {
   const [selected, setSelected] = useState(null);
 
-  if (selected) {
-    const group = VOWEL_GROUPS.find((g) => g.id === selected);
-    return (
-      <LetterCatchGame
-        words={group.words}
-        title={group.label}
-        color={group.color}
-        onBack={() => setSelected(null)}
-      />
-    );
+  if (selected === "short-a") {
+    return <ShortADifficulty onBack={() => setSelected(null)} />;
   }
 
   return (
