@@ -288,7 +288,6 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
                   e.stopPropagation();
                   handleTouchStart(e, option);
                 }}
-                onClick={() => handleLetterTap(option)}
                 style={{
                   width: "min(74px, 18vw)", height: "min(74px, 18vw)", borderRadius: 18,
                   background: bgColor,

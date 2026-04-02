@@ -401,7 +401,6 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
                 key={option.id}
                 animate={isDraggingThis ? { scale: 1.1 } : { scale: 1, opacity: 1 }}
                 onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, option); }}
-                onClick={() => handleLetterTap(option)}
                 style={{ width: "min(74px, 18vw)", height: "min(74px, 18vw)", borderRadius: 18, background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 12px rgba(0,0,0,0.10)", border: "3px solid rgba(255,255,255,0.7)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1 }}
               >
                 {option.letter}
