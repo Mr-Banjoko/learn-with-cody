@@ -117,6 +117,13 @@ export const games = [
     available: true,
   },
   {
+    id: "missing-sound",
+    label: "Missing Sound",
+    emoji: "❓",
+    description: "Find the missing letter to complete the word",
+    available: true,
+  },
+  {
     id: "letter-catch",
     label: "Letter Catch",
     emoji: "🧩",

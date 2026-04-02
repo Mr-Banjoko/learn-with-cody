@@ -5,6 +5,7 @@ import { Lock } from "lucide-react";
 import PicSliceGame from "./PicSliceGame";
 import WordMatch from "../components/games/WordMatch";
 import DragTheLetters from "../components/games/DragTheLetters";
+import MissingSound from "../components/games/MissingSound";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
 
@@ -32,6 +33,9 @@ export default function Games({ onDeepScreen }) {
   }
   if (activeGame === "drag-letters") {
     return <DragTheLetters onBack={exitGame} />;
+  }
+  if (activeGame === "missing-sound") {
+    return <MissingSound onBack={exitGame} />;
   }
 
   return (
