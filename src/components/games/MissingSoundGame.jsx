@@ -64,6 +64,11 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
   const total = words.length;
 
   useEffect(() => {
+    // Cancel any in-progress audio sequence (e.g. user navigated mid-sequence)
+    // but do NOT call it if the sequence already completed naturally —
+    // sequenceRef.current is set to null by the completion callback before
+    // setRoundIndex fires, so this guard is safe.
+    if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
     const newRound = buildRound(words[roundIndex]);
     roundRef.current = newRound;
     setRound(newRound);
@@ -75,7 +80,6 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
     setDragState(null);
     setIsActiveDrag(false);
     isDragging.current = false;
-    if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
   }, [roundIndex]);
 
   // ─── Completion sequence ─────────────────────────────────────────────────────
@@ -87,9 +91,15 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
     }).filter(Boolean);
     if (card.audio) steps.push({ url: card.audio, onStart: () => setBouncingIndex(null) });
     const cancel = playAudioSequence(steps, () => {
+      // Null out BEFORE triggering roundIndex change so the roundIndex
+      // useEffect does not mistakenly cancel an already-finished sequence
       sequenceRef.current = null;
       setBouncingIndex(null);
-      setRoundIndex((prev) => (prev + 1 < words.length ? prev + 1 : 0));
+      // Small timeout ensures sequenceRef.current = null is committed
+      // before the useEffect for roundIndex fires
+      setTimeout(() => {
+        setRoundIndex((prev) => (prev + 1 < words.length ? prev + 1 : 0));
+      }, 0);
     });
     sequenceRef.current = cancel;
   }, [words]);
@@ -226,7 +236,9 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
       }}>
 
         {/* ── TOP LAYER: shared frame + 3 letter boxes ── */}
-        <div style={{
+        <div
+          key={roundIndex}
+          style={{
           background: "rgba(255,255,255,0.55)",
           borderRadius: 32,
           padding: "18px 22px",
@@ -248,7 +260,7 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
             return (
               <motion.div
                 key={i}
-                ref={isMissing ? dropZoneRef : null}
+                ref={isMissing ? (node) => { dropZoneRef.current = node; } : (node) => { if (dropZoneRef.current === node) dropZoneRef.current = null; }}
                 animate={
                   isWrong
                     ? { x: [0, -10, 10, -7, 7, 0] }
