@@ -18,10 +18,46 @@ export const activityTypes = [
 ];
 
 export const games = [
-  { id: "pic-slice", label: "Rearrange the Pictures", emoji: "\u{1F5BC}\uFE0F", description: "Drag picture pieces into the right order", available: true },
-  { id: "word-match", label: "Word Match", emoji: "\u{1F3AF}", description: "Match the word to the picture", available: true },
-  { id: "drag-letters", label: "Drag the Letters", emoji: "\u270B", description: "Drag letters into the right boxes to spell the word", available: true },
-  { id: "missing-sound", label: "Missing Sound", emoji: "\u2753", description: "Find the missing letter to complete the word", available: true },
-  { id: "letter-catch", label: "Letter Catch", emoji: "\u{1F9E9}", description: "Catch the right letters to make a word", available: false },
-  { id: "sound-safari", label: "Sound Safari", emoji: "\u{1F981}", description: "Find animals whose names start with the sound", available: false },
+  {
+    id: "pic-slice",
+    label: "Rearrange the Pictures",
+    emoji: "🖼️",
+    description: "Drag picture pieces into the right order",
+    available: true,
+  },
+  {
+    id: "word-match",
+    label: "Word Match",
+    emoji: "🎯",
+    description: "Match the word to the picture",
+    available: true,
+  },
+  {
+    id: "drag-letters",
+    label: "Drag the Letters",
+    emoji: "✋",
+    description: "Drag letters into the right boxes to spell the word",
+    available: true,
+  },
+  {
+    id: "missing-sound",
+    label: "Missing Sound",
+    emoji: "❓",
+    description: "Find the missing letter to complete the word",
+    available: true,
+  },
+  {
+    id: "letter-catch",
+    label: "Letter Catch",
+    emoji: "🧩",
+    description: "Catch the right letters to make a word",
+    available: false,
+  },
+  {
+    id: "sound-safari",
+    label: "Sound Safari",
+    emoji: "🦁",
+    description: "Find animals whose names start with the sound",
+    available: false,
+  },
 ];

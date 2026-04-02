@@ -13,12 +13,30 @@ const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];
 
 export default function Games({ onDeepScreen }) {
   const [activeGame, setActiveGame] = useState(null);
-  const enterGame = (id) => { setActiveGame(id); onDeepScreen && onDeepScreen(true); };
-  const exitGame = () => { setActiveGame(null); onDeepScreen && onDeepScreen(false); };
-  if (activeGame === "pic-slice") return <PicSliceGame onBack={exitGame} />;
-  if (activeGame === "word-match") return <WordMatch onBack={exitGame} />;
-  if (activeGame === "drag-letters") return <DragTheLetters onBack={exitGame} />;
-  if (activeGame === "missing-sound") return <MissingSound onBack={exitGame} />;
+
+  const enterGame = (id) => {
+    setActiveGame(id);
+    onDeepScreen && onDeepScreen(true);
+  };
+
+  const exitGame = () => {
+    setActiveGame(null);
+    onDeepScreen && onDeepScreen(false);
+  };
+
+  if (activeGame === "pic-slice") {
+    return <PicSliceGame onBack={exitGame} />;
+  }
+  if (activeGame === "word-match") {
+    return <WordMatch onBack={exitGame} />;
+  }
+  if (activeGame === "drag-letters") {
+    return <DragTheLetters onBack={exitGame} />;
+  }
+  if (activeGame === "missing-sound") {
+    return <MissingSound onBack={exitGame} />;
+  }
+
   return (
     <div className="min-h-full pb-32 pt-4" style={{ fontFamily: "Fredoka, sans-serif" }}>
       <div className="px-4 mb-6 flex items-center gap-3">
