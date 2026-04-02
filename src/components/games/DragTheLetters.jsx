@@ -33,8 +33,12 @@ export default function DragTheLetters({ onBack }) {
 
   return (
     <div className="min-h-full pb-32" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}>
+      {/* Header */}
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "16px 20px 22px", display: "flex", alignItems: "center", gap: 12 }}>
-        <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+        <button
+          onClick={onBack}
+          style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+        >
           <ArrowLeft size={22} color="#1E3A5F" />
         </button>
         <div>
@@ -42,6 +46,8 @@ export default function DragTheLetters({ onBack }) {
           <p style={{ fontSize: 13, color: "#3A6080" }}>Pick a word group!</p>
         </div>
       </div>
+
+      {/* Vowel folders */}
       <div className="px-4 pt-6 flex flex-col gap-3">
         {VOWEL_GROUPS.map((group, i) => (
           <motion.button
@@ -51,9 +57,19 @@ export default function DragTheLetters({ onBack }) {
             transition={{ delay: i * 0.07 }}
             whileTap={group.available ? { scale: 0.97 } : {}}
             onClick={() => group.available && setSelected(group.id)}
-            style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", borderRadius: 20, background: group.available ? "white" : "rgba(255,255,255,0.55)", border: "2px solid " + (group.available ? group.color + "55" : "rgba(168,208,230,0.3)"), boxShadow: group.available ? "0 6px 24px " + group.color + "20" : "none", cursor: group.available ? "pointer" : "not-allowed", opacity: group.available ? 1 : 0.6, width: "100%", textAlign: "left" }}
+            style={{
+              display: "flex", alignItems: "center", gap: 14,
+              padding: "16px 18px", borderRadius: 20,
+              background: group.available ? "white" : "rgba(255,255,255,0.55)",
+              border: `2px solid ${group.available ? group.color + "55" : "rgba(168,208,230,0.3)"}`,
+              boxShadow: group.available ? `0 6px 24px ${group.color}20` : "none",
+              cursor: group.available ? "pointer" : "not-allowed",
+              opacity: group.available ? 1 : 0.6, width: "100%", textAlign: "left",
+            }}
           >
-            <div style={{ width: 52, height: 52, borderRadius: 16, background: group.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0 }}>{group.emoji}</div>
+            <div style={{ width: 52, height: 52, borderRadius: 16, background: group.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0 }}>
+              {group.emoji}
+            </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>{group.label}</p>
               <p style={{ fontSize: 13, color: "#7BACC8" }}>{group.available ? "Tap to play!" : "Coming soon"}</p>

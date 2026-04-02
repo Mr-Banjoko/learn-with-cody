@@ -103,6 +103,13 @@ export const games = [
     available: false,
   },
   {
+    id: "drag-letters",
+    label: "Drag the Letters",
+    emoji: "✋",
+    description: "Drag letters into the right boxes to spell the word",
+    available: true,
+  },
+  {
     id: "letter-catch",
     label: "Letter Catch",
     emoji: "🧩",

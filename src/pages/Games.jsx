@@ -1,13 +1,38 @@
 import { motion } from "framer-motion";
 import { games } from "../lib/content";
 import { Lock } from "lucide-react";
+import PicSliceGame from "./PicSliceGame";
+import WordMatch from "../components/games/WordMatch";
+import DragTheLetters from "../components/games/DragTheLetters";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
 
-const gameColors = ["#FF6B6B", "#4D96FF", "#6BCB77"];
+const gameColors = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF"];
 const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];
 
-export default function Games() {
+export default function Games({ onDeepScreen }) {
+  const [activeGame, setActiveGame] = useState(null);
+
+  const enterGame = (id) => {
+    setActiveGame(id);
+    onDeepScreen && onDeepScreen(true);
+  };
+
+  const exitGame = () => {
+    setActiveGame(null);
+    onDeepScreen && onDeepScreen(false);
+  };
+
+  if (activeGame === "pic-slice") {
+    return <PicSliceGame onBack={exitGame} />;
+  }
+  if (activeGame === "word-match") {
+    return <WordMatch onBack={exitGame} />;
+  }
+  if (activeGame === "drag-letters") {
+    return <DragTheLetters onBack={exitGame} />;
+  }
+
   return (
     <div
       className="min-h-full pb-32 pt-4"

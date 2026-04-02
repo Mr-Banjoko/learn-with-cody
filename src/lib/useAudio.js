@@ -20,6 +20,9 @@ async function getCachedAudioUrl(remoteUrl) {
       if (fetched.status === 200) await cache.put(remoteUrl, fetched.clone());
       response = fetched;
     }
+    // CRITICAL FIX: explicitly set audio/mpeg so iOS Safari uses the correct MP3 decoder.
+    // Without this, GitHub CDN serves blobs as application/octet-stream and iOS falls back
+    // to a slower decoder path that plays 22050 Hz files at ~half speed.
     const arrayBuffer = await response.arrayBuffer();
     const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
     const blobUrl = URL.createObjectURL(blob);
@@ -30,6 +33,12 @@ async function getCachedAudioUrl(remoteUrl) {
   }
 }
 
+/**
+ * Pre-resolve blob URLs for instant first-tap playback.
+ * NOTE: No AudioContext warmup — creating an AudioContext at a wrong sample rate
+ * can bleed into HTMLAudioElement playback on iOS, causing slow audio.
+ * Instead we rely on the audio session being unlocked by the first user-gesture .play() call.
+ */
 export async function warmupAudio(urls) {
   for (const url of urls) {
     if (!resolvedBlobUrls.has(url)) {
@@ -38,6 +47,9 @@ export async function warmupAudio(urls) {
   }
 }
 
+/**
+ * Play a single audio file. Stops any currently playing audio first.
+ */
 export async function playAudio(remoteUrl, gain = 1) {
   if (!remoteUrl) return;
   if (currentAudio) {
@@ -55,12 +67,19 @@ export async function playAudio(remoteUrl, gain = 1) {
   audio.onended = () => {
     if (currentAudio === audio) currentAudio = null;
   };
+  // audio.load() hints to iOS to start decoding immediately before play() is called,
+  // preventing the device from decoding lazily (which can cause timing drift).
   audio.load();
   audio.play().catch(() => {
     if (currentAudio === audio) currentAudio = null;
   });
 }
 
+/**
+ * Play an array of steps sequentially, each starting only after the previous ends.
+ * Each step: { url, gain?, onStart? }
+ * Returns a cancel function.
+ */
 export function playAudioSequence(steps, onDone) {
   if (currentAudio) {
     currentAudio.pause();
