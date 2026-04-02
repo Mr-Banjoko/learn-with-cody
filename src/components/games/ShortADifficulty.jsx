@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import BackArrow from "../BackArrow";
 import LetterCatchGame from "./LetterCatchGame";
 import { shortAWords } from "../../lib/shortAWords";
 import { useState } from "react";
@@ -63,23 +63,13 @@ export default function ShortADifficulty({ onBack }) {
           background: "#A8D0E6",
           borderBottomLeftRadius: 28,
           borderBottomRightRadius: 28,
-          padding: "16px 20px 22px",
+          padding: "10px 20px 16px",
           display: "flex",
           alignItems: "center",
-          gap: 12,
+          gap: 8,
         }}
       >
-        <button
-          onClick={onBack}
-          style={{
-            width: 40, height: 40, borderRadius: 20,
-            background: "rgba(255,255,255,0.7)", border: "none",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer",
-          }}
-        >
-          <ArrowLeft size={22} color="#1E3A5F" />
-        </button>
+        <BackArrow onPress={onBack} />
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>
             Short a 🍎

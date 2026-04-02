@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Volume2 } from "lucide-react";
+import { Volume2 } from "lucide-react";
+import BackArrow from "../BackArrow";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 
@@ -352,17 +353,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
           display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
         }}
       >
-        <button
-          onClick={onExit}
-          style={{
-            width: 36, height: 36, borderRadius: 18,
-            background: "rgba(255,255,255,0.75)", border: "none",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", flexShrink: 0,
-          }}
-        >
-          <ArrowLeft size={20} color="#1E3A5F" />
-        </button>
+        <BackArrow onPress={onExit} />
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 12, color: "#3A6080", margin: 0 }}>
             Round {roundNum} of {totalRounds}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import BackArrow from "../BackArrow";
 import DragTheLettersGame from "./DragTheLettersGame";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
@@ -34,13 +34,8 @@ export default function DragTheLetters({ onBack }) {
   return (
     <div className="min-h-full pb-32" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}>
       {/* Header */}
-      <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "16px 20px 22px", display: "flex", alignItems: "center", gap: 12 }}>
-        <button
-          onClick={onBack}
-          style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-        >
-          <ArrowLeft size={22} color="#1E3A5F" />
-        </button>
+      <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+        <BackArrow onPress={onBack} />
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>Drag the Letters ✋</h1>
           <p style={{ fontSize: 13, color: "#3A6080" }}>Pick a word group!</p>

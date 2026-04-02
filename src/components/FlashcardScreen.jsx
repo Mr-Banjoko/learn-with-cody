@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Camera, Save, Check, BookImage } from "lucide-react";
+import { Camera, Check, BookImage } from "lucide-react";
+import BackArrow from "./BackArrow";
 import html2canvas from "html2canvas";
 import { shortAWords } from "../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
@@ -146,10 +147,8 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "#D6EEFF", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
-      <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "16px 20px 20px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-        <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-          <ArrowLeft size={22} color="#1E3A5F" />
-        </button>
+      <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 14px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <BackArrow onPress={onBack} />
         <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E3A5F", marginRight: 40 }}>{screenTitle}</h1>
       </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Volume2 } from "lucide-react";
+import { Volume2 } from "lucide-react";
+import BackArrow from "../BackArrow";
 import { playAudio } from "../../lib/useAudio";
 
 // Pick 1 correct + 3 random distractors from the word pool
@@ -83,13 +84,8 @@ export default function WordMatchGame({ words, title, color, onBack }) {
   return (
     <div style={{ background: "#D6EEFF", minHeight: "100%", fontFamily: "Fredoka, sans-serif", display: "flex", flexDirection: "column" }}>
       {/* Header */}
-      <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "16px 20px 22px", display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-        <button
-          onClick={onBack}
-          style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
-        >
-          <ArrowLeft size={22} color="#1E3A5F" />
-        </button>
+      <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 16px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <BackArrow onPress={onBack} />
         <h1 style={{ flex: 1, fontSize: 20, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>Word Match · {title}</h1>
         <div style={{ background: "white", borderRadius: 14, padding: "4px 14px", fontSize: 16, fontWeight: 700, color: color, flexShrink: 0 }}>
           ⭐ {score}
