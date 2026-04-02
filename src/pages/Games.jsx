@@ -7,7 +7,7 @@ import WordMatch from "../components/games/WordMatch";
 import DragTheLetters from "../components/games/DragTheLetters";
 import MissingSound from "../components/games/MissingSound";
 
-const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
+const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 
 const gameColors = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF"];
 const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];

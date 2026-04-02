@@ -8,7 +8,7 @@ import Games from "../pages/Games";
 import Album from "../pages/Album";
 
 export default function AppShell() {
-  const [activeTab, setActiveTab] = useState("learn");
+  const [activeTab, setActiveTab] = useState("home");
   const [isDeepScreen, setIsDeepScreen] = useState(false);
   const [language, setLanguage] = useState(() => localStorage.getItem("lang") || "en");
 

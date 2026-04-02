@@ -51,7 +51,7 @@ export default function TabBar({ activeTab, onTabChange, language = "en", showCo
                   style={{ width: 44, height: 44 }}
                 >
                   <img
-                    src="https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png"
+                    src="https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png"
                     alt="Cody"
                     style={{
                       width: 44,

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6b8f13599_cody.png";
+const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 
 export default function Home({ onNavigate }) {
   return (
@@ -48,8 +48,8 @@ export default function Home({ onNavigate }) {
           src={CODY_IMG}
           alt="Cody"
           style={{
-            width: 200,
-            height: 220,
+            width: 220,
+            height: 240,
             objectFit: "contain",
             filter: "drop-shadow(0 12px 32px rgba(78,205,196,0.2))",
           }}
