@@ -1,44 +1,41 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Volume2 } from "lucide-react";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
-const TICK_MS = 40; // 25fps — smooth enough, light on mobile
-const FALL_SPEED = 2.0; // px per tick ≈ 50px/sec (nice and slow for 4-year-olds)
-const FIRST_SPAWN_MS = 1600; // slight pause before first tile
-const SPAWN_INTERVAL_MS = 2700; // gap between spawns
+const TICK_MS = 40;
+const FALL_SPEED = 2.0;
+const FIRST_SPAWN_MS = 1400;
+const SPAWN_INTERVAL_MS = 2700;
 const MAX_ACTIVE_TILES = 3;
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
 const ROUNDS_PER_SESSION = 10;
+const LANE_X = [16.67, 50, 83.33];
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function pickDistractors(correct) {
-  // Use consonant pool if correct is a consonant, vowel pool if vowel
   const vowels = "aeiou".split("");
   const consonants = "bcdfghjklmnprst".split("");
   const isVowel = vowels.includes(correct.toLowerCase());
-  let pool = isVowel
+  const pool = isVowel
     ? [...vowels.filter((l) => l !== correct), ...consonants.slice(0, 4)]
     : consonants.filter((l) => l !== correct);
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
   return [shuffled[0], shuffled[1]];
 }
 
-// Build a repeating spawn sequence so the correct letter appears regularly
 function buildQueue(correct, distractors) {
   const q = [];
   for (let i = 0; i < 12; i++) {
-    if (i % 3 === 1) q.push(correct); // correct at positions 1, 4, 7, 10 …
-    else q.push(distractors[i % 2]);
+    q.push(i % 3 === 1 ? correct : distractors[i % 2]);
   }
   return q;
 }
 
-// Pick a lane that's least occupied by currently falling tiles
 function pickLane(activeTiles) {
   const counts = [0, 0, 0];
   activeTiles.forEach((t) => counts[t.lane]++);
@@ -47,25 +44,101 @@ function pickLane(activeTiles) {
   return opts[Math.floor(Math.random() * opts.length)];
 }
 
-const LANE_X = [16.67, 50, 83.33]; // % from left, centred in lane
+// ─── Candy Arrow Button ───────────────────────────────────────────────────────
 
-// ─── Single Round ─────────────────────────────────────────────────────────
+function CandyArrow({ direction, onPress, disabled }) {
+  const isLeft = direction === "left";
+  const mainColor = isLeft ? "#4ECDC4" : "#6BCB77";
+  const accentColor = isLeft ? "#FF6B6B" : "#FF9F43";
+  const stripeColor = isLeft ? "#FFD93D" : "#FF6B8A";
+
+  return (
+    <button
+      onTouchStart={(e) => { e.preventDefault(); if (!disabled) onPress(); }}
+      onClick={() => { if (!disabled) onPress(); }}
+      style={{
+        WebkitTapHighlightColor: "transparent",
+        background: "transparent",
+        border: "none",
+        padding: 0,
+        cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.35 : 1,
+        transition: "opacity 0.2s",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 120,
+        height: 90,
+        flexShrink: 0,
+      }}
+    >
+      <svg
+        width="112"
+        height="78"
+        viewBox="0 0 112 78"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ transform: isLeft ? "scaleX(-1)" : "none", filter: `drop-shadow(0 5px 12px ${mainColor}70)` }}
+      >
+        {/* Main arrow body */}
+        <path
+          d="M42 16 L80 16 Q96 16 96 30 L96 48 Q96 62 80 62 L42 62 L42 56 L20 39 L42 22 Z"
+          fill={mainColor}
+        />
+        {/* Accent tail stripes */}
+        <path d="M62 16 L80 16 Q96 16 96 30 L96 48 Q96 62 80 62 L62 62 Z" fill={stripeColor} opacity="0.65" />
+        <path d="M72 16 L80 16 Q96 16 96 30 L96 48 Q96 62 80 62 L72 62 Z" fill={accentColor} opacity="0.55" />
+        {/* Arrow pointer */}
+        <path
+          d="M42 62 L42 56 L20 39 L42 22 L42 16"
+          fill={mainColor}
+          stroke="white"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        {/* Dots decoration */}
+        <circle cx="52" cy="27" r="3.5" fill="white" opacity="0.7" />
+        <circle cx="64" cy="22" r="2.5" fill="white" opacity="0.5" />
+        <circle cx="78" cy="30" r="3" fill="white" opacity="0.55" />
+        <circle cx="50" cy="52" r="2.5" fill="white" opacity="0.5" />
+        <circle cx="70" cy="54" r="3" fill="white" opacity="0.6" />
+        {/* Cheek blushes */}
+        <ellipse cx="57" cy="46" rx="5" ry="3.5" fill={accentColor} opacity="0.45" />
+        {/* Eyes */}
+        <circle cx="50" cy="37" r="5" fill="white" />
+        <circle cx="50" cy="37" r="3" fill="#1E293B" />
+        <circle cx="51.5" cy="35.5" r="1.2" fill="white" />
+        {/* Smile */}
+        <path d="M44 42 Q50 47 56 42" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
+        {/* Outline */}
+        <path
+          d="M42 16 L80 16 Q96 16 96 30 L96 48 Q96 62 80 62 L42 62 L42 56 L20 39 L42 22 Z"
+          fill="none"
+          stroke="white"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
+// ─── Single Round ─────────────────────────────────────────────────────────────
 
 function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
   const { word, image, audio } = wordData;
-  const letters = word.split(""); // always 3 letters for CVC
+  const letters = word.split("");
 
-  // Pick missing position once on mount
   const [missingPos] = useState(() => Math.floor(Math.random() * 3));
   const missingLetter = letters[missingPos];
 
   const [tiles, setTiles] = useState([]);
   const [codyLane, setCodyLane] = useState(1);
-  const [phase, setPhase] = useState("playing"); // playing | caught | done
+  const [phase, setPhase] = useState("playing");
   const [caughtVisible, setCaughtVisible] = useState(false);
-  const [wrongIds, setWrongIds] = useState(new Set());
+  const [wrongGlowIds, setWrongGlowIds] = useState(new Set());
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Refs for use inside intervals/rAF without stale closures
   const tilesRef = useRef([]);
   const codyLaneRef = useRef(1);
   const phaseRef = useRef("playing");
@@ -79,10 +152,16 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
   const nextSpawnAt = useRef(Date.now() + FIRST_SPAWN_MS);
   const tileCounter = useRef(0);
 
-  // Keep refs in sync
   useEffect(() => { codyLaneRef.current = codyLane; }, [codyLane]);
 
-  // Measure game area height after mount
+  // Auto-play word on round start
+  useEffect(() => {
+    const t = setTimeout(() => {
+      playAudio(audio);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [audio]);
+
   useEffect(() => {
     const measure = () => {
       if (gameAreaRef.current) {
@@ -94,7 +173,6 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-  // Handle a tile being caught
   const handleCatch = useCallback(
     (tile) => {
       if (phaseRef.current !== "playing") return;
@@ -107,45 +185,43 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
         tilesRef.current = [];
         setTiles([]);
         setCaughtVisible(true);
+        setShowSuccess(true);
 
-        // Cancel any existing audio
         if (cancelAudioRef.current) cancelAudioRef.current();
 
-        // Reward sequence: letter-0 → letter-1 → letter-2 → full word
-        const steps = letters.map((l) => ({
-          url: getLetterSoundUrl(l),
-          gain: getLetterGain(l),
-        })).concat([{ url: audio }]);
+        // Just play the full word once, then advance
+        setTimeout(() => {
+          playAudio(audio);
+        }, 200);
 
         setTimeout(() => {
-          cancelAudioRef.current = playAudioSequence(steps, () => {
-            onSuccess();
-          });
-        }, 600);
+          onSuccess();
+        }, 1400);
       } else {
-        // ── Wrong catch — gentle rejection ──
+        // ── Wrong catch — soft red glow ──
+        const id = tile.id;
+        setWrongGlowIds((prev) => new Set([...prev, id]));
         tilesRef.current = tilesRef.current.map((t) =>
-          t.id === tile.id ? { ...t, status: "wrong" } : t
+          t.id === id ? { ...t, status: "wrong" } : t
         );
-        setWrongIds((prev) => new Set([...prev, tile.id]));
         setTimeout(() => {
-          tilesRef.current = tilesRef.current.filter((t) => t.id !== tile.id);
+          tilesRef.current = tilesRef.current.filter((t) => t.id !== id);
           setTiles([...tilesRef.current]);
-          setWrongIds((prev) => {
+          setWrongGlowIds((prev) => {
             const next = new Set(prev);
-            next.delete(tile.id);
+            next.delete(id);
             return next;
           });
-        }, 650);
+        }, 700);
       }
     },
-    [missingLetter, letters, audio, onSuccess]
+    [missingLetter, audio, onSuccess]
   );
 
   const handleCatchRef = useRef(handleCatch);
   useEffect(() => { handleCatchRef.current = handleCatch; }, [handleCatch]);
 
-  // ── Game tick ──
+  // Game tick
   useEffect(() => {
     if (phase !== "playing") return;
 
@@ -154,39 +230,29 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
 
       const now = Date.now();
       const height = gameHeightRef.current;
-      const catchTop = height * 0.68;
-      const catchBottom = height * 0.83;
-
+      const catchTop = height * 0.66;
+      const catchBottom = height * 0.82;
       const toRemove = [];
-      let spawned = false;
 
       tilesRef.current = tilesRef.current.map((tile) => {
         if (tile.status !== "falling") return tile;
         const newY = tile.y + FALL_SPEED;
 
-        // Catch zone detection
-        if (newY >= catchTop && newY <= catchBottom) {
-          if (tile.lane === codyLaneRef.current) {
-            handleCatchRef.current(tile);
-            return { ...tile, y: newY, status: "catching" }; // prevent double-catch
-          }
+        if (newY >= catchTop && newY <= catchBottom && tile.lane === codyLaneRef.current) {
+          handleCatchRef.current(tile);
+          return { ...tile, y: newY, status: "catching" };
         }
-
-        // Off screen
         if (newY > height + 80) {
           toRemove.push(tile.id);
           return { ...tile, y: newY, status: "gone" };
         }
-
         return { ...tile, y: newY };
       });
 
-      // Remove gone tiles
       if (toRemove.length > 0) {
         tilesRef.current = tilesRef.current.filter((t) => !toRemove.includes(t.id));
       }
 
-      // Spawn next tile if due
       const activeFalling = tilesRef.current.filter((t) => t.status === "falling").length;
       if (now >= nextSpawnAt.current && activeFalling < MAX_ACTIVE_TILES) {
         const letter = queue[queueIdx.current % queue.length];
@@ -194,12 +260,8 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
         const id = ++tileCounter.current;
         const lane = pickLane(tilesRef.current.filter((t) => t.status === "falling"));
         const color = TILE_COLORS[Math.floor(Math.random() * TILE_COLORS.length)];
-        tilesRef.current = [
-          ...tilesRef.current,
-          { id, letter, lane, y: -80, status: "falling", color },
-        ];
+        tilesRef.current = [...tilesRef.current, { id, letter, lane, y: -80, status: "falling", color }];
         nextSpawnAt.current = now + SPAWN_INTERVAL_MS;
-        spawned = true;
       }
 
       setTiles([...tilesRef.current]);
@@ -208,7 +270,6 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
     return () => clearInterval(tickRef.current);
   }, [phase, queue]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       clearInterval(tickRef.current);
@@ -216,10 +277,23 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
     };
   }, []);
 
-  const moveCody = (lane) => {
+  // One-lane-per-tap with edge clamping
+  const moveLeft = () => {
     if (phaseRef.current !== "playing") return;
-    setCodyLane(lane);
-    codyLaneRef.current = lane;
+    setCodyLane((prev) => {
+      const next = Math.max(0, prev - 1);
+      codyLaneRef.current = next;
+      return next;
+    });
+  };
+
+  const moveRight = () => {
+    if (phaseRef.current !== "playing") return;
+    setCodyLane((prev) => {
+      const next = Math.min(2, prev + 1);
+      codyLaneRef.current = next;
+      return next;
+    });
   };
 
   return (
@@ -234,7 +308,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
         position: "relative",
       }}
     >
-      {/* ── Header ─────────────────────────────────────────── */}
+      {/* ── Header ───────────────────────────────────────────── */}
       <div
         style={{
           background: "#A8D0E6",
@@ -256,12 +330,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
         >
           <ArrowLeft size={20} color="#1E3A5F" />
         </button>
-        <div style={{ flex: 1 }}>
-          <p style={{ fontSize: 12, color: "#3A6080", margin: 0 }}>
-            Round {roundNum} of {totalRounds}
-          </p>
-        </div>
-        {/* Progress dots */}
+        <div style={{ flex: 1 }} />
         <div style={{ display: "flex", gap: 5 }}>
           {Array.from({ length: totalRounds }).map((_, i) => (
             <div
@@ -279,49 +348,45 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
         </div>
       </div>
 
-      {/* ── Word Card ──────────────────────────────────────── */}
-      <div style={{ padding: "10px 16px 6px", flexShrink: 0 }}>
+      {/* ── Word Card (30% bigger) ───────────────────────────── */}
+      <div style={{ padding: "10px 16px 4px", flexShrink: 0 }}>
         <div
           style={{
             background: "white",
-            borderRadius: 20,
-            padding: "10px 14px",
+            borderRadius: 22,
+            padding: "12px 16px",
             display: "flex",
             alignItems: "center",
-            gap: 14,
+            gap: 16,
             boxShadow: "0 4px 20px rgba(30,58,95,0.10)",
           }}
         >
-          {/* Picture — tap to hear word */}
+          {/* Picture — tap to replay */}
           <button
             onTouchStart={() => playAudio(audio)}
             onClick={() => playAudio(audio)}
             style={{
-              width: 76, height: 76, borderRadius: 16, overflow: "hidden",
+              width: 98, height: 98, borderRadius: 18, overflow: "hidden",
               flexShrink: 0, border: "2.5px solid #A8D0E6",
               background: "#EFF6FF", position: "relative", cursor: "pointer",
               WebkitTapHighlightColor: "transparent",
             }}
           >
-            <img
-              src={image}
-              alt={word}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
+            <img src={image} alt={word} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             <div
               style={{
-                position: "absolute", bottom: 4, right: 4,
-                width: 22, height: 22, borderRadius: 11,
+                position: "absolute", bottom: 5, right: 5,
+                width: 26, height: 26, borderRadius: 13,
                 background: "#4A90C4",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              <Volume2 size={12} color="white" />
+              <Volume2 size={14} color="white" />
             </div>
           </button>
 
-          {/* CVC letter boxes */}
-          <div style={{ display: "flex", gap: 8, flex: 1, justifyContent: "center" }}>
+          {/* CVC letter boxes — 30% bigger */}
+          <div style={{ display: "flex", gap: 9, flex: 1, justifyContent: "center" }}>
             {letters.map((letter, i) => {
               const isMissing = i === missingPos;
               const showLetter = !isMissing || caughtVisible;
@@ -331,21 +396,17 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
                   key={i}
                   animate={isMissing && caughtVisible ? { scale: [1, 1.35, 1] } : {}}
                   transition={{ duration: 0.4 }}
-                  onTouchStart={() => {
-                    if (showLetter) playAudio(getLetterSoundUrl(letter), getLetterGain(letter));
-                  }}
-                  onClick={() => {
-                    if (showLetter) playAudio(getLetterSoundUrl(letter), getLetterGain(letter));
-                  }}
+                  onTouchStart={() => { if (showLetter) playAudio(getLetterSoundUrl(letter), getLetterGain(letter)); }}
+                  onClick={() => { if (showLetter) playAudio(getLetterSoundUrl(letter), getLetterGain(letter)); }}
                   style={{
-                    width: 58, height: 58, borderRadius: 14,
+                    width: 74, height: 74, borderRadius: 18,
                     background: showLetter ? boxColor : "rgba(168,208,230,0.25)",
                     border: showLetter ? "none" : "3px dashed #A8D0E6",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 28, fontWeight: 700,
+                    fontSize: 36, fontWeight: 700,
                     color: showLetter ? "white" : "#A8D0E6",
                     cursor: showLetter ? "pointer" : "default",
-                    boxShadow: showLetter ? `0 4px 12px ${boxColor}55` : "none",
+                    boxShadow: showLetter ? `0 4px 14px ${boxColor}55` : "none",
                     fontFamily: "Fredoka, sans-serif",
                     WebkitTapHighlightColor: "transparent",
                     textTransform: "uppercase",
@@ -365,37 +426,23 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
             textAlign: "center",
             fontSize: 13,
             color: phase === "caught" ? "#27AE60" : "#4A90C4",
-            marginTop: 6,
+            marginTop: 5,
             fontWeight: 600,
             transition: "color 0.3s",
           }}
         >
           {phase === "caught"
-            ? "🌟 Amazing catch!"
-            : `Move Cody to catch  "${missingLetter.toUpperCase()}"`}
+            ? "🌟 Amazing!"
+            : `Catch the letter  "${missingLetter.toUpperCase()}"`}
         </p>
       </div>
 
-      {/* ── Game Field ─────────────────────────────────────── */}
-      <div
-        ref={gameAreaRef}
-        style={{ flex: 1, position: "relative", overflow: "hidden" }}
-      >
+      {/* ── Game Field ──────────────────────────────────────── */}
+      <div ref={gameAreaRef} style={{ flex: 1, position: "relative", overflow: "hidden" }}>
         {/* Lane dividers */}
-        <div
-          style={{
-            position: "absolute", inset: 0,
-            display: "flex", pointerEvents: "none",
-          }}
-        >
+        <div style={{ position: "absolute", inset: 0, display: "flex", pointerEvents: "none" }}>
           {[0, 1, 2].map((l) => (
-            <div
-              key={l}
-              style={{
-                flex: 1,
-                borderRight: l < 2 ? "1px dashed rgba(168,208,230,0.35)" : "none",
-              }}
-            />
+            <div key={l} style={{ flex: 1, borderRight: l < 2 ? "1px dashed rgba(168,208,230,0.35)" : "none" }} />
           ))}
         </div>
 
@@ -406,7 +453,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
             top: 0, bottom: 0,
             left: `${(codyLane / 3) * 100}%`,
             width: "33.33%",
-            background: "rgba(74,144,196,0.06)",
+            background: "rgba(74,144,196,0.07)",
             transition: "left 0.18s ease-out",
             pointerEvents: "none",
           }}
@@ -416,7 +463,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
         {tiles
           .filter((t) => t.status === "falling" || t.status === "wrong" || t.status === "catching")
           .map((tile) => {
-            const isWrong = wrongIds.has(tile.id);
+            const isWrong = wrongGlowIds.has(tile.id);
             return (
               <div
                 key={tile.id}
@@ -425,15 +472,17 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
                   left: `${LANE_X[tile.lane]}%`,
                   top: tile.y,
                   transform: "translateX(-50%)",
-                  width: 66, height: 66, borderRadius: 18,
-                  background: isWrong ? "#CCC" : tile.color,
+                  width: 68, height: 68, borderRadius: 20,
+                  background: isWrong ? "#FF4444" : tile.color,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 32, fontWeight: 700, color: "white",
+                  fontSize: 34, fontWeight: 700, color: "white",
                   fontFamily: "Fredoka, sans-serif",
                   textTransform: "uppercase",
-                  boxShadow: isWrong ? "none" : `0 6px 20px ${tile.color}60`,
+                  boxShadow: isWrong
+                    ? "0 0 24px 8px rgba(255,60,60,0.55)"
+                    : `0 6px 20px ${tile.color}60`,
                   opacity: isWrong ? 0 : 1,
-                  transition: isWrong ? "opacity 0.45s ease-out" : "none",
+                  transition: isWrong ? "opacity 0.5s ease-out, box-shadow 0.3s" : "none",
                   userSelect: "none",
                   pointerEvents: "none",
                   zIndex: 10,
@@ -443,6 +492,34 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
               </div>
             );
           })}
+
+        {/* Success sparkle overlay */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                pointerEvents: "none",
+                zIndex: 50,
+              }}
+            >
+              <motion.div
+                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 0.5, repeat: 1 }}
+                style={{ fontSize: 72 }}
+              >
+                ⭐
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Cody */}
         <div
@@ -472,7 +549,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
           />
         </div>
 
-        {/* Subtle catch-line */}
+        {/* Catch line */}
         <div
           style={{
             position: "absolute",
@@ -484,92 +561,62 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit }) {
             pointerEvents: "none",
           }}
         />
-
-        {/* ── Lane tap zones (invisible, cover full game area) ── */}
-        <div style={{ position: "absolute", inset: 0, display: "flex", zIndex: 30 }}>
-          {[0, 1, 2].map((lane) => (
-            <button
-              key={lane}
-              onTouchStart={() => moveCody(lane)}
-              onClick={() => moveCody(lane)}
-              style={{
-                flex: 1,
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                WebkitTapHighlightColor: "transparent",
-                outline: "none",
-              }}
-            />
-          ))}
-        </div>
       </div>
 
-      {/* ── Lane labels (below game field) ─────────────────── */}
+      {/* ── Candy Arrow Controls ────────────────────────────── */}
       <div
         style={{
-          display: "flex",
           flexShrink: 0,
-          background: "rgba(168,208,230,0.30)",
-          padding: "6px 0 8px",
+          background: "linear-gradient(180deg, rgba(168,208,230,0.25) 0%, rgba(168,208,230,0.45) 100%)",
+          padding: "10px 12px 14px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        {[0, 1, 2].map((lane) => (
-          <button
-            key={lane}
-            onTouchStart={() => moveCody(lane)}
-            onClick={() => moveCody(lane)}
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 2,
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            <div
-              style={{
-                width: 36, height: 36, borderRadius: 18,
-                background: codyLane === lane ? "#4A90C4" : "rgba(255,255,255,0.6)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "background 0.2s",
-                boxShadow: codyLane === lane ? "0 3px 10px rgba(74,144,196,0.4)" : "none",
-              }}
-            >
-              <span style={{ fontSize: 18 }}>
-                {lane === 0 ? "⬅" : lane === 1 ? "⬆" : "➡"}
-              </span>
-            </div>
-          </button>
-        ))}
+        <CandyArrow direction="left" onPress={moveLeft} disabled={codyLane === 0} />
+
+        {/* Center lane indicator */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[0, 1, 2].map((l) => (
+              <div
+                key={l}
+                style={{
+                  width: 12, height: 12, borderRadius: 6,
+                  background: codyLane === l ? "#4A90C4" : "rgba(74,144,196,0.25)",
+                  transition: "background 0.2s",
+                }}
+              />
+            ))}
+          </div>
+          <p style={{ fontSize: 11, color: "#7BACC8", margin: 0, fontWeight: 600 }}>
+            {codyLane === 0 ? "Left" : codyLane === 1 ? "Middle" : "Right"}
+          </p>
+        </div>
+
+        <CandyArrow direction="right" onPress={moveRight} disabled={codyLane === 2} />
       </div>
     </div>
   );
 }
 
-// ─── Main wrapper — manages rounds ────────────────────────────────────────
+// ─── Main wrapper ─────────────────────────────────────────────────────────────
 
 export default function LetterCatchGame({ words, title, color, onBack }) {
   const [roundIndex, setRoundIndex] = useState(0);
 
-  // Shuffle and pick first N words once
   const [gameWords] = useState(() => {
     const shuffled = [...words].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, ROUNDS_PER_SESSION);
   });
 
   const handleSuccess = useCallback(() => {
-    // Small pause so the child feels the success before the next round
     setTimeout(() => {
       setRoundIndex((prev) => prev + 1);
-    }, 900);
+    }, 1500);
   }, []);
 
-  // ── Completion screen ──
   if (roundIndex >= gameWords.length) {
     return (
       <div
