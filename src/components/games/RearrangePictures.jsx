@@ -208,9 +208,10 @@ export default function RearrangePictures({ onBack }) {
       background: "#A8D0E6",
       borderBottomLeftRadius: 24,
       borderBottomRightRadius: 24,
-      padding: "14px 16px 18px",
+      padding: "12px 16px 14px",
       display: "flex", alignItems: "center", gap: 12,
-      marginBottom: 20,
+      marginBottom: 12,
+      flexShrink: 0,
     }}>
       <button
         onClick={() => setScreen("difficulty")}
@@ -224,18 +225,18 @@ export default function RearrangePictures({ onBack }) {
         <ArrowLeft size={20} color="#1E3A5F" />
       </button>
       <div style={{ flex: 1 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>
           🧩 Rearrange the Pictures
         </h2>
         <p style={{ fontSize: 13, color: "#3A6080", margin: 0 }}>
-          Short a · Easy · Round {roundIndex + 1}
+          short a · easy · round {roundIndex + 1}
         </p>
       </div>
     </div>
   );
 
   return (
-    <div style={{ fontFamily: "Fredoka, sans-serif", minHeight: "100%", position: "relative" }}>
+    <div style={{ fontFamily: "Fredoka, sans-serif", height: "100%", display: "flex", flexDirection: "column", position: "relative" }}>
       <AnimatePresence mode="wait">
         {screen === "vowel" && (
           <motion.div key="vowel" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -254,7 +255,11 @@ export default function RearrangePictures({ onBack }) {
         )}
 
         {screen === "game" && wordPair && (
-          <motion.div key={`game-${roundIndex}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+          <motion.div
+            key={`game-${roundIndex}`}
+            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+            style={{ display: "flex", flexDirection: "column", height: "100%" }}
+          >
             <GameHeader />
             <PicSliceBoard
               wordPair={wordPair}
