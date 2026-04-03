@@ -7,25 +7,24 @@ import { motion } from "framer-motion";
  */
 export default function BackArrow({ onPress }) {
   return (
-    <button
-      onPointerDown={(e) => { e.preventDefault(); onPress(); }}
+    // Large outer div (96×72) gives an easy touch target. The motion.div
+    // handles the tap via onTapStart — the earliest Framer Motion event,
+    // equivalent to pointerdown, so there is zero iOS 300ms click delay.
+    <div
       style={{
-        background: "transparent",
-        border: "none",
-        padding: 0,
-        cursor: "pointer",
-        WebkitTapHighlightColor: "transparent",
-        outline: "none",
-        width: 84,
-        height: 60,
+        width: 96,
+        height: 72,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        touchAction: "manipulation",
         flexShrink: 0,
+        cursor: "pointer",
+        WebkitTapHighlightColor: "transparent",
+        touchAction: "manipulation",
       }}
     >
       <motion.div
+        onTapStart={(e) => { e.stopPropagation(); onPress(); }}
         whileTap={{ scale: 0.86 }}
         transition={{ type: "spring", stiffness: 400, damping: 22 }}
         style={{
@@ -79,6 +78,6 @@ export default function BackArrow({ onPress }) {
           </g>
         </svg>
       </motion.div>
-    </button>
+    </div>
   );
 }
