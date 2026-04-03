@@ -32,62 +32,73 @@ export const VOWEL_GROUPS = [
 ];
 
 // Rounds per vowel group
+// easy: 1 word per round (new simplified mode)
+// difficult: 2 words per round (former easy mode)
 export const GAME_ROUNDS = {
   "short-a": {
     easy: [
+      ["bag"], ["bat"], ["ban"], ["can"], ["cab"],
+      ["cat"], ["dab"], ["dad"], ["dam"], ["fan"],
+    ],
+    difficult: [
       ["bag", "bat"],
       ["ban", "can"],
       ["cab", "cat"],
       ["dab", "dad"],
       ["dam", "fan"],
     ],
-    difficult: [
-      ["bag", "bat", "can", "cat"],
-      ["ban", "cab", "dab", "dad"],
-      ["dam", "fan", "bag", "can"],
-      ["bat", "dab", "ban", "cab"],
-      ["cat", "dad", "dam", "fan"],
-    ],
   },
   "short-e": {
     easy: [
+      ["bed"], ["beg"], ["bet"], ["den"], ["fed"],
+      ["gem"], ["get"], ["hem"], ["hen"], ["jet"],
+    ],
+    difficult: [
       ["bed", "beg"],
       ["bet", "den"],
       ["fed", "gem"],
       ["get", "hem"],
       ["hen", "jet"],
     ],
-    difficult: [],
   },
   "short-i": {
     easy: [
+      ["bib"], ["big"], ["bin"], ["bit"], ["dig"],
+      ["dim"], ["dip"], ["fig"], ["fin"], ["fit"],
+    ],
+    difficult: [
       ["bib", "big"],
       ["bin", "bit"],
       ["dig", "dim"],
       ["dip", "fig"],
       ["fin", "fit"],
     ],
-    difficult: [],
   },
   "short-o": {
     easy: [
+      ["bog"], ["box"], ["cob"], ["cod"], ["cog"],
+      ["cop"], ["cot"], ["dog"], ["fog"], ["fox"],
+    ],
+    difficult: [
       ["bog", "box"],
       ["cob", "cod"],
       ["cog", "cop"],
       ["cot", "dog"],
       ["fog", "fox"],
     ],
-    difficult: [],
   },
   "short-u": {
     easy: [
+      ["bud"], ["bug"], ["bun"], ["bus"], ["cub"],
+      ["cup"], ["fun"], ["gum"], ["gun"], ["hug"],
+    ],
+    difficult: [
       ["bud", "bug"],
       ["bun", "bus"],
       ["cub", "cup"],
       ["fun", "gum"],
       ["gun", "hug"],
     ],
-    difficult: [],
   },
 };
 

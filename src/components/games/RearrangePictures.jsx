@@ -8,7 +8,7 @@ import {
   buildWordData,
 } from "../../lib/picSliceGameData";
 import PicSliceBoard from "./PicSliceBoard";
-import PicSliceBoardDifficult from "./PicSliceBoardDifficult";
+import PicSliceBoardEasy from "./PicSliceBoardEasy";
 
 // ── Screen 1: Vowel group selection ────────────────────────────────────────
 function VowelSelect({ onSelect, onBack }) {
@@ -82,8 +82,8 @@ function DifficultySelect({ vowelId, onSelect, onBack }) {
   const vowel = VOWEL_GROUPS.find((g) => g.id === vowelId);
   const hasDifficult = (GAME_ROUNDS[vowelId]?.difficult?.length || 0) > 0;
   const difficulties = [
-    { id: "easy", label: "Easy", emoji: "⭐", description: "2 words per round", available: true, color: "#6BCB77" },
-    { id: "difficult", label: "Difficult", emoji: "🔥", description: "4 words per round", available: hasDifficult, color: "#FF6B6B" },
+    { id: "easy", label: "Easy", emoji: "⭐", description: "1 word per round", available: true, color: "#6BCB77" },
+    { id: "difficult", label: "Difficult", emoji: "🔥", description: "2 words per round", available: hasDifficult, color: "#FF6B6B" },
   ];
   return (
     <div style={{ fontFamily: "Fredoka, sans-serif", padding: "0 16px" }}>
@@ -236,12 +236,12 @@ export default function RearrangePictures({ onBack }) {
           >
             <GameHeader />
             {difficulty === "difficult" ? (
-              <PicSliceBoardDifficult
+              <PicSliceBoard
                 wordPair={wordPair}
                 onRoundComplete={handleRoundComplete}
               />
             ) : (
-              <PicSliceBoard
+              <PicSliceBoardEasy
                 wordPair={wordPair}
                 onRoundComplete={handleRoundComplete}
               />
