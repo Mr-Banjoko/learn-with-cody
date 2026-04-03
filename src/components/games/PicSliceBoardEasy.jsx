@@ -16,7 +16,6 @@ function buildState(wordArr) {
 }
 
 export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
-  // wordPair is an array of 1 word object
   const wd = wordPair[0];
   const [state, setState] = useState(() => buildState(wordPair));
   const [dragState, setDragState] = useState(null);
@@ -36,7 +35,6 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
     if (!state.wordComplete || playingSequence) return;
     setPlayingSequence(true);
 
-    // Build ordered phoneme audio urls (slot 0, 1, 2 = first, middle, last sound)
     const orderedPhonemes = [0, 1, 2].map((slot) => {
       const piece = state.pieces.find((p) => p.wordIndex === 0 && p.targetSlot === slot);
       return piece ? { url: piece.letterAudio, gain: getLetterGain(piece.phoneme) } : null;
@@ -47,13 +45,11 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
       { url: wd.audio, gain: 1 },
     ];
 
-    // Play phoneme sequence then advance
     playAudioSequence(steps, () => {
       setTimeout(onRoundComplete, 300);
     });
   }, [state.wordComplete]);
 
-  // ── Touch handlers ──────────────────────────────────────────────────────────
   const handleTouchStart = useCallback((e, piece) => {
     if (!state.trayIds.includes(piece.id)) return;
     e.stopPropagation();
@@ -124,17 +120,20 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
     if (piece) playAudio(piece.letterAudio, getLetterGain(piece.phoneme));
   }, [state]);
 
-  const trayPieces = state.pieces.filter((p) => state.trayIds.includes(p.id));
-
   return (
     <div
       style={{
-        display: "flex", flexDirection: "column",
-        flex: 1, height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        flex: 1,
+        height: "100%",
         fontFamily: "Fredoka, sans-serif",
-        touchAction: "none", userSelect: "none", WebkitUserSelect: "none",
+        touchAction: "none",
+        userSelect: "none",
+        WebkitUserSelect: "none",
         overflow: "hidden",
-        padding: "0 16px",
+        padding: "8px 20px 12px",
         gap: 0,
       }}
       onTouchMove={handleTouchMove}
@@ -147,35 +146,45 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
         onClick={() => wd.audio && playAudio(wd.audio)}
         style={{
           width: "100%",
-          padding: "12px 8px",
+          maxWidth: 320,
+          padding: "10px 16px",
           background: "#FFD6E0",
-          border: "3px solid #FFB3C6",
-          borderRadius: 20,
-          fontSize: "clamp(32px, 10vw, 52px)",
-          fontWeight: 700, color: "#1E3A5F",
-          letterSpacing: 3, textAlign: "center",
+          border: "2.5px solid #FFB3C6",
+          borderRadius: 18,
+          fontSize: "clamp(24px, 7vw, 36px)",
+          fontWeight: 700,
+          color: "#1E3A5F",
+          letterSpacing: 4,
+          textAlign: "center",
           cursor: "pointer",
           fontFamily: "Fredoka, sans-serif",
-          boxShadow: "0 4px 18px rgba(30,58,95,0.11)",
+          boxShadow: "0 3px 14px rgba(255,179,198,0.35)",
           flexShrink: 0,
-          margin: "4px 0 10px",
+          marginBottom: 14,
         }}
       >
         {wd.word.toLowerCase()}
       </motion.button>
 
       {/* ── DROP BOX ───────────────────────────────────────────────────────── */}
-      <div style={{ flexShrink: 0, marginBottom: 10 }}>
+      <div style={{
+        flexShrink: 0,
+        width: "100%",
+        maxWidth: 300,
+        marginBottom: 14,
+      }}>
         <AnimatePresence mode="wait">
           {state.wordComplete ? (
             <motion.div
               key="done"
-              initial={{ scale: 0.85, opacity: 0 }}
+              initial={{ scale: 0.88, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 260, damping: 18 }}
               style={{
-                width: "100%", aspectRatio: "1 / 1",
-                borderRadius: 24, overflow: "hidden",
+                width: "100%",
+                aspectRatio: "1 / 1",
+                borderRadius: 22,
+                overflow: "hidden",
                 border: "3px solid #4ECDC4",
                 boxShadow: "0 6px 28px rgba(78,205,196,0.40)",
               }}
@@ -187,79 +196,124 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
               />
             </motion.div>
           ) : (
+            /* ── 3-slot box: outer frame + inner dividers drawn separately ── */
             <motion.div
               key="slots"
               style={{
-                width: "100%", aspectRatio: "1 / 1",
-                display: "flex",
-                borderRadius: 24, overflow: "hidden",
-                border: "3px solid #FFB3C6",
-                background: "rgba(255,255,255,0.80)",
-                boxShadow: "0 4px 16px rgba(30,58,95,0.08)",
+                width: "100%",
+                aspectRatio: "1 / 1",
+                borderRadius: 22,
+                border: "2.5px solid #FFB3C6",
+                background: "rgba(255,255,255,0.85)",
+                boxShadow: "0 4px 18px rgba(30,58,95,0.09)",
+                position: "relative",
+                overflow: "hidden",
               }}
             >
-              {[0, 1, 2].map((si) => {
-                const slotKey = `0-${si}`;
-                const placedId = state.placed[slotKey];
-                const placedPiece = placedId ? state.pieces.find((p) => p.id === placedId) : null;
-                const isRejected = state.rejectedSlot === slotKey;
+              {/* Three slot drop zones */}
+              <div style={{
+                position: "absolute", inset: 0,
+                display: "flex",
+              }}>
+                {[0, 1, 2].map((si) => {
+                  const slotKey = `0-${si}`;
+                  const placedId = state.placed[slotKey];
+                  const placedPiece = placedId ? state.pieces.find((p) => p.id === placedId) : null;
+                  const isRejected = state.rejectedSlot === slotKey;
 
-                return (
-                  <div
-                    key={si}
-                    ref={(el) => (dropZoneRefs.current[slotKey] = el)}
-                    onClick={() => placedPiece && handlePlacedTap(slotKey)}
-                    style={{
-                      flex: 1,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      borderRight: si < 2 ? "2.5px dashed #FFB3C6" : "none",
-                      animation: isRejected ? "psShake 0.4s ease" : "none",
-                      position: "relative", overflow: "hidden",
-                      cursor: placedPiece ? "pointer" : "default",
-                    }}
-                  >
-                    {placedPiece ? (
-                      <motion.div
-                        initial={{ scale: 0.5, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 380, damping: 18 }}
-                        style={{ position: "absolute", inset: 0 }}
-                      >
-                        <img
-                          src={placedPiece.sliceSrc}
-                          alt=""
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                      </motion.div>
-                    ) : (
-                      <span style={{
-                        fontSize: "clamp(13px, 3.5vw, 20px)",
-                        color: "#FFB3C6", fontWeight: 700,
-                      }}>
-                        {si === 0 ? "1st" : si === 1 ? "2nd" : "3rd"}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={si}
+                      ref={(el) => (dropZoneRefs.current[slotKey] = el)}
+                      onClick={() => placedPiece && handlePlacedTap(slotKey)}
+                      style={{
+                        flex: 1,
+                        position: "relative",
+                        overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        animation: isRejected ? "psShake 0.4s ease" : "none",
+                        cursor: placedPiece ? "pointer" : "default",
+                      }}
+                    >
+                      {placedPiece ? (
+                        <motion.div
+                          initial={{ scale: 0.5, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 380, damping: 18 }}
+                          style={{ position: "absolute", inset: 0 }}
+                        >
+                          <img
+                            src={placedPiece.sliceSrc}
+                            alt=""
+                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <span style={{
+                          fontSize: "clamp(11px, 3vw, 15px)",
+                          color: "#FFB3C6",
+                          fontWeight: 700,
+                          position: "relative",
+                          zIndex: 1,
+                        }}>
+                          {si === 0 ? "1st" : si === 1 ? "2nd" : "3rd"}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Dotted divider lines — rendered on top, pointer-events none so they don't block drops */}
+              <div style={{
+                position: "absolute", inset: 0,
+                display: "flex",
+                pointerEvents: "none",
+                zIndex: 10,
+              }}>
+                <div style={{ flex: 1 }} />
+                <div style={{
+                  width: 0,
+                  borderLeft: "2.5px dashed #FFB3C6",
+                  alignSelf: "stretch",
+                  margin: "10px 0",
+                }} />
+                <div style={{ flex: 1 }} />
+                <div style={{
+                  width: 0,
+                  borderLeft: "2.5px dashed #FFB3C6",
+                  alignSelf: "stretch",
+                  margin: "10px 0",
+                }} />
+                <div style={{ flex: 1 }} />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* ── HINT TEXT ──────────────────────────────────────────────────────── */}
+      {/* ── HINT ───────────────────────────────────────────────────────────── */}
       <p style={{
-        textAlign: "center", fontSize: 12, color: "#7BACC8",
-        fontWeight: 600, margin: "0 0 8px", flexShrink: 0,
+        textAlign: "center",
+        fontSize: 12,
+        color: "#7BACC8",
+        fontWeight: 600,
+        margin: "0 0 10px",
+        flexShrink: 0,
       }}>
         👆 drag a piece · tap to hear its sound
       </p>
 
-      {/* ── SLICE TRAY: 3 slices in a row ──────────────────────────────────── */}
+      {/* ── SLICE TRAY: 3 pieces in a row ──────────────────────────────────── */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 12, flexShrink: 0,
+        gap: 12,
+        width: "100%",
+        maxWidth: 320,
+        flexShrink: 0,
       }}>
         {state.pieces.map((piece) => {
           const isPlaced = !state.trayIds.includes(piece.id);
@@ -272,14 +326,16 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
           return (
             <motion.div
               key={piece.id}
-              animate={isDraggingThis ? { opacity: 0.25, scale: 1.04 } : { opacity: 1, scale: 1 }}
+              animate={isDraggingThis ? { opacity: 0.22, scale: 1.04 } : { opacity: 1, scale: 1 }}
               onTouchStart={(e) => handleTouchStart(e, piece)}
               style={{
                 aspectRatio: "1",
-                borderRadius: 18, overflow: "hidden",
+                borderRadius: 16,
+                overflow: "hidden",
                 boxShadow: "0 4px 16px rgba(30,58,95,0.15)",
                 border: "3px solid rgba(255,255,255,0.9)",
-                cursor: "grab", touchAction: "none",
+                cursor: "grab",
+                touchAction: "none",
                 background: "white",
               }}
             >
@@ -298,12 +354,16 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
       {dragState && isDragging.current && (
         <div style={{
           position: "fixed",
-          left: dragState.x, top: dragState.y,
+          left: dragState.x,
+          top: dragState.y,
           transform: "translate(-50%, -50%)",
-          zIndex: 9999, pointerEvents: "none",
-          width: 88, height: 88,
-          borderRadius: 16, overflow: "hidden",
-          boxShadow: "0 16px 40px rgba(30,58,95,0.30)",
+          zIndex: 9999,
+          pointerEvents: "none",
+          width: 84,
+          height: 84,
+          borderRadius: 14,
+          overflow: "hidden",
+          boxShadow: "0 14px 36px rgba(30,58,95,0.28)",
           border: "3px solid #4ECDC4",
         }}>
           <img
@@ -317,7 +377,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
       <style>{`
         @keyframes psShake {
           0%   { transform: translateX(0); }
-          20%  { transform: translateX(-7px); background: rgba(255,100,100,0.18); }
+          20%  { transform: translateX(-7px); background: rgba(255,100,100,0.15); }
           40%  { transform: translateX(7px); }
           60%  { transform: translateX(-5px); }
           80%  { transform: translateX(5px); }
