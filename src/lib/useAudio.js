@@ -2,8 +2,24 @@
 // Old blobs (v3) had no explicit MIME → iOS used a slow generic decoder → half-speed playback.
 const CACHE_NAME = "cody-audio-v4";
 
-// Inter-phoneme gap for beginner CVC blending
-const BLEND_GAP_MS = 200;
+/**
+ * APPROVED BLEND TIMING — source of truth for ALL phonics sequence playback across the app.
+ *
+ * This is the inter-phoneme gap (ms) between each step in playAudioSequence.
+ * It governs the pacing for:
+ *   - Learn Phonics play-icon (FlashcardScreen → handlePlaySequence)
+ *   - Rearrange the Pictures completion sequence (PicSliceBoardEasy)
+ *   - Drag the Letters completion sequence (DragTheLettersGame)
+ *   - Missing Sound completion sequence (MissingSoundGame)
+ *
+ * Reference / approved value: Learn Phonics → Short a play icon.
+ * DO NOT change this value without explicit approval. Change it here and it
+ * automatically applies everywhere — there are NO per-file overrides.
+ *
+ * Research rationale: 200 ms gives young learners enough time to distinguish
+ * individual phonemes before blending, without losing the sense of a continuous word.
+ */
+export const BLEND_GAP_MS = 200;
 
 let currentAudio = null;
 
