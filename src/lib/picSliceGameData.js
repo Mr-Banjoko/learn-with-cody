@@ -39,14 +39,24 @@ export const GAME_ROUNDS = {
   },
 };
 
+function shuffleArr(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export function buildWordData(word) {
-  // Prefer pre-sliced assets if available
   const sliceData = SLICE_LOOKUP[word];
+  const fullImageAsset = WORD_LOOKUP[word]?.image || "";
   if (sliceData) {
     return {
       word,
       audio: sliceData.audio,
       slices: sliceData.slices,
+      fullImage: fullImageAsset,
       phonemes: word.split("").map((letter, i) => ({
         letter,
         audio: `${BASE_LETTERS}/${letter}.mp3`,
@@ -54,14 +64,15 @@ export function buildWordData(word) {
       })),
     };
   }
-  // Fallback to full-image words
+  // Fallback
   const assets = WORD_LOOKUP[word] || {};
   return {
     word,
     image: assets.image || "",
+    fullImage: assets.image || "",
     audio: assets.audio || "",
     slices: null,
-    phonemes: word.split("").map((letter) => ({
+    phonemes: word.split("").map((letter, i) => ({
       letter,
       audio: `${BASE_LETTERS}/${letter}.mp3`,
       sliceSrc: null,
@@ -69,28 +80,28 @@ export function buildWordData(word) {
   };
 }
 
-// Build shuffled pieces from a word pair
-// Each piece: { id, wordIndex, sliceIndex, phoneme, letterAudio, sliceSrc, image, word }
+// Build shuffled pieces from a word pair.
+// Sound assignment is RANDOMIZED within each word so visual slice ≠ fixed phoneme.
+// Each piece carries: wordIndex (strict ownership) + targetSlot (correct slot position)
 export function buildRoundPieces(wordDataArr) {
   const pieces = [];
   wordDataArr.forEach((wd, wordIndex) => {
-    wd.phonemes.forEach((ph, sliceIndex) => {
+    // Random phoneme order: phonemeOrder[visualSliceIdx] = phonemeIdx
+    const phonemeOrder = shuffleArr([0, 1, 2]);
+    for (let visualIdx = 0; visualIdx < 3; visualIdx++) {
+      const phonemeIdx = phonemeOrder[visualIdx];
+      const ph = wd.phonemes[phonemeIdx];
       pieces.push({
-        id: `${wd.word}-${sliceIndex}-${Date.now()}-${Math.random()}`,
+        id: `${wd.word}-v${visualIdx}-${Date.now()}-${Math.random()}`,
         wordIndex,
-        sliceIndex,
+        word: wd.word,
+        targetSlot: phonemeIdx,   // which slot in THIS word's box it must go to
         phoneme: ph.letter,
         letterAudio: ph.audio,
-        sliceSrc: ph.sliceSrc,
+        sliceSrc: wd.slices ? wd.slices[visualIdx] : null,
         image: wd.image || null,
-        word: wd.word,
       });
-    });
+    }
   });
-  // Fisher-Yates shuffle
-  for (let i = pieces.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
-  }
-  return pieces;
+  return shuffleArr(pieces);
 }

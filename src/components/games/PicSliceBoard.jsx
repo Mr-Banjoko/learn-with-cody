@@ -4,24 +4,6 @@ import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
 
-// ─── Single pre-sliced image ──────────────────────────────────────────────────
-function SliceImg({ src, size, borderRadius = 12 }) {
-  return (
-    <img
-      src={src}
-      alt=""
-      draggable={false}
-      style={{
-        width: size, height: size, borderRadius,
-        objectFit: "cover", display: "block",
-        pointerEvents: "none", userSelect: "none",
-        WebkitUserSelect: "none",
-      }}
-    />
-  );
-}
-
-// ─── Build initial state ──────────────────────────────────────────────────────
 function buildState(wordPair) {
   const pieces = buildRoundPieces(wordPair);
   return {
@@ -33,25 +15,22 @@ function buildState(wordPair) {
   };
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
 export default function PicSliceBoard({ wordPair, onRoundComplete }) {
   const [state, setState] = useState(() => buildState(wordPair));
   const [dragState, setDragState] = useState(null);
   const isDragging = useRef(false);
-  const dropZoneRefs = useRef({}); // key: "wi-si"
+  const dropZoneRefs = useRef({});
   const containerRef = useRef(null);
 
-  // Reset on new round
   useEffect(() => {
     setState(buildState(wordPair));
     setDragState(null);
     isDragging.current = false;
   }, [wordPair]);
 
-  // Fire completion
   useEffect(() => {
     if (state.wordComplete[0] && state.wordComplete[1]) {
-      const t = setTimeout(onRoundComplete, 600);
+      const t = setTimeout(onRoundComplete, 700);
       return () => clearTimeout(t);
     }
   }, [state.wordComplete, onRoundComplete]);
@@ -90,17 +69,14 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
   const handleTouchEnd = useCallback((e) => {
     if (!dragState) return;
 
-    // Tap without drag → play letter sound
     if (!isDragging.current) {
-      const { piece } = dragState;
-      playAudio(piece.letterAudio, getLetterGain(piece.phoneme));
+      playAudio(dragState.piece.letterAudio, getLetterGain(dragState.piece.phoneme));
       setDragState(null);
       return;
     }
 
     const touch = e.changedTouches[0];
     let hitKey = null;
-
     Object.entries(dropZoneRefs.current).forEach(([key, ref]) => {
       if (!ref) return;
       const rect = ref.getBoundingClientRect();
@@ -116,10 +92,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
 
     if (hitKey && !state.placed[hitKey]) {
       const [wi, si] = hitKey.split("-").map(Number);
-      const requiredPhoneme = wordPair[wi].phonemes[si].letter;
-
-      if (piece.phoneme === requiredPhoneme) {
-        // ✅ Correct
+      // Strict: must belong to THIS word AND correct sound-position
+      if (piece.wordIndex === wi && piece.targetSlot === si) {
         const newPlaced = { ...state.placed, [hitKey]: piece.id };
         const newTrayIds = state.trayIds.filter((id) => id !== piece.id);
         const wordComplete = [0, 1].map((wordIdx) =>
@@ -130,7 +104,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
         );
         setState((prev) => ({ ...prev, placed: newPlaced, trayIds: newTrayIds, wordComplete }));
       } else {
-        // ❌ Wrong — shake
+        // Wrong — shake
         setState((prev) => ({ ...prev, rejectedSlot: hitKey }));
         setTimeout(() => setState((prev) => ({ ...prev, rejectedSlot: null })), 500);
       }
@@ -140,18 +114,12 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
     isDragging.current = false;
   }, [dragState, state, wordPair]);
 
-  // ── Tap on placed slice → play letter sound ─────────────────────────────────
   const handlePlacedTap = useCallback((slotKey) => {
     const pid = state.placed[slotKey];
     if (!pid) return;
     const piece = state.pieces.find((p) => p.id === pid);
     if (piece) playAudio(piece.letterAudio, getLetterGain(piece.phoneme));
   }, [state]);
-
-  // ── Sizing (responsive) ─────────────────────────────────────────────────────
-  // Use CSS clamp so it adapts iPhone → iPad without overflow
-  const SLOT_SIZE = "clamp(52px, 13vw, 90px)";
-  const TRAY_SIZE = "clamp(88px, 27vw, 130px)";
 
   return (
     <div
@@ -162,18 +130,13 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
         fontFamily: "Fredoka, sans-serif",
         touchAction: "none", userSelect: "none", WebkitUserSelect: "none",
         overflow: "hidden",
-        gap: 0,
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
 
       {/* ── ROW 1: Word labels ─────────────────────────────────────────────── */}
-      <div style={{
-        display: "flex", gap: 12,
-        padding: "12px 16px 4px",
-        flexShrink: 0,
-      }}>
+      <div style={{ display: "flex", gap: 12, padding: "10px 16px 4px", flexShrink: 0 }}>
         {wordPair.map((wd, wi) => (
           <motion.button
             key={wi}
@@ -184,10 +147,9 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
               background: wi === 0 ? "#FFD6E0" : "#D6F0FF",
               border: `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
               borderRadius: 18,
-              fontSize: "clamp(28px, 8vw, 42px)",
+              fontSize: "clamp(26px, 7.5vw, 40px)",
               fontWeight: 700, color: "#1E3A5F",
-              letterSpacing: 2,
-              textAlign: "center",
+              letterSpacing: 2, textAlign: "center",
               cursor: "pointer",
               fontFamily: "Fredoka, sans-serif",
               boxShadow: "0 4px 16px rgba(30,58,95,0.10)",
@@ -198,52 +160,48 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
         ))}
       </div>
 
-      {/* ── ROW 2: Drop frames ─────────────────────────────────────────────── */}
-      <div style={{
-        display: "flex", gap: 12,
-        padding: "8px 16px",
-        flexShrink: 0,
-      }}>
+      {/* ── ROW 2: Drop frames (true squares) ─────────────────────────────── */}
+      <div style={{ display: "flex", gap: 12, padding: "6px 16px 0", flexShrink: 0 }}>
         {wordPair.map((wd, wi) => {
           const done = state.wordComplete[wi];
           return (
             <div key={wi} style={{ flex: 1 }}>
               <AnimatePresence mode="wait">
                 {done ? (
-                  /* Completed: show 3 slices side by side */
+                  // Completed: reveal full unchopped image
                   <motion.div
                     key="done"
-                    initial={{ scale: 0.8, opacity: 0 }}
+                    initial={{ scale: 0.85, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 280, damping: 18 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 18 }}
                     style={{
-                      display: "flex",
+                      width: "100%",
+                      aspectRatio: "1 / 1",
                       borderRadius: 20,
                       overflow: "hidden",
                       border: "3px solid #4ECDC4",
-                      boxShadow: "0 6px 24px rgba(78,205,196,0.35)",
-                      aspectRatio: "3 / 1",
+                      boxShadow: "0 6px 28px rgba(78,205,196,0.4)",
                     }}
                   >
-                    {wd.slices
-                      ? wd.slices.map((src, si) => (
-                          <img key={si} src={src} alt="" style={{ flex: 1, minWidth: 0, objectFit: "cover", display: "block" }} />
-                        ))
-                      : <img src={wd.image} alt={wd.word} style={{ width: "100%", objectFit: "cover" }} />
-                    }
+                    <img
+                      src={wd.fullImage || wd.image || (wd.slices && wd.slices[0])}
+                      alt={wd.word}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
                   </motion.div>
                 ) : (
-                  /* 3 droppable slots */
+                  // 3 droppable slots — true square
                   <motion.div
                     key="slots"
                     style={{
+                      width: "100%",
+                      aspectRatio: "1 / 1",
                       display: "flex",
                       borderRadius: 20,
                       overflow: "hidden",
                       border: `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
                       background: "rgba(255,255,255,0.75)",
                       boxShadow: "0 4px 16px rgba(30,58,95,0.08)",
-                      aspectRatio: "3 / 1",
                     }}
                   >
                     {[0, 1, 2].map((si) => {
@@ -263,8 +221,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
                             borderRight: si < 2 ? `2px dashed ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}` : "none",
                             animation: isRejected ? "psShake 0.4s ease" : "none",
                             position: "relative",
-                            cursor: placedPiece ? "pointer" : "default",
                             overflow: "hidden",
+                            cursor: placedPiece ? "pointer" : "default",
                           }}
                         >
                           {placedPiece ? (
@@ -272,7 +230,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
                               initial={{ scale: 0.5, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
                               transition={{ type: "spring", stiffness: 380, damping: 18 }}
-                              style={{ width: "100%", height: "100%" }}
+                              style={{ position: "absolute", inset: 0 }}
                             >
                               <img
                                 src={placedPiece.sliceSrc}
@@ -282,7 +240,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
                             </motion.div>
                           ) : (
                             <span style={{
-                              fontSize: "clamp(11px, 2.8vw, 16px)",
+                              fontSize: "clamp(11px, 3vw, 17px)",
                               color: wi === 0 ? "#FFB3C6" : "#A8D8F0",
                               fontWeight: 700,
                             }}>
@@ -303,49 +261,45 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
       {/* ── ROW 3: Slice tray (2 rows × 3) ────────────────────────────────── */}
       <div style={{
         flex: 1,
-        padding: "8px 16px 12px",
-        display: "flex", flexDirection: "column", justifyContent: "center",
+        padding: "16px 16px 10px",
+        display: "flex", flexDirection: "column", justifyContent: "flex-start",
         gap: 10,
         minHeight: 0,
       }}>
         <p style={{
-          textAlign: "center", fontSize: 13, color: "#7BACC8",
-          fontWeight: 600, margin: "0 0 4px",
+          textAlign: "center", fontSize: 12, color: "#7BACC8",
+          fontWeight: 600, margin: "0 0 2px", flexShrink: 0,
         }}>
           👆 drag a piece · tap to hear its sound
         </p>
 
-        {/* Grid: 3 columns × 2 rows */}
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
           gap: 10,
+          flexShrink: 0,
         }}>
-          {/* Reserve 6 spots — placed pieces become invisible spacers */}
           {state.pieces.map((piece) => {
             const isPlaced = !state.trayIds.includes(piece.id);
             const isDraggingThis = dragState?.piece.id === piece.id;
 
             if (isPlaced) {
-              return (
-                <div key={piece.id} style={{ aspectRatio: "1", visibility: "hidden" }} />
-              );
+              return <div key={piece.id} style={{ aspectRatio: "1", visibility: "hidden" }} />;
             }
 
             return (
               <motion.div
                 key={piece.id}
-                animate={isDraggingThis ? { opacity: 0.3, scale: 1.05 } : { opacity: 1, scale: 1 }}
+                animate={isDraggingThis ? { opacity: 0.25, scale: 1.04 } : { opacity: 1, scale: 1 }}
                 onTouchStart={(e) => handleTouchStart(e, piece)}
                 style={{
                   aspectRatio: "1",
                   borderRadius: 16,
                   overflow: "hidden",
                   boxShadow: "0 4px 14px rgba(30,58,95,0.14)",
-                  border: "3px solid rgba(255,255,255,0.8)",
+                  border: "3px solid rgba(255,255,255,0.85)",
                   cursor: "grab",
                   touchAction: "none",
-                  flexShrink: 0,
                   background: "white",
                 }}
               >
@@ -368,8 +322,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
           left: dragState.x, top: dragState.y,
           transform: "translate(-50%, -50%)",
           zIndex: 9999, pointerEvents: "none",
-          width: 96, height: 96,
-          borderRadius: 16, overflow: "hidden",
+          width: 90, height: 90,
+          borderRadius: 14, overflow: "hidden",
           boxShadow: "0 16px 40px rgba(30,58,95,0.30)",
           border: "3px solid #4ECDC4",
         }}>
