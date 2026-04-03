@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import BackArrow from "../BackArrow";
 import confetti from "canvas-confetti";
 import {
   VOWEL_GROUPS,
@@ -14,17 +14,7 @@ function VowelSelect({ onSelect, onBack }) {
   return (
     <div style={{ fontFamily: "Fredoka, sans-serif", padding: "0 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <button
-          onClick={onBack}
-          style={{
-            width: 40, height: 40, borderRadius: 20,
-            background: "rgba(255,255,255,0.7)", border: "none",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", flexShrink: 0,
-          }}
-        >
-          <ArrowLeft size={22} color="#1E3A5F" />
-        </button>
+        <BackArrow onPress={onBack} />
         <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>
           Rearrange the Pictures
         </h2>
@@ -96,17 +86,7 @@ function DifficultySelect({ vowelId, onSelect, onBack }) {
   return (
     <div style={{ fontFamily: "Fredoka, sans-serif", padding: "0 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-        <button
-          onClick={onBack}
-          style={{
-            width: 40, height: 40, borderRadius: 20,
-            background: "rgba(255,255,255,0.7)", border: "none",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer",
-          }}
-        >
-          <ArrowLeft size={22} color="#1E3A5F" />
-        </button>
+        <BackArrow onPress={onBack} />
         <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>
           {vowel?.emoji} {vowel?.label}
         </h2>
@@ -208,28 +188,18 @@ export default function RearrangePictures({ onBack }) {
       background: "#A8D0E6",
       borderBottomLeftRadius: 24,
       borderBottomRightRadius: 24,
-      padding: "12px 16px 14px",
-      display: "flex", alignItems: "center", gap: 12,
-      marginBottom: 12,
+      padding: "8px 16px 12px",
+      display: "flex", alignItems: "center", gap: 8,
+      marginBottom: 10,
       flexShrink: 0,
     }}>
-      <button
-        onClick={() => setScreen("difficulty")}
-        style={{
-          width: 38, height: 38, borderRadius: 19,
-          background: "rgba(255,255,255,0.7)", border: "none",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer",
-        }}
-      >
-        <ArrowLeft size={20} color="#1E3A5F" />
-      </button>
+      <BackArrow onPress={() => setScreen("difficulty")} />
       <div style={{ flex: 1 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>
           🧩 Rearrange the Pictures
         </h2>
         <p style={{ fontSize: 13, color: "#3A6080", margin: 0 }}>
-          short a · easy · round {roundIndex + 1}
+          {selectedVowel?.replace("short-", "short ")} · easy · round {roundIndex + 1}
         </p>
       </div>
     </div>
