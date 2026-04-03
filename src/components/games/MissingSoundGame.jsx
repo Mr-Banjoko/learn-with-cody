@@ -225,7 +225,7 @@ function MissingSoundRound({ round, color, onComplete }) {
                   : {}
               }
               transition={{ duration: isWrong ? 0.38 : 0.5 }}
-              onClick={!isMissing ? () => handleTopLetterTap(letter) : undefined}
+              onPointerDown={!isMissing ? (e) => { e.preventDefault(); handleTopLetterTap(letter); } : undefined}
               style={{
                 width: "min(108px, 27vw)",
                 height: "min(108px, 27vw)",
@@ -270,7 +270,7 @@ function MissingSoundRound({ round, color, onComplete }) {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0 }}>
         <motion.button
           whileTap={{ scale: 0.88 }}
-          onClick={() => round.card.audio && playAudio(round.card.audio)}
+          onPointerDown={(e) => { e.preventDefault(); round.card.audio && playAudio(round.card.audio); }}
           style={{
             width: "min(64px, 16vw)", height: "min(64px, 16vw)", borderRadius: "50%",
             background: accentColor, border: "none",

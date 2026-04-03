@@ -194,7 +194,7 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.25 }}
-          onClick={() => card.audio && playAudio(card.audio)}
+          onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
           style={{
             background: "white", borderRadius: 28, padding: 10,
             boxShadow: "0 10px 40px rgba(30,58,95,0.15)",

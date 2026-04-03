@@ -163,7 +163,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
       {/* ── WORD LABEL ─────────────────────────────────────────────────────── */}
       <motion.button
         whileTap={{ scale: 0.93 }}
-        onClick={() => wd.audio && playAudio(wd.audio)}
+        onPointerDown={(e) => { e.preventDefault(); wd.audio && playAudio(wd.audio); }}
         style={{
           width: "100%",
           maxWidth: 300,
@@ -234,7 +234,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
                   <div
                     key={si}
                     ref={(el) => (dropZoneRefs.current[slotKey] = el)}
-                    onClick={() => placedPiece && handlePlacedTap(slotKey)}
+                    onPointerDown={() => placedPiece && handlePlacedTap(slotKey)}
                     style={{
                       flex: 1,
                       display: "flex",

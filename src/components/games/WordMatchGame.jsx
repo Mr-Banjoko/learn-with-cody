@@ -170,7 +170,7 @@ export default function WordMatchGame({ words, title, color, onBack }) {
                 whileTap={!feedback ? { scale: 0.93 } : {}}
                 animate={isSelected && feedback === "wrong" ? { x: [0, -8, 8, -6, 6, 0] } : {}}
                 transition={{ duration: 0.4 }}
-                onClick={() => handleChoice(choice)}
+                onPointerDown={(e) => { e.preventDefault(); handleChoice(choice); }}
                 style={{
                   padding: "16px 8px",
                   borderRadius: 20,
