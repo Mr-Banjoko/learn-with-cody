@@ -5,25 +5,30 @@ import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
 
-// Renders one vertical slice of an image.
-// Strategy: render the full image scaled to (height = size), width = auto,
-// inside an overflow:hidden container of width=size.
-// Shift the image left by (sliceIndex / 3) of its natural rendered width
-// using a wrapper that is 3× wide, then clip to size.
-// sliceIndex: 0=left, 1=middle, 2=right
-function ImageSlice({ image, sliceIndex, size = 76, borderRadius = 10 }) {
-  // Use background-image with background-size: auto 100% so the image scales
-  // to fill the container height while preserving aspect ratio.
-  // background-position uses percentage values:
-  //   0% = left edge aligned, 50% = center, 100% = right edge aligned.
-  // These are the ONLY correct values for a 3-slice split with this technique.
+// Renders a pre-sliced image directly — no CSS cropping needed
+function ImageSlice({ sliceSrc, image, sliceIndex, size = 76, borderRadius = 10 }) {
+  // Use pre-sliced src if available, otherwise fall back to CSS crop
+  if (sliceSrc) {
+    return (
+      <img
+        src={sliceSrc}
+        alt=""
+        draggable={false}
+        style={{
+          width: size,
+          height: size,
+          borderRadius,
+          objectFit: "cover",
+          display: "block",
+          flexShrink: 0,
+          pointerEvents: "none",
+          userSelect: "none",
+        }}
+      />
+    );
+  }
+  // CSS fallback for non-sliced words
   const bgPositions = ["0% 50%", "50% 50%", "100% 50%"];
-
-  // However, percentage background-position is relative to the *overflow* space,
-  // not the image width — so for a square container with a wide image this works
-  // correctly only when backgroundSize is set to "auto 100%" (height-constrained).
-  // This means the image fills the full height and overflows horizontally,
-  // and the percentage shifts it to show the correct third.
   return (
     <div
       style={{
@@ -143,7 +148,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
                   fontFamily: "Fredoka, sans-serif",
                 }}
               >
-                {wd.word.toUpperCase()}
+                {wd.word.toLowerCase()}
               </button>
 
               {/* Slot box or completed image */}
@@ -161,13 +166,25 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
                       height: slotSize,
                       boxShadow: "0 6px 24px rgba(78,205,196,0.35)",
                       border: "3px solid #4ECDC4",
+                      display: "flex",
                     }}
                   >
-                    <img
-                      src={wd.image}
-                      alt={wd.word}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                    />
+                    {wd.slices ? (
+                      wd.slices.map((src, si) => (
+                        <img
+                          key={si}
+                          src={src}
+                          alt=""
+                          style={{ flex: 1, height: "100%", objectFit: "cover", display: "block" }}
+                        />
+                      ))
+                    ) : (
+                      <img
+                        src={wd.image}
+                        alt={wd.word}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      />
+                    )}
                   </motion.div>
                 ) : (
                   <motion.div
@@ -222,10 +239,11 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
                                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                                 >
                                   <ImageSlice
-                                    image={placedPiece.image}
-                                    sliceIndex={placedPiece.sliceIndex}
-                                    size={slotSize}
-                                  />
+                                      sliceSrc={placedPiece.sliceSrc}
+                                      image={placedPiece.image}
+                                      sliceIndex={placedPiece.sliceIndex}
+                                      size={slotSize}
+                                    />
                                 </motion.div>
                               ) : (
                                 <span style={{ fontSize: 11, color: "#B0C8D8", fontWeight: 600 }}>
@@ -259,7 +277,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
                 flexWrap: "wrap",
                 gap: 10,
                 justifyContent: "center",
-                minHeight: slotSize + 16,
+                minHeight: (slotSize + 16) * 2,
                 padding: "8px 4px",
               }}
             >
@@ -293,6 +311,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
                         }}
                       >
                         <ImageSlice
+                          sliceSrc={piece.sliceSrc}
                           image={piece.image}
                           sliceIndex={piece.sliceIndex}
                           size={slotSize}

@@ -1,4 +1,5 @@
 import { shortAWords } from "./shortAWords";
+import { shortASlices } from "./shortASlices";
 import { shortEWords } from "./shortEWords";
 import { shortIWords } from "./shortIWords";
 import { shortOWords } from "./shortOWords";
@@ -21,49 +22,67 @@ export const VOWEL_GROUPS = [
   { id: "short-u", label: "Short u", emoji: "☂️", available: false },
 ];
 
-// Rounds: each round is a pair of words — only include pairs where BOTH words have images
+// Lookup for slice-based words
+const SLICE_LOOKUP = Object.fromEntries(shortASlices.map(w => [w.word, w]));
+
+// Rounds: each round is a pair of words
 export const GAME_ROUNDS = {
   "short-a": {
     easy: [
-      ["cat", "bat"],
-      ["hat", "mat"],
-      ["can", "pan"],
-      ["map", "tap"],
-      ["bag", "tag"],
-      ["jam", "ham"],
-      ["rat", "sat"],
-      ["sad", "mad"],
-    ].filter(([a, b]) => WORD_LOOKUP[a] && WORD_LOOKUP[b]),
+      ["bag", "bat"],
+      ["ban", "can"],
+      ["cab", "cat"],
+      ["dab", "dad"],
+      ["dam", "fan"],
+    ],
     difficult: [],
   },
 };
 
 export function buildWordData(word) {
+  // Prefer pre-sliced assets if available
+  const sliceData = SLICE_LOOKUP[word];
+  if (sliceData) {
+    return {
+      word,
+      audio: sliceData.audio,
+      slices: sliceData.slices,
+      phonemes: word.split("").map((letter, i) => ({
+        letter,
+        audio: `${BASE_LETTERS}/${letter}.mp3`,
+        sliceSrc: sliceData.slices[i],
+      })),
+    };
+  }
+  // Fallback to full-image words
   const assets = WORD_LOOKUP[word] || {};
   return {
     word,
     image: assets.image || "",
     audio: assets.audio || "",
+    slices: null,
     phonemes: word.split("").map((letter) => ({
       letter,
       audio: `${BASE_LETTERS}/${letter}.mp3`,
+      sliceSrc: null,
     })),
   };
 }
 
 // Build shuffled pieces from a word pair
-// Each piece: { id, wordIndex, sliceIndex, phoneme, letterAudio, image, word }
+// Each piece: { id, wordIndex, sliceIndex, phoneme, letterAudio, sliceSrc, image, word }
 export function buildRoundPieces(wordDataArr) {
   const pieces = [];
   wordDataArr.forEach((wd, wordIndex) => {
     wd.phonemes.forEach((ph, sliceIndex) => {
       pieces.push({
-        id: `${wd.word}-${sliceIndex}-${Date.now()}`,
+        id: `${wd.word}-${sliceIndex}-${Date.now()}-${Math.random()}`,
         wordIndex,
         sliceIndex,
         phoneme: ph.letter,
         letterAudio: ph.audio,
-        image: wd.image,
+        sliceSrc: ph.sliceSrc,
+        image: wd.image || null,
         word: wd.word,
       });
     });
