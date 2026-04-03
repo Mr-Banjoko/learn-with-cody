@@ -8,6 +8,7 @@ import {
   buildWordData,
 } from "../../lib/picSliceGameData";
 import PicSliceBoard from "./PicSliceBoard";
+import PicSliceBoardDifficult from "./PicSliceBoardDifficult";
 
 // ── Screen 1: Vowel group selection ────────────────────────────────────────
 function VowelSelect({ onSelect, onBack }) {
@@ -79,9 +80,10 @@ function VowelSelect({ onSelect, onBack }) {
 // ── Screen 2: Difficulty selection ─────────────────────────────────────────
 function DifficultySelect({ vowelId, onSelect, onBack }) {
   const vowel = VOWEL_GROUPS.find((g) => g.id === vowelId);
+  const hasDifficult = (GAME_ROUNDS[vowelId]?.difficult?.length || 0) > 0;
   const difficulties = [
     { id: "easy", label: "Easy", emoji: "⭐", description: "2 words per round", available: true, color: "#6BCB77" },
-    { id: "difficult", label: "Difficult", emoji: "🔥", description: "More words, harder pairs", available: false, color: "#FF6B6B" },
+    { id: "difficult", label: "Difficult", emoji: "🔥", description: "4 words per round", available: hasDifficult, color: "#FF6B6B" },
   ];
   return (
     <div style={{ fontFamily: "Fredoka, sans-serif", padding: "0 16px" }}>
@@ -142,6 +144,7 @@ function DifficultySelect({ vowelId, onSelect, onBack }) {
 export default function RearrangePictures({ onBack }) {
   const [screen, setScreen] = useState("vowel"); // vowel | difficulty | game
   const [selectedVowel, setSelectedVowel] = useState(null);
+  const [difficulty, setDifficulty] = useState("easy");
   const [roundIndex, setRoundIndex] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
   const [wordPair, setWordPair] = useState(null);
@@ -159,9 +162,10 @@ export default function RearrangePictures({ onBack }) {
     setScreen("difficulty");
   };
 
-  const handleDifficultySelect = (difficulty) => {
+  const handleDifficultySelect = (diff) => {
+    setDifficulty(diff);
     setRoundIndex(0);
-    loadRound(selectedVowel, difficulty, 0);
+    loadRound(selectedVowel, diff, 0);
     setScreen("game");
   };
 
@@ -178,7 +182,7 @@ export default function RearrangePictures({ onBack }) {
   const handleNextRound = () => {
     const nextIndex = roundIndex + 1;
     setRoundIndex(nextIndex);
-    loadRound(selectedVowel, "easy", nextIndex);
+    loadRound(selectedVowel, difficulty, nextIndex);
     setShowCelebration(false);
   };
 
@@ -199,7 +203,7 @@ export default function RearrangePictures({ onBack }) {
           🧩 Rearrange the Pictures
         </h2>
         <p style={{ fontSize: 13, color: "#3A6080", margin: 0 }}>
-          {selectedVowel?.replace("short-", "short ")} · easy · round {roundIndex + 1}
+          {selectedVowel?.replace("short-", "short ")} · {difficulty} · round {roundIndex + 1}
         </p>
       </div>
     </div>
@@ -231,10 +235,17 @@ export default function RearrangePictures({ onBack }) {
             style={{ display: "flex", flexDirection: "column", height: "100%" }}
           >
             <GameHeader />
-            <PicSliceBoard
-              wordPair={wordPair}
-              onRoundComplete={handleRoundComplete}
-            />
+            {difficulty === "difficult" ? (
+              <PicSliceBoardDifficult
+                wordPair={wordPair}
+                onRoundComplete={handleRoundComplete}
+              />
+            ) : (
+              <PicSliceBoard
+                wordPair={wordPair}
+                onRoundComplete={handleRoundComplete}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

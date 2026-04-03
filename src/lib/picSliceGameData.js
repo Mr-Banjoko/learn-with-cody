@@ -31,7 +31,7 @@ export const VOWEL_GROUPS = [
   { id: "short-u", label: "Short u", emoji: "☂️", available: true },
 ];
 
-// 5 rounds per vowel group (2 words each)
+// Rounds per vowel group
 export const GAME_ROUNDS = {
   "short-a": {
     easy: [
@@ -41,7 +41,13 @@ export const GAME_ROUNDS = {
       ["dab", "dad"],
       ["dam", "fan"],
     ],
-    difficult: [],
+    difficult: [
+      ["bag", "bat", "can", "cat"],
+      ["ban", "cab", "dab", "dad"],
+      ["dam", "fan", "bag", "can"],
+      ["bat", "dab", "ban", "cab"],
+      ["cat", "dad", "dam", "fan"],
+    ],
   },
   "short-e": {
     easy: [
