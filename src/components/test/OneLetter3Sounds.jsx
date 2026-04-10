@@ -115,9 +115,9 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
             exit={{ scale: 1.2, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             style={{
-              width: 176,
-              height: 176,
-              borderRadius: 44,
+              width: 246,
+              height: 246,
+              borderRadius: 60,
               background: "white",
               boxShadow: "0 12px 40px rgba(78,205,196,0.22), 0 4px 16px rgba(30,58,95,0.10)",
               display: "flex",
@@ -128,7 +128,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
           >
             <span
               style={{
-                fontSize: 110,
+                fontSize: 154,
                 fontWeight: 700,
                 color: "#1E3A5F",
                 lineHeight: 1,
