@@ -44,14 +44,35 @@ export default function AppShell() {
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
       }}
     >
-      {/* Language toggle */}
-      <LanguageToggle language={language} onLanguageChange={handleLanguageChange} />
+      {/* Header bar with language toggle — only on top-level screens */}
+      {!isDeepScreen && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 30,
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            padding: "calc(env(safe-area-inset-top, 8px) + 8px) 14px 8px",
+            pointerEvents: "none",
+          }}
+        >
+          <div style={{ pointerEvents: "auto" }}>
+            <LanguageToggle language={language} onLanguageChange={handleLanguageChange} />
+          </div>
+        </div>
+      )}
 
       {/* Page content */}
       <div
         className="absolute inset-0"
         style={{
-          paddingTop: "env(safe-area-inset-top, 0px)",
+          paddingTop: isDeepScreen
+            ? "env(safe-area-inset-top, 0px)"
+            : "calc(env(safe-area-inset-top, 0px) + 60px)",
           paddingBottom: isDeepScreen ? "0" : "calc(80px + env(safe-area-inset-bottom, 0px))",
           overflow: isDeepScreen ? "hidden" : "auto",
           display: "flex",

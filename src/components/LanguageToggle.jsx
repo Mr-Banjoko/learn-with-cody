@@ -1,17 +1,9 @@
 import { motion } from "framer-motion";
 
-/**
- * LanguageToggle — visible En / 中文 pill toggle.
- * Replaces the gear-icon language control.
- */
 export default function LanguageToggle({ language, onLanguageChange }) {
   return (
     <div
       style={{
-        position: "absolute",
-        top: "max(14px, env(safe-area-inset-top, 14px))",
-        right: 14,
-        zIndex: 40,
         display: "flex",
         alignItems: "center",
         background: "rgba(255,255,255,0.88)",
