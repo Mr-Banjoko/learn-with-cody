@@ -1,4 +1,4 @@
-const BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/audio-feature/letter_sound/letter_sounds";
+const BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/letter_sounds";
 
 // Explicit per-letter extension map — use the exact filenames from the repo
 const LETTER_EXT = {
