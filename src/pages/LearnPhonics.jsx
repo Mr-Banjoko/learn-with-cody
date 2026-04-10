@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { tx } from "../lib/i18n";
 import FlashcardScreen from "../components/FlashcardScreen";
 import { shortEWords } from "../lib/shortEWords";
 import { shortIWords } from "../lib/shortIWords";
@@ -16,7 +17,7 @@ const vowelGroups = [
   { id: "short-u", label: "Short u", emoji: "☂️", active: true },
 ];
 
-export default function LearnPhonics({ onDeepScreen }) {
+export default function LearnPhonics({ onDeepScreen, lang = "en" }) {
   const [openFolder, setOpenFolder] = useState(null);
 
   const enterFolder = (id) => {
@@ -40,7 +41,7 @@ export default function LearnPhonics({ onDeepScreen }) {
     const cfg = wordMap[openFolder];
     return (
       <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100%" }}>
-        <FlashcardScreen onBack={exitFolder} words={cfg.words} title={cfg.title} enableLetterSounds />
+        <FlashcardScreen onBack={exitFolder} words={cfg.words} title={cfg.title} enableLetterSounds lang={lang} />
       </div>
     );
   }
@@ -62,8 +63,8 @@ export default function LearnPhonics({ onDeepScreen }) {
         <div className="flex items-center gap-3">
           <img src={CODY_IMG} alt="Cody" style={{ width: 52, height: 58, objectFit: "contain" }} />
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>Learn Phonics</h1>
-            <p style={{ fontSize: 14, color: "#3A6080" }}>Pick a word group to start!</p>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>{tx("Learn Phonics", "learn_phonics", lang)}</h1>
+            <p style={{ fontSize: 14, color: "#3A6080" }}>{tx("Pick a word group to start!", "pick_group_start", lang)}</p>
           </div>
         </div>
       </div>
@@ -71,7 +72,7 @@ export default function LearnPhonics({ onDeepScreen }) {
       {/* Word Groups */}
       <div className="px-4 pt-6">
         <p style={{ fontSize: 15, fontWeight: 600, color: "#4A90C4", marginBottom: 14 }}>
-          📂 Word Groups
+          {tx("📂 Word Groups", "word_groups_label", lang)}
         </p>
         <div className="flex flex-col gap-3">
           {vowelGroups.map((group, i) => (
@@ -110,12 +111,12 @@ export default function LearnPhonics({ onDeepScreen }) {
               <div style={{ flex: 1 }}>
                 <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>{group.label}</p>
                 <p style={{ fontSize: 13, color: "#7BACC8" }}>
-                  {group.id === "short-a" && "41 flashcards · Tap to open"}
-                  {group.id === "short-e" && "23 flashcards · Tap to open"}
-                  {group.id === "short-i" && "36 flashcards · Tap to open"}
-                  {group.id === "short-o" && "25 flashcards · Tap to open"}
-                  {group.id === "short-u" && "23 flashcards · Tap to open"}
-                  {!group.active && "Coming soon"}
+                  {group.id === "short-a" && tx("41 flashcards · Tap to open", "flashcard_count_a", lang)}
+                  {group.id === "short-e" && tx("23 flashcards · Tap to open", "flashcard_count_e", lang)}
+                  {group.id === "short-i" && tx("36 flashcards · Tap to open", "flashcard_count_i", lang)}
+                  {group.id === "short-o" && tx("25 flashcards · Tap to open", "flashcard_count_o", lang)}
+                  {group.id === "short-u" && tx("23 flashcards · Tap to open", "flashcard_count_u", lang)}
+                  {!group.active && tx("Coming soon", "coming_soon", lang)}
                 </p>
               </div>
               {group.active ? (
@@ -135,7 +136,7 @@ export default function LearnPhonics({ onDeepScreen }) {
                     background: "#EEF6FF", padding: "3px 10px", borderRadius: 99,
                   }}
                 >
-                  Soon
+                  {tx("Soon", "soon_badge", lang)}
                 </span>
               )}
             </motion.button>

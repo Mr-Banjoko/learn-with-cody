@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { games } from "../lib/content";
+import { tx } from "../lib/i18n";
+
+const gameLabels = {
+  "pic-slice":     { labelZh: "重排图片",   descZh: "把图片碎片拖到正确的位置" },
+  "word-match":    { labelZh: "单词配对",   descZh: "把单词和图片配对" },
+  "drag-letters":  { labelZh: "拖拽字母",   descZh: "把字母拖到对应的格子里拼出单词" },
+  "missing-sound": { labelZh: "缺失的音",   descZh: "找到缺失的字母来补全单词" },
+  "letter-catch":  { labelZh: "接字母",     descZh: "接住正确的字母来组成单词" },
+  "sound-safari":  { labelZh: "声音探险",   descZh: "找出以这个音开头的动物名字" },
+};
 import { Lock } from "lucide-react";
 import PicSliceGame from "./PicSliceGame";
 import WordMatch from "../components/games/WordMatch";
@@ -13,7 +23,7 @@ const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab18
 const gameColors = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF"];
 const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];
 
-export default function Games({ onDeepScreen }) {
+export default function Games({ onDeepScreen, lang = "en" }) {
   const [activeGame, setActiveGame] = useState(null);
 
   const enterGame = (id) => {
@@ -27,19 +37,19 @@ export default function Games({ onDeepScreen }) {
   };
 
   if (activeGame === "pic-slice") {
-    return <PicSliceGame onBack={exitGame} />;
+    return <PicSliceGame onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "word-match") {
-    return <WordMatch onBack={exitGame} />;
+    return <WordMatch onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "drag-letters") {
-    return <DragTheLetters onBack={exitGame} />;
+    return <DragTheLetters onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "missing-sound") {
-    return <MissingSound onBack={exitGame} />;
+    return <MissingSound onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "letter-catch") {
-    return <LetterCatch onBack={exitGame} />;
+    return <LetterCatch onBack={exitGame} lang={lang} />;
   }
 
   return (
@@ -51,8 +61,8 @@ export default function Games({ onDeepScreen }) {
       <div className="px-4 mb-6 flex items-center gap-3">
         <img src={CODY_IMG} alt="Cody" style={{ width: 56, height: 62, objectFit: "contain" }} />
         <div>
-          <h1 className="text-2xl font-semibold" style={{ color: "#1E293B" }}>Games</h1>
-          <p className="text-sm" style={{ color: "#64748B" }}>Fun ways to practice!</p>
+          <h1 className="text-2xl font-semibold" style={{ color: "#1E293B" }}>{tx("Games", "games_title", lang)}</h1>
+          <p className="text-sm" style={{ color: "#64748B" }}>{tx("Fun ways to practice!", "games_subtitle", lang)}</p>
         </div>
       </div>
 
@@ -91,13 +101,13 @@ export default function Games({ onDeepScreen }) {
                   {game.emoji}
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>{game.label}</h3>
-                  <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>{game.description}</p>
+                  <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>{lang === "zh" ? (gameLabels[game.id]?.labelZh || game.label) : game.label}</h3>
+                  <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>{lang === "zh" ? (gameLabels[game.id]?.descZh || game.description) : game.description}</p>
                   <div
                     className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold"
                     style={{ background: `${gameColors[i % gameColors.length]}18`, color: gameColors[i % gameColors.length] }}
                   >
-                    {isPlayable ? "Play Now! 🎮" : "Coming Soon ✨"}
+                    {isPlayable ? tx("Play Now! 🎮", "play_now", lang) : tx("Coming Soon ✨", "coming_soon_badge", lang)}
                   </div>
                 </div>
               </div>
@@ -123,10 +133,10 @@ export default function Games({ onDeepScreen }) {
           🎮
         </motion.div>
         <p className="text-base font-semibold" style={{ color: "#4ECDC4" }}>
-          More games coming soon!
+          {tx("More games coming soon!", "more_games_soon", lang)}
         </p>
         <p className="text-sm" style={{ color: "#94A3B8" }}>
-          Cody is working hard to bring you more fun activities!
+          {tx("Cody is working hard to bring you more fun activities!", "cody_working", lang)}
         </p>
       </motion.div>
     </div>

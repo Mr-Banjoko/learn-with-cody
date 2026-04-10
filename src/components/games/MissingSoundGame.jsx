@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
+import { tx } from "../../lib/i18n";
 import BackArrow from "../BackArrow";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
@@ -44,7 +45,7 @@ function buildRound(card) {
 // Mounted fresh every round via key={roundIndex} from the parent.
 // All interaction state is local — nothing stale ever survives a round change.
 // ─────────────────────────────────────────────────────────────────────────────
-function MissingSoundRound({ round, color, onComplete }) {
+function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
   const accentColor = color || "#4A90C4";
 
   // ── Interaction state — all fresh on every mount ──
@@ -281,7 +282,7 @@ function MissingSoundRound({ round, color, onComplete }) {
         >
           <Play size={26} color="white" fill="white" />
         </motion.button>
-        <span style={{ fontSize: 11, color: "#7BACC8", fontWeight: 600, letterSpacing: "0.03em" }}>hear the word</span>
+        <span style={{ fontSize: 11, color: "#7BACC8", fontWeight: 600, letterSpacing: "0.03em" }}>{tx("hear the word", "hear_the_word", lang)}</span>
       </div>
 
       {/* ── BOTTOM: answer tiles ── */}
@@ -340,7 +341,11 @@ function MissingSoundRound({ round, color, onComplete }) {
           flexShrink: 0, touchAction: "manipulation",
         }}
       >
-        {feedback === "wrong" ? "Try Again! 🔄" : feedback === "completing" ? "🎉 Great!" : "Submit ✓"}
+        {feedback === "wrong"
+          ? tx("Try Again! 🔄", "try_again", lang)
+          : feedback === "completing"
+          ? tx("🎉 Great!", "great_feedback", lang)
+          : tx("Submit ✓", "submit_btn", lang)}
       </motion.button>
 
       {/* ── Drag ghost ── */}
@@ -371,7 +376,7 @@ function MissingSoundRound({ round, color, onComplete }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MissingSoundGame — manages round cycling and renders the shell
 // ─────────────────────────────────────────────────────────────────────────────
-export default function MissingSoundGame({ words, title, color, onBack }) {
+export default function MissingSoundGame({ words, title, color, onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const total = words.length;
   const accentColor = color || "#4A90C4";
@@ -398,7 +403,7 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
       }}>
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1, textAlign: "center", marginRight: 40 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>Missing Sound ❓</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>{tx("Missing Sound ❓", "missing_sound_title", lang)}</h1>
           <p style={{ fontSize: 13, color: "#3A6080" }}>{title} · {roundIndex + 1} / {total}</p>
         </div>
       </div>
@@ -423,6 +428,7 @@ export default function MissingSoundGame({ words, title, color, onBack }) {
         round={round}
         color={color}
         onComplete={handleComplete}
+        lang={lang}
       />
     </div>
   );

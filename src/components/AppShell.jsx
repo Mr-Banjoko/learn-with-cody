@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TabBar from "./TabBar";
-import ParentSettings from "./ParentSettings";
+import LanguageToggle from "./LanguageToggle";
 import Home from "../pages/Home";
 import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
@@ -25,15 +25,15 @@ export default function AppShell() {
   const renderPage = () => {
     switch (activeTab) {
       case "home":
-        return <Home onNavigate={handleTabChange} />;
+        return <Home onNavigate={handleTabChange} lang={language} />;
       case "learn":
-        return <LearnPhonics onDeepScreen={setIsDeepScreen} />;
+        return <LearnPhonics onDeepScreen={setIsDeepScreen} lang={language} />;
       case "games":
-        return <Games onDeepScreen={setIsDeepScreen} />;
+        return <Games onDeepScreen={setIsDeepScreen} lang={language} />;
       case "album":
-        return <Album />;
+        return <Album lang={language} />;
       default:
-        return <LearnPhonics onDeepScreen={setIsDeepScreen} />;
+        return <LearnPhonics onDeepScreen={setIsDeepScreen} lang={language} />;
     }
   };
 
@@ -44,8 +44,8 @@ export default function AppShell() {
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
       }}
     >
-      {/* Settings gear */}
-      <ParentSettings language={language} onLanguageChange={handleLanguageChange} />
+      {/* Language toggle */}
+      <LanguageToggle language={language} onLanguageChange={handleLanguageChange} />
 
       {/* Page content */}
       <div

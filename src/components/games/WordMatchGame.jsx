@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2 } from "lucide-react";
+import { tx } from "../../lib/i18n";
 import BackArrow from "../BackArrow";
 import { playAudio } from "../../lib/useAudio";
 
@@ -21,7 +22,7 @@ function buildRound(words, excludeUsed, brokenImages) {
   return { target, choices };
 }
 
-export default function WordMatchGame({ words, title, color, onBack }) {
+export default function WordMatchGame({ words, title, color, onBack, lang = "en" }) {
   const usedRef = useRef(new Set());
   const brokenRef = useRef(new Set());
   const [round, setRound] = useState(() => buildRound(words, usedRef.current, brokenRef.current));
@@ -76,7 +77,7 @@ export default function WordMatchGame({ words, title, color, onBack }) {
   if (!round) {
     return (
       <div style={{ background: "#D6EEFF", minHeight: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Fredoka, sans-serif" }}>
-        <p style={{ color: "#1E3A5F", fontSize: 20, fontWeight: 600 }}>No images available right now.</p>
+        <p style={{ color: "#1E3A5F", fontSize: 20, fontWeight: 600 }}>{tx("No images available right now.", "no_images_available", lang)}</p>
       </div>
     );
   }
@@ -129,13 +130,13 @@ export default function WordMatchGame({ words, title, color, onBack }) {
               }}
             >
               <Volume2 size={20} color={color} />
-              Hear the word
+              {tx("Hear the word", "hear_the_word_btn", lang)}
             </button>
           </motion.div>
         </AnimatePresence>
 
         <p style={{ fontSize: 17, fontWeight: 600, color: "#3A6080", textAlign: "center", margin: 0 }}>
-          Which word matches the picture?
+          {tx("Which word matches the picture?", "which_word_matches", lang)}
         </p>
 
         {/* 2×2 choice grid — constrained to viewport */}

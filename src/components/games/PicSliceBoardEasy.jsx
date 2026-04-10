@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { buildRoundPieces } from "../../lib/picSliceGameData";
+import { tx } from "../../lib/i18n";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
 
@@ -29,7 +30,7 @@ function buildState(wordArr) {
   };
 }
 
-export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
+export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en" }) {
   const wd = wordPair[0];
 
   // Pick a new palette each time the word changes
@@ -249,26 +250,26 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
                     }}
                   >
                     {placedPiece ? (
-                      <motion.div
-                        initial={{ scale: 0.5, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 380, damping: 18 }}
-                        style={{ position: "absolute", inset: 0 }}
-                      >
-                        <img
-                          src={placedPiece.sliceSrc}
-                          alt=""
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                      </motion.div>
+                     <motion.div
+                       initial={{ scale: 0.5, opacity: 0 }}
+                       animate={{ scale: 1, opacity: 1 }}
+                       transition={{ type: "spring", stiffness: 380, damping: 18 }}
+                       style={{ position: "absolute", inset: 0 }}
+                     >
+                       <img
+                         src={placedPiece.sliceSrc}
+                         alt=""
+                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                       />
+                     </motion.div>
                     ) : (
-                      <span style={{
-                        fontSize: "clamp(11px, 3vw, 15px)",
-                        color: border,
-                        fontWeight: 700,
-                      }}>
-                        {si === 0 ? "1st" : si === 1 ? "2nd" : "3rd"}
-                      </span>
+                     <span style={{
+                       fontSize: "clamp(11px, 3vw, 15px)",
+                       color: border,
+                       fontWeight: 700,
+                     }}>
+                       {si === 0 ? tx("1st", "ordinal_1", lang) : si === 1 ? tx("2nd", "ordinal_2", lang) : tx("3rd", "ordinal_3", lang)}
+                     </span>
                     )}
                   </div>
                 );
@@ -287,7 +288,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete }) {
         margin: 0,
         flexShrink: 0,
       }}>
-        👆 drag a piece · tap to hear its sound
+        {tx("👆 drag a piece · tap to hear its sound", "drag_piece_hint", lang)}
       </p>
 
       {/* ── SLICE TRAY ─────────────────────────────────────────────────────── */}

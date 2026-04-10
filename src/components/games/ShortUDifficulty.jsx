@@ -3,6 +3,7 @@ import LetterCatchGame from "./LetterCatchGame";
 import BackArrow from "../BackArrow";
 import { shortUWords } from "../../lib/shortUWords";
 import { useState } from "react";
+import { tx } from "../../lib/i18n";
 
 const DIFFICULTIES = [
   {
@@ -34,7 +35,7 @@ const DIFFICULTIES = [
   },
 ];
 
-export default function ShortUDifficulty({ onBack }) {
+export default function ShortUDifficulty({ onBack, lang = "en" }) {
   const [selected, setSelected] = useState(null);
 
   if (selected) {
@@ -46,6 +47,7 @@ export default function ShortUDifficulty({ onBack }) {
         color={diff.color}
         fallSpeed={diff.fallSpeed}
         onBack={() => setSelected(null)}
+        lang={lang}
       />
     );
   }
@@ -56,7 +58,7 @@ export default function ShortUDifficulty({ onBack }) {
         <BackArrow onPress={onBack} />
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>Short u ☂️</h1>
-          <p style={{ fontSize: 13, color: "#3A6080" }}>Pick a speed!</p>
+          <p style={{ fontSize: 13, color: "#3A6080" }}>{tx("Pick a speed!", "choose_speed", lang)}</p>
         </div>
       </div>
 

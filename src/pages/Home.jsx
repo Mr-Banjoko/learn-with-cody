@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
+import { tx } from "../lib/i18n";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 
-export default function Home({ onNavigate }) {
+export default function Home({ onNavigate, lang = "en" }) {
   return (
     <div
       className="flex flex-col items-center justify-center min-h-full px-6 pb-32 pt-16 relative"
@@ -83,10 +84,10 @@ export default function Home({ onNavigate }) {
           }}
         />
         <p className="text-xl font-semibold" style={{ color: "#1E293B" }}>
-          Hi! Ready to learn? 🌟
+          {tx("Hi! Ready to learn? 🌟", "home_greeting", lang)}
         </p>
         <p className="text-sm mt-1" style={{ color: "#64748B" }}>
-          Your phonics adventure starts here!
+          {tx("Your phonics adventure starts here!", "home_subtitle", lang)}
         </p>
       </motion.div>
 
@@ -103,9 +104,9 @@ export default function Home({ onNavigate }) {
           boxShadow: "0 8px 24px rgba(78,205,196,0.4)",
           WebkitTapHighlightColor: "transparent",
         }}
-      >
-        🚀 Start Learning!
-      </motion.button>
+        >
+        {tx("🚀 Start Learning!", "start_learning", lang)}
+        </motion.button>
 
       {/* Coming soon hint */}
       <motion.div
@@ -127,7 +128,7 @@ export default function Home({ onNavigate }) {
           ))}
         </div>
         <p className="text-sm" style={{ color: "#94A3B8" }}>
-          Your adventure path is coming soon!
+          {tx("Your adventure path is coming soon!", "adventure_coming", lang)}
         </p>
       </motion.div>
     </div>

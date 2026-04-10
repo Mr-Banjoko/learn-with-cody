@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2 } from "lucide-react";
+import { tx } from "../../lib/i18n";
 import BackArrow from "../BackArrow";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
@@ -187,7 +188,7 @@ function CandyArrow({ direction, onPress }) {
 
 // ── Single Round ──────────────────────────────────────────────────────────────
 
-function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpeed }) {
+function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpeed, lang = "en" }) {
   const { word, image, audio } = wordData;
   const letters = word.split("");
   const [missingPos] = useState(() => Math.floor(Math.random() * 3));
@@ -356,7 +357,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
         <BackArrow onPress={onExit} />
         <div style={{ flex: 1 }}>
           <p style={{ fontSize: 12, color: "#3A6080", margin: 0 }}>
-            Round {roundNum} of {totalRounds}
+            {lang === "zh" ? `第 ${roundNum} 关 / 共 ${totalRounds}` : `Round ${roundNum} of ${totalRounds}`}
           </p>
         </div>
         <div style={{ display: "flex", gap: 5 }}>
@@ -446,7 +447,9 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
           }}
         >
           {phase === "caught"
-            ? "🌟 Amazing catch!"
+            ? tx("🌟 Amazing catch!", "amazing_catch", lang)
+            : lang === "zh"
+            ? `接住字母「${missingLetter.toUpperCase()}」`
             : `Catch the letter  "${missingLetter.toUpperCase()}"`}
         </p>
       </div>
@@ -558,7 +561,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
             textAlign: "center", margin: 0, flex: 1,
           }}
         >
-          Move Cody!
+          {tx("Move Cody!", "move_cody", lang)}
         </p>
         <CandyArrow direction="right" onPress={moveRight} />
       </div>
@@ -568,7 +571,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
 
 // ── Main Wrapper ──────────────────────────────────────────────────────────────
 
-export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAULT_FALL_SPEED, onBack }) {
+export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAULT_FALL_SPEED, onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
 
   const [gameWords] = useState(() =>
@@ -603,7 +606,7 @@ export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAU
           transition={{ delay: 0.3 }}
           style={{ fontSize: 34, fontWeight: 700, color: "#1E3A5F", margin: 0 }}
         >
-          Amazing!
+          {tx("Amazing!", "amazing", lang)}
         </motion.p>
         <motion.p
           initial={{ opacity: 0 }}
@@ -611,7 +614,7 @@ export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAU
           transition={{ delay: 0.5 }}
           style={{ fontSize: 18, color: "#4A90C4", margin: 0, textAlign: "center" }}
         >
-          You caught all the letters!
+          {tx("You caught all the letters!", "caught_all_letters", lang)}
         </motion.p>
         <motion.img
           src={CODY_IMG}
@@ -633,7 +636,7 @@ export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAU
             boxShadow: "0 6px 20px rgba(74,144,196,0.4)",
           }}
         >
-          Back to Games
+          {tx("Back to Games", "back_to_games", lang)}
         </motion.button>
       </div>
     );
@@ -649,6 +652,7 @@ export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAU
         onSuccess={handleSuccess}
         onExit={onBack}
         fallSpeed={fallSpeed}
+        lang={lang}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { buildRoundPieces } from "../../lib/picSliceGameData";
+import { tx } from "../../lib/i18n";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
 
@@ -15,7 +16,7 @@ function buildState(wordPair) {
   };
 }
 
-export default function PicSliceBoard({ wordPair, onRoundComplete }) {
+export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }) {
   const [state, setState] = useState(() => buildState(wordPair));
   const [dragState, setDragState] = useState(null);
   const isDragging = useRef(false);
@@ -244,7 +245,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
                               color: wi === 0 ? "#FFB3C6" : "#A8D8F0",
                               fontWeight: 700,
                             }}>
-                              {si === 0 ? "1st" : si === 1 ? "2nd" : "3rd"}
+                              {si === 0 ? tx("1st", "ordinal_1", lang) : si === 1 ? tx("2nd", "ordinal_2", lang) : tx("3rd", "ordinal_3", lang)}
                             </span>
                           )}
                         </div>
@@ -270,7 +271,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete }) {
           textAlign: "center", fontSize: 12, color: "#7BACC8",
           fontWeight: 600, margin: "0 0 2px", flexShrink: 0,
         }}>
-          👆 drag a piece · tap to hear its sound
+          {tx("👆 drag a piece · tap to hear its sound", "drag_piece_hint", lang)}
         </p>
 
         <div style={{

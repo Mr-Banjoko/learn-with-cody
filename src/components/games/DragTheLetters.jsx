@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
+import { tx } from "../../lib/i18n";
 import DragTheLettersGame from "./DragTheLettersGame";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
@@ -16,7 +17,7 @@ const VOWEL_GROUPS = [
   { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", words: shortUWords, available: true },
 ];
 
-export default function DragTheLetters({ onBack }) {
+export default function DragTheLetters({ onBack, lang = "en" }) {
   const [selected, setSelected] = useState(null);
 
   if (selected) {
@@ -27,6 +28,7 @@ export default function DragTheLetters({ onBack }) {
         title={group.label}
         color={group.color}
         onBack={() => setSelected(null)}
+        lang={lang}
       />
     );
   }
@@ -37,8 +39,8 @@ export default function DragTheLetters({ onBack }) {
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 16px", display: "flex", alignItems: "center", gap: 8 }}>
         <BackArrow onPress={onBack} />
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>Drag the Letters ✋</h1>
-          <p style={{ fontSize: 13, color: "#3A6080" }}>Pick a word group!</p>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>{tx("Drag the Letters ✋", "drag_letters_title", lang)}</h1>
+          <p style={{ fontSize: 13, color: "#3A6080" }}>{tx("Pick a word group!", "pick_word_group_play", lang)}</p>
         </div>
       </div>
 
@@ -67,14 +69,14 @@ export default function DragTheLetters({ onBack }) {
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>{group.label}</p>
-              <p style={{ fontSize: 13, color: "#7BACC8" }}>{group.available ? "Tap to play!" : "Coming soon"}</p>
+              <p style={{ fontSize: 13, color: "#7BACC8" }}>{group.available ? tx("Tap to play!", "tap_to_play", lang) : tx("Coming soon", "coming_soon", lang)}</p>
             </div>
             {group.available ? (
               <div style={{ width: 32, height: 32, borderRadius: 16, background: group.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ color: "white", fontSize: 18, lineHeight: 1 }}>›</span>
               </div>
             ) : (
-              <span style={{ fontSize: 11, fontWeight: 600, color: "#7BACC8", background: "#EEF6FF", padding: "3px 10px", borderRadius: 99 }}>Soon</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#7BACC8", background: "#EEF6FF", padding: "3px 10px", borderRadius: 99 }}>{tx("Soon", "soon_badge", lang)}</span>
             )}
           </motion.button>
         ))}

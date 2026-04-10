@@ -3,6 +3,7 @@ import BackArrow from "../BackArrow";
 import LetterCatchGame from "./LetterCatchGame";
 import { shortAWords } from "../../lib/shortAWords";
 import { useState } from "react";
+import { tx } from "../../lib/i18n";
 
 // Fall speed (px per tick at 40ms) calibrated so tile reaches Cody in:
 // Easy ~8s, Moderate ~6s, Difficult ~4.5s
@@ -36,7 +37,7 @@ const DIFFICULTIES = [
   },
 ];
 
-export default function ShortADifficulty({ onBack }) {
+export default function ShortADifficulty({ onBack, lang = "en" }) {
   const [selected, setSelected] = useState(null);
 
   if (selected) {
@@ -48,6 +49,7 @@ export default function ShortADifficulty({ onBack }) {
         color={diff.color}
         fallSpeed={diff.fallSpeed}
         onBack={() => setSelected(null)}
+        lang={lang}
       />
     );
   }
@@ -74,7 +76,7 @@ export default function ShortADifficulty({ onBack }) {
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>
             Short a 🍎
           </h1>
-          <p style={{ fontSize: 13, color: "#3A6080" }}>Pick a speed!</p>
+          <p style={{ fontSize: 13, color: "#3A6080" }}>{tx("Pick a speed!", "choose_speed", lang)}</p>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
+import { tx } from "../../lib/i18n";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 
@@ -33,7 +34,7 @@ function buildRound(card) {
   return { card, letters, options };
 }
 
-export default function DragTheLettersGame({ words, title, color, onBack }) {
+export default function DragTheLettersGame({ words, title, color, onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [round, setRound] = useState(() => buildRound(words[0]));
   const [placed, setPlaced] = useState([null, null, null]);
@@ -259,7 +260,13 @@ export default function DragTheLettersGame({ words, title, color, onBack }) {
 
         {/* Instruction */}
         <p style={{ fontSize: 15, color: "#4A90C4", fontWeight: 600, textAlign: "center", flexShrink: 0 }}>
-          {completing ? "🎉 Great job! Listen..." : progress === 0 ? "Drag the letters to spell the word!" : `${progress} of ${round.letters.length} placed`}
+          {completing
+            ? tx("🎉 Great job! Listen...", "great_job_listen", lang)
+            : progress === 0
+            ? tx("Drag the letters to spell the word!", "drag_to_spell", lang)
+            : lang === "zh"
+            ? `已放置 ${progress} 个字母，共 ${round.letters.length}`
+            : `${progress} of ${round.letters.length} placed`}
         </p>
 
         {/* Letter tiles — placed tiles become invisible spacers (no ghost left behind) */}
