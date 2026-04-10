@@ -1,135 +1,109 @@
 import { motion } from "framer-motion";
 import { tx } from "../lib/i18n";
 
-const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
+const BOX_COLORS = [
+  "#4ECDC4", // 1 — teal
+  "#FF6B6B", // 2 — coral
+  "#FFD93D", // 3 — sunny yellow
+  "#6BCB77", // 4 — mint green
+  "#A78BFA", // 5 — soft purple
+];
 
 export default function Home({ onNavigate, lang = "en" }) {
   return (
     <div
-      className="flex flex-col items-center justify-center min-h-full px-6 pb-32 pt-16 relative"
-      style={{ fontFamily: "Fredoka, sans-serif" }}
+      style={{
+        fontFamily: "Fredoka, sans-serif",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        padding: "16px 16px calc(16px + env(safe-area-inset-bottom, 0px)) 16px",
+        gap: 14,
+        boxSizing: "border-box",
+        overflow: "hidden",
+      }}
     >
-      {/* Background path hint */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <svg width="100%" height="100%" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" opacity={0.06}>
-          <path
-            d="M 200 650 Q 300 550 200 450 Q 100 350 200 250 Q 300 150 200 50"
-            stroke="#4ECDC4"
-            strokeWidth="40"
-            fill="none"
-            strokeLinecap="round"
-            strokeDasharray="1 0"
-          />
-        </svg>
-        {/* Future lesson nodes hinted */}
-        {[600, 480, 360, 240, 120].map((y, i) => (
-          <div
+      {/* Row 1: Box 1 + Box 2 side by side */}
+      <div style={{ display: "flex", gap: 14, flex: "0 0 auto" }}>
+        {[0, 1].map((i) => (
+          <motion.div
             key={i}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.08, type: "spring", stiffness: 280, damping: 22 }}
             style={{
-              position: "absolute",
-              left: i % 2 === 0 ? "55%" : "35%",
-              top: `${y / 7}%`,
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              background: "rgba(78,205,196,0.08)",
-              border: "2px dashed rgba(78,205,196,0.15)",
+              flex: 1,
+              height: 130,
+              borderRadius: 22,
+              background: BOX_COLORS[i],
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: `0 6px 20px ${BOX_COLORS[i]}55`,
             }}
-          />
+          >
+            <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>{i + 1}</span>
+          </motion.div>
         ))}
       </div>
 
-      {/* Cody illustration */}
+      {/* Row 2: Box 3 — wide */}
       <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 22 }}
-      >
-        <img
-          src={CODY_IMG}
-          alt="Cody"
-          style={{
-            width: 220,
-            height: 240,
-            objectFit: "contain",
-            filter: "drop-shadow(0 12px 32px rgba(78,205,196,0.2))",
-          }}
-        />
-      </motion.div>
-
-      {/* Speech bubble */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="relative mt-2 mb-8 px-6 py-4 rounded-3xl text-center"
+        transition={{ delay: 0.16, type: "spring", stiffness: 280, damping: 22 }}
         style={{
-          background: "white",
-          border: "2px solid rgba(78,205,196,0.3)",
-          boxShadow: "0 8px 32px rgba(78,205,196,0.12)",
-          maxWidth: 280,
+          flex: "0 0 auto",
+          height: 100,
+          borderRadius: 22,
+          background: BOX_COLORS[2],
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: `0 6px 20px ${BOX_COLORS[2]}55`,
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            top: -12,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 0,
-            height: 0,
-            borderLeft: "12px solid transparent",
-            borderRight: "12px solid transparent",
-            borderBottom: "12px solid white",
-          }}
-        />
-        <p className="text-xl font-semibold" style={{ color: "#1E293B" }}>
-          {tx("Hi! Ready to learn? 🌟", "home_greeting", lang)}
-        </p>
-        <p className="text-sm mt-1" style={{ color: "#64748B" }}>
-          {tx("Your phonics adventure starts here!", "home_subtitle", lang)}
-        </p>
+        <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>3</span>
       </motion.div>
 
-      {/* Start Learning CTA */}
-      <motion.button
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        whileTap={{ scale: 0.96 }}
-        onClick={() => onNavigate("learn")}
-        className="px-10 py-4 rounded-full text-xl font-semibold text-white shadow-lg"
-        style={{
-          background: "linear-gradient(135deg, #4ECDC4, #44A08D)",
-          boxShadow: "0 8px 24px rgba(78,205,196,0.4)",
-          WebkitTapHighlightColor: "transparent",
-        }}
+      {/* Row 3: Box 4 — centered, medium width */}
+      <div style={{ display: "flex", justifyContent: "center", flex: "0 0 auto" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.24, type: "spring", stiffness: 280, damping: 22 }}
+          style={{
+            width: "58%",
+            height: 110,
+            borderRadius: 22,
+            background: BOX_COLORS[3],
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: `0 6px 20px ${BOX_COLORS[3]}55`,
+          }}
         >
-        {tx("🚀 Start Learning!", "start_learning", lang)}
-        </motion.button>
+          <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>4</span>
+        </motion.div>
+      </div>
 
-      {/* Coming soon hint */}
+      {/* Row 4: Box 5 — large wide */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="mt-10 flex flex-col items-center gap-2"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.32, type: "spring", stiffness: 280, damping: 22 }}
+        style={{
+          flex: 1,
+          minHeight: 130,
+          borderRadius: 22,
+          background: BOX_COLORS[4],
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: `0 6px 20px ${BOX_COLORS[4]}55`,
+        }}
       >
-        <div className="flex gap-2">
-          {[...Array(5)].map((_, i) => (
-            <motion.div
-              key={i}
-              animate={{ opacity: [0.3, 0.7, 0.3], scale: [1, 1.15, 1] }}
-              transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.2 }}
-              style={{ fontSize: 22 }}
-            >
-              ⭐
-            </motion.div>
-          ))}
-        </div>
-        <p className="text-sm" style={{ color: "#94A3B8" }}>
-          {tx("Your adventure path is coming soon!", "adventure_coming", lang)}
-        </p>
+        <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>5</span>
       </motion.div>
     </div>
   );
