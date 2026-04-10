@@ -144,7 +144,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
       </div>
 
       {/* Spacer pushes speakers down */}
-      <div style={{ flex: 1 }} />
+      <div style={{ flex: 0.8 }} />
 
       {/* Speaker buttons */}
       <div
