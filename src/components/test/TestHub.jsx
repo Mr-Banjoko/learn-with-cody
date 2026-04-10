@@ -93,9 +93,6 @@ export default function TestHub({ onBack, onDeepScreen, lang = "en" }) {
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>
             {tx("🧪 Test Zone", "test_zone_title", lang)}
           </h1>
-          <p style={{ fontSize: 13, color: "#3A6080", margin: 0 }}>
-            {tx("Pick an activity to practice!", "pick_activity", lang)}
-          </p>
         </div>
       </div>
 

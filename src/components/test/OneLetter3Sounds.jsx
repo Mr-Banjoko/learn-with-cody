@@ -12,41 +12,6 @@ const SPEAKER_COLORS = [
   { main: "#FFD93D", light: "#FFFDE7", shadow: "rgba(255,217,61,0.35)" },
 ];
 
-function SpeakerIcon({ color, size = 52 }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 52 52"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect width="52" height="52" rx="16" fill={color} fillOpacity="0.15" />
-      {/* Speaker body */}
-      <path
-        d="M18 21h-4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h4l8 6V15l-8 6z"
-        fill={color}
-      />
-      {/* Sound waves */}
-      <path
-        d="M30 20.5a8 8 0 0 1 0 11"
-        stroke={color}
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <path
-        d="M33.5 17a13 13 0 0 1 0 18"
-        stroke={color}
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.55"
-      />
-    </svg>
-  );
-}
-
 function buildRound() {
   const target = ALL_LETTERS[Math.floor(Math.random() * ALL_LETTERS.length)];
   const pool = ALL_LETTERS.filter((l) => l !== target);
@@ -88,36 +53,34 @@ function playLetterSound(letter) {
 export default function OneLetter3Sounds({ onBack, lang = "en" }) {
   const [round, setRound] = useState(() => buildRound());
   const [selected, setSelected] = useState(null);
-  const [feedback, setFeedback] = useState(null); // null | "correct" | "wrong"
-  const feedbackTimeout = useRef(null);
+  const [showNext, setShowNext] = useState(false);
+  const [wrongShake, setWrongShake] = useState(false);
+  const shakeTimeout = useRef(null);
 
-  const handleSpeakerTap = useCallback(
-    (letter, colorIdx) => {
-      playLetterSound(letter);
-      setSelected({ letter, colorIdx });
-      if (feedback) setFeedback(null);
-    },
-    [feedback]
-  );
+  const handleSpeakerTap = useCallback((letter, colorIdx) => {
+    playLetterSound(letter);
+    setSelected({ letter, colorIdx });
+    if (showNext) setShowNext(false);
+    if (wrongShake) setWrongShake(false);
+  }, [showNext, wrongShake]);
 
   const handleSubmit = useCallback(() => {
-    if (!selected) return;
+    if (!selected || showNext) return;
     if (selected.letter === round.target) {
-      setFeedback("correct");
-      clearTimeout(feedbackTimeout.current);
-      feedbackTimeout.current = setTimeout(() => {
-        setRound(buildRound());
-        setSelected(null);
-        setFeedback(null);
-      }, 1400);
+      setShowNext(true);
     } else {
-      setFeedback("wrong");
-      clearTimeout(feedbackTimeout.current);
-      feedbackTimeout.current = setTimeout(() => {
-        setFeedback(null);
-      }, 1200);
+      clearTimeout(shakeTimeout.current);
+      setWrongShake(true);
+      shakeTimeout.current = setTimeout(() => setWrongShake(false), 600);
     }
-  }, [selected, round.target]);
+  }, [selected, round.target, showNext]);
+
+  const handleNext = useCallback(() => {
+    setRound(buildRound());
+    setSelected(null);
+    setShowNext(false);
+    setWrongShake(false);
+  }, []);
 
   return (
     <div
@@ -131,28 +94,9 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
         position: "relative",
       }}
     >
-      {/* Header */}
-      <div
-        style={{
-          background: "#A8D0E6",
-          borderBottomLeftRadius: 28,
-          borderBottomRightRadius: 28,
-          padding: "10px 20px 14px",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          flexShrink: 0,
-        }}
-      >
+      {/* Back arrow only — no header bar */}
+      <div style={{ padding: "12px 16px 0", flexShrink: 0 }}>
         <BackArrow onPress={onBack} />
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>
-            {tx("1 Letter · 3 Sounds", "one_letter_3_sounds_title", lang)}
-          </h1>
-          <p style={{ fontSize: 13, color: "#3A6080", margin: 0 }}>
-            {tx("Tap the correct sound!", "tap_correct_sound", lang)}
-          </p>
-        </div>
       </div>
 
       {/* Main content */}
@@ -162,12 +106,14 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
-          padding: "24px 24px 32px",
-          gap: 0,
+          justifyContent: "flex-start",
+          paddingTop: "6%",
+          paddingBottom: 32,
+          paddingLeft: 24,
+          paddingRight: 24,
         }}
       >
-        {/* Target letter */}
+        {/* Target letter — 10% bigger: 160→176, positioned higher */}
         <AnimatePresence mode="wait">
           <motion.div
             key={round.target}
@@ -176,22 +122,22 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
             exit={{ scale: 1.2, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             style={{
-              width: 160,
-              height: 160,
-              borderRadius: 40,
+              width: 176,
+              height: 176,
+              borderRadius: 44,
               background: "white",
               boxShadow: "0 12px 40px rgba(78,205,196,0.22), 0 4px 16px rgba(30,58,95,0.10)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: 40,
+              marginBottom: 44,
               flexShrink: 0,
               border: "3px solid rgba(78,205,196,0.18)",
             }}
           >
             <span
               style={{
-                fontSize: 100,
+                fontSize: 110,
                 fontWeight: 700,
                 color: "#1E3A5F",
                 lineHeight: 1,
@@ -205,14 +151,15 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
         </AnimatePresence>
 
         {/* Speaker choices */}
-        <div
+        <motion.div
+          animate={wrongShake ? { x: [0, -10, 10, -8, 8, 0] } : { x: 0 }}
+          transition={{ duration: 0.45 }}
           style={{
             display: "flex",
             gap: 20,
-            marginBottom: 36,
+            marginBottom: 40,
             alignItems: "center",
             justifyContent: "center",
-            flexWrap: "nowrap",
           }}
         >
           {round.choices.map((letter, idx) => {
@@ -226,11 +173,6 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
                   handleSpeakerTap(letter, idx);
                 }}
                 whileTap={{ scale: 0.91 }}
-                animate={
-                  isSelected
-                    ? { scale: [1, 1.08, 1.04], transition: { duration: 0.25 } }
-                    : { scale: 1 }
-                }
                 style={{
                   width: 100,
                   height: 100,
@@ -251,14 +193,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
                   flexShrink: 0,
                 }}
               >
-                {/* Speaker SVG — color adapts to selected state */}
-                <svg
-                  width="58"
-                  height="58"
-                  viewBox="0 0 52 52"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                <svg width="58" height="58" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
                     d="M18 21h-4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h4l8 6V15l-8 6z"
                     fill={isSelected ? "white" : colorSet.main}
@@ -282,66 +217,82 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
               </motion.button>
             );
           })}
-        </div>
+        </motion.div>
 
-        {/* Feedback banner */}
-        <AnimatePresence>
-          {feedback && (
-            <motion.div
-              key={feedback}
-              initial={{ opacity: 0, y: 10, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.9 }}
-              style={{
-                background: feedback === "correct" ? "#6BCB77" : "#FF6B6B",
-                color: "white",
-                borderRadius: 999,
-                padding: "12px 32px",
-                fontSize: 20,
-                fontWeight: 700,
-                marginBottom: 16,
-                boxShadow:
-                  feedback === "correct"
-                    ? "0 6px 24px rgba(107,203,119,0.4)"
-                    : "0 6px 24px rgba(255,107,107,0.4)",
-              }}
-            >
-              {feedback === "correct"
-                ? tx("🌟 Correct!", "correct_feedback", lang)
-                : tx("Try again! 🎵", "try_again_feedback", lang)}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Submit button */}
-        <motion.button
-          onPointerDown={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-          whileTap={selected ? { scale: 0.95 } : {}}
+        {/* Submit + Next row */}
+        <div
           style={{
-            background: selected
-              ? "linear-gradient(135deg, #4ECDC4, #44A08D)"
-              : "#D1D5DB",
-            color: selected ? "white" : "#9CA3AF",
-            border: "none",
-            borderRadius: 999,
-            padding: "16px 56px",
-            fontSize: 22,
-            fontWeight: 700,
-            cursor: selected ? "pointer" : "not-allowed",
-            fontFamily: "Fredoka, sans-serif",
-            boxShadow: selected
-              ? "0 8px 28px rgba(78,205,196,0.4)"
-              : "none",
-            transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
-            WebkitTapHighlightColor: "transparent",
-            minWidth: 200,
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            justifyContent: "center",
+            width: "100%",
           }}
         >
-          {tx("Submit ✓", "submit_btn", lang)}
-        </motion.button>
+          {/* Submit button */}
+          <motion.button
+            onPointerDown={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+            whileTap={selected && !showNext ? { scale: 0.95 } : {}}
+            style={{
+              background:
+                selected && !showNext
+                  ? "linear-gradient(135deg, #4ECDC4, #44A08D)"
+                  : "#D1D5DB",
+              color: selected && !showNext ? "white" : "#9CA3AF",
+              border: "none",
+              borderRadius: 999,
+              padding: "16px 48px",
+              fontSize: 22,
+              fontWeight: 700,
+              cursor: selected && !showNext ? "pointer" : "not-allowed",
+              fontFamily: "Fredoka, sans-serif",
+              boxShadow:
+                selected && !showNext
+                  ? "0 8px 28px rgba(78,205,196,0.4)"
+                  : "none",
+              transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            {tx("Submit ✓", "submit_btn", lang)}
+          </motion.button>
+
+          {/* Next button — appears after correct answer */}
+          <AnimatePresence>
+            {showNext && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.7, x: 10 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  handleNext();
+                }}
+                whileTap={{ scale: 0.93 }}
+                style={{
+                  background: "linear-gradient(135deg, #6BCB77, #44A08D)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 999,
+                  padding: "16px 28px",
+                  fontSize: 22,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "Fredoka, sans-serif",
+                  boxShadow: "0 8px 28px rgba(107,203,119,0.45)",
+                  WebkitTapHighlightColor: "transparent",
+                  flexShrink: 0,
+                }}
+              >
+                {tx("Next →", "next_btn", lang)}
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Hint */}
         <p

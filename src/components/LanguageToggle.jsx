@@ -24,7 +24,7 @@ export default function LanguageToggle({ language, onLanguageChange }) {
         return (
           <motion.button
             key={opt.id}
-            onPointerDown={(e) => { e.preventDefault(); onLanguageChange(opt.id); }}
+            onClick={() => onLanguageChange(opt.id)}
             whileTap={{ scale: 0.93 }}
             style={{
               padding: "6px 14px",
