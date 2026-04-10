@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { tx } from "../../lib/i18n";
 import OneLetter3Sounds from "./OneLetter3Sounds";
+import OneSound3Letters from "./OneSound3Letters";
 
 const TEST_ACTIVITIES = [
   {
@@ -25,7 +26,7 @@ const TEST_ACTIVITIES = [
     descZh: "听到声音，选择正确的字母",
     color: "#4D96FF",
     bg: "#EFF6FF",
-    available: false,
+    available: true,
   },
   {
     id: "upper-and-lower",
@@ -66,6 +67,9 @@ export default function TestHub({ onBack, onDeepScreen, lang = "en" }) {
 
   if (activeActivity === "1-letter-3-sounds") {
     return <OneLetter3Sounds onBack={exitActivity} lang={lang} />;
+  }
+  if (activeActivity === "1-sound-3-letters") {
+    return <OneSound3Letters onBack={exitActivity} lang={lang} />;
   }
 
   return (
