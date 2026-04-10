@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { games } from "../lib/content";
 import { tx } from "../lib/i18n";
+import TestHub from "../components/test/TestHub";
 
 const gameLabels = {
   "pic-slice":     { labelZh: "重排图片",   descZh: "把图片碎片拖到正确的位置" },
@@ -50,6 +51,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "letter-catch") {
     return <LetterCatch onBack={exitGame} lang={lang} />;
+  }
+  if (activeGame === "test") {
+    return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;
   }
 
   return (
@@ -118,12 +122,48 @@ export default function Games({ onDeepScreen, lang = "en" }) {
         })}
       </div>
 
+      {/* Test Zone card */}
+      <div className="px-4 mt-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: games.length * 0.1 }}
+        onClick={() => enterGame("test")}
+        className="relative rounded-3xl overflow-hidden p-5"
+        style={{
+          background: "#E0FAF8",
+          border: "2px solid #4ECDC444",
+          boxShadow: "0 8px 32px #4ECDC415",
+          cursor: "pointer",
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <div
+            className="rounded-2xl text-3xl flex items-center justify-center"
+            style={{ width: 64, height: 64, background: "white", boxShadow: "0 4px 16px #4ECDC425", flexShrink: 0 }}
+          >
+            🧪
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>{tx("Test Zone", "test_zone_title", lang)}</h3>
+            <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>{tx("New sound matching activities", "test_zone_desc", lang)}</p>
+            <div
+              className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold"
+              style={{ background: "#4ECDC418", color: "#4ECDC4" }}
+            >
+              {tx("Play Now! 🎮", "play_now", lang)}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+      </div>
+
       {/* Cody encouragement */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="px-4 mt-8 flex flex-col items-center gap-2 text-center"
+        className="px-0 mt-4 flex flex-col items-center gap-2 text-center"
       >
         <motion.div
           animate={{ y: [0, -6, 0] }}
