@@ -5,6 +5,12 @@ import { shortIWords } from "../../lib/shortIWords";
 import { useState } from "react";
 import { tx } from "../../lib/i18n";
 
+const DIFF_LABELS = {
+  easy: { zh: "简单", descZh: "慢慢来 — 非常适合初学者！" },
+  moderate: { zh: "中等", descZh: "快一点 — 睁大眼睛看！" },
+  difficult: { zh: "困难", descZh: "超级快 — 你能全部接住吗？" },
+};
+
 const DIFFICULTIES = [
   {
     id: "easy",
@@ -58,7 +64,7 @@ export default function ShortIDifficulty({ onBack, lang = "en" }) {
         <BackArrow onPress={onBack} />
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>Short i 🐟</h1>
-          <p style={{ fontSize: 13, color: "#3A6080" }}>{tx("Pick a speed!", "choose_speed", lang)}</p>
+          <p style={{ fontSize: 13, color: "#3A6080" }}>{tx("Pick a speed!", "pick_a_speed", lang)}</p>
         </div>
       </div>
 
@@ -77,8 +83,8 @@ export default function ShortIDifficulty({ onBack, lang = "en" }) {
               {diff.emoji}
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>{diff.label}</p>
-              <p style={{ fontSize: 13, color: "#7BACC8", margin: "2px 0 0" }}>{diff.desc}</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>{lang === "zh" ? DIFF_LABELS[diff.id]?.zh : diff.label}</p>
+              <p style={{ fontSize: 13, color: "#7BACC8", margin: "2px 0 0" }}>{lang === "zh" ? DIFF_LABELS[diff.id]?.descZh : diff.desc}</p>
             </div>
             <div style={{ width: 34, height: 34, borderRadius: 17, background: diff.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <span style={{ color: "white", fontSize: 20, lineHeight: 1 }}>›</span>

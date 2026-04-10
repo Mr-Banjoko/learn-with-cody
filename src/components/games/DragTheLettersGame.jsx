@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import { tx } from "../../lib/i18n";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 
@@ -176,7 +175,7 @@ export default function DragTheLettersGame({ words, title, color, onBack, lang =
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 14px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1, textAlign: "center", marginRight: 40 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>Drag the Letters ✋</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>{lang === "zh" ? "拖拽字母 ✋" : "Drag the Letters ✋"}</h1>
           <p style={{ fontSize: 13, color: "#3A6080" }}>{title} · {roundIndex + 1} / {total}</p>
         </div>
       </div>
@@ -261,12 +260,10 @@ export default function DragTheLettersGame({ words, title, color, onBack, lang =
         {/* Instruction */}
         <p style={{ fontSize: 15, color: "#4A90C4", fontWeight: 600, textAlign: "center", flexShrink: 0 }}>
           {completing
-            ? tx("🎉 Great job! Listen...", "great_job_listen", lang)
+            ? (lang === "zh" ? "🎉 好极了！听一听……" : "🎉 Great job! Listen...")
             : progress === 0
-            ? tx("Drag the letters to spell the word!", "drag_to_spell", lang)
-            : lang === "zh"
-            ? `已放置 ${progress} 个字母，共 ${round.letters.length}`
-            : `${progress} of ${round.letters.length} placed`}
+            ? (lang === "zh" ? "拖动字母来拼写单词！" : "Drag the letters to spell the word!")
+            : (lang === "zh" ? `已放置 ${progress} 个，共 ${round.letters.length} 个` : `${progress} of ${round.letters.length} placed`)}
         </p>
 
         {/* Letter tiles — placed tiles become invisible spacers (no ghost left behind) */}

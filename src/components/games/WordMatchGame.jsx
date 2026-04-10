@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2 } from "lucide-react";
-import { tx } from "../../lib/i18n";
 import BackArrow from "../BackArrow";
 import { playAudio } from "../../lib/useAudio";
 
@@ -77,7 +76,7 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
   if (!round) {
     return (
       <div style={{ background: "#D6EEFF", minHeight: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Fredoka, sans-serif" }}>
-        <p style={{ color: "#1E3A5F", fontSize: 20, fontWeight: 600 }}>{tx("No images available right now.", "no_images_available", lang)}</p>
+        <p style={{ color: "#1E3A5F", fontSize: 20, fontWeight: 600 }}>{lang === "zh" ? "目前没有可用图片。" : "No images available right now."}</p>
       </div>
     );
   }
@@ -130,13 +129,13 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
               }}
             >
               <Volume2 size={20} color={color} />
-              {tx("Hear the word", "hear_the_word_btn", lang)}
+              {lang === "zh" ? "听单词" : "Hear the word"}
             </button>
           </motion.div>
         </AnimatePresence>
 
         <p style={{ fontSize: 17, fontWeight: 600, color: "#3A6080", textAlign: "center", margin: 0 }}>
-          {tx("Which word matches the picture?", "which_word_matches", lang)}
+          {lang === "zh" ? "哪个单词和图片匹配？" : "Which word matches the picture?"}
         </p>
 
         {/* 2×2 choice grid — constrained to viewport */}

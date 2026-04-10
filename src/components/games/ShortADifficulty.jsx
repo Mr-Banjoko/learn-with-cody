@@ -5,6 +5,12 @@ import { shortAWords } from "../../lib/shortAWords";
 import { useState } from "react";
 import { tx } from "../../lib/i18n";
 
+const DIFF_LABELS = {
+  easy: { zh: "简单", descZh: "慢慢来 — 非常适合初学者！" },
+  moderate: { zh: "中等", descZh: "快一点 — 睁大眼睛看！" },
+  difficult: { zh: "困难", descZh: "超级快 — 你能全部接住吗？" },
+};
+
 // Fall speed (px per tick at 40ms) calibrated so tile reaches Cody in:
 // Easy ~8s, Moderate ~6s, Difficult ~4.5s
 const DIFFICULTIES = [
@@ -76,7 +82,7 @@ export default function ShortADifficulty({ onBack, lang = "en" }) {
           <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>
             Short a 🍎
           </h1>
-          <p style={{ fontSize: 13, color: "#3A6080" }}>{tx("Pick a speed!", "choose_speed", lang)}</p>
+          <p style={{ fontSize: 13, color: "#3A6080" }}>{tx("Pick a speed!", "pick_a_speed", lang)}</p>
         </div>
       </div>
 
@@ -111,10 +117,10 @@ export default function ShortADifficulty({ onBack, lang = "en" }) {
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>
-                {diff.label}
+                {lang === "zh" ? DIFF_LABELS[diff.id]?.zh : diff.label}
               </p>
               <p style={{ fontSize: 13, color: "#7BACC8", margin: "2px 0 0" }}>
-                {diff.desc}
+                {lang === "zh" ? DIFF_LABELS[diff.id]?.descZh : diff.desc}
               </p>
             </div>
             <div

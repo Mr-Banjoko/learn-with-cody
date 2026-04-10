@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
+import { tx } from "../../lib/i18n";
 import confetti from "canvas-confetti";
 import {
   VOWEL_GROUPS,
@@ -11,17 +12,17 @@ import PicSliceBoard from "./PicSliceBoard";
 import PicSliceBoardEasy from "./PicSliceBoardEasy";
 
 // ── Screen 1: Vowel group selection ────────────────────────────────────────
-function VowelSelect({ onSelect, onBack }) {
+function VowelSelect({ onSelect, onBack, lang = "en" }) {
   return (
     <div style={{ fontFamily: "Fredoka, sans-serif", padding: "0 16px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
         <BackArrow onPress={onBack} />
         <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>
-          Rearrange the Pictures
+          {tx("Rearrange the Pictures", "rearrange_pictures", lang)}
         </h2>
       </div>
       <p style={{ fontSize: 15, fontWeight: 600, color: "#4A90C4", marginBottom: 14 }}>
-        📂 Choose a Word Group
+        {tx("📂 Choose a Word Group", "pick_word_group", lang)}
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {VOWEL_GROUPS.map((g, i) => (
@@ -55,7 +56,7 @@ function VowelSelect({ onSelect, onBack }) {
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 19, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>{g.label}</p>
               <p style={{ fontSize: 13, color: "#7BACC8", margin: 0 }}>
-                {g.available ? "Tap to open" : "Coming soon"}
+                {g.available ? tx("Tap to open", "tap_to_open", lang) : tx("Coming soon", "coming_soon", lang)}
               </p>
             </div>
             {g.available ? (
@@ -67,7 +68,7 @@ function VowelSelect({ onSelect, onBack }) {
               </div>
             ) : (
               <span style={{ fontSize: 11, fontWeight: 600, color: "#7BACC8", background: "#EEF6FF", padding: "3px 10px", borderRadius: 99 }}>
-                Soon
+                {tx("Soon", "soon_badge", lang)}
               </span>
             )}
           </motion.button>
@@ -78,12 +79,12 @@ function VowelSelect({ onSelect, onBack }) {
 }
 
 // ── Screen 2: Difficulty selection ─────────────────────────────────────────
-function DifficultySelect({ vowelId, onSelect, onBack }) {
+function DifficultySelect({ vowelId, onSelect, onBack, lang = "en" }) {
   const vowel = VOWEL_GROUPS.find((g) => g.id === vowelId);
   const hasDifficult = (GAME_ROUNDS[vowelId]?.difficult?.length || 0) > 0;
   const difficulties = [
-    { id: "easy", label: "Easy", emoji: "⭐", description: "1 word per round", available: true, color: "#6BCB77" },
-    { id: "difficult", label: "Difficult", emoji: "🔥", description: "2 words per round", available: hasDifficult, color: "#FF6B6B" },
+    { id: "easy", label: "Easy", labelZh: "简单", emoji: "⭐", description: "1 word per round", descZh: "每兡1个单词", available: true, color: "#6BCB77" },
+    { id: "difficult", label: "Difficult", labelZh: "困难", emoji: "🔥", description: "2 words per round", descZh: "每兡2个单词", available: hasDifficult, color: "#FF6B6B" },
   ];
   return (
     <div style={{ fontFamily: "Fredoka, sans-serif", padding: "0 16px" }}>
@@ -94,7 +95,7 @@ function DifficultySelect({ vowelId, onSelect, onBack }) {
         </h2>
       </div>
       <p style={{ fontSize: 15, fontWeight: 600, color: "#4A90C4", marginBottom: 14 }}>
-        🎮 Choose Difficulty
+        {tx("🎮 Choose Difficulty", "choose_difficulty", lang)}
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {difficulties.map((d, i) => (
@@ -125,12 +126,12 @@ function DifficultySelect({ vowelId, onSelect, onBack }) {
               {d.emoji}
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>{d.label}</p>
-              <p style={{ fontSize: 13, color: "#7BACC8", margin: 0 }}>{d.description}</p>
+              <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>{lang === "zh" ? d.labelZh : d.label}</p>
+              <p style={{ fontSize: 13, color: "#7BACC8", margin: 0 }}>{lang === "zh" ? d.descZh : d.description}</p>
             </div>
             {!d.available && (
               <span style={{ fontSize: 11, fontWeight: 600, color: "#7BACC8", background: "#EEF6FF", padding: "3px 10px", borderRadius: 99 }}>
-                Soon
+                {tx("Soon", "soon_badge", lang)}
               </span>
             )}
           </motion.button>
@@ -141,7 +142,7 @@ function DifficultySelect({ vowelId, onSelect, onBack }) {
 }
 
 // ── Main navigator ──────────────────────────────────────────────────────────
-export default function RearrangePictures({ onBack }) {
+export default function RearrangePictures({ onBack, lang = "en" }) {
   const [screen, setScreen] = useState("vowel"); // vowel | difficulty | game
   const [selectedVowel, setSelectedVowel] = useState(null);
   const [difficulty, setDifficulty] = useState("easy");
@@ -200,10 +201,10 @@ export default function RearrangePictures({ onBack }) {
       <BackArrow onPress={() => setScreen("difficulty")} />
       <div style={{ flex: 1 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1E3A5F", margin: 0 }}>
-          🧩 Rearrange the Pictures
-        </h2>
-        <p style={{ fontSize: 13, color: "#3A6080", margin: 0 }}>
-          {selectedVowel?.replace("short-", "short ")} · {difficulty} · round {roundIndex + 1}
+          {tx("🧩 Rearrange the Pictures", "rearrange_pictures", lang)}
+          </h2>
+          <p style={{ fontSize: 13, color: "#3A6080", margin: 0 }}>
+          {selectedVowel?.replace("short-", "short ")} · {lang === "zh" ? (difficulty === "easy" ? "简单" : "困难") : difficulty} · {lang === "zh" ? `第 ${roundIndex + 1} 局` : `round ${roundIndex + 1}`}
         </p>
       </div>
     </div>
@@ -214,7 +215,7 @@ export default function RearrangePictures({ onBack }) {
       <AnimatePresence mode="wait">
         {screen === "vowel" && (
           <motion.div key="vowel" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            <VowelSelect onSelect={handleVowelSelect} onBack={onBack} />
+            <VowelSelect onSelect={handleVowelSelect} onBack={onBack} lang={lang} />
           </motion.div>
         )}
 
@@ -224,6 +225,7 @@ export default function RearrangePictures({ onBack }) {
               vowelId={selectedVowel}
               onSelect={handleDifficultySelect}
               onBack={() => setScreen("vowel")}
+              lang={lang}
             />
           </motion.div>
         )}
@@ -239,11 +241,13 @@ export default function RearrangePictures({ onBack }) {
               <PicSliceBoard
                 wordPair={wordPair}
                 onRoundComplete={handleRoundComplete}
+                lang={lang}
               />
             ) : (
               <PicSliceBoardEasy
                 wordPair={wordPair}
                 onRoundComplete={handleRoundComplete}
+                lang={lang}
               />
             )}
           </motion.div>
@@ -291,10 +295,10 @@ export default function RearrangePictures({ onBack }) {
                 🎉
               </motion.div>
               <h2 style={{ fontSize: 32, fontWeight: 700, color: "#1E3A5F", marginBottom: 6 }}>
-                Good Job!
+                {tx("Good Job!", "good_job", lang)}
               </h2>
               <p style={{ fontSize: 17, color: "#64748B", marginBottom: 28 }}>
-                You matched all the pictures! 🌟
+                {tx("You matched all the pictures! 🌟", "matched_all", lang)}
               </p>
               <button
                 onClick={handleNextRound}
@@ -311,8 +315,8 @@ export default function RearrangePictures({ onBack }) {
                   boxShadow: "0 6px 20px rgba(78,205,196,0.4)",
                 }}
               >
-                Next Round →
-              </button>
+                {tx("Next Round →", "next_round", lang)}
+                </button>
             </motion.div>
           </motion.div>
         )}

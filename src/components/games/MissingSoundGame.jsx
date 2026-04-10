@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
-import { tx } from "../../lib/i18n";
 import BackArrow from "../BackArrow";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
@@ -282,7 +281,7 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
         >
           <Play size={26} color="white" fill="white" />
         </motion.button>
-        <span style={{ fontSize: 11, color: "#7BACC8", fontWeight: 600, letterSpacing: "0.03em" }}>{tx("hear the word", "hear_the_word", lang)}</span>
+        <span style={{ fontSize: 11, color: "#7BACC8", fontWeight: 600, letterSpacing: "0.03em" }}>{lang === "zh" ? "听单词" : "hear the word"}</span>
       </div>
 
       {/* ── BOTTOM: answer tiles ── */}
@@ -342,10 +341,10 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
         }}
       >
         {feedback === "wrong"
-          ? tx("Try Again! 🔄", "try_again", lang)
+          ? (lang === "zh" ? "再试一次！🔄" : "Try Again! 🔄")
           : feedback === "completing"
-          ? tx("🎉 Great!", "great_feedback", lang)
-          : tx("Submit ✓", "submit_btn", lang)}
+          ? (lang === "zh" ? "🎉 太好了！" : "🎉 Great!")
+          : (lang === "zh" ? "提交 ✓" : "Submit ✓")}
       </motion.button>
 
       {/* ── Drag ghost ── */}
@@ -403,7 +402,7 @@ export default function MissingSoundGame({ words, title, color, onBack, lang = "
       }}>
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1, textAlign: "center", marginRight: 40 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>{tx("Missing Sound ❓", "missing_sound_title", lang)}</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>{lang === "zh" ? "缺失的音 ❓" : "Missing Sound ❓"}</h1>
           <p style={{ fontSize: 13, color: "#3A6080" }}>{title} · {roundIndex + 1} / {total}</p>
         </div>
       </div>

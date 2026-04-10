@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
-import { tx } from "../../lib/i18n";
 import MissingSoundGame from "./MissingSoundGame";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
@@ -38,8 +37,8 @@ export default function MissingSound({ onBack, lang = "en" }) {
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 16px", display: "flex", alignItems: "center", gap: 8 }}>
         <BackArrow onPress={onBack} />
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>{tx("Missing Sound ❓", "missing_sound_title", lang)}</h1>
-          <p style={{ fontSize: 13, color: "#3A6080" }}>{tx("Pick a word group!", "pick_word_group_play", lang)}</p>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>{lang === "zh" ? "缺失的音 ❓" : "Missing Sound ❓"}</h1>
+          <p style={{ fontSize: 13, color: "#3A6080" }}>{lang === "zh" ? "选择一个单词组！" : "Pick a word group!"}</p>
         </div>
       </div>
 
@@ -66,14 +65,14 @@ export default function MissingSound({ onBack, lang = "en" }) {
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>{group.label}</p>
-              <p style={{ fontSize: 13, color: "#7BACC8" }}>{group.available ? tx("Tap to play!", "tap_to_play", lang) : tx("Coming soon", "coming_soon", lang)}</p>
+              <p style={{ fontSize: 13, color: "#7BACC8" }}>{group.available ? (lang === "zh" ? "点击游玩！" : "Tap to play!") : (lang === "zh" ? "即将推出" : "Coming soon")}</p>
             </div>
             {group.available ? (
               <div style={{ width: 32, height: 32, borderRadius: 16, background: group.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ color: "white", fontSize: 18, lineHeight: 1 }}>›</span>
               </div>
             ) : (
-              <span style={{ fontSize: 11, fontWeight: 600, color: "#7BACC8", background: "#EEF6FF", padding: "3px 10px", borderRadius: 99 }}>{tx("Soon", "soon_badge", lang)}</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#7BACC8", background: "#EEF6FF", padding: "3px 10px", borderRadius: 99 }}>{lang === "zh" ? "即将" : "Soon"}</span>
             )}
           </motion.button>
         ))}

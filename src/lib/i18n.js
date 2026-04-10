@@ -125,10 +125,40 @@ const zh = {
   difficulty_easy: "简单",
   difficulty_moderate: "中等",
   difficulty_difficult: "困难",
-  speed_slow: "慢速落下",
-  speed_medium: "中速落下",
-  speed_fast: "快速落下",
+  speed_slow: "慢慢来 — 非常适合初学者！",
+  speed_medium: "快一点 — 睁大眼睛看！",
+  speed_fast: "超级快 — 你能全部接住吗？",
   choose_speed: "选择速度",
+  pick_a_speed: "选择一个速度！",
+
+  // ── FlashcardScreen ───────────────────────────────────────────────────────
+  short_a_words: "短元音 a 单词",
+  short_e_words: "短元音 e 单词",
+  short_i_words: "短元音 i 单词",
+  short_o_words: "短元音 o 单词",
+  short_u_words: "短元音 u 单词",
+
+  // ── ActivityShell ─────────────────────────────────────────────────────────
+  activity_coming_soon: "🚧 活动内容即将推出！",
+  cody_getting_ready: "可迪正在为你准备单词！",
+
+  // ── WordMatch ─────────────────────────────────────────────────────────────
+  hear_the_word_btn2: "听单词",
+  which_matches: "哪个单词和图片匹配？",
+  no_images: "目前没有可用图片。",
+
+  // ── MissingSoundGame ──────────────────────────────────────────────────────
+  hear_word_label: "听单词",
+
+  // ── LetterCatchGame ───────────────────────────────────────────────────────
+  round_label: "第",
+  round_of_label: "关，共",
+  rounds_suffix: "关",
+  move_cody: "移动可迪！",
+  amazing_catch: "🌟 接住了！",
+  back_to_games: "返回游戏",
+  amazing_title: "太厉害了！",
+  caught_all: "你接住了所有字母！",
 };
 
 /**
