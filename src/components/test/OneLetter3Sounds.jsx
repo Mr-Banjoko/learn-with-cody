@@ -15,8 +15,7 @@ const SPEAKER_COLORS = [
 function buildRound() {
   const target = ALL_LETTERS[Math.floor(Math.random() * ALL_LETTERS.length)];
   const pool = ALL_LETTERS.filter((l) => l !== target);
-  const shuffledPool = pool.sort(() => Math.random() - 0.5);
-  const distractors = shuffledPool.slice(0, 2);
+  const distractors = pool.sort(() => Math.random() - 0.5).slice(0, 2);
   const choices = [target, ...distractors].sort(() => Math.random() - 0.5);
   return { target, choices };
 }
@@ -94,26 +93,21 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
         position: "relative",
       }}
     >
-      {/* Back arrow only — no header bar */}
+      {/* Back arrow only */}
       <div style={{ padding: "12px 16px 0", flexShrink: 0 }}>
         <BackArrow onPress={onBack} />
       </div>
 
-      {/* Main content */}
+      {/* Letter box — upper section */}
       <div
         style={{
-          flex: 1,
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "flex-start",
+          justifyContent: "center",
+          flex: "0 0 auto",
           paddingTop: "6%",
-          paddingBottom: 32,
-          paddingLeft: 24,
-          paddingRight: 24,
         }}
       >
-        {/* Target letter — 10% bigger: 160→176, positioned higher */}
         <AnimatePresence mode="wait">
           <motion.div
             key={round.target}
@@ -130,8 +124,6 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: 44,
-              flexShrink: 0,
               border: "3px solid rgba(78,205,196,0.18)",
             }}
           >
@@ -149,18 +141,27 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
             </span>
           </motion.div>
         </AnimatePresence>
+      </div>
 
-        {/* Speaker choices */}
+      {/* Spacer pushes speakers down */}
+      <div style={{ flex: 1 }} />
+
+      {/* Speaker buttons */}
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          justifyContent: "center",
+          gap: 20,
+          paddingLeft: 24,
+          paddingRight: 24,
+          marginBottom: 32,
+        }}
+      >
         <motion.div
           animate={wrongShake ? { x: [0, -10, 10, -8, 8, 0] } : { x: 0 }}
           transition={{ duration: 0.45 }}
-          style={{
-            display: "flex",
-            gap: 20,
-            marginBottom: 40,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          style={{ display: "flex", gap: 20 }}
         >
           {round.choices.map((letter, idx) => {
             const colorSet = SPEAKER_COLORS[idx % SPEAKER_COLORS.length];
@@ -168,19 +169,16 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
             return (
               <motion.button
                 key={`${round.target}-${letter}-${idx}`}
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  handleSpeakerTap(letter, idx);
-                }}
+                onClick={() => handleSpeakerTap(letter, idx)}
                 whileTap={{ scale: 0.91 }}
                 style={{
-                  width: 100,
-                  height: 100,
+                  width: 104,
+                  height: 104,
                   borderRadius: 28,
                   background: isSelected ? colorSet.main : "white",
                   border: isSelected
                     ? `3px solid ${colorSet.main}`
-                    : `3px solid ${colorSet.main}44`,
+                    : `3px solid ${colorSet.main}55`,
                   boxShadow: isSelected
                     ? `0 8px 28px ${colorSet.shadow}, 0 0 0 4px ${colorSet.main}28`
                     : `0 6px 20px rgba(30,58,95,0.10)`,
@@ -193,7 +191,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
                   flexShrink: 0,
                 }}
               >
-                <svg width="58" height="58" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="58" height="58" viewBox="0 0 52 52" fill="none">
                   <path
                     d="M18 21h-4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h4l8 6V15l-8 6z"
                     fill={isSelected ? "white" : colorSet.main}
@@ -218,93 +216,84 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
             );
           })}
         </motion.div>
+      </div>
 
-        {/* Submit + Next row */}
-        <div
+      {/* Submit button — centered */}
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          justifyContent: "center",
+          paddingLeft: 24,
+          paddingRight: 24,
+          marginBottom: 20,
+        }}
+      >
+        <motion.button
+          onClick={handleSubmit}
+          whileTap={selected && !showNext ? { scale: 0.95 } : {}}
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            justifyContent: "center",
-            width: "100%",
+            background: selected && !showNext
+              ? "linear-gradient(135deg, #4ECDC4, #44A08D)"
+              : "#D1D5DB",
+            color: selected && !showNext ? "white" : "#9CA3AF",
+            border: "none",
+            borderRadius: 999,
+            padding: "16px 56px",
+            fontSize: 22,
+            fontWeight: 700,
+            cursor: selected && !showNext ? "pointer" : "not-allowed",
+            fontFamily: "Fredoka, sans-serif",
+            boxShadow: selected && !showNext
+              ? "0 8px 28px rgba(78,205,196,0.4)"
+              : "none",
+            transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
+            WebkitTapHighlightColor: "transparent",
           }}
         >
-          {/* Submit button */}
-          <motion.button
-            onPointerDown={(e) => {
-              e.preventDefault();
-              handleSubmit();
-            }}
-            whileTap={selected && !showNext ? { scale: 0.95 } : {}}
-            style={{
-              background:
-                selected && !showNext
-                  ? "linear-gradient(135deg, #4ECDC4, #44A08D)"
-                  : "#D1D5DB",
-              color: selected && !showNext ? "white" : "#9CA3AF",
-              border: "none",
-              borderRadius: 999,
-              padding: "16px 48px",
-              fontSize: 22,
-              fontWeight: 700,
-              cursor: selected && !showNext ? "pointer" : "not-allowed",
-              fontFamily: "Fredoka, sans-serif",
-              boxShadow:
-                selected && !showNext
-                  ? "0 8px 28px rgba(78,205,196,0.4)"
-                  : "none",
-              transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            {tx("Submit ✓", "submit_btn", lang)}
-          </motion.button>
+          {tx("Submit ✓", "submit_btn", lang)}
+        </motion.button>
+      </div>
 
-          {/* Next button — appears after correct answer */}
-          <AnimatePresence>
-            {showNext && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.7, x: 10 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                exit={{ opacity: 0, scale: 0.7 }}
-                transition={{ type: "spring", stiffness: 350, damping: 22 }}
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  handleNext();
-                }}
-                whileTap={{ scale: 0.93 }}
-                style={{
-                  background: "linear-gradient(135deg, #6BCB77, #44A08D)",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 999,
-                  padding: "16px 28px",
-                  fontSize: 22,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "Fredoka, sans-serif",
-                  boxShadow: "0 8px 28px rgba(107,203,119,0.45)",
-                  WebkitTapHighlightColor: "transparent",
-                  flexShrink: 0,
-                }}
-              >
-                {tx("Next →", "next_btn", lang)}
-              </motion.button>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Hint */}
-        <p
-          style={{
-            fontSize: 13,
-            color: "#94A3B8",
-            marginTop: 14,
-            textAlign: "center",
-          }}
-        >
-          {tx("Tap a speaker, then submit", "speaker_hint", lang)}
-        </p>
+      {/* Next button — bottom right, below submit */}
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          justifyContent: "flex-end",
+          paddingRight: 28,
+          paddingBottom: "calc(28px + env(safe-area-inset-bottom, 0px))",
+          minHeight: 72,
+          alignItems: "flex-end",
+        }}
+      >
+        <AnimatePresence>
+          {showNext && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.7, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              transition={{ type: "spring", stiffness: 350, damping: 22 }}
+              onClick={handleNext}
+              whileTap={{ scale: 0.93 }}
+              style={{
+                background: "linear-gradient(135deg, #6BCB77, #44A08D)",
+                color: "white",
+                border: "none",
+                borderRadius: 999,
+                padding: "16px 32px",
+                fontSize: 22,
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "Fredoka, sans-serif",
+                boxShadow: "0 8px 28px rgba(107,203,119,0.45)",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              {tx("Next →", "next_btn", lang)}
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
