@@ -98,14 +98,13 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
         <BackArrow onPress={onBack} />
       </div>
 
-      {/* Letter box — upper section */}
+      {/* Letter box — vertically centered in available space */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          flex: "0 0 auto",
-          paddingTop: "6%",
+          flex: 1,
         }}
       >
         <AnimatePresence mode="wait">
@@ -142,9 +141,6 @@ export default function OneLetter3Sounds({ onBack, lang = "en" }) {
           </motion.div>
         </AnimatePresence>
       </div>
-
-      {/* Spacer pushes speakers down */}
-      <div style={{ flex: 0.8 }} />
 
       {/* Speaker buttons */}
       <div
