@@ -4,6 +4,7 @@ import BackArrow from "../BackArrow";
 import { tx } from "../../lib/i18n";
 import OneLetter3Sounds from "./OneLetter3Sounds";
 import OneSound3Letters from "./OneSound3Letters";
+import UpperAndLower from "./UpperAndLower";
 
 const TEST_ACTIVITIES = [
   {
@@ -37,7 +38,7 @@ const TEST_ACTIVITIES = [
     descZh: "匹配大写和小写字母",
     color: "#C77DFF",
     bg: "#F5F0FF",
-    available: false,
+    available: true,
   },
   {
     id: "letter-is-sound-is",
@@ -70,6 +71,9 @@ export default function TestHub({ onBack, onDeepScreen, lang = "en" }) {
   }
   if (activeActivity === "1-sound-3-letters") {
     return <OneSound3Letters onBack={exitActivity} lang={lang} />;
+  }
+  if (activeActivity === "upper-and-lower") {
+    return <UpperAndLower onBack={exitActivity} lang={lang} />;
   }
 
   return (
