@@ -153,7 +153,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
         flexDirection: "column",
         height: "100%",
         fontFamily: "Fredoka, sans-serif",
-        background: "#D6EEFF",
+        background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
         overflow: "hidden",
         position: "relative",
         touchAction: "none",
