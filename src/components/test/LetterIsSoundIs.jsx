@@ -6,7 +6,13 @@ const ALL_LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
 
 // Same palette as DragTheLettersGame
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#FFAFC5"];
-const SPEAKER_COLORS = ["#4ECDC4", "#FF6B6B", "#4D96FF"];
+
+// Same speaker color sets as OneLetter3Sounds
+const SPEAKER_COLORS = [
+  { main: "#4ECDC4", shadow: "rgba(78,205,196,0.35)" },
+  { main: "#FF6B6B", shadow: "rgba(255,107,107,0.35)" },
+  { main: "#FFD93D", shadow: "rgba(255,217,61,0.35)" },
+];
 
 function SpeakerIcon({ color = "white", size = 44 }) {
   return (
@@ -132,7 +138,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
 
   const placedChoice = placedIdx !== null ? choices[placedIdx] : null;
   const placedColor = placedIdx !== null ? LETTER_COLORS[placedIdx % LETTER_COLORS.length] : null;
-  const placedSpeakerColor = placedIdx !== null ? SPEAKER_COLORS[placedIdx % SPEAKER_COLORS.length] : null;
+  const placedSpeakerColorSet = placedIdx !== null ? SPEAKER_COLORS[placedIdx % SPEAKER_COLORS.length] : null;
 
   // Shared box style
   const boxBase = {
@@ -229,21 +235,22 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
               onClick={placedChoice ? handleBoxTap : undefined}
               style={{
                 ...boxBase,
-                background: placedChoice ? (placedSpeakerColor + "22") : "rgba(255,255,255,0.55)",
+                background: placedChoice ? placedSpeakerColorSet.main : "rgba(255,255,255,0.55)",
+                border: `3px solid ${placedChoice ? placedSpeakerColorSet.main : "rgba(74,144,196,0.35)"}`,
+                boxShadow: placedChoice ? `0 8px 28px ${placedSpeakerColorSet.shadow}` : "0 6px 24px rgba(30,58,95,0.10)",
                 cursor: placedChoice ? "pointer" : "default",
-                border: `3px solid rgba(74,144,196,${placedChoice ? "0.5" : "0.35"})`,
               }}
             >
               {placedChoice && (
                 <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-                  <SpeakerIcon color={placedSpeakerColor} size={52} />
+                  <SpeakerIcon color="white" size={52} />
                 </motion.div>
               )}
             </div>
           ) : (
             /* Situation 1: filled sound box with speaker */
             <div style={{ ...boxBase, background: "white" }}>
-              <SpeakerIcon color="#4A90C4" size={52} />
+              <SpeakerIcon color="#4ECDC4" size={52} />
             </div>
           )}
         </div>
@@ -257,7 +264,8 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
           {choices.map((choice, idx) => {
             const isPlaced = placedIdx === idx;
             const isDraggingThis = dragState?.choiceIdx === idx;
-            const bgColor = situation === 1 ? LETTER_COLORS[idx % LETTER_COLORS.length] : SPEAKER_COLORS[idx % SPEAKER_COLORS.length];
+            const speakerSet = SPEAKER_COLORS[idx % SPEAKER_COLORS.length];
+            const bgColor = situation === 1 ? LETTER_COLORS[idx % LETTER_COLORS.length] : speakerSet.main;
 
             if (isPlaced) {
               return (
@@ -274,11 +282,11 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
                 animate={isDraggingThis ? { scale: 1.08, opacity: 0.3 } : { scale: 1, opacity: 1 }}
                 onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, idx); }}
                 style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: 24,
-                  background: bgColor,
-                  border: "3px solid rgba(255,255,255,0.7)",
+                  width: 104,
+                  height: 104,
+                  borderRadius: 28,
+                  background: situation === 1 ? bgColor : "white",
+                  border: situation === 1 ? "3px solid rgba(255,255,255,0.7)" : `3px solid ${speakerSet.main}55`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -286,7 +294,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
                   touchAction: "none",
                   userSelect: "none",
                   pointerEvents: isDraggingThis ? "none" : "auto",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                  boxShadow: situation === 1 ? "0 4px 16px rgba(0,0,0,0.12)" : `0 6px 20px ${speakerSet.shadow}`,
                   flexShrink: 0,
                 }}
               >
@@ -295,7 +303,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
                     {choice}
                   </span>
                 ) : (
-                  <SpeakerIcon color="white" size={48} />
+                  <SpeakerIcon color={speakerSet.main} size={48} />
                 )}
               </motion.div>
             );
@@ -374,12 +382,12 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
               borderRadius: 24,
               background: situation === 1
                 ? LETTER_COLORS[dragState.choiceIdx % LETTER_COLORS.length]
-                : SPEAKER_COLORS[dragState.choiceIdx % SPEAKER_COLORS.length],
+                : "white",
+              border: situation === 1 ? "3px solid rgba(255,255,255,0.8)" : `3px solid ${SPEAKER_COLORS[dragState.choiceIdx % SPEAKER_COLORS.length].main}`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               boxShadow: "0 12px 36px rgba(0,0,0,0.25)",
-              border: "3px solid rgba(255,255,255,0.8)",
             }}
           >
             {situation === 1 ? (
@@ -387,7 +395,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
                 {choices[dragState.choiceIdx]}
               </span>
             ) : (
-              <SpeakerIcon color="white" size={52} />
+              <SpeakerIcon color={SPEAKER_COLORS[dragState.choiceIdx % SPEAKER_COLORS.length].main} size={52} />
             )}
           </div>
         )}
