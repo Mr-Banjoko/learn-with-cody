@@ -5,6 +5,7 @@ import { tx } from "../../lib/i18n";
 import OneLetter3Sounds from "./OneLetter3Sounds";
 import OneSound3Letters from "./OneSound3Letters";
 import UpperAndLower from "./UpperAndLower";
+import LetterIsSoundIs from "./LetterIsSoundIs";
 
 const TEST_ACTIVITIES = [
   {
@@ -49,7 +50,7 @@ const TEST_ACTIVITIES = [
     descZh: "学习字母的样子和发音",
     color: "#FFD93D",
     bg: "#FFFDE7",
-    available: false,
+    available: true,
   },
 ];
 
@@ -74,6 +75,9 @@ export default function TestHub({ onBack, onDeepScreen, lang = "en" }) {
   }
   if (activeActivity === "upper-and-lower") {
     return <UpperAndLower onBack={exitActivity} lang={lang} />;
+  }
+  if (activeActivity === "letter-is-sound-is") {
+    return <LetterIsSoundIs onBack={exitActivity} lang={lang} />;
   }
 
   return (
