@@ -98,24 +98,21 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
     warmupAudio([letterIsUrl, soundIsUrl, letterNameUrl, letterSoundUrl].filter(Boolean));
     cancelAudio();
 
-    if (situation === 1) {
-      // Situation A: "letter is" … pause … "sound is" + letter sound
-      const cancel = playAudioSequence([{ url: letterIsUrl }], () => {
-        const steps = [
+    // Situation 1: letter box empty, sound box full → play: letter_is → sound_is → letter sound
+    // Situation 2: letter box full, sound box empty → play: letter_is → letter name → sound_is
+    const steps = situation === 1
+      ? [
+          { url: letterIsUrl },
           { url: soundIsUrl },
           ...(letterSoundUrl ? [{ url: letterSoundUrl, gain: letterGain }] : []),
+        ]
+      : [
+          { url: letterIsUrl },
+          { url: letterNameUrl },
+          { url: soundIsUrl },
         ];
-        sequenceRef.current = playAudioSequence(steps);
-      });
-      sequenceRef.current = cancel;
-    } else {
-      // Situation B: "letter is" + letter name + "sound is" then stop
-      sequenceRef.current = playAudioSequence([
-        { url: letterIsUrl },
-        { url: letterNameUrl },
-        { url: soundIsUrl },
-      ]);
-    }
+
+    sequenceRef.current = playAudioSequence(steps, () => { sequenceRef.current = null; });
 
     return () => cancelAudio();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -154,37 +151,41 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
   // ── Row play icons ────────────────────────────────────────────────────────
   // Row 1: "letter is" prompt, then the displayed letter's name (if present)
   const handleRow1Play = useCallback(() => {
+    cancelAudio();
     const letterIsUrl = getSpeechUrl("letter_is", lang);
-    // In situation 1, letter is shown only if placed; in situation 2, letter is always shown
+    // Sit 1: box is the drop zone — letter present only if placed
+    // Sit 2: letter is always shown in the box
     const displayedLetter = situation === 2 ? letter : (placedIdx !== null ? choices[placedIdx] : null);
 
     if (displayedLetter) {
-      playAudioSequence([
-        { url: letterIsUrl },
-        { url: getLetterNameUrl(displayedLetter) },
-      ]);
+      sequenceRef.current = playAudioSequence(
+        [{ url: letterIsUrl }, { url: getLetterNameUrl(displayedLetter) }],
+        () => { sequenceRef.current = null; }
+      );
     } else {
       playAudio(letterIsUrl);
     }
-  }, [lang, situation, letter, placedIdx, choices]);
+  }, [lang, situation, letter, placedIdx, choices, cancelAudio]);
 
   // Row 2: "sound is" prompt, then the displayed letter's sound (if present)
   const handleRow2Play = useCallback(() => {
+    cancelAudio();
     const soundIsUrl = getSpeechUrl("sound_is", lang);
-    // In situation 2, sound is shown only if placed; in situation 1, letter sound is always shown
+    // Sit 1: letter sound always shown in the box
+    // Sit 2: box is the drop zone — sound present only if placed
     const displayedLetter = situation === 1 ? letter : (placedIdx !== null ? choices[placedIdx] : null);
     const soundUrl = displayedLetter ? getLetterSoundUrl(displayedLetter) : null;
     const gain = displayedLetter ? getLetterGain(displayedLetter) : 1;
 
     if (soundUrl) {
-      playAudioSequence([
-        { url: soundIsUrl },
-        { url: soundUrl, gain },
-      ]);
+      sequenceRef.current = playAudioSequence(
+        [{ url: soundIsUrl }, { url: soundUrl, gain }],
+        () => { sequenceRef.current = null; }
+      );
     } else {
       playAudio(soundIsUrl);
     }
-  }, [lang, situation, letter, placedIdx, choices]);
+  }, [lang, situation, letter, placedIdx, choices, cancelAudio]);
 
   // ── Touch drag handlers ───────────────────────────────────────────────────
   const handleTouchStart = useCallback((e, choiceIdx) => {
