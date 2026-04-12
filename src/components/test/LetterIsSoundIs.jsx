@@ -20,7 +20,7 @@ const LETTER_NAMES_BASE =
 
 function getSpeechUrl(phrase, lang) {
   const suffix = lang === "zh" ? "chinese" : "english";
-  return `${SPEECH_BASE}/${phrase}_${suffix}.mp3`;
+  return `${SPEECH_BASE}/${phrase}/${phrase}_${suffix}.mp3`;
 }
 
 function getLetterNameUrl(letter) {
