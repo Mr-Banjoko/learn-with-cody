@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
-import { playAudioSequence, warmupAudio } from "../../lib/useAudio";
+import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 
 const ALL_LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
 
@@ -13,7 +13,6 @@ const SPEAKER_COLORS = [
   { main: "#FFD93D", shadow: "rgba(255,217,61,0.35)" },
 ];
 
-// Audio URL builders
 const SPEECH_BASE =
   "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/speech%20prompt";
 const LETTER_NAMES_BASE =
@@ -48,6 +47,9 @@ function buildRound() {
   return { situation, letter, choices, correctIdx };
 }
 
+// Minimum pixels moved before a touch is considered a drag (not a tap)
+const DRAG_THRESHOLD = 12;
+
 export default function LetterIsSoundIs({ onBack, lang = "en" }) {
   const [round, setRound] = useState(() => buildRound());
   const [placedIdx, setPlacedIdx] = useState(null);
@@ -58,13 +60,11 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
   const isDragging = useRef(false);
   const sequenceRef = useRef(null);
   const shakeTimeout = useRef(null);
-  const advanceTimeout = useRef(null);
 
   const { situation, letter, choices, correctIdx } = round;
 
   const cancelAudio = useCallback(() => {
     if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
-    clearTimeout(advanceTimeout.current);
   }, []);
 
   // ── Intro audio on each new round ────────────────────────────────────────
@@ -75,23 +75,18 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
     const letterSoundUrl = getLetterSoundUrl(letter);
     const letterGain = getLetterGain(letter);
 
-    // Warm up all assets used in this round
-    const allUrls = [letterIsUrl, soundIsUrl, letterNameUrl, letterSoundUrl].filter(Boolean);
-    warmupAudio(allUrls);
-
+    warmupAudio([letterIsUrl, soundIsUrl, letterNameUrl, letterSoundUrl].filter(Boolean));
     cancelAudio();
 
     if (situation === 1) {
       // Situation A: "letter is" … pause … "sound is" + letter sound
       const cancel = playAudioSequence([{ url: letterIsUrl }], () => {
-        advanceTimeout.current = setTimeout(() => {
-          const steps = [
-            { url: soundIsUrl },
-            ...(letterSoundUrl ? [{ url: letterSoundUrl, gain: letterGain }] : []),
-          ];
-          const c2 = playAudioSequence(steps);
-          sequenceRef.current = c2;
-        }, 450);
+        const steps = [
+          { url: soundIsUrl },
+          ...(letterSoundUrl ? [{ url: letterSoundUrl, gain: letterGain }] : []),
+        ];
+        const c2 = playAudioSequence(steps);
+        sequenceRef.current = c2;
       });
       sequenceRef.current = cancel;
     } else {
@@ -101,8 +96,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
         { url: letterNameUrl },
         { url: soundIsUrl },
       ];
-      const cancel = playAudioSequence(steps);
-      sequenceRef.current = cancel;
+      sequenceRef.current = playAudioSequence(steps);
     }
 
     return () => cancelAudio();
@@ -125,17 +119,26 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
       ...(letterSoundUrl ? [{ url: letterSoundUrl, gain: letterGain }] : []),
     ];
 
-    const cancel = playAudioSequence(steps, () => {
+    sequenceRef.current = playAudioSequence(steps, () => {
       sequenceRef.current = null;
-      // Auto-advance to next round
       setRound(buildRound());
       setPlacedIdx(null);
       setWrongShake(false);
       setDragState(null);
       isDragging.current = false;
     });
-    sequenceRef.current = cancel;
   }, [letter, lang, cancelAudio]);
+
+  // ── Label taps — play prompt audio ───────────────────────────────────────
+  const handleLetterIsLabelTap = useCallback((e) => {
+    e.stopPropagation();
+    playAudio(getSpeechUrl("letter_is", lang));
+  }, [lang]);
+
+  const handleSoundIsLabelTap = useCallback((e) => {
+    e.stopPropagation();
+    playAudio(getSpeechUrl("sound_is", lang));
+  }, [lang]);
 
   // ── Touch drag handlers ───────────────────────────────────────────────────
   const handleTouchStart = useCallback((e, choiceIdx) => {
@@ -159,7 +162,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
     const touch = e.touches[0];
     const dx = touch.clientX - dragState.startX;
     const dy = touch.clientY - dragState.startY;
-    if (!isDragging.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+    if (!isDragging.current && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
       isDragging.current = true;
     }
     setDragState((prev) => prev ? { ...prev, x: prev.originX + dx, y: prev.originY + dy } : null);
@@ -169,12 +172,19 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
     if (!dragState) return;
 
     if (!isDragging.current) {
-      // Pure tap — toggle selection silently
-      setPlacedIdx((prev) => prev === dragState.choiceIdx ? null : dragState.choiceIdx);
+      // Pure tap:
+      // - Situation B (sound icons): play letter sound
+      // - Situation A (letters): do nothing
+      if (situation === 2) {
+        const tappedLetter = choices[dragState.choiceIdx];
+        const url = getLetterSoundUrl(tappedLetter);
+        if (url) playAudio(url, getLetterGain(tappedLetter));
+      }
       setDragState(null);
       return;
     }
 
+    // Real drag — check drop zone hit
     const touch = e.changedTouches[0];
     const ref = dropZoneRef.current;
     let hit = false;
@@ -185,15 +195,16 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
         touch.clientY >= rect.top && touch.clientY <= rect.bottom;
     }
 
-    if (hit) {
+    if (hit && placedIdx === null) {
       setPlacedIdx(dragState.choiceIdx);
     }
     setDragState(null);
     isDragging.current = false;
-  }, [dragState]);
+  }, [dragState, situation, choices, placedIdx]);
 
   // ── Box tap (unplace) ────────────────────────────────────────────────────
-  const handleBoxTap = useCallback(() => {
+  const handleBoxTap = useCallback((e) => {
+    e.stopPropagation();
     setPlacedIdx(null);
   }, []);
 
@@ -202,10 +213,8 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
     if (placedIdx === null) return;
 
     if (placedIdx === correctIdx) {
-      // Correct — play completion then auto-advance
       playCompletion();
     } else {
-      // Wrong — shake and unplace
       clearTimeout(shakeTimeout.current);
       setWrongShake(true);
       setPlacedIdx(null);
@@ -221,12 +230,8 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
   const labelSoundIs = lang === "zh" ? "声音是" : "sound is";
 
   const boxBase = {
-    width: 110,
-    height: 110,
-    borderRadius: 24,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    width: 110, height: 110, borderRadius: 24,
+    display: "flex", alignItems: "center", justifyContent: "center",
     border: "3px solid rgba(74,144,196,0.35)",
     boxShadow: "0 6px 24px rgba(30,58,95,0.10)",
   };
@@ -234,15 +239,11 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
+        display: "flex", flexDirection: "column", height: "100%",
         fontFamily: "Fredoka, sans-serif",
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
-        overflow: "hidden",
-        position: "relative",
-        touchAction: "none",
-        userSelect: "none",
+        overflow: "hidden", position: "relative",
+        touchAction: "none", userSelect: "none",
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -253,27 +254,25 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
       </div>
 
       {/* Main content */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "0 32px",
-          gap: 28,
-        }}
-      >
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 32px", gap: 28 }}>
+
         {/* Row 1: letter is */}
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-          <span style={{ fontSize: 30, fontWeight: 700, color: "#1E3A5F", minWidth: 130, flexShrink: 0 }}>
+          <span
+            onPointerDown={handleLetterIsLabelTap}
+            style={{
+              fontSize: 30, fontWeight: 700, color: "#1E3A5F",
+              minWidth: 130, flexShrink: 0, cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
             {labelLetterIs}
           </span>
 
           {situation === 1 ? (
-            /* Situation A: empty drop box for letter */
             <div
               ref={dropZoneRef}
-              onClick={placedChoice ? handleBoxTap : undefined}
+              onPointerDown={placedChoice ? handleBoxTap : undefined}
               style={{
                 ...boxBase,
                 background: placedChoice ? (placedColor || "white") : "rgba(255,255,255,0.55)",
@@ -292,7 +291,6 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
               )}
             </div>
           ) : (
-            /* Situation B: filled letter box */
             <div style={{ ...boxBase, background: "white" }}>
               <span style={{ fontSize: 62, fontWeight: 700, color: "#1E3A5F", lineHeight: 1, fontFamily: "Fredoka, sans-serif" }}>
                 {letter}
@@ -303,15 +301,21 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
 
         {/* Row 2: sound is */}
         <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-          <span style={{ fontSize: 30, fontWeight: 700, color: "#1E3A5F", minWidth: 130, flexShrink: 0 }}>
+          <span
+            onPointerDown={handleSoundIsLabelTap}
+            style={{
+              fontSize: 30, fontWeight: 700, color: "#1E3A5F",
+              minWidth: 130, flexShrink: 0, cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
             {labelSoundIs}
           </span>
 
           {situation === 2 ? (
-            /* Situation B: empty drop box for speaker */
             <div
               ref={dropZoneRef}
-              onClick={placedChoice ? handleBoxTap : undefined}
+              onPointerDown={placedChoice ? handleBoxTap : undefined}
               style={{
                 ...boxBase,
                 background: placedChoice ? placedSpeakerColorSet.main : "rgba(255,255,255,0.55)",
@@ -327,7 +331,6 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
               )}
             </div>
           ) : (
-            /* Situation A: filled speaker box */
             <div style={{ ...boxBase, background: "white" }}>
               <SpeakerIcon color="#4ECDC4" size={52} />
             </div>
@@ -346,9 +349,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
             const speakerSet = SPEAKER_COLORS[idx % SPEAKER_COLORS.length];
 
             if (isPlaced) {
-              return (
-                <div key={idx} style={{ width: 104, height: 104, visibility: "hidden", flexShrink: 0 }} />
-              );
+              return <div key={idx} style={{ width: 104, height: 104, visibility: "hidden", flexShrink: 0 }} />;
             }
 
             return (
@@ -357,17 +358,11 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
                 animate={isDraggingThis ? { scale: 1.08, opacity: 0.3 } : { scale: 1, opacity: 1 }}
                 onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, idx); }}
                 style={{
-                  width: 104,
-                  height: 104,
-                  borderRadius: 28,
+                  width: 104, height: 104, borderRadius: 28,
                   background: situation === 1 ? LETTER_COLORS[idx % LETTER_COLORS.length] : "white",
                   border: situation === 1 ? "3px solid rgba(255,255,255,0.7)" : `3px solid ${speakerSet.main}55`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "grab",
-                  touchAction: "none",
-                  userSelect: "none",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "grab", touchAction: "none", userSelect: "none",
                   pointerEvents: isDraggingThis ? "none" : "auto",
                   boxShadow: situation === 1 ? "0 4px 16px rgba(0,0,0,0.12)" : `0 6px 20px ${speakerSet.shadow}`,
                   flexShrink: 0,
@@ -394,11 +389,8 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
           style={{
             background: placedIdx !== null ? "linear-gradient(135deg, #4ECDC4, #44A08D)" : "#D1D5DB",
             color: placedIdx !== null ? "white" : "#9CA3AF",
-            border: "none",
-            borderRadius: 999,
-            padding: "16px 56px",
-            fontSize: 22,
-            fontWeight: 700,
+            border: "none", borderRadius: 999, padding: "16px 56px",
+            fontSize: 22, fontWeight: 700,
             cursor: placedIdx !== null ? "pointer" : "not-allowed",
             fontFamily: "Fredoka, sans-serif",
             boxShadow: placedIdx !== null ? "0 8px 28px rgba(78,205,196,0.4)" : "none",
@@ -410,7 +402,6 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
         </motion.button>
       </div>
 
-      {/* Safe area spacer */}
       <div style={{ flexShrink: 0, height: "calc(28px + env(safe-area-inset-bottom, 0px))" }} />
 
       {/* Drag ghost */}
@@ -418,20 +409,12 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
         {dragState && isDragging.current && (
           <div
             style={{
-              position: "fixed",
-              left: dragState.x,
-              top: dragState.y,
-              transform: "translate(-50%, -50%)",
-              zIndex: 9999,
-              pointerEvents: "none",
-              width: 108,
-              height: 108,
-              borderRadius: 24,
+              position: "fixed", left: dragState.x, top: dragState.y,
+              transform: "translate(-50%, -50%)", zIndex: 9999, pointerEvents: "none",
+              width: 108, height: 108, borderRadius: 24,
               background: situation === 1 ? LETTER_COLORS[dragState.choiceIdx % LETTER_COLORS.length] : "white",
               border: situation === 1 ? "3px solid rgba(255,255,255,0.8)" : `3px solid ${SPEAKER_COLORS[dragState.choiceIdx % SPEAKER_COLORS.length].main}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 12px 36px rgba(0,0,0,0.25)",
             }}
           >
