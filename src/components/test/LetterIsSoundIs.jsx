@@ -37,6 +37,27 @@ function SpeakerIcon({ color = "white", size = 44 }) {
   );
 }
 
+// Small play button for row audio replay
+function PlayIcon({ onPress }) {
+  return (
+    <div
+      onPointerDown={(e) => { e.stopPropagation(); onPress(); }}
+      style={{
+        width: 40, height: 40, borderRadius: 20, flexShrink: 0,
+        background: "rgba(255,255,255,0.85)",
+        border: "2px solid rgba(78,205,196,0.35)",
+        boxShadow: "0 2px 10px rgba(78,205,196,0.18)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#4ECDC4">
+        <polygon points="5,3 19,12 5,21" />
+      </svg>
+    </div>
+  );
+}
+
 function buildRound() {
   const situation = Math.random() < 0.5 ? 1 : 2;
   const letter = ALL_LETTERS[Math.floor(Math.random() * ALL_LETTERS.length)];
@@ -47,7 +68,6 @@ function buildRound() {
   return { situation, letter, choices, correctIdx };
 }
 
-// Minimum pixels moved before a touch is considered a drag (not a tap)
 const DRAG_THRESHOLD = 12;
 
 export default function LetterIsSoundIs({ onBack, lang = "en" }) {
@@ -85,18 +105,16 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
           { url: soundIsUrl },
           ...(letterSoundUrl ? [{ url: letterSoundUrl, gain: letterGain }] : []),
         ];
-        const c2 = playAudioSequence(steps);
-        sequenceRef.current = c2;
+        sequenceRef.current = playAudioSequence(steps);
       });
       sequenceRef.current = cancel;
     } else {
       // Situation B: "letter is" + letter name + "sound is" then stop
-      const steps = [
+      sequenceRef.current = playAudioSequence([
         { url: letterIsUrl },
         { url: letterNameUrl },
         { url: soundIsUrl },
-      ];
-      sequenceRef.current = playAudioSequence(steps);
+      ]);
     }
 
     return () => cancelAudio();
@@ -106,19 +124,12 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
   // ── Completion audio → auto-advance ──────────────────────────────────────
   const playCompletion = useCallback(() => {
     cancelAudio();
-    const letterIsUrl = getSpeechUrl("letter_is", lang);
-    const soundIsUrl = getSpeechUrl("sound_is", lang);
-    const letterNameUrl = getLetterNameUrl(letter);
-    const letterSoundUrl = getLetterSoundUrl(letter);
-    const letterGain = getLetterGain(letter);
-
     const steps = [
-      { url: letterIsUrl },
-      { url: letterNameUrl },
-      { url: soundIsUrl },
-      ...(letterSoundUrl ? [{ url: letterSoundUrl, gain: letterGain }] : []),
+      { url: getSpeechUrl("letter_is", lang) },
+      { url: getLetterNameUrl(letter) },
+      { url: getSpeechUrl("sound_is", lang) },
+      ...(getLetterSoundUrl(letter) ? [{ url: getLetterSoundUrl(letter), gain: getLetterGain(letter) }] : []),
     ];
-
     sequenceRef.current = playAudioSequence(steps, () => {
       sequenceRef.current = null;
       setRound(buildRound());
@@ -129,7 +140,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
     });
   }, [letter, lang, cancelAudio]);
 
-  // ── Label taps — play prompt audio ───────────────────────────────────────
+  // ── Label taps ────────────────────────────────────────────────────────────
   const handleLetterIsLabelTap = useCallback((e) => {
     e.stopPropagation();
     playAudio(getSpeechUrl("letter_is", lang));
@@ -139,6 +150,41 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
     e.stopPropagation();
     playAudio(getSpeechUrl("sound_is", lang));
   }, [lang]);
+
+  // ── Row play icons ────────────────────────────────────────────────────────
+  // Row 1: "letter is" prompt, then the displayed letter's name (if present)
+  const handleRow1Play = useCallback(() => {
+    const letterIsUrl = getSpeechUrl("letter_is", lang);
+    // In situation 1, letter is shown only if placed; in situation 2, letter is always shown
+    const displayedLetter = situation === 2 ? letter : (placedIdx !== null ? choices[placedIdx] : null);
+
+    if (displayedLetter) {
+      playAudioSequence([
+        { url: letterIsUrl },
+        { url: getLetterNameUrl(displayedLetter) },
+      ]);
+    } else {
+      playAudio(letterIsUrl);
+    }
+  }, [lang, situation, letter, placedIdx, choices]);
+
+  // Row 2: "sound is" prompt, then the displayed letter's sound (if present)
+  const handleRow2Play = useCallback(() => {
+    const soundIsUrl = getSpeechUrl("sound_is", lang);
+    // In situation 2, sound is shown only if placed; in situation 1, letter sound is always shown
+    const displayedLetter = situation === 1 ? letter : (placedIdx !== null ? choices[placedIdx] : null);
+    const soundUrl = displayedLetter ? getLetterSoundUrl(displayedLetter) : null;
+    const gain = displayedLetter ? getLetterGain(displayedLetter) : 1;
+
+    if (soundUrl) {
+      playAudioSequence([
+        { url: soundIsUrl },
+        { url: soundUrl, gain },
+      ]);
+    } else {
+      playAudio(soundIsUrl);
+    }
+  }, [lang, situation, letter, placedIdx, choices]);
 
   // ── Touch drag handlers ───────────────────────────────────────────────────
   const handleTouchStart = useCallback((e, choiceIdx) => {
@@ -172,9 +218,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
     if (!dragState) return;
 
     if (!isDragging.current) {
-      // Pure tap:
-      // - Situation B (sound icons): play letter sound
-      // - Situation A (letters): do nothing
+      // Pure tap: sound icons play audio, letters do nothing
       if (situation === 2) {
         const tappedLetter = choices[dragState.choiceIdx];
         const url = getLetterSoundUrl(tappedLetter);
@@ -211,7 +255,6 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = useCallback(() => {
     if (placedIdx === null) return;
-
     if (placedIdx === correctIdx) {
       playCompletion();
     } else {
@@ -254,15 +297,15 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 32px", gap: 28 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 24px", gap: 28 }}>
 
         {/* Row 1: letter is */}
-        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <span
             onPointerDown={handleLetterIsLabelTap}
             style={{
-              fontSize: 30, fontWeight: 700, color: "#1E3A5F",
-              minWidth: 130, flexShrink: 0, cursor: "pointer",
+              fontSize: 28, fontWeight: 700, color: "#1E3A5F",
+              minWidth: 120, flexShrink: 0, cursor: "pointer",
               WebkitTapHighlightColor: "transparent",
             }}
           >
@@ -297,15 +340,17 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
               </span>
             </div>
           )}
+
+          <PlayIcon onPress={handleRow1Play} />
         </div>
 
         {/* Row 2: sound is */}
-        <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <span
             onPointerDown={handleSoundIsLabelTap}
             style={{
-              fontSize: 30, fontWeight: 700, color: "#1E3A5F",
-              minWidth: 130, flexShrink: 0, cursor: "pointer",
+              fontSize: 28, fontWeight: 700, color: "#1E3A5F",
+              minWidth: 120, flexShrink: 0, cursor: "pointer",
               WebkitTapHighlightColor: "transparent",
             }}
           >
@@ -335,6 +380,8 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
               <SpeakerIcon color="#4ECDC4" size={52} />
             </div>
           )}
+
+          <PlayIcon onPress={handleRow2Play} />
         </div>
 
         {/* Row 3: draggable choices */}
