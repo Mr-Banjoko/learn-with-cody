@@ -16,7 +16,7 @@ const SPEAKER_COLORS = [
 const SPEECH_BASE =
   "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/speech%20prompt";
 const LETTER_NAMES_BASE =
-  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/letter_names";
+  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/letter%20names";
 
 function getSpeechUrl(phrase, lang) {
   const suffix = lang === "zh" ? "chinese" : "english";
