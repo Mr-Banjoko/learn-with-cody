@@ -70,7 +70,7 @@ function buildRound() {
 
 const DRAG_THRESHOLD = 12;
 
-export default function LetterIsSoundIs({ onBack, lang = "en" }) {
+export default function LetterIsSoundIs({ onBack, lang = "en", onRoundComplete, hideBackArrow }) {
   const [round, setRound] = useState(() => buildRound());
   const [placedIdx, setPlacedIdx] = useState(null);
   const [wrongShake, setWrongShake] = useState(false);
@@ -80,6 +80,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
   const isDragging = useRef(false);
   const sequenceRef = useRef(null);
   const shakeTimeout = useRef(null);
+  const wrongAttempts = useRef(0);
 
   const { situation, letter, choices, correctIdx } = round;
 
@@ -257,14 +258,17 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
   const handleSubmit = useCallback(() => {
     if (placedIdx === null) return;
     if (placedIdx === correctIdx) {
+      if (onRoundComplete) onRoundComplete(Math.max(0, 2 - wrongAttempts.current));
+      wrongAttempts.current = 0;
       playCompletion();
     } else {
+      wrongAttempts.current++;
       clearTimeout(shakeTimeout.current);
       setWrongShake(true);
       setPlacedIdx(null);
       shakeTimeout.current = setTimeout(() => setWrongShake(false), 600);
     }
-  }, [placedIdx, correctIdx, playCompletion]);
+  }, [placedIdx, correctIdx, playCompletion, onRoundComplete]);
 
   const placedChoice = placedIdx !== null ? choices[placedIdx] : null;
   const placedColor = placedIdx !== null ? LETTER_COLORS[placedIdx % LETTER_COLORS.length] : null;
@@ -293,9 +297,11 @@ export default function LetterIsSoundIs({ onBack, lang = "en" }) {
       onTouchEnd={handleTouchEnd}
     >
       {/* Back arrow */}
-      <div style={{ padding: "12px 16px 0", flexShrink: 0 }}>
-        <BackArrow onPress={onBack} />
-      </div>
+      {!hideBackArrow && (
+        <div style={{ padding: "12px 16px 0", flexShrink: 0 }}>
+          <BackArrow onPress={onBack} />
+        </div>
+      )}
 
       {/* Main content */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 24px", gap: 28 }}>

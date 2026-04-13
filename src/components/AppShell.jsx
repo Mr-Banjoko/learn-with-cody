@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import TabBar from "./TabBar";
 import LanguageToggle from "./LanguageToggle";
 import Home from "../pages/Home";
+import CodyCheckIn from "./placement/CodyCheckIn";
 import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
 import Album from "../pages/Album";
@@ -12,9 +13,16 @@ export default function AppShell() {
   const [isDeepScreen, setIsDeepScreen] = useState(false);
   const [language, setLanguage] = useState(() => localStorage.getItem("lang") || "en");
 
+  const [homeSubScreen, setHomeSubScreen] = useState(null);
+
   const handleTabChange = (tab) => {
     setIsDeepScreen(false);
+    setHomeSubScreen(null);
     setActiveTab(tab);
+  };
+
+  const handleHomeNavigate = (screen) => {
+    setHomeSubScreen(screen);
   };
 
   const handleLanguageChange = (lang) => {
@@ -25,7 +33,16 @@ export default function AppShell() {
   const renderPage = () => {
     switch (activeTab) {
       case "home":
-        return <Home onNavigate={handleTabChange} lang={language} />;
+        if (homeSubScreen === "checkin") {
+          return (
+            <CodyCheckIn
+              onBack={() => setHomeSubScreen(null)}
+              onDeepScreen={setIsDeepScreen}
+              lang={language}
+            />
+          );
+        }
+        return <Home onNavigate={handleHomeNavigate} lang={language} />;
       case "learn":
         return <LearnPhonics onDeepScreen={setIsDeepScreen} lang={language} />;
       case "games":

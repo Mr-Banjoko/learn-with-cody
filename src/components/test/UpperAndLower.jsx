@@ -52,12 +52,13 @@ function playLetterName(base) {
   }
 }
 
-export default function UpperAndLower({ onBack, lang = "en" }) {
+export default function UpperAndLower({ onBack, lang = "en", onRoundComplete, hideBackArrow }) {
   const [round, setRound] = useState(() => buildRound());
   const [selected, setSelected] = useState(null);
   const [showNext, setShowNext] = useState(false);
   const [wrongShake, setWrongShake] = useState(false);
   const shakeTimeout = useRef(null);
+  const wrongAttempts = useRef(0);
 
   const handleMiddleTap = useCallback(() => {
     playLetterName(round.base);
@@ -77,6 +78,7 @@ export default function UpperAndLower({ onBack, lang = "en" }) {
     if (selected.letter === round.correct) {
       setShowNext(true);
     } else {
+      wrongAttempts.current++;
       clearTimeout(shakeTimeout.current);
       setWrongShake(true);
       shakeTimeout.current = setTimeout(() => setWrongShake(false), 600);
@@ -84,11 +86,13 @@ export default function UpperAndLower({ onBack, lang = "en" }) {
   }, [selected, round.correct, showNext]);
 
   const handleNext = useCallback(() => {
+    if (onRoundComplete) onRoundComplete(Math.max(0, 2 - wrongAttempts.current));
+    wrongAttempts.current = 0;
     setRound(buildRound());
     setSelected(null);
     setShowNext(false);
     setWrongShake(false);
-  }, []);
+  }, [onRoundComplete]);
 
   return (
     <div
@@ -104,9 +108,11 @@ export default function UpperAndLower({ onBack, lang = "en" }) {
       }}
     >
       {/* Back arrow only */}
-      <div style={{ padding: "12px 16px 0", flexShrink: 0 }}>
-        <BackArrow onPress={onBack} />
-      </div>
+      {!hideBackArrow && (
+        <div style={{ padding: "12px 16px 0", flexShrink: 0 }}>
+          <BackArrow onPress={onBack} />
+        </div>
+      )}
 
       {/* Middle letter — vertically centered, tappable */}
       <div
