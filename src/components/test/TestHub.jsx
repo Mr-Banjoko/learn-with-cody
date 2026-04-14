@@ -7,6 +7,7 @@ import OneSound3Letters from "./OneSound3Letters";
 import UpperAndLower from "./UpperAndLower";
 import LetterIsSoundIs from "./LetterIsSoundIs";
 import WordToPicture from "./WordToPicture";
+import WordToAudioMatch from "./WordToAudioMatch";
 
 const TEST_ACTIVITIES = [
   {
@@ -64,6 +65,17 @@ const TEST_ACTIVITIES = [
     bg: "#F0FFF4",
     available: true,
   },
+  {
+    id: "word-to-audio-match",
+    label: "Word to Audio Match",
+    labelZh: "词语音频配对",
+    emoji: "🔊",
+    description: "Tap a speaker, then match the word",
+    descZh: "点击扬声器，然后配对单词",
+    color: "#4D96FF",
+    bg: "#EFF6FF",
+    available: true,
+  },
 ];
 
 export default function TestHub({ onBack, onDeepScreen, lang = "en" }) {
@@ -93,6 +105,9 @@ export default function TestHub({ onBack, onDeepScreen, lang = "en" }) {
   }
   if (activeActivity === "identifying") {
     return <WordToPicture onBack={exitActivity} lang={lang} />;
+  }
+  if (activeActivity === "word-to-audio-match") {
+    return <WordToAudioMatch onBack={exitActivity} lang={lang} />;
   }
 
   return (
