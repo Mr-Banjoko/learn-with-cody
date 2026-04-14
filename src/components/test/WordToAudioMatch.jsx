@@ -229,7 +229,7 @@ export default function WordToAudioMatch({ onBack, lang = "en", onRoundComplete,
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            gap: 14,
+            gap: 18,
             padding: "8px 20px calc(28px + env(safe-area-inset-bottom, 0px))",
             minHeight: 0,
           }}
@@ -246,9 +246,8 @@ export default function WordToAudioMatch({ onBack, lang = "en", onRoundComplete,
                 key={rowIdx}
                 style={{
                   display: "flex",
-                  gap: 14,
-                  alignItems: "center",
-                  justifyContent: "center",
+                  gap: 16,
+                  alignItems: "stretch",
                 }}
               >
                 {/* Left: Speaker tile */}
@@ -262,8 +261,8 @@ export default function WordToAudioMatch({ onBack, lang = "en", onRoundComplete,
                   }
                   transition={{ duration: 0.38 }}
                   style={{
-                    flex: "0 0 96px",
-                    height: 96,
+                    flex: 1,
+                    height: 120,
                     borderRadius: 22,
                     border:
                       leftState === "matched"
@@ -294,11 +293,11 @@ export default function WordToAudioMatch({ onBack, lang = "en", onRoundComplete,
                   }}
                 >
                   {leftState === "matched" ? (
-                    <span style={{ fontSize: 28 }}>✓</span>
+                    <span style={{ fontSize: 34 }}>✓</span>
                   ) : (
                     <SpeakerIcon
                       color={leftState === "selected" ? "#4ECDC4" : "#A8D0E6"}
-                      size={32}
+                      size={40}
                     />
                   )}
                 </motion.button>
@@ -314,10 +313,8 @@ export default function WordToAudioMatch({ onBack, lang = "en", onRoundComplete,
                   }
                   transition={{ duration: 0.38 }}
                   style={{
-                    flex: "0 0 96px",
-                    width: "100%",
-                    maxWidth: "none",
-                    height: 96,
+                    flex: 1,
+                    height: 120,
                     borderRadius: 22,
                     border:
                       rightState === "matched"
@@ -348,7 +345,7 @@ export default function WordToAudioMatch({ onBack, lang = "en", onRoundComplete,
                 >
                   <span
                     style={{
-                      fontSize: 34,
+                      fontSize: 38,
                       fontWeight: 700,
                       color:
                         rightState === "matched"
