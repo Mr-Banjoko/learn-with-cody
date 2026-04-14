@@ -180,18 +180,18 @@ export default function WordToPicture({ onBack, lang = "en", onRoundComplete, hi
         </motion.button>
       </div>
 
-      {/* Picture choices — 3 squares in a row */}
+      {/* Rows 2–4: Picture choices — one per row */}
       <motion.div
         animate={wrongShake ? { x: [0, -10, 10, -8, 8, 0] } : { x: 0 }}
         transition={{ duration: 0.45 }}
         style={{
           flex: 1,
           display: "flex",
-          flexDirection: "row",
+          flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
           gap: 12,
-          padding: "4px 20px",
+          padding: "4px 24px",
           minHeight: 0,
         }}
       >
@@ -221,10 +221,9 @@ export default function WordToPicture({ onBack, lang = "en", onRoundComplete, hi
                 justifyContent: "center",
                 transition: "border 0.16s, box-shadow 0.16s",
                 WebkitTapHighlightColor: "transparent",
-                flex: 1,
-                aspectRatio: "1 / 1",
-                maxWidth: 140,
-                maxHeight: 140,
+                width: "100%",
+                height: 135,
+                flexShrink: 0,
               }}
             >
               <img
@@ -234,7 +233,6 @@ export default function WordToPicture({ onBack, lang = "en", onRoundComplete, hi
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  objectPosition: "center",
                   display: "block",
                   pointerEvents: "none",
                 }}
