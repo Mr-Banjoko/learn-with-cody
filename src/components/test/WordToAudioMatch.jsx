@@ -248,6 +248,7 @@ export default function WordToAudioMatch({ onBack, lang = "en", onRoundComplete,
                   display: "flex",
                   gap: 14,
                   alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 {/* Left: Speaker tile */}
@@ -261,8 +262,8 @@ export default function WordToAudioMatch({ onBack, lang = "en", onRoundComplete,
                   }
                   transition={{ duration: 0.38 }}
                   style={{
-                    flex: "0 0 80px",
-                    height: 80,
+                    flex: "0 0 96px",
+                    height: 96,
                     borderRadius: 22,
                     border:
                       leftState === "matched"
@@ -313,8 +314,10 @@ export default function WordToAudioMatch({ onBack, lang = "en", onRoundComplete,
                   }
                   transition={{ duration: 0.38 }}
                   style={{
-                    flex: 1,
-                    height: 80,
+                    flex: "0 0 96px",
+                    width: "100%",
+                    maxWidth: "none",
+                    height: 96,
                     borderRadius: 22,
                     border:
                       rightState === "matched"
