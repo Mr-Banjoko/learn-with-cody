@@ -6,6 +6,7 @@ import OneLetter3Sounds from "./OneLetter3Sounds";
 import OneSound3Letters from "./OneSound3Letters";
 import UpperAndLower from "./UpperAndLower";
 import LetterIsSoundIs from "./LetterIsSoundIs";
+import WordToPicture from "./WordToPicture";
 
 const TEST_ACTIVITIES = [
   {
@@ -52,6 +53,17 @@ const TEST_ACTIVITIES = [
     bg: "#FFFDE7",
     available: true,
   },
+  {
+    id: "identifying",
+    label: "Identifying",
+    labelZh: "识别",
+    emoji: "🖼️",
+    description: "Hear a word, tap the right picture",
+    descZh: "听到单词，选出正确图片",
+    color: "#6BCB77",
+    bg: "#F0FFF4",
+    available: true,
+  },
 ];
 
 export default function TestHub({ onBack, onDeepScreen, lang = "en" }) {
@@ -78,6 +90,9 @@ export default function TestHub({ onBack, onDeepScreen, lang = "en" }) {
   }
   if (activeActivity === "letter-is-sound-is") {
     return <LetterIsSoundIs onBack={exitActivity} lang={lang} />;
+  }
+  if (activeActivity === "identifying") {
+    return <WordToPicture onBack={exitActivity} lang={lang} />;
   }
 
   return (
