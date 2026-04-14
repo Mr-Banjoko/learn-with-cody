@@ -188,7 +188,9 @@ export default function WordToPicture({ onBack, lang = "en", onRoundComplete, hi
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-evenly",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 12,
           padding: "4px 24px",
           minHeight: 0,
         }}
@@ -220,9 +222,8 @@ export default function WordToPicture({ onBack, lang = "en", onRoundComplete, hi
                 transition: "border 0.16s, box-shadow 0.16s",
                 WebkitTapHighlightColor: "transparent",
                 width: "100%",
-                maxHeight: 170,
-                minHeight: 100,
-                flexShrink: 1,
+                height: 135,
+                flexShrink: 0,
               }}
             >
               <img
