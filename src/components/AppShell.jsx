@@ -7,6 +7,8 @@ import CodyCheckIn from "./placement/CodyCheckIn";
 import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
 import Album from "../pages/Album";
+import CampaignHome from "./campaign/CampaignHome";
+import ShortALevels from "./campaign/ShortALevels";
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("home");
@@ -23,6 +25,9 @@ export default function AppShell() {
 
   const handleHomeNavigate = (screen) => {
     setHomeSubScreen(screen);
+    if (screen === "campaign" || screen === "campaign-short-a") {
+      setIsDeepScreen(true);
+    }
   };
 
   const handleLanguageChange = (lang) => {
@@ -38,6 +43,29 @@ export default function AppShell() {
             <CodyCheckIn
               onBack={() => setHomeSubScreen(null)}
               onDeepScreen={setIsDeepScreen}
+              lang={language}
+            />
+          );
+        }
+        if (homeSubScreen === "campaign-short-a") {
+          return (
+            <ShortALevels
+              onBack={() => setHomeSubScreen("campaign")}
+              onSelectLevel={(lvl) => {
+                // placeholder: level content not built yet
+                console.log("Selected level", lvl);
+              }}
+              lang={language}
+            />
+          );
+        }
+        if (homeSubScreen === "campaign") {
+          return (
+            <CampaignHome
+              onBack={() => { setHomeSubScreen(null); setIsDeepScreen(false); }}
+              onSelectVowel={(id) => {
+                if (id === "short-a") setHomeSubScreen("campaign-short-a");
+              }}
               lang={language}
             />
           );

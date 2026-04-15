@@ -128,24 +128,45 @@ export default function Home({ onNavigate, lang = "en" }) {
         <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>3</span>
       </motion.div>
 
-      {/* Row 3: Box 4 — centered, medium width */}
+      {/* Row 3: Box 4 — Campaign Mode entry */}
       <div style={{ display: "flex", justifyContent: "center", flex: "0 0 auto" }}>
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.24, type: "spring", stiffness: 280, damping: 22 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={() => onNavigate && onNavigate("campaign")}
           style={{
             width: "58%",
             height: 110,
             borderRadius: 22,
-            background: BOX_COLORS[3],
+            background: "linear-gradient(135deg, #6BCB77, #4ECDC4)",
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: `0 6px 20px ${BOX_COLORS[3]}55`,
+            boxShadow: "0 6px 20px rgba(107,203,119,0.45)",
+            cursor: "pointer",
+            position: "relative",
+            overflow: "hidden",
+            WebkitTapHighlightColor: "transparent",
           }}
         >
-          <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>4</span>
+          {/* Pulsing ring */}
+          <motion.div
+            animate={{ scale: [1, 1.5, 1], opacity: [0.35, 0, 0.35] }}
+            transition={{ repeat: Infinity, duration: 2.2 }}
+            style={{
+              position: "absolute",
+              width: 70, height: 70,
+              borderRadius: 35,
+              border: "3px solid rgba(255,255,255,0.5)",
+            }}
+          />
+          <span style={{ fontSize: 28, zIndex: 1 }}>🗺️</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "white", zIndex: 1, marginTop: 3 }}>
+            {lang === "zh" ? "学习征程" : "Campaign"}
+          </span>
         </motion.div>
       </div>
 
