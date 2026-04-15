@@ -2,45 +2,335 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 
-// ─── Design tokens ────────────────────────────────────────────────
-const HEADER_COLOR   = "#FF6B6B";
-const NODE_PRIMARY   = "#FF7F72";   // warm coral
-const NODE_MILESTONE = "#FFB830";   // golden — every 5th
-const PATH_COLOR     = "#FFCEC9";   // muted coral for connectors
-
-const NODE_SIZE      = 56;
-const LEVELS_PER_ROW = 5;
 const TOTAL_LEVELS   = 50;
+const LEVELS_PER_ROW = 5;
 
-function isMilestone(n) { return n % 5 === 0; }
-function nodeColor(n)   { return isMilestone(n) ? NODE_MILESTONE : NODE_PRIMARY; }
+// Pastel stepping-stone colors cycling through the path
+const STONE_COLORS = [
+  "#A8E6CF", // mint green
+  "#FFD3B6", // peach
+  "#FFAAA5", // coral pink
+  "#A8D8EA", // sky blue
+  "#AA96DA", // soft purple
+  "#FCBAD3", // bubblegum
+  "#FFE5A0", // butter yellow
+];
 
-// ─── Horizontal dashes between two nodes ─────────────────────────
-function HorizPath() {
+function stoneColor(n) {
+  return STONE_COLORS[(n - 1) % STONE_COLORS.length];
+}
+
+// The title letters get cycling bright colors
+const TITLE_COLORS = ["#FF6B6B", "#FFB830", "#6BCB77", "#4D96FF", "#C77DFF", "#FF6B9D", "#4ECDC4"];
+
+function ColorfulTitle({ text }) {
   return (
-    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} style={{ width: 6, height: 5, borderRadius: 3, background: PATH_COLOR }} />
+    <span style={{ display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
+      {text.split("").map((ch, i) => (
+        <span key={i} style={{
+          color: ch === " " ? "transparent" : TITLE_COLORS[i % TITLE_COLORS.length],
+          fontWeight: 800,
+          WebkitTextStroke: ch === " " ? "none" : "1.5px rgba(0,0,0,0.15)",
+          display: "inline-block",
+          width: ch === " " ? "0.3em" : "auto",
+        }}>{ch}</span>
+      ))}
+    </span>
+  );
+}
+
+// Stepping stone — flat pill / platform shape
+function Stone({ levelNum, onTap, delay = 0 }) {
+  const color  = stoneColor(levelNum);
+  const isOne  = levelNum === 1;
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 20, scale: 0.7 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay, type: "spring", stiffness: 280, damping: 20 }}
+      whileTap={{ scale: 0.88, y: 4 }}
+      // Pulse the first stone so it draws attention
+      {...(isOne ? {
+        animate: { opacity: 1, y: [0, -4, 0], scale: [1, 1.06, 1] },
+        transition: { repeat: Infinity, duration: 2, repeatDelay: 1 }
+      } : {})}
+      onClick={() => onTap(levelNum)}
+      style={{
+        // Pill / platform shape
+        width: 64,
+        height: 38,
+        borderRadius: 999,
+        background: `linear-gradient(180deg, ${color} 0%, ${color}CC 60%, ${color}88 100%)`,
+        border: "none",
+        // 3D platform shadow underneath
+        boxShadow: `0 6px 0 ${color}77, 0 9px 16px rgba(0,0,0,0.12)`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        fontFamily: "Fredoka, sans-serif",
+        WebkitTapHighlightColor: "transparent",
+        padding: 0,
+        flexShrink: 0,
+        position: "relative",
+      }}
+    >
+      <span style={{
+        fontSize: levelNum >= 10 ? 16 : 18,
+        fontWeight: 700,
+        color: "white",
+        textShadow: "0 1px 4px rgba(0,0,0,0.25)",
+        userSelect: "none",
+        lineHeight: 1,
+      }}>
+        {levelNum}
+      </span>
+    </motion.button>
+  );
+}
+
+// Small connector dots between stones in a row
+function Connector() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 3, paddingBottom: 4 }}>
+      {[0, 1].map(i => (
+        <div key={i} style={{
+          width: 5, height: 5, borderRadius: "50%",
+          background: "rgba(255,255,255,0.6)",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+        }} />
       ))}
     </div>
   );
 }
 
-// ─── Curved turn between rows ─────────────────────────────────────
-// Uses an SVG cubic bezier that snakes from the end of one row
-// around and down to the start of the next, correctly connecting:
-//   exitRight=true  → last node is on the RIGHT (levels 5, 15, 25, 35, 45)
-//   exitRight=false → last node is on the LEFT  (levels 10, 20, 30, 40, 50)
-function TurnConnector({ exitRight }) {
-  const vw   = 320; // virtual width matching phone row
-  const vh   = 54;
-  const half = NODE_SIZE / 2; // 28 — horizontal centre of edge node
+// Build snake rows
+function buildRows() {
+  const rows = [];
+  for (let r = 0; r < Math.ceil(TOTAL_LEVELS / LEVELS_PER_ROW); r++) {
+    const start = r * LEVELS_PER_ROW + 1;
+    const end   = Math.min(start + LEVELS_PER_ROW - 1, TOTAL_LEVELS);
+    const lvls  = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    rows.push(r % 2 === 0 ? lvls : [...lvls].reverse());
+  }
+  return rows;
+}
+
+// Decorative floating elements for the background
+const DECO = [
+  { emoji: "⭐", top: "4%",  left: "8%",  size: 22, delay: 0 },
+  { emoji: "✨", top: "8%",  left: "75%", size: 18, delay: 0.4 },
+  { emoji: "🌸", top: "15%", left: "88%", size: 20, delay: 0.2 },
+  { emoji: "🍀", top: "28%", left: "6%",  size: 18, delay: 0.6 },
+  { emoji: "🌼", top: "55%", left: "92%", size: 16, delay: 0.3 },
+  { emoji: "💫", top: "72%", left: "5%",  size: 20, delay: 0.8 },
+  { emoji: "🌈", top: "5%",  left: "45%", size: 24, delay: 0.1 },
+];
+
+export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
+  const rows = buildRows();
+
+  return (
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
+      fontFamily: "Fredoka, sans-serif",
+      overflow: "hidden",
+      position: "relative",
+      // Sky-to-grass gradient background like the reference
+      background: "linear-gradient(180deg, #87CEEB 0%, #B0E0FF 25%, #C8F5A0 60%, #7EC850 100%)",
+    }}>
+
+      {/* ── Decorative background elements ── */}
+      {DECO.map((d, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1, y: [0, -6, 0] }}
+          transition={{ delay: d.delay, y: { repeat: Infinity, duration: 2.5 + i * 0.3, ease: "easeInOut" } }}
+          style={{
+            position: "absolute",
+            top: d.top, left: d.left,
+            fontSize: d.size,
+            pointerEvents: "none",
+            zIndex: 1,
+          }}
+        >
+          {d.emoji}
+        </motion.div>
+      ))}
+
+      {/* Clouds */}
+      {[
+        { top: "3%", left: "15%", w: 70 },
+        { top: "6%", left: "55%", w: 90 },
+        { top: "2%", left: "80%", w: 60 },
+      ].map((c, i) => (
+        <motion.div
+          key={i}
+          animate={{ x: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 6 + i * 1.5, ease: "easeInOut" }}
+          style={{
+            position: "absolute",
+            top: c.top, left: c.left,
+            width: c.w, height: c.w * 0.45,
+            borderRadius: 999,
+            background: "rgba(255,255,255,0.85)",
+            boxShadow: "0 4px 12px rgba(255,255,255,0.5)",
+            zIndex: 1,
+            pointerEvents: "none",
+          }}
+        />
+      ))}
+
+      {/* Grass stripe at bottom */}
+      <div style={{
+        position: "absolute",
+        bottom: 0, left: 0, right: 0,
+        height: "28%",
+        background: "linear-gradient(180deg, #7EC850 0%, #5BAD30 100%)",
+        zIndex: 1,
+        borderTopLeftRadius: 40,
+        borderTopRightRadius: 40,
+        pointerEvents: "none",
+      }} />
+      {/* Grass texture dots */}
+      {[...Array(8)].map((_, i) => (
+        <div key={i} style={{
+          position: "absolute",
+          bottom: `${8 + Math.random() * 10}%`,
+          left: `${5 + i * 12}%`,
+          width: 12, height: 16,
+          background: "#4A9E25",
+          borderRadius: "50% 50% 0 0",
+          zIndex: 2,
+          pointerEvents: "none",
+          transform: `rotate(${-10 + i * 5}deg)`,
+        }} />
+      ))}
+
+      {/* ── Back button ── */}
+      <div style={{ position: "absolute", top: 10, left: 10, zIndex: 20 }}>
+        <BackArrow onPress={onBack} />
+      </div>
+
+      {/* ── Colorful title ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 260, damping: 22 }}
+        style={{
+          flexShrink: 0,
+          textAlign: "center",
+          paddingTop: 14,
+          paddingBottom: 4,
+          zIndex: 10,
+        }}
+      >
+        <div style={{
+          fontSize: 22,
+          fontWeight: 800,
+          letterSpacing: 1,
+          lineHeight: 1.1,
+          textShadow: "0 2px 8px rgba(0,0,0,0.18)",
+          filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.12))",
+          fontFamily: "Fredoka, sans-serif",
+        }}>
+          <ColorfulTitle text={lang === "zh" ? "短元音  A  冒险" : "SHORT VOWEL  A  ADVENTURE"} />
+        </div>
+        <div style={{
+          fontSize: 13,
+          fontWeight: 700,
+          color: "#FF6B6B",
+          letterSpacing: 2,
+          marginTop: 2,
+          textShadow: "0 1px 4px rgba(0,0,0,0.15)",
+          textTransform: "uppercase",
+        }}>
+          {lang === "zh" ? "选择关卡！" : "Choose your level!"}
+        </div>
+      </motion.div>
+
+      {/* ── Snake level path ── */}
+      <div style={{
+        flex: 1,
+        overflowY: "auto",
+        zIndex: 10,
+        padding: "8px 12px calc(24px + env(safe-area-inset-bottom,0px))",
+        position: "relative",
+      }}>
+        {rows.map((row, ri) => {
+          const isLastRow = ri === rows.length - 1;
+          const exitRight = ri % 2 === 0;
+          const rowDelay  = ri * 0.04;
+
+          return (
+            <div key={ri}>
+              {/* Row of stones */}
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
+                {row.map((lvl, idx) => (
+                  <div key={lvl} style={{ display: "flex", alignItems: "flex-end", flex: idx < row.length - 1 ? 1 : 0 }}>
+                    <Stone levelNum={lvl} onTap={onSelectLevel || (() => {})} delay={rowDelay + idx * 0.03} />
+                    {idx < row.length - 1 && <Connector />}
+                  </div>
+                ))}
+              </div>
+
+              {/* Turn arc connector */}
+              {!isLastRow && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: rowDelay + 0.2 }}
+                >
+                  <TurnArc exitRight={exitRight} />
+                </motion.div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Trophy / finish castle */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.7, type: "spring", stiffness: 240, damping: 16 }}
+          style={{
+            display: "flex",
+            justifyContent: (rows.length - 1) % 2 === 0 ? "flex-start" : "flex-end",
+            marginTop: 4,
+          }}
+        >
+          <div style={{
+            width: 64, height: 64,
+            borderRadius: "50%",
+            background: "linear-gradient(145deg, #FFD93D, #FF9F43)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 30,
+            boxShadow: "0 6px 0 #cc810099, 0 10px 24px rgba(255,159,67,0.5)",
+          }}>
+            🏆
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SVG turn arc connecting end of one row to start of next ─────
+function TurnArc({ exitRight }) {
+  const vw   = 320;
+  const vh   = 48;
+  const half = 32; // half of stone width (64/2)
 
   const startX = exitRight ? vw - half : half;
   const endX   = exitRight ? half      : vw - half;
-  const outX   = exitRight ? vw + 24   : -24; // control point outside the container
+  const outX   = exitRight ? vw + 20   : -20;
 
-  // Single cubic bezier: exits one side, curves around, enters opposite side
   const d = `M ${startX} 0 C ${outX} 0, ${outX} ${vh}, ${endX} ${vh}`;
 
   return (
@@ -51,190 +341,8 @@ function TurnConnector({ exitRight }) {
       preserveAspectRatio="none"
       style={{ display: "block", overflow: "visible" }}
     >
-      <path
-        d={d}
-        stroke={PATH_COLOR}
-        strokeWidth={4.5}
-        strokeLinecap="round"
-        strokeDasharray="7 6"
-        fill="none"
-      />
+      <path d={d} stroke="rgba(255,255,255,0.5)" strokeWidth={3} strokeLinecap="round"
+            strokeDasharray="5 5" fill="none" />
     </svg>
-  );
-}
-
-// ─── Single level node ────────────────────────────────────────────
-function LevelNode({ levelNum, onTap }) {
-  const [pressed, setPressed] = useState(false);
-  const color  = nodeColor(levelNum);
-  const ms     = isMilestone(levelNum);
-  const isOne  = levelNum === 1;
-
-  const handleTap = () => {
-    setPressed(true);
-    setTimeout(() => { setPressed(false); onTap(levelNum); }, 160);
-  };
-
-  return (
-    <motion.button
-      whileTap={{ scale: 0.82 }}
-      animate={isOne ? { scale: [1, 1.08, 1] } : {}}
-      transition={isOne
-        ? { repeat: Infinity, duration: 1.9, repeatDelay: 1.4, ease: "easeInOut" }
-        : {}}
-      onClick={handleTap}
-      style={{
-        width: NODE_SIZE,
-        height: NODE_SIZE,
-        borderRadius: NODE_SIZE / 2,
-        flexShrink: 0,
-        background: pressed
-          ? `linear-gradient(145deg, ${color}99, ${color}66)`
-          : `linear-gradient(145deg, ${color}, ${color}CC)`,
-        border: "none",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        boxShadow: `0 5px 0 ${color}88, 0 8px 18px ${color}44`,
-        fontFamily: "Fredoka, sans-serif",
-        WebkitTapHighlightColor: "transparent",
-        padding: 0,
-        position: "relative",
-        transition: "background 0.12s",
-      }}
-    >
-      {/* Inner ring for milestone nodes */}
-      {ms && (
-        <div style={{
-          position: "absolute", inset: 5,
-          borderRadius: "50%",
-          border: "2px solid rgba(255,255,255,0.5)",
-          pointerEvents: "none",
-        }} />
-      )}
-      <span style={{
-        fontSize: levelNum >= 10 ? 19 : 22,
-        fontWeight: 700,
-        color: "white",
-        lineHeight: 1,
-        textShadow: "0 1px 4px rgba(0,0,0,0.2)",
-        userSelect: "none",
-      }}>
-        {levelNum}
-      </span>
-    </motion.button>
-  );
-}
-
-// ─── Main page ────────────────────────────────────────────────────
-export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
-  // rows[0] = [1,2,3,4,5]  (L→R, exits right)
-  // rows[1] = [10,9,8,7,6] (R→L, exits left)
-  // rows[2] = [11,12,13,14,15] (L→R) …
-  const rows = [];
-  for (let r = 0; r < Math.ceil(TOTAL_LEVELS / LEVELS_PER_ROW); r++) {
-    const start = r * LEVELS_PER_ROW + 1;
-    const end   = Math.min(start + LEVELS_PER_ROW - 1, TOTAL_LEVELS);
-    const lvls  = Array.from({ length: end - start + 1 }, (_, i) => start + i);
-    rows.push(r % 2 === 0 ? lvls : [...lvls].reverse());
-  }
-
-  // The last row is row index 9 (levels 46–50), which is even → exits right.
-  // Trophy sits to the LEFT (where level 51 would start, i.e. left side).
-  // Actually rows 0,2,4,6,8 exit right → trophy on left
-  //          rows 1,3,5,7,9 exit left  → trophy on right
-  // Last row index = 9 (even) → exits right → trophy on LEFT.
-  const lastRowExitsRight = (rows.length - 1) % 2 === 0;
-
-  return (
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
-      height: "100%",
-      fontFamily: "Fredoka, sans-serif",
-      background: "#FFF7F5",
-      overflow: "hidden",
-    }}>
-      {/* Header */}
-      <div style={{
-        flexShrink: 0,
-        background: `linear-gradient(135deg, ${HEADER_COLOR}, #FF8C69)`,
-        borderBottomLeftRadius: 28,
-        borderBottomRightRadius: 28,
-        padding: "12px 20px 18px",
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        boxShadow: `0 6px 24px ${HEADER_COLOR}44`,
-      }}>
-        <BackArrow onPress={onBack} />
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: "white", margin: 0 }}>
-          🍎 {lang === "zh" ? "短元音 a" : "Short a"}
-        </h1>
-      </div>
-
-      {/* Snake path */}
-      <div style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: "28px 16px calc(32px + env(safe-area-inset-bottom,0px))",
-      }}>
-        {rows.map((row, ri) => {
-          const isLastRow  = ri === rows.length - 1;
-          const exitRight  = ri % 2 === 0; // true for rows 0,2,4,6,8
-
-          return (
-            <motion.div
-              key={ri}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: ri * 0.045, type: "spring", stiffness: 260, damping: 26 }}
-            >
-              {/* Row of nodes */}
-              <div style={{ display: "flex", alignItems: "center" }}>
-                {row.map((lvl, idx) => (
-                  <div key={lvl} style={{ display: "flex", alignItems: "center", flex: idx < row.length - 1 ? 1 : 0 }}>
-                    <LevelNode levelNum={lvl} onTap={onSelectLevel || (() => {})} />
-                    {idx < row.length - 1 && <HorizPath />}
-                  </div>
-                ))}
-              </div>
-
-              {/* Turn arc to next row */}
-              {!isLastRow && <TurnConnector exitRight={exitRight} />}
-            </motion.div>
-          );
-        })}
-
-        {/* Trophy — positioned under the first node of where level 51 would be */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6, type: "spring", stiffness: 240, damping: 18 }}
-          style={{
-            display: "flex",
-            // Last row (row 9) exits right → next start is on the left
-            justifyContent: lastRowExitsRight ? "flex-start" : "flex-end",
-            paddingLeft:  lastRowExitsRight ? 0        : undefined,
-            paddingRight: lastRowExitsRight ? undefined : 0,
-          }}
-        >
-          <div style={{
-            width: NODE_SIZE + 8,
-            height: NODE_SIZE + 8,
-            borderRadius: "50%",
-            background: "linear-gradient(145deg, #FFD93D, #FF9F43)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 26,
-            boxShadow: "0 5px 0 #cc810099, 0 8px 24px rgba(255,159,67,0.45)",
-          }}>
-            🏆
-          </div>
-        </motion.div>
-      </div>
-    </div>
   );
 }
