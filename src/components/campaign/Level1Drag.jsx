@@ -177,14 +177,7 @@ export default function Level1Drag({ card, onComplete, lang = "en" }) {
           })}
         </div>
 
-        {/* Status */}
-        <p style={{ fontSize: 15, color: "#4A90C4", fontWeight: 600, textAlign: "center", flexShrink: 0 }}>
-          {completing
-            ? (lang === "zh" ? "🎉 好极了！听一听……" : "🎉 Great job! Listen...")
-            : progress === 0
-            ? (lang === "zh" ? "拖动字母来拼写单词！" : "Drag the letters to spell the word!")
-            : (lang === "zh" ? `已放置 ${progress} 个，共 ${round.letters.length} 个` : `${progress} of ${round.letters.length} placed`)}
-        </p>
+
 
         {/* Letter tiles */}
         <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", flexShrink: 0, paddingBottom: 4 }}>
