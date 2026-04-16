@@ -9,6 +9,7 @@ import Games from "../pages/Games";
 import Album from "../pages/Album";
 import CampaignHome from "./campaign/CampaignHome";
 import ShortALevels from "./campaign/ShortALevels";
+import CampaignLevel1 from "./campaign/CampaignLevel1";
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("home");
@@ -25,7 +26,7 @@ export default function AppShell() {
 
   const handleHomeNavigate = (screen) => {
     setHomeSubScreen(screen);
-    if (screen === "campaign" || screen === "campaign-short-a") {
+    if (screen === "campaign" || screen === "campaign-short-a" || screen === "campaign-level-1") {
       setIsDeepScreen(true);
     }
   };
@@ -47,13 +48,21 @@ export default function AppShell() {
             />
           );
         }
+        if (homeSubScreen === "campaign-level-1") {
+          return (
+            <CampaignLevel1
+              onBack={() => setHomeSubScreen("campaign-short-a")}
+              lang={language}
+            />
+          );
+        }
         if (homeSubScreen === "campaign-short-a") {
           return (
             <ShortALevels
               onBack={() => setHomeSubScreen("campaign")}
-              onSelectLevel={(lvl) => {
-                // placeholder: level content not built yet
-                console.log("Selected level", lvl);
+              onSelectLevel={(lvl) => console.log("Level", lvl, "not yet built")}
+              onStartLevel={(lvl) => {
+                if (lvl === 1) setHomeSubScreen("campaign-level-1");
               }}
               lang={language}
             />
