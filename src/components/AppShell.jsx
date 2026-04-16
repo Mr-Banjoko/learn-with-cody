@@ -133,18 +133,11 @@ export default function AppShell() {
           flexDirection: "column",
         }}
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-            style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
-          >
-            {renderPage()}
-          </motion.div>
-        </AnimatePresence>
+        <div
+          style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
+        >
+          {renderPage()}
+        </div>
       </div>
 
       {/* Tab Bar */}
