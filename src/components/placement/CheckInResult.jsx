@@ -147,8 +147,12 @@ export default function CheckInResult({ result, onDone, lang = "en" }) {
 
       {/* Done button */}
       <div style={{ padding: "0 24px calc(28px + env(safe-area-inset-bottom, 0px))", flexShrink: 0 }}>
-        <button
+        <motion.button
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.3 }}
           onClick={onDone}
+          whileTap={{ scale: 0.95 }}
           style={{
             width: "100%",
             background: badge.gradient,
@@ -160,7 +164,7 @@ export default function CheckInResult({ result, onDone, lang = "en" }) {
           }}
         >
           {lang === "zh" ? "太棒了！🎉" : "Awesome! 🎉"}
-        </button>
+        </motion.button>
       </div>
     </div>
   );

@@ -168,7 +168,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en", onRoundComplete,
             const colorSet = SPEAKER_COLORS[idx % SPEAKER_COLORS.length];
             const isSelected = selected?.letter === letter;
             return (
-              <motion.div
+              <motion.button
                 key={`${round.target}-${letter}-${idx}`}
                 onClick={() => handleSpeakerTap(letter, idx)}
                 whileTap={{ scale: 0.91 }}
@@ -213,7 +213,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en", onRoundComplete,
                     opacity="0.6"
                   />
                 </svg>
-              </motion.div>
+              </motion.button>
             );
           })}
         </motion.div>
@@ -230,7 +230,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en", onRoundComplete,
           marginBottom: 20,
         }}
       >
-        <motion.div
+        <motion.button
           onClick={handleSubmit}
           whileTap={selected && !showNext ? { scale: 0.95 } : {}}
           style={{
@@ -253,7 +253,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en", onRoundComplete,
           }}
         >
           {tx("Submit ✓", "submit_btn", lang)}
-        </motion.div>
+        </motion.button>
       </div>
 
       {/* Next button — bottom right, below submit */}
@@ -270,7 +270,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en", onRoundComplete,
       >
         <AnimatePresence>
           {showNext && (
-            <motion.div
+            <motion.button
               initial={{ opacity: 0, scale: 0.7, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.7 }}
@@ -292,7 +292,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en", onRoundComplete,
               }}
             >
               {tx("Next →", "next_btn", lang)}
-            </motion.div>
+            </motion.button>
           )}
         </AnimatePresence>
       </div>

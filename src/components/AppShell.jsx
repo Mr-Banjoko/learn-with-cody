@@ -73,9 +73,7 @@ export default function AppShell() {
             <CampaignHome
               onBack={() => { setHomeSubScreen(null); setIsDeepScreen(false); }}
               onSelectVowel={(id) => {
-                setTimeout(() => {
-                  if (id === "short-a") setHomeSubScreen("campaign-short-a");
-                }, 0);
+                if (id === "short-a") setHomeSubScreen("campaign-short-a");
               }}
               lang={language}
             />
@@ -135,11 +133,18 @@ export default function AppShell() {
           flexDirection: "column",
         }}
       >
-        <div
-          style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
-        >
-          {renderPage()}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+            style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}
+          >
+            {renderPage()}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Tab Bar */}

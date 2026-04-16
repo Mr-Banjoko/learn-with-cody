@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 
 const VOWEL_FOLDERS = [
@@ -43,9 +44,13 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
             {lang === "zh" ? "选择你的元音冒险！" : "Pick your vowel adventure!"}
           </p>
         </div>
-        <div style={{ fontSize: 36 }}>
+        <motion.div
+          animate={{ rotate: [0, 10, -10, 0] }}
+          transition={{ repeat: Infinity, duration: 3, repeatDelay: 2 }}
+          style={{ fontSize: 36 }}
+        >
           🏆
-        </div>
+        </motion.div>
       </div>
 
       {/* Vowel folder list */}
@@ -60,8 +65,12 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
         }}
       >
         {VOWEL_FOLDERS.map((folder, i) => (
-          <div
+          <motion.button
             key={folder.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.08, type: "spring", stiffness: 260, damping: 22 }}
+            whileTap={folder.available ? { scale: 0.97 } : {}}
             onClick={() => folder.available && onSelectVowel(folder.id)}
             style={{
               display: "flex",
@@ -78,12 +87,7 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
               width: "100%",
               fontFamily: "Fredoka, sans-serif",
               WebkitTapHighlightColor: "transparent",
-              boxSizing: "border-box",
-              transition: "transform 0.1s, opacity 0.1s",
             }}
-            onPointerDown={e => { if (folder.available) e.currentTarget.style.transform = "scale(0.97)"; }}
-            onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
-            onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
           >
             {/* Vowel badge */}
             <div
@@ -162,7 +166,7 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
             ) : (
               <span style={{ fontSize: 22, flexShrink: 0 }}>🔒</span>
             )}
-          </div>
+          </motion.button>
         ))}
       </div>
     </div>

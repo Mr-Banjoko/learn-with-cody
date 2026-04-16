@@ -437,7 +437,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en", onRoundComplete, 
 
       {/* Submit */}
       <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", padding: "0 24px 20px" }}>
-        <motion.div
+        <motion.button
           onClick={handleSubmit}
           whileTap={placedIdx !== null ? { scale: 0.95 } : {}}
           style={{
@@ -453,7 +453,7 @@ export default function LetterIsSoundIs({ onBack, lang = "en", onRoundComplete, 
           }}
         >
           submit ✓
-        </motion.div>
+        </motion.button>
       </div>
 
       <div style={{ flexShrink: 0, height: "calc(28px + env(safe-area-inset-bottom, 0px))" }} />
