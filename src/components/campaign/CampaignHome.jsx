@@ -134,14 +134,7 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
         }}
       >
         {["⭐", "🌟", "✨", "🌟", "⭐"].map((s, i) => (
-          <motion.span
-            key={i}
-            animate={{ y: [0, -4, 0] }}
-            transition={{ repeat: Infinity, duration: 1.8, delay: i * 0.2 }}
-            style={{ fontSize: 16, opacity: 0.7 }}
-          >
-            {s}
-          </motion.span>
+          <span key={i} style={{ fontSize: 16, opacity: 0.7 }}>{s}</span>
         ))}
       </motion.div>
 
@@ -226,17 +219,11 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
               </p>
               {folder.available && (
                 <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
-                  {[...Array(5)].map((_, s) => (
-                    <div
-                      key={s}
-                      style={{
-                        width: 18,
-                        height: 5,
-                        borderRadius: 4,
-                        background: s === 0 ? folder.color : `${folder.color}30`,
-                      }}
-                    />
-                  ))}
+                  <div style={{ width: 18, height: 5, borderRadius: 4, background: folder.color }} />
+                  <div style={{ width: 18, height: 5, borderRadius: 4, background: `${folder.color}30` }} />
+                  <div style={{ width: 18, height: 5, borderRadius: 4, background: `${folder.color}30` }} />
+                  <div style={{ width: 18, height: 5, borderRadius: 4, background: `${folder.color}30` }} />
+                  <div style={{ width: 18, height: 5, borderRadius: 4, background: `${folder.color}30` }} />
                 </div>
               )}
             </div>
