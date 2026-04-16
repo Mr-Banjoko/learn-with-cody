@@ -118,26 +118,28 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
                 onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
                 style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
               />
-              <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
-                <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
-              </button>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        <AnimatePresence>
-          {customImage && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              onClick={handleSave}
-              style={{ position: "absolute", top: 18, left: 18, width: 48, height: 48, borderRadius: 24, background: justSaved ? "#4ECDC4" : "#5B8DEF", color: "white", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(91,141,239,0.40)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3, transition: "background 0.3s", touchAction: "manipulation" }}
-            >
-              {justSaved ? <Check size={22} /> : <BookImage size={22} />}
-            </motion.button>
-          )}
-        </AnimatePresence>
+              {/* Camera + Save buttons container */}
+              <div style={{ position: "absolute", bottom: 18, right: 18, display: "flex", gap: 10, alignItems: "center", zIndex: 2 }}>
+                <AnimatePresence>
+                  {customImage && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      onClick={handleSave}
+                      style={{ width: 44, height: 44, borderRadius: 22, background: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", transition: "background 0.3s", touchAction: "manipulation" }}
+                    >
+                      {justSaved ? <Check size={20} color="#4ECDC4" /> : <BookImage size={20} color="#4A90C4" />}
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+                <button onClick={handleCamera} style={{ width: 44, height: 44, borderRadius: 22, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Camera size={20} color="#A8D0E6" strokeWidth={2.2} />
+                </button>
+              </div>
+              </motion.div>
+              </AnimatePresence>
+              </div>
 
         {/* Letter blocks + play button */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, zIndex: 1 }}>
