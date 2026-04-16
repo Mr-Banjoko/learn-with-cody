@@ -78,8 +78,7 @@ export default function Home({ onNavigate, lang = "en" }) {
           </span>
         </motion.div>
 
-        <motion.button
-          type="button"
+        <motion.div
           key={1}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -87,7 +86,6 @@ export default function Home({ onNavigate, lang = "en" }) {
           whileTap={{ scale: 0.97 }}
           onClick={() => onNavigate?.("checkin")}
           style={{
-            ...buttonReset,
             flex: 1,
             height: 130,
             borderRadius: 22,
@@ -104,7 +102,6 @@ export default function Home({ onNavigate, lang = "en" }) {
             overflow: "hidden",
             WebkitTapHighlightColor: "transparent",
           }}
-          aria-label={lang === "zh" ? "声音冒险" : "Sound Adventure"}
         >
           {placement ? (
             <>
@@ -157,7 +154,7 @@ export default function Home({ onNavigate, lang = "en" }) {
               }}
             />
           )}
-        </motion.button>
+        </motion.div>
       </div>
 
       <motion.div
@@ -181,15 +178,13 @@ export default function Home({ onNavigate, lang = "en" }) {
       </motion.div>
 
       <div style={{ display: "flex", justifyContent: "center", flex: "0 0 auto" }}>
-        <motion.button
-          type="button"
+        <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.24, type: "spring", stiffness: 280, damping: 22 }}
           whileTap={{ scale: 0.96 }}
           onClick={() => onNavigate?.("campaign")}
           style={{
-            ...buttonReset,
             width: "58%",
             height: 110,
             borderRadius: 22,
@@ -229,7 +224,7 @@ export default function Home({ onNavigate, lang = "en" }) {
           >
             {lang === "zh" ? "学习征程" : "Campaign"}
           </span>
-        </motion.button>
+        </motion.div>
       </div>
 
       <motion.div
