@@ -7,7 +7,7 @@ import CodyCheckIn from "./placement/CodyCheckIn";
 import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
 import Album from "../pages/Album";
-import CampaignHome from "./campaign/CampaignHome";
+import CampaignHome from "./campaign/CampaignHome.jsx";
 import ShortALevels from "./campaign/ShortALevels";
 
 export default function AppShell() {
