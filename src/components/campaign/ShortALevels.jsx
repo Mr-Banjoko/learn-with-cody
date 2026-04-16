@@ -4,7 +4,8 @@ import BackArrow from "../BackArrow";
 const TOTAL_LEVELS = 50;
 // Winding path: 5 columns across the screen, offset left%
 // Values chosen so nothing goes off-screen on a 375px phone
-const PATH_OFFSETS = [-34, -17, 0, 17, 34, 17, 0, -17]; // relative to 50%
+// Smooth S-curve: sweeps fully left → right → left across the screen
+const PATH_OFFSETS = [-38, -32, -18, 0, 18, 32, 38, 32, 18, 0, -18, -32];
 
 function getLeftPct(idx) {
   return 50 + PATH_OFFSETS[idx % PATH_OFFSETS.length];
