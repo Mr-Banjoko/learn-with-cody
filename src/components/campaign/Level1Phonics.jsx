@@ -18,12 +18,14 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const saveTimerRef = useRef(null);
 
   useEffect(() => {
     cancelSequence();
     setActiveLetterIndex(null);
     setCustomImage(null);
     setJustSaved(false);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
   }, [card.word]);
 
   useEffect(() => {
@@ -76,21 +78,22 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
     e.target.value = "";
   };
 
-  const handleSave = async () => {
-    // Store structured data — not a screenshot — so Album can render clean interactive card
-    const imageToSave = customImage || card.image;
-    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    album.push({
-      id: Date.now(),
-      word: card.word,
-      image: imageToSave,
-      audio: card.audio || null,
-      date: new Date().toLocaleDateString(),
-    });
-    localStorage.setItem("cody_album", JSON.stringify(album));
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 2000);
-  };
+  const handleSave = useCallback(() => {
+   // Store structured data — not a screenshot — so Album can render clean interactive card
+   const imageToSave = customImage || card.image;
+   const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+   album.push({
+     id: Date.now(),
+     word: card.word,
+     image: imageToSave,
+     audio: card.audio || null,
+     date: new Date().toLocaleDateString(),
+   });
+   localStorage.setItem("cody_album", JSON.stringify(album));
+   setJustSaved(true);
+   if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+   saveTimerRef.current = setTimeout(() => setJustSaved(false), 2000);
+  }, [customImage, card]);
 
   const currentImage = customImage || card.image;
 
