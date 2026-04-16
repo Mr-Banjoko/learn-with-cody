@@ -20,13 +20,32 @@ export default function Album({ lang = "en", onBack }) {
     setIndex((prev) => Math.min(prev, updated.length - 1));
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     const item = items[index];
     if (!item) return;
+
+    // Convert base64 dataURL to blob
+    const res = await fetch(item.snapshot);
+    const blob = await res.blob();
+    const file = new File([blob], `${item.word || "flashcard"}.png`, { type: "image/png" });
+
+    // Use Web Share API (iOS/Android native share → "Save to Photos")
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: item.word || "Flashcard" });
+        return;
+      } catch (e) {
+        // user cancelled or share failed — fall through to download
+      }
+    }
+
+    // Fallback: trigger download
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = item.snapshot;
-    a.download = `${item.word || "flashcard"}.png`;
+    a.href = url;
+    a.download = file.name;
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (items.length === 0) {
