@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 const GAME_ICONS = ["🅰️", "🔊", "🔤", "🧠"];
 const GAME_COLORS = ["#C77DFF", "#4ECDC4", "#4D96FF", "#FFD93D"];
 
-export default function CheckInProgressBar({ gameIdx, roundsDone, totalRounds, onQuit }) {
+export default function CheckInProgressBar({ gameIdx = 0, roundsDone = 0, totalRounds = 1, onQuit }) {
   return (
     <div
       style={{
@@ -66,7 +66,7 @@ export default function CheckInProgressBar({ gameIdx, roundsDone, totalRounds, o
 
       {/* Round dots */}
       <div style={{ display: "flex", justifyContent: "center", gap: 7 }}>
-        {Array.from({ length: totalRounds }).map((_, i) => (
+        {Array.from({ length: totalRounds || 1 }).map((_, i) => (
           <motion.div
             key={i}
             initial={false}

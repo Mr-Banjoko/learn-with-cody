@@ -163,8 +163,8 @@ export default function CodyCheckIn({ onBack, onDeepScreen, lang = "en" }) {
         >
           <CheckInProgressBar
             gameIdx={gameIdx}
-            roundsDone={roundsDone.current[gameIdx]}
-            totalRounds={targetRounds[gameIdx]}
+            roundsDone={roundsDone.current[gameIdx] ?? 0}
+            totalRounds={targetRounds[gameIdx] ?? CORE_ROUNDS[gameIdx] ?? 1}
             onQuit={handleQuit}
           />
           <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
