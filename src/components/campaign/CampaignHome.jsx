@@ -65,12 +65,8 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
         }}
       >
         {VOWEL_FOLDERS.map((folder, i) => (
-          <motion.div
+          <div
             key={folder.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.08, type: "spring", stiffness: 260, damping: 22 }}
-            whileTap={folder.available ? { scale: 0.97 } : {}}
             onClick={() => folder.available && onSelectVowel(folder.id)}
             style={{
               display: "flex",
@@ -88,7 +84,11 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
               fontFamily: "Fredoka, sans-serif",
               WebkitTapHighlightColor: "transparent",
               boxSizing: "border-box",
+              transition: "transform 0.1s, opacity 0.1s",
             }}
+            onPointerDown={e => { if (folder.available) e.currentTarget.style.transform = "scale(0.97)"; }}
+            onPointerUp={e => { e.currentTarget.style.transform = "scale(1)"; }}
+            onPointerLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}
           >
             {/* Vowel badge */}
             <div
@@ -167,7 +167,7 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
             ) : (
               <span style={{ fontSize: 22, flexShrink: 0 }}>🔒</span>
             )}
-          </motion.div>
+          </div>
         ))}
       </div>
     </div>
