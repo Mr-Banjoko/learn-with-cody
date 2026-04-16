@@ -9,6 +9,7 @@ const VOWEL_FOLDERS = [
   { id: "short-u", vowel: "u", label: "Short u", labelZh: "短元音 u", color: "#C77DFF", bg: "#F5F0FF", emoji: "☂️", available: false },
 ];
 
+// v2
 export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
   return (
     <div
