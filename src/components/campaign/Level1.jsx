@@ -84,37 +84,11 @@ export default function Level1({ onBack, lang = "en" }) {
 
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
-            🍎 {lang === "zh" ? "第 1 关" : "Level 1"}
-          </p>
-          <p style={{ margin: 0, fontSize: 11, color: "#64748B" }}>
-            {done
-              ? (lang === "zh" ? "完成！" : "Complete!")
-              : `${lang === "zh" ? "第" : "Round"} ${roundIndex + 1} / ${TOTAL_ROUNDS}`}
+            {lang === "zh" ? "第 1 关" : "Level 1"}
           </p>
         </div>
 
-        {/* Round type pill */}
-        {!done && (
-          <div
-            style={{
-              background: round.type === "phonics" ? "#EFF6FF" : "#FFF0F6",
-              border: `1.5px solid ${round.type === "phonics" ? "#93C5FD" : "#FFAFC5"}`,
-              borderRadius: 99,
-              padding: "5px 13px",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ fontSize: 13 }}>{round.type === "phonics" ? "📖" : "✋"}</span>
-            <span style={{ color: round.type === "phonics" ? "#2563EB" : "#DB2777", fontWeight: 700, fontSize: 13 }}>
-              {round.type === "phonics"
-                ? (lang === "zh" ? "学习" : "Learn")
-                : (lang === "zh" ? "拼写" : "Spell")}
-            </span>
-          </div>
-        )}
+
       </div>
 
       {/* Progress bar */}
