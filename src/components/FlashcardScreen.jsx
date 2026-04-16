@@ -209,6 +209,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                      >
                        <button
                          onClick={handleSave}
+                         onTouchStart={(e) => { e.preventDefault(); handleSave(); }}
                          style={{ width: 44, height: 44, borderRadius: 22, background: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", transition: "all 0.3s", touchAction: "manipulation" }}
                        >
                          {justSaved ? <Check size={20} color="#4ECDC4" strokeWidth={3} /> : (
