@@ -9,6 +9,31 @@ import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
+// Pure save function — explicit parameters, no closures
+function saveToAlbum(word, imageData, audioUrl) {
+  try {
+    if (!word || !imageData) {
+      console.warn("saveToAlbum: missing word or imageData");
+      return false;
+    }
+    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+    if (!Array.isArray(album)) throw new Error("Corrupt album");
+    
+    album.push({
+      id: Date.now() + Math.random(),
+      word,
+      image: imageData,
+      audio: audioUrl || null,
+      date: new Date().toLocaleDateString(),
+    });
+    localStorage.setItem("cody_album", JSON.stringify(album));
+    return true;
+  } catch (error) {
+    console.error("saveToAlbum failed:", error);
+    return false;
+  }
+}
+
 
 
 function LetterBlock({ letter, index }) {
@@ -39,16 +64,13 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const activeTimerRef = useRef(null);
   const captureRef = useRef(null);
   const fileInputRef = useRef(null);
-  const cardRef = useRef(null);
-  const customImageRef = useRef(null);
   const saveTimerRef = useRef(null);
+  // Card-scoped ID: new for each card index
+  const cardIdRef = useRef(`card-${index}-${Date.now()}`);
 
-  // Keep refs in sync with current state — these never go stale
-  cardRef.current = wordList[index];
-  customImageRef.current = customImages[index] || null;
-
-  // Cancel any running sequence when card changes
+  // Card changed: reset animation sequence and update card ID
   useEffect(() => {
+    cardIdRef.current = `card-${index}-${Date.now()}`;
     cancelSequence();
     setActiveLetterIndex(null);
   }, [index]);
@@ -138,48 +160,20 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     e.target.value = "";
   };
 
-  const handleSave = () => {
-     // Always read from refs to avoid stale closures across card transitions
-     const currentCard = cardRef.current;
-     const currentImage = customImageRef.current;
+  // Save handler: explicit card data, no closure dependency
+  const handleSave = useCallback(() => {
+    const card = wordList[index];
+    if (!card || !card.word || !card.image) return;
 
-     // Validate before save
-     if (!currentCard || !currentCard.word || !currentCard.image) {
-       console.warn("Save: Missing card data", { currentCard });
-       return;
-     }
+    const imageToSave = customImages[index] || card.image;
+    const success = saveToAlbum(card.word, imageToSave, card.audio);
 
-     if (justSaved) return; // Prevent double-saves
-
-     const imageToSave = currentImage || currentCard.image;
-     if (!imageToSave) {
-       console.warn("Save: No image to save");
-       return;
-     }
-
-     try {
-       const albumData = localStorage.getItem("cody_album");
-       const album = albumData ? JSON.parse(albumData) : [];
-       if (!Array.isArray(album)) {
-         throw new Error("Album data is corrupted");
-       }
-
-       album.push({
-         id: Date.now() + Math.random(),
-         word: currentCard.word,
-         image: imageToSave,
-         audio: currentCard.audio || null,
-         date: new Date().toLocaleDateString(),
-       });
-
-       localStorage.setItem("cody_album", JSON.stringify(album));
-       setJustSaved(true);
-       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-       saveTimerRef.current = setTimeout(() => setJustSaved(false), 2500);
-     } catch (error) {
-       console.error("Save failed:", error);
-     }
-   };
+    if (success) {
+      setJustSaved(true);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => setJustSaved(false), 2500);
+    }
+  }, [index, wordList, customImages]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
@@ -206,6 +200,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                  <div style={{ position: "absolute", bottom: 18, right: 18, display: "flex", gap: 10, alignItems: "center", zIndex: 2 }}>
                    {hasCustom && (
                      <motion.div
+                       key={`save-${cardIdRef.current}`}
                        initial={{ opacity: 0, scale: 0.8 }}
                        animate={{ opacity: 1, scale: 1 }}
                        exit={{ opacity: 0, scale: 0.8 }}

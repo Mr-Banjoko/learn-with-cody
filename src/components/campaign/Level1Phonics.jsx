@@ -1,6 +1,7 @@
 /**
- * Level1Phonics — wraps the existing FlashcardScreen for a single word.
- * Shows only that one word; "Next" calls onNext(); no back/navigation noise.
+ * Level1Phonics — NEW ARCHITECTURE
+ * Round-scoped save state: each round gets its own explicit state
+ * Save logic is deterministic and not dependent on motion animation event capture
  */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,22 +12,48 @@ import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../l
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
+// Pure save function — no closures, explicit parameters
+function saveToAlbum(word, imageData, audioUrl) {
+  try {
+    if (!word || !imageData) {
+      console.warn("saveToAlbum: missing word or imageData");
+      return false;
+    }
+    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+    if (!Array.isArray(album)) throw new Error("Corrupt album");
+    
+    album.push({
+      id: Date.now() + Math.random(),
+      word,
+      image: imageData,
+      audio: audioUrl || null,
+      date: new Date().toLocaleDateString(),
+    });
+    localStorage.setItem("cody_album", JSON.stringify(album));
+    return true;
+  } catch (error) {
+    console.error("saveToAlbum failed:", error);
+    return false;
+  }
+}
+
 export default function Level1Phonics({ card, onNext, lang = "en" }) {
+  // Round-scoped state: fresh per card load
   const [customImage, setCustomImage] = useState(null);
   const [justSaved, setJustSaved] = useState(false);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
+  
+  // Tracking refs
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
   const saveTimerRef = useRef(null);
-  const cardRef = useRef(null);
-  const customImageRef = useRef(null);
-
-  // Keep refs in sync with current state — these never go stale
-  cardRef.current = card;
-  customImageRef.current = customImage;
+  // Round-scoped ID: changes when card changes
+  const roundIdRef = useRef(`${card.word}-${Date.now()}`);
 
   useEffect(() => {
+    // NEW ROUND: Reset all state, create new round ID
+    roundIdRef.current = `${card.word}-${Date.now()}`;
     cancelSequence();
     setActiveLetterIndex(null);
     setCustomImage(null);
@@ -84,31 +111,18 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
     e.target.value = "";
   };
 
-  const handleSave = () => {
-   // Always read from refs to avoid stale closures across round transitions
-   const currentCard = cardRef.current;
-   const currentImage = customImageRef.current;
+  // Save handler: explicit parameters, no closure dependency
+  const handleSave = useCallback(() => {
+    if (!customImage && !card.image) return;
+    const imageToSave = customImage || card.image;
+    const success = saveToAlbum(card.word, imageToSave, card.audio);
 
-   if (!currentCard || !currentCard.image) return;
-
-   const imageToSave = currentImage || currentCard.image;
-   try {
-     const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-     album.push({
-       id: Date.now(),
-       word: currentCard.word,
-       image: imageToSave,
-       audio: currentCard.audio || null,
-       date: new Date().toLocaleDateString(),
-     });
-     localStorage.setItem("cody_album", JSON.stringify(album));
-     setJustSaved(true);
-     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-     saveTimerRef.current = setTimeout(() => setJustSaved(false), 2000);
-   } catch (error) {
-     console.error("Save failed:", error);
-   }
-  };
+    if (success) {
+      setJustSaved(true);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => setJustSaved(false), 2500);
+    }
+  }, [card.word, card.image, card.audio, customImage]);
 
   const currentImage = customImage || card.image;
 
@@ -138,13 +152,16 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
               />
               {/* Camera + Save buttons container */}
               <div style={{ position: "absolute", bottom: 18, right: 18, display: "flex", gap: 10, alignItems: "center", zIndex: 2 }}>
-                <AnimatePresence>
-                  {customImage && (
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      onPointerDown={(e) => { e.preventDefault(); handleSave(); }}
+                {customImage && (
+                  <motion.div
+                    key={`save-${roundIdRef.current}`}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <button
+                      onClick={handleSave}
                       style={{ width: 44, height: 44, borderRadius: 22, background: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", transition: "all 0.3s", touchAction: "manipulation" }}
                     >
                       {justSaved ? <Check size={20} color="#4ECDC4" strokeWidth={3} /> : (
@@ -154,9 +171,9 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
                           <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
                       )}
-                    </motion.button>
-                  )}
-                </AnimatePresence>
+                    </button>
+                  </motion.div>
+                )}
                 <button onClick={handleCamera} style={{ width: 44, height: 44, borderRadius: 22, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Camera size={20} color="#A8D0E6" strokeWidth={2.2} />
                 </button>
