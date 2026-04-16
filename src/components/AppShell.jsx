@@ -73,7 +73,9 @@ export default function AppShell() {
             <CampaignHome
               onBack={() => { setHomeSubScreen(null); setIsDeepScreen(false); }}
               onSelectVowel={(id) => {
-                if (id === "short-a") setHomeSubScreen("campaign-short-a");
+                setTimeout(() => {
+                  if (id === "short-a") setHomeSubScreen("campaign-short-a");
+                }, 0);
               }}
               lang={language}
             />

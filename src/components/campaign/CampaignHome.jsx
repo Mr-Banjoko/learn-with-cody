@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 
 const VOWEL_FOLDERS = [
@@ -44,13 +43,9 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
             {lang === "zh" ? "选择你的元音冒险！" : "Pick your vowel adventure!"}
           </p>
         </div>
-        <motion.div
-          animate={{ rotate: [0, 10, -10, 0] }}
-          transition={{ repeat: Infinity, duration: 3, repeatDelay: 2 }}
-          style={{ fontSize: 36 }}
-        >
+        <div style={{ fontSize: 36 }}>
           🏆
-        </motion.div>
+        </div>
       </div>
 
       {/* Vowel folder list */}
