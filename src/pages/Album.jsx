@@ -156,9 +156,9 @@ export default function Album({ lang = "en", onBack }) {
         ref={captureRef}
         style={{
           flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", padding: "20px 24px 16px",
+          justifyContent: "center", padding: "40px 24px",
           background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
-          overflow: "hidden",
+          overflow: "hidden", minHeight: 0,
         }}
       >
         <AnimatePresence mode="wait">
