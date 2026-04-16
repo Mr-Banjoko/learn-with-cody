@@ -124,7 +124,7 @@ export default function UpperAndLower({ onBack, lang = "en", onRoundComplete, hi
         }}
       >
         <AnimatePresence mode="wait">
-          <motion.button
+          <motion.div
             key={round.displayed}
             initial={{ scale: 0.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -159,7 +159,7 @@ export default function UpperAndLower({ onBack, lang = "en", onRoundComplete, hi
             >
               {round.displayed}
             </span>
-          </motion.button>
+          </motion.div>
         </AnimatePresence>
       </div>
 
@@ -184,7 +184,7 @@ export default function UpperAndLower({ onBack, lang = "en", onRoundComplete, hi
             const colorSet = LETTER_COLORS[idx % LETTER_COLORS.length];
             const isSelected = selected?.letter === letter;
             return (
-              <motion.button
+              <motion.div
                 key={`${round.displayed}-${letter}-${idx}`}
                 onClick={() => handleChoiceTap(letter, idx)}
                 whileTap={{ scale: 0.91 }}
@@ -221,7 +221,7 @@ export default function UpperAndLower({ onBack, lang = "en", onRoundComplete, hi
                 >
                   {letter}
                 </span>
-              </motion.button>
+              </motion.div>
             );
           })}
         </motion.div>
@@ -238,7 +238,7 @@ export default function UpperAndLower({ onBack, lang = "en", onRoundComplete, hi
           marginBottom: 20,
         }}
       >
-        <motion.button
+        <motion.div
           onClick={handleSubmit}
           whileTap={selected && !showNext ? { scale: 0.95 } : {}}
           style={{
@@ -263,7 +263,7 @@ export default function UpperAndLower({ onBack, lang = "en", onRoundComplete, hi
           }}
         >
           {tx("Submit ✓", "submit_btn", lang)}
-        </motion.button>
+        </motion.div>
       </div>
 
       {/* Next button — bottom right */}
@@ -280,7 +280,7 @@ export default function UpperAndLower({ onBack, lang = "en", onRoundComplete, hi
       >
         <AnimatePresence>
           {showNext && (
-            <motion.button
+            <motion.div
               initial={{ opacity: 0, scale: 0.7, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.7 }}
@@ -302,7 +302,7 @@ export default function UpperAndLower({ onBack, lang = "en", onRoundComplete, hi
               }}
             >
               {tx("Next →", "next_btn", lang)}
-            </motion.button>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

@@ -2,6 +2,13 @@ import { motion } from "framer-motion";
 
 const SAVED_KEY = "cody_placement_result";
 
+const bounceCss = `
+@keyframes codyBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+`;
+
 const BADGE_EMOJI = {
   "Sound Explorer": "🌱",
   "Word Builder": "🏗️",
@@ -56,6 +63,7 @@ export default function CheckInIntro({ onStart, onBack, lang = "en" }) {
         </h1>
       </div>
 
+      <style>{bounceCss}</style>
       <div style={{ flex: 1, overflow: "auto", padding: "28px 24px 0" }}>
         {saved ? (
           /* Already completed — show result */
@@ -103,8 +111,7 @@ export default function CheckInIntro({ onStart, onBack, lang = "en" }) {
               </p>
             </div>
 
-            <motion.button
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={handleRetake}
               style={{
                 background: "linear-gradient(135deg, #4ECDC4, #44A08D)",
@@ -116,7 +123,7 @@ export default function CheckInIntro({ onStart, onBack, lang = "en" }) {
               }}
             >
               {lang === "zh" ? "重新游玩 🔄" : "Play Again 🔄"}
-            </motion.button>
+            </button>
           </motion.div>
         ) : (
           /* Not yet completed — show invite */
@@ -126,18 +133,17 @@ export default function CheckInIntro({ onStart, onBack, lang = "en" }) {
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}
           >
             {/* Cody */}
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+            <div
               style={{
                 width: 140, height: 140, borderRadius: 48,
                 background: "linear-gradient(135deg, #FFD93D, #FFAFC5)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 80, boxShadow: "0 12px 40px rgba(255,217,61,0.35)",
+                animation: "codyBounce 2.2s ease-in-out infinite",
               }}
             >
               🦊
-            </motion.div>
+            </div>
 
             <div style={{ textAlign: "center" }}>
               <h2 style={{ fontSize: 28, fontWeight: 700, color: "#1E3A5F", margin: "0 0 8px" }}>
@@ -172,8 +178,7 @@ export default function CheckInIntro({ onStart, onBack, lang = "en" }) {
               ))}
             </div>
 
-            <motion.button
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={onStart}
               style={{
                 background: "linear-gradient(135deg, #4ECDC4, #44A08D)",
@@ -186,7 +191,7 @@ export default function CheckInIntro({ onStart, onBack, lang = "en" }) {
               }}
             >
               {lang === "zh" ? "出发！🚀" : "Let's Go! 🚀"}
-            </motion.button>
+            </button>
           </motion.div>
         )}
       </div>

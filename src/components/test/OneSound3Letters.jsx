@@ -115,7 +115,7 @@ export default function OneSound3Letters({ onBack, lang = "en", onRoundComplete,
           flex: 1,
         }}
       >
-        <motion.button
+        <motion.div
           onClick={handleSpeakerTap}
           whileTap={{ scale: 0.91 }}
           style={{
@@ -153,7 +153,7 @@ export default function OneSound3Letters({ onBack, lang = "en", onRoundComplete,
               opacity="0.6"
             />
           </svg>
-        </motion.button>
+        </motion.div>
       </div>
 
       {/* Letter choice buttons */}
@@ -177,7 +177,7 @@ export default function OneSound3Letters({ onBack, lang = "en", onRoundComplete,
             const colorSet = LETTER_COLORS[idx % LETTER_COLORS.length];
             const isSelected = selected?.letter === letter;
             return (
-              <motion.button
+              <motion.div
                 key={`${round.target}-${letter}-${idx}`}
                 onClick={() => handleLetterTap(letter, idx)}
                 whileTap={{ scale: 0.91 }}
@@ -213,7 +213,7 @@ export default function OneSound3Letters({ onBack, lang = "en", onRoundComplete,
                 >
                   {letter}
                 </span>
-              </motion.button>
+              </motion.div>
             );
           })}
         </motion.div>
@@ -230,7 +230,7 @@ export default function OneSound3Letters({ onBack, lang = "en", onRoundComplete,
           marginBottom: 20,
         }}
       >
-        <motion.button
+        <motion.div
           onClick={handleSubmit}
           whileTap={selected && !showNext ? { scale: 0.95 } : {}}
           style={{
@@ -253,7 +253,7 @@ export default function OneSound3Letters({ onBack, lang = "en", onRoundComplete,
           }}
         >
           {tx("Submit ✓", "submit_btn", lang)}
-        </motion.button>
+        </motion.div>
       </div>
 
       {/* Next button — bottom right */}
@@ -270,7 +270,7 @@ export default function OneSound3Letters({ onBack, lang = "en", onRoundComplete,
       >
         <AnimatePresence>
           {showNext && (
-            <motion.button
+            <motion.div
               initial={{ opacity: 0, scale: 0.7, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.7 }}
@@ -292,7 +292,7 @@ export default function OneSound3Letters({ onBack, lang = "en", onRoundComplete,
               }}
             >
               {tx("Next →", "next_btn", lang)}
-            </motion.button>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
