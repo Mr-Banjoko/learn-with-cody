@@ -162,7 +162,7 @@ export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {
             initial={{ opacity: 0, x: -24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 + i * 0.07, type: "spring", stiffness: 260, damping: 22 }}
-            whileTap={folder.available ? { scale: 0.97 } : {}}
+            whileTap={{ scale: folder.available ? 0.97 : 1 }}
             onClick={() => folder.available && onSelectVowel(folder.id)}
             style={{
               display: "flex",
