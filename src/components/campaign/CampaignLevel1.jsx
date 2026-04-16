@@ -215,7 +215,7 @@ function LearnPhonicsStep({ word, lang, onBack, onNext }) {
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 14px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <BackArrow onPress={onBack} />
         <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E3A5F", marginRight: 40 }}>
-          {lang === "zh" ? "短元音 A" : "Short A"} 🍎
+          {lang === "zh" ? "第 1 关" : "Level 1"}
         </h1>
       </div>
 
@@ -418,9 +418,9 @@ function DragStep({ word, lang, onBack, onComplete }) {
       {/* Header */}
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 14px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <BackArrow onPress={onBack} />
-        <div style={{ flex: 1, textAlign: "center", marginRight: 40 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>{lang === "zh" ? "拖拽字母 ✋" : "Drag the Letters ✋"}</h1>
-        </div>
+        <h1 style={{ flex: 1, textAlign: "center", fontSize: 22, fontWeight: 700, color: "#1E3A5F", marginRight: 40 }}>
+          {lang === "zh" ? "第 1 关" : "Level 1"}
+        </h1>
       </div>
 
       {/* Main content */}
@@ -462,10 +462,7 @@ function DragStep({ word, lang, onBack, onComplete }) {
           })}
         </div>
 
-        {/* Instruction */}
-        <p style={{ fontSize: 15, color: "#4A90C4", fontWeight: 600, textAlign: "center", flexShrink: 0 }}>
-          {completing ? (lang === "zh" ? "🎉 好极了！听一听……" : "🎉 Great job! Listen...") : progress === 0 ? (lang === "zh" ? "拖动字母来拼写单词！" : "Drag the letters to spell the word!") : (lang === "zh" ? `已放置 ${progress} 个，共 ${round.letters.length} 个` : `${progress} of ${round.letters.length} placed`)}
-        </p>
+
 
         {/* Letter tiles */}
         <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", flexShrink: 0, paddingBottom: 4 }}>
