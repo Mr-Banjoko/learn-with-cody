@@ -158,16 +158,8 @@ function LevelNode({ levelNum, color, isMilestone, isFirst, onTap }) {
   const size = isMilestone ? 72 : 64;
 
   return (
-    <motion.button
+    <motion.div
       whileTap={{ scale: 0.84, y: 4 }}
-      animate={isFirst
-        ? { scale: [1, 1.1, 1] }
-        : {}
-      }
-      transition={isFirst
-        ? { repeat: Infinity, duration: 1.8, repeatDelay: 1.2, ease: "easeInOut" }
-        : {}
-      }
       onClick={() => onTap(levelNum)}
       style={{
         width: size,
@@ -179,7 +171,6 @@ function LevelNode({ levelNum, color, isMilestone, isFirst, onTap }) {
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        // 3D bottom shadow — Duolingo style
         boxShadow: `0 7px 0 ${color}99, 0 10px 24px ${color}55`,
         fontFamily: "Fredoka, sans-serif",
         WebkitTapHighlightColor: "transparent",
@@ -188,7 +179,6 @@ function LevelNode({ levelNum, color, isMilestone, isFirst, onTap }) {
         flexShrink: 0,
       }}
     >
-      {/* Star crown for milestone nodes */}
       {isMilestone && (
         <div style={{
           position: "absolute",
@@ -206,9 +196,10 @@ function LevelNode({ levelNum, color, isMilestone, isFirst, onTap }) {
         textShadow: "0 1px 5px rgba(0,0,0,0.25)",
         userSelect: "none",
         lineHeight: 1,
+        pointerEvents: "none",
       }}>
         {levelNum}
       </span>
-    </motion.button>
+    </motion.div>
   );
 }
