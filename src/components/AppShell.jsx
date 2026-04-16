@@ -6,18 +6,28 @@ import Home from "../pages/Home";
 import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
 import Album from "../pages/Album";
+import CampaignHome from "./campaign/CampaignHome.jsx";
+import ShortALevels from "./campaign/ShortALevels.jsx";
+
+// Screens that hide the tab bar and language toggle
+const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a"]);
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("home");
+  const [homeSubScreen, setHomeSubScreen] = useState(null); // null | "campaign" | "campaign-short-a"
   const [childDeepScreen, setChildDeepScreen] = useState(false);
   const [language, setLanguage] = useState(
     () => localStorage.getItem("lang") || "en"
   );
 
-  const isDeepScreen = childDeepScreen;
-  const pageKey = activeTab;
+  const isCampaignFlow = activeTab === "home" && DEEP_HOME_SCREENS.has(homeSubScreen);
+  const isDeepScreen = isCampaignFlow || childDeepScreen;
+
+  // Key drives AnimatePresence transitions
+  const pageKey = `${activeTab}:${homeSubScreen ?? "root"}`;
 
   const handleTabChange = (tab) => {
+    setHomeSubScreen(null);
     setChildDeepScreen(false);
     setActiveTab(tab);
   };
@@ -27,37 +37,60 @@ export default function AppShell() {
     localStorage.setItem("lang", lang);
   };
 
+  const renderHomeScreen = () => {
+    switch (homeSubScreen) {
+      case "campaign-short-a":
+        return (
+          <ShortALevels
+            onBack={() => setHomeSubScreen("campaign")}
+            onSelectLevel={(lvl) => {
+              // Placeholder — level gameplay will be built later
+              console.log("Selected level", lvl);
+            }}
+            lang={language}
+          />
+        );
+
+      case "campaign":
+        return (
+          <CampaignHome
+            onBack={() => setHomeSubScreen(null)}
+            onSelectVowel={(id) => {
+              if (id === "short-a") setHomeSubScreen("campaign-short-a");
+            }}
+            lang={language}
+          />
+        );
+
+      default:
+        return (
+          <Home
+            onNavigate={(screen) => {
+              setChildDeepScreen(false);
+              setHomeSubScreen(screen);
+            }}
+            lang={language}
+          />
+        );
+    }
+  };
+
   const renderPage = () => {
     switch (activeTab) {
       case "home":
-        return <Home lang={language} />;
+        return renderHomeScreen();
 
       case "learn":
-        return (
-          <LearnPhonics
-            onDeepScreen={setChildDeepScreen}
-            lang={language}
-          />
-        );
+        return <LearnPhonics onDeepScreen={setChildDeepScreen} lang={language} />;
 
       case "games":
-        return (
-          <Games
-            onDeepScreen={setChildDeepScreen}
-            lang={language}
-          />
-        );
+        return <Games onDeepScreen={setChildDeepScreen} lang={language} />;
 
       case "album":
         return <Album lang={language} />;
 
       default:
-        return (
-          <LearnPhonics
-            onDeepScreen={setChildDeepScreen}
-            lang={language}
-          />
-        );
+        return <LearnPhonics onDeepScreen={setChildDeepScreen} lang={language} />;
     }
   };
 
@@ -65,8 +98,7 @@ export default function AppShell() {
     <div
       className="fixed inset-0 overflow-hidden"
       style={{
-        background:
-          "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
+        background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
       }}
     >
       {!isDeepScreen && (
@@ -85,10 +117,7 @@ export default function AppShell() {
           }}
         >
           <div style={{ pointerEvents: "auto" }}>
-            <LanguageToggle
-              language={language}
-              onLanguageChange={handleLanguageChange}
-            />
+            <LanguageToggle language={language} onLanguageChange={handleLanguageChange} />
           </div>
         </div>
       )}
@@ -110,9 +139,9 @@ export default function AppShell() {
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={pageKey}
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            exit={{ opacity: 0, x: -24 }}
             transition={{ duration: 0.2 }}
             style={{
               flex: 1,
