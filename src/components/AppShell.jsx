@@ -8,9 +8,10 @@ import Games from "../pages/Games";
 import Album from "../pages/Album";
 import CampaignHome from "./campaign/CampaignHome.jsx";
 import ShortALevels from "./campaign/ShortALevels.jsx";
+import Level1 from "./campaign/Level1.jsx";
 
 // Screens that hide the tab bar and language toggle
-const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a"]);
+const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-a-level-1"]);
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("home");
@@ -39,13 +40,20 @@ export default function AppShell() {
 
   const renderHomeScreen = () => {
     switch (homeSubScreen) {
+      case "campaign-short-a-level-1":
+        return (
+          <Level1
+            onBack={() => setHomeSubScreen("campaign-short-a")}
+            lang={language}
+          />
+        );
+
       case "campaign-short-a":
         return (
           <ShortALevels
             onBack={() => setHomeSubScreen("campaign")}
             onSelectLevel={(lvl) => {
-              // Placeholder — level gameplay will be built later
-              console.log("Selected level", lvl);
+              if (lvl === 1) setHomeSubScreen("campaign-short-a-level-1");
             }}
             lang={language}
           />
