@@ -126,14 +126,14 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
-                      onPointerDown={(e) => { e.preventDefault(); handleSave(); }}
+                      onClick={handleSave}
                       style={{ width: 44, height: 44, borderRadius: 22, background: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", transition: "all 0.3s", touchAction: "manipulation" }}
                     >
                       {justSaved ? <Check size={20} color="#4ECDC4" strokeWidth={3} /> : <BookImage size={20} color="#4A90C4" />}
                     </motion.button>
                   )}
                 </AnimatePresence>
-                <button onPointerDown={(e) => { e.preventDefault(); handleCamera(); }} style={{ width: 44, height: 44, borderRadius: 22, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <button onClick={handleCamera} style={{ width: 44, height: 44, borderRadius: 22, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Camera size={20} color="#A8D0E6" strokeWidth={2.2} />
                 </button>
               </div>
