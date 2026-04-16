@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 
@@ -33,7 +34,7 @@ function offsetToLeft(offset) {
   return 50 + offset * 16;
 }
 
-export default function ShortALevels({ onBack, onSelectLevel, lang = "en", onStartLevel }) {
+export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   const levels = Array.from({ length: TOTAL_LEVELS }, (_, i) => i + 1);
 
   return (
@@ -111,10 +112,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en", onSta
                   color={color}
                   isMilestone={isMilestone}
                   isFirst={isFirst}
-                  onTap={(n) => {
-                    if (n === 1 && onStartLevel) onStartLevel(1);
-                    else if (onSelectLevel) onSelectLevel(n);
-                  }}
+                  onTap={onSelectLevel || (() => {})}
                 />
               </motion.div>
             );
