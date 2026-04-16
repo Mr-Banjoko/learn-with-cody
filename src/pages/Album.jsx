@@ -156,7 +156,7 @@ export default function Album({ lang = "en", onBack }) {
         ref={captureRef}
         style={{
           flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", padding: "20px 24px 16px", gap: 24,
+          justifyContent: "center", padding: "20px 24px 16px",
           background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
           overflow: "hidden",
         }}
@@ -168,7 +168,7 @@ export default function Album({ lang = "en", onBack }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.94 }}
             transition={{ duration: 0.2 }}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, width: "100%" }}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, width: "100%", flexShrink: 0 }}
           >
             {/* Framed image — same pink/yellow decorative design as Level1Phonics */}
             <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
