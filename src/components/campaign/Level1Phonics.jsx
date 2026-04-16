@@ -5,7 +5,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Check, BookImage } from "lucide-react";
-import html2canvas from "html2canvas";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
@@ -18,7 +17,6 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
-  const captureRef = useRef(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -79,13 +77,16 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
   };
 
   const handleSave = async () => {
-    if (!captureRef.current) return;
-    const canvas = await html2canvas(captureRef.current, {
-      scale: 2, useCORS: true, allowTaint: true, backgroundColor: null,
-    });
-    const dataUrl = canvas.toDataURL("image/png");
+    // Store structured data — not a screenshot — so Album can render clean interactive card
+    const imageToSave = customImage || card.image;
     const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    album.push({ id: Date.now(), word: card.word, snapshot: dataUrl, date: new Date().toLocaleDateString() });
+    album.push({
+      id: Date.now(),
+      word: card.word,
+      image: imageToSave,
+      audio: card.audio || null,
+      date: new Date().toLocaleDateString(),
+    });
     localStorage.setItem("cody_album", JSON.stringify(album));
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2000);
@@ -97,7 +98,6 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
     <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif" }}>
       {/* Card area */}
       <div
-        ref={captureRef}
         style={{ flex: 1, padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}
       >
         <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
