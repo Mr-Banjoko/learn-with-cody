@@ -152,50 +152,28 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
         <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E3A5F", marginRight: 40 }}>{screenTitle}</h1>
       </div>
 
-      <div ref={captureRef} style={{ flex: 1, background: "#D6EEFF", padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
-        <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
-          <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
-          <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
-          <AnimatePresence mode="wait">
-            <motion.div key={index} initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }} style={{ position: "relative", zIndex: 1, background: "white", borderRadius: 28, padding: 14, boxShadow: "0 12px 48px rgba(30,58,95,0.15)", width: "100%" }}>
-              <img
-                src={currentImage}
-                alt={card.word}
-                onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
-                style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
-              />
-              <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
-                <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
-              </button>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+      <div style={{ flex: 1, background: "#D6EEFF", padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
+        {/* Capture area: only card + letters, no save button */}
+        <div ref={captureRef} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, width: "100%", background: "#D6EEFF", padding: "20px 0 20px" }}>
+          <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
+            <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
+            <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
+            <AnimatePresence mode="wait">
+              <motion.div key={index} initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }} style={{ position: "relative", zIndex: 1, background: "white", borderRadius: 28, padding: 14, boxShadow: "0 12px 48px rgba(30,58,95,0.15)", width: "100%" }}>
+                <img
+                  src={currentImage}
+                  alt={card.word}
+                  onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
+                  style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
+                />
+                <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
+                  <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
+                </button>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-        <AnimatePresence>
-          {hasCustom && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              onClick={handleSave}
-              style={{
-                position: "absolute", top: 18, left: 18,
-                width: 48, height: 48, borderRadius: 24,
-                background: justSaved ? "#4ECDC4" : "#5B8DEF",
-                color: "white", border: "none", cursor: "pointer",
-                boxShadow: "0 4px 16px rgba(91,141,239,0.40)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                zIndex: 3, transition: "background 0.3s",
-                touchAction: "manipulation",
-              }}
-              aria-label="Save to Album"
-            >
-              {justSaved ? <Check size={22} /> : <BookImage size={22} />}
-            </motion.button>
-          )}
-        </AnimatePresence>
-
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, zIndex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, zIndex: 1 }}>
           {enableLetterSounds ? (
             <>
               {card.word.split("").map((letter, i) => (
@@ -235,7 +213,33 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
               <LetterBlock key={i} letter={letter} index={i} />
             ))
           )}
-        </div>
+          </div>
+        </div>{/* end captureRef */}
+
+        {/* Save button — outside capture area */}
+        <AnimatePresence>
+          {hasCustom && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={handleSave}
+              style={{
+                position: "absolute", top: 18, left: 18,
+                width: 48, height: 48, borderRadius: 24,
+                background: justSaved ? "#4ECDC4" : "#5B8DEF",
+                color: "white", border: "none", cursor: "pointer",
+                boxShadow: "0 4px 16px rgba(91,141,239,0.40)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                zIndex: 3, transition: "background 0.3s",
+                touchAction: "manipulation",
+              }}
+              aria-label="Save to Album"
+            >
+              {justSaved ? <Check size={22} /> : <BookImage size={22} />}
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
 
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 28px", paddingBottom: "calc(12px + env(safe-area-inset-bottom, 8px))", maxWidth: 480, width: "100%", alignSelf: "center", boxSizing: "border-box" }}>
