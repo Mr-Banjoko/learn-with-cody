@@ -139,30 +139,47 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   };
 
   const handleSave = () => {
-    // Always read from refs to avoid stale closures across card transitions
-    const currentCard = cardRef.current;
-    const currentImage = customImageRef.current;
+     // Always read from refs to avoid stale closures across card transitions
+     const currentCard = cardRef.current;
+     const currentImage = customImageRef.current;
 
-    if (!currentCard || !currentCard.image) return;
+     // Validate before save
+     if (!currentCard || !currentCard.word || !currentCard.image) {
+       console.warn("Save: Missing card data", { currentCard });
+       return;
+     }
 
-    const imageToSave = currentImage || currentCard.image;
-    try {
-      const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-      album.push({
-        id: Date.now(),
-        word: currentCard.word,
-        image: imageToSave,
-        audio: currentCard.audio || null,
-        date: new Date().toLocaleDateString(),
-      });
-      localStorage.setItem("cody_album", JSON.stringify(album));
-      setJustSaved(true);
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => setJustSaved(false), 2000);
-    } catch (error) {
-      console.error("Save failed:", error);
-    }
-  };
+     if (justSaved) return; // Prevent double-saves
+
+     const imageToSave = currentImage || currentCard.image;
+     if (!imageToSave) {
+       console.warn("Save: No image to save");
+       return;
+     }
+
+     try {
+       const albumData = localStorage.getItem("cody_album");
+       const album = albumData ? JSON.parse(albumData) : [];
+       if (!Array.isArray(album)) {
+         throw new Error("Album data is corrupted");
+       }
+
+       album.push({
+         id: Date.now() + Math.random(),
+         word: currentCard.word,
+         image: imageToSave,
+         audio: currentCard.audio || null,
+         date: new Date().toLocaleDateString(),
+       });
+
+       localStorage.setItem("cody_album", JSON.stringify(album));
+       setJustSaved(true);
+       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+       saveTimerRef.current = setTimeout(() => setJustSaved(false), 2500);
+     } catch (error) {
+       console.error("Save failed:", error);
+     }
+   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
@@ -187,13 +204,16 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                  />
                  {/* Camera + Save buttons container */}
                  <div style={{ position: "absolute", bottom: 18, right: 18, display: "flex", gap: 10, alignItems: "center", zIndex: 2 }}>
-                   <AnimatePresence>
-                     {hasCustom && (
-                       <motion.button
-                         initial={{ opacity: 0, scale: 0.8 }}
-                         animate={{ opacity: 1, scale: 1 }}
-                         exit={{ opacity: 0, scale: 0.8 }}
-                         onPointerDown={(e) => { e.preventDefault(); handleSave(); }}
+                   {hasCustom && (
+                     <motion.div
+                       initial={{ opacity: 0, scale: 0.8 }}
+                       animate={{ opacity: 1, scale: 1 }}
+                       exit={{ opacity: 0, scale: 0.8 }}
+                       transition={{ duration: 0.2 }}
+                       style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                     >
+                       <button
+                         onClick={handleSave}
                          style={{ width: 44, height: 44, borderRadius: 22, background: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", transition: "all 0.3s", touchAction: "manipulation" }}
                        >
                          {justSaved ? <Check size={20} color="#4ECDC4" strokeWidth={3} /> : (
@@ -203,9 +223,9 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                              <line x1="12" y1="15" x2="12" y2="3" />
                            </svg>
                          )}
-                       </motion.button>
-                     )}
-                   </AnimatePresence>
+                       </button>
+                     </motion.div>
+                   )}
                    <button onClick={handleCamera} style={{ width: 44, height: 44, borderRadius: 22, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                      <Camera size={20} color="#A8D0E6" strokeWidth={2.2} />
                    </button>
