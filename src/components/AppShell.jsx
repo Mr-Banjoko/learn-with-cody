@@ -3,46 +3,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import TabBar from "./TabBar";
 import LanguageToggle from "./LanguageToggle";
 import Home from "../pages/Home";
-import CodyCheckIn from "./placement/CodyCheckIn";
 import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
 import Album from "../pages/Album";
-import CampaignHome from "./campaign/CampaignHome.jsx";
-import ShortALevels from "./campaign/ShortALevels";
-
-const CAMPAIGN_SCREENS = new Set(["campaign", "campaign-short-a"]);
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("home");
-  const [homeSubScreen, setHomeSubScreen] = useState(null);
   const [childDeepScreen, setChildDeepScreen] = useState(false);
   const [language, setLanguage] = useState(
     () => localStorage.getItem("lang") || "en"
   );
 
-  const isCampaignFlow =
-    activeTab === "home" && CAMPAIGN_SCREENS.has(homeSubScreen);
-
-  // Deep screen is now derived for campaign flow, with an optional child override
-  const isDeepScreen = isCampaignFlow || childDeepScreen;
-
-  // Important: include homeSubScreen so Home -> Campaign becomes a real route change
-  const pageKey = `${activeTab}:${homeSubScreen ?? "root"}`;
-
-  const resetHomeState = () => {
-    setHomeSubScreen(null);
-    setChildDeepScreen(false);
-  };
+  const isDeepScreen = childDeepScreen;
+  const pageKey = activeTab;
 
   const handleTabChange = (tab) => {
-    resetHomeState();
-    setActiveTab(tab);
-  };
-
-  const handleHomeNavigate = (screen) => {
-    // Let route determine deep screen for campaign flow
     setChildDeepScreen(false);
-    setHomeSubScreen(screen);
+    setActiveTab(tab);
   };
 
   const handleLanguageChange = (lang) => {
@@ -50,56 +27,10 @@ export default function AppShell() {
     localStorage.setItem("lang", lang);
   };
 
-  const renderHomeScreen = () => {
-    switch (homeSubScreen) {
-      case "checkin":
-        return (
-          <CodyCheckIn
-            onBack={() => {
-              setChildDeepScreen(false);
-              setHomeSubScreen(null);
-            }}
-            onDeepScreen={setChildDeepScreen}
-            lang={language}
-          />
-        );
-
-      case "campaign-short-a":
-        return (
-          <ShortALevels
-            onBack={() => setHomeSubScreen("campaign")}
-            onSelectLevel={(lvl) => {
-              console.log("Selected level", lvl);
-            }}
-            lang={language}
-          />
-        );
-
-      case "campaign":
-        return (
-          <CampaignHome
-            onBack={() => {
-              setHomeSubScreen(null);
-              setChildDeepScreen(false);
-            }}
-            onSelectVowel={(id) => {
-              if (id === "short-a") {
-                setHomeSubScreen("campaign-short-a");
-              }
-            }}
-            lang={language}
-          />
-        );
-
-      default:
-        return <Home onNavigate={handleHomeNavigate} lang={language} />;
-    }
-  };
-
   const renderPage = () => {
     switch (activeTab) {
       case "home":
-        return renderHomeScreen();
+        return <Home lang={language} />;
 
       case "learn":
         return (
