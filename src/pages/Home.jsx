@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
-import { tx } from "../lib/i18n";
 
 const SAVED_KEY = "cody_placement_result";
 
 function getPlacementData() {
-  try { return JSON.parse(localStorage.getItem(SAVED_KEY)); } catch { return null; }
+  try {
+    return JSON.parse(localStorage.getItem(SAVED_KEY));
+  } catch {
+    return null;
+  }
 }
 
 const BADGE_COLORS = {
@@ -12,6 +15,7 @@ const BADGE_COLORS = {
   "Word Builder": "#FFD93D",
   "Reading Star": "#C77DFF",
 };
+
 const BADGE_EMOJI = {
   "Sound Explorer": "🌱",
   "Word Builder": "🏗️",
@@ -19,12 +23,22 @@ const BADGE_EMOJI = {
 };
 
 const BOX_COLORS = [
-  "#4ECDC4", // 1 — teal
-  "#FF6B6B", // 2 — coral
-  "#FFD93D", // 3 — sunny yellow
-  "#6BCB77", // 4 — mint green
-  "#A78BFA", // 5 — soft purple
+  "#4ECDC4",
+  "#FF6B6B",
+  "#FFD93D",
+  "#6BCB77",
+  "#A78BFA",
 ];
+
+const buttonReset = {
+  appearance: "none",
+  border: "none",
+  outline: "none",
+  padding: 0,
+  margin: 0,
+  fontFamily: "inherit",
+  color: "inherit",
+};
 
 export default function Home({ onNavigate, lang = "en" }) {
   const placement = getPlacementData();
@@ -42,74 +56,110 @@ export default function Home({ onNavigate, lang = "en" }) {
         overflow: "hidden",
       }}
     >
-      {/* Row 1: Box 1 + Box 2 side by side */}
       <div style={{ display: "flex", gap: 14, flex: "0 0 auto" }}>
-        {/* Box 1 */}
         <motion.div
           key={0}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0, type: "spring", stiffness: 280, damping: 22 }}
           style={{
-            flex: 1, height: 130, borderRadius: 22,
+            flex: 1,
+            height: 130,
+            borderRadius: 22,
             background: BOX_COLORS[0],
-            display: "flex", alignItems: "center", justifyContent: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             boxShadow: `0 6px 20px ${BOX_COLORS[0]}55`,
           }}
         >
-          <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>1</span>
+          <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>
+            1
+          </span>
         </motion.div>
 
-        {/* Box 2 — Cody's Sound Adventure */}
-        <motion.div
+        <motion.button
+          type="button"
           key={1}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, type: "spring", stiffness: 280, damping: 22 }}
-          onClick={() => onNavigate && onNavigate("checkin")}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => onNavigate?.("checkin")}
           style={{
-            flex: 1, height: 130, borderRadius: 22,
+            ...buttonReset,
+            flex: 1,
+            height: 130,
+            borderRadius: 22,
             background: placement
               ? `linear-gradient(135deg, ${BADGE_COLORS[placement.childBadgeName] || BOX_COLORS[1]}, ${BOX_COLORS[1]})`
               : "linear-gradient(135deg, #FF8C69, #FF6B6B)",
-            display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             boxShadow: `0 6px 20px ${BOX_COLORS[1]}55`,
-            cursor: "pointer", position: "relative", overflow: "hidden",
+            cursor: "pointer",
+            position: "relative",
+            overflow: "hidden",
             WebkitTapHighlightColor: "transparent",
           }}
+          aria-label={lang === "zh" ? "声音冒险" : "Sound Adventure"}
         >
           {placement ? (
             <>
-              <span style={{ fontSize: 38 }}>{BADGE_EMOJI[placement.childBadgeName] || "🌟"}</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "white", opacity: 0.9, marginTop: 4 }}>
+              <span style={{ fontSize: 38 }}>
+                {BADGE_EMOJI[placement.childBadgeName] || "🌟"}
+              </span>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "white",
+                  opacity: 0.9,
+                  marginTop: 4,
+                }}
+              >
                 {placement.childBadgeName}
               </span>
             </>
           ) : (
             <>
               <span style={{ fontSize: 32 }}>🦊</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "white", opacity: 0.9, marginTop: 4, textAlign: "center", padding: "0 6px" }}>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "white",
+                  opacity: 0.9,
+                  marginTop: 4,
+                  textAlign: "center",
+                  padding: "0 6px",
+                }}
+              >
                 {lang === "zh" ? "声音冒险" : "Sound Adventure"}
               </span>
             </>
           )}
-          {/* Sparkle dot */}
+
           {!placement && (
             <motion.div
               animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }}
               transition={{ repeat: Infinity, duration: 1.8 }}
               style={{
-                position: "absolute", top: 10, right: 12,
-                width: 10, height: 10, borderRadius: 5,
+                position: "absolute",
+                top: 10,
+                right: 12,
+                width: 10,
+                height: 10,
+                borderRadius: 5,
                 background: "rgba(255,255,255,0.9)",
               }}
             />
           )}
-        </motion.div>
+        </motion.button>
       </div>
 
-      {/* Row 2: Box 3 — wide */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -125,18 +175,21 @@ export default function Home({ onNavigate, lang = "en" }) {
           boxShadow: `0 6px 20px ${BOX_COLORS[2]}55`,
         }}
       >
-        <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>3</span>
+        <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>
+          3
+        </span>
       </motion.div>
 
-      {/* Row 3: Box 4 — Campaign Mode entry */}
       <div style={{ display: "flex", justifyContent: "center", flex: "0 0 auto" }}>
-        <motion.div
+        <motion.button
+          type="button"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.24, type: "spring", stiffness: 280, damping: 22 }}
           whileTap={{ scale: 0.96 }}
-          onClick={() => onNavigate && onNavigate("campaign")}
+          onClick={() => onNavigate?.("campaign")}
           style={{
+            ...buttonReset,
             width: "58%",
             height: 110,
             borderRadius: 22,
@@ -151,26 +204,34 @@ export default function Home({ onNavigate, lang = "en" }) {
             overflow: "hidden",
             WebkitTapHighlightColor: "transparent",
           }}
+          aria-label={lang === "zh" ? "学习征程" : "Campaign"}
         >
-          {/* Pulsing ring */}
           <motion.div
             animate={{ scale: [1, 1.5, 1], opacity: [0.35, 0, 0.35] }}
             transition={{ repeat: Infinity, duration: 2.2 }}
             style={{
               position: "absolute",
-              width: 70, height: 70,
+              width: 70,
+              height: 70,
               borderRadius: 35,
               border: "3px solid rgba(255,255,255,0.5)",
             }}
           />
           <span style={{ fontSize: 28, zIndex: 1 }}>🗺️</span>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "white", zIndex: 1, marginTop: 3 }}>
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: "white",
+              zIndex: 1,
+              marginTop: 3,
+            }}
+          >
             {lang === "zh" ? "学习征程" : "Campaign"}
           </span>
-        </motion.div>
+        </motion.button>
       </div>
 
-      {/* Row 4: Box 5 — large wide */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -186,7 +247,9 @@ export default function Home({ onNavigate, lang = "en" }) {
           boxShadow: `0 6px 20px ${BOX_COLORS[4]}55`,
         }}
       >
-        <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>5</span>
+        <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>
+          5
+        </span>
       </motion.div>
     </div>
   );
