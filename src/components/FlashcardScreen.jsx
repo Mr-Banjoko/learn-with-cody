@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Check } from "lucide-react";
+import { Camera } from "lucide-react";
 import BackArrow from "./BackArrow";
 import { shortAWords } from "../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
@@ -31,16 +31,10 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const screenTitle = title || "Short a Words";
   const [index, setIndex] = useState(0);
   const [customImages, setCustomImages] = useState({});
-  const [justSaved, setJustSaved] = useState(false);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
-  const indexRef = useRef(index);
-
-  // Keep indexRef in sync
-  useEffect(() => { indexRef.current = index; }, [index]);
-
   // Cancel any running sequence when card changes
   useEffect(() => {
     cancelSequence();
@@ -64,7 +58,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const card = wordList[index];
   const total = wordList.length;
   const currentImage = customImages[index] || card.image;
-  const hasCustom = !!customImages[index];
 
   const cancelSequence = useCallback(() => {
     if (sequenceRef.current) {
@@ -129,21 +122,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     e.target.value = "";
   };
 
-  const handleSave = useCallback(() => {
-    const currentIndex = indexRef.current;
-    setCustomImages((prev) => {
-      const imageToSave = prev[currentIndex];
-      if (!imageToSave) return prev;
-      const currentWord = wordList[currentIndex]?.word;
-      const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-      album.push({ id: Date.now(), word: currentWord, snapshot: imageToSave, date: new Date().toLocaleDateString() });
-      localStorage.setItem("cody_album", JSON.stringify(album));
-      return prev;
-    });
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 2000);
-  }, [wordList]);
-
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
       <div style={{ background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)", borderBottom: "1.5px solid rgba(0,0,0,0.06)", padding: "10px 20px 14px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
@@ -163,33 +141,9 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                 onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
                 style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
               />
-              <div style={{ position: "absolute", bottom: 18, right: 18, display: "flex", alignItems: "center", gap: 8, zIndex: 2 }}>
-                <AnimatePresence>
-                  {hasCustom && (
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      onClick={handleSave}
-                      style={{ width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }}
-                      aria-label="Save to Album"
-                    >
-                      {justSaved ? (
-                        <Check size={24} color="#4ECDC4" strokeWidth={2.2} />
-                      ) : (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8D0E6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                          <polyline points="17 21 17 13 7 13 7 21"/>
-                          <polyline points="7 3 7 8 15 8"/>
-                        </svg>
-                      )}
-                    </motion.button>
-                  )}
-                </AnimatePresence>
-                <button onClick={handleCamera} style={{ width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
-                </button>
-              </div>
+              <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
+                <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
+              </button>
             </motion.div>
           </AnimatePresence>
         </div>

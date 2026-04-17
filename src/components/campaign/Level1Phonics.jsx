@@ -4,8 +4,7 @@
  */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Check, BookImage } from "lucide-react";
-import html2canvas from "html2canvas";
+import { Camera } from "lucide-react";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
@@ -14,18 +13,15 @@ const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
 export default function Level1Phonics({ card, onNext, lang = "en" }) {
   const [customImage, setCustomImage] = useState(null);
-  const [justSaved, setJustSaved] = useState(false);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
-  const captureRef = useRef(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     cancelSequence();
     setActiveLetterIndex(null);
     setCustomImage(null);
-    setJustSaved(false);
   }, [card.word]);
 
   useEffect(() => {
@@ -78,28 +74,12 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
     e.target.value = "";
   };
 
-  const handleSave = async () => {
-    if (!captureRef.current) return;
-    const canvas = await html2canvas(captureRef.current, {
-      scale: 2, useCORS: true, allowTaint: true, backgroundColor: null,
-    });
-    const dataUrl = canvas.toDataURL("image/png");
-    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    album.push({ id: Date.now(), word: card.word, snapshot: dataUrl, date: new Date().toLocaleDateString() });
-    localStorage.setItem("cody_album", JSON.stringify(album));
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 2000);
-  };
-
   const currentImage = customImage || card.image;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif" }}>
       {/* Card area */}
-      <div
-        ref={captureRef}
-        style={{ flex: 1, padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}
-      >
+      <div style={{ flex: 1, padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
         <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
           <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
@@ -124,20 +104,6 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
             </motion.div>
           </AnimatePresence>
         </div>
-
-        <AnimatePresence>
-          {customImage && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              onClick={handleSave}
-              style={{ position: "absolute", top: 18, left: 18, width: 48, height: 48, borderRadius: 24, background: justSaved ? "#4ECDC4" : "#5B8DEF", color: "white", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(91,141,239,0.40)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3, transition: "background 0.3s", touchAction: "manipulation" }}
-            >
-              {justSaved ? <Check size={22} /> : <BookImage size={22} />}
-            </motion.button>
-          )}
-        </AnimatePresence>
 
         {/* Letter blocks + play button */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, zIndex: 1 }}>
