@@ -57,6 +57,11 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
   const sequenceRef    = useRef(null);
   const activeTimerRef = useRef(null);
 
+  const cancelSequence = useCallback(() => {
+    if (sequenceRef.current)  { sequenceRef.current(); sequenceRef.current = null; }
+    if (activeTimerRef.current) { clearTimeout(activeTimerRef.current); activeTimerRef.current = null; }
+  }, []);
+
   useEffect(() => {
     cancelSequence();
     setActiveLetterIndex(null);
@@ -69,11 +74,6 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
     const letterUrls = letters.map(getLetterSoundUrl).filter(Boolean);
     if (letterUrls.length > 0) warmupAudio(letterUrls);
   }, [card]);
-
-  const cancelSequence = useCallback(() => {
-    if (sequenceRef.current)  { sequenceRef.current(); sequenceRef.current = null; }
-    if (activeTimerRef.current) { clearTimeout(activeTimerRef.current); activeTimerRef.current = null; }
-  }, []);
 
   // ── Tutorial state ─────────────────────────────────────────────────────────
   const [tutStep, setTutStep] = useState(STEP_PICTURE);
