@@ -9,8 +9,6 @@ import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
-
-
 function LetterBlock({ letter, index }) {
   return (
     <div
@@ -38,6 +36,12 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
+  const customImagesRef = useRef(customImages);
+  const indexRef = useRef(index);
+
+  // Keep refs in sync with latest state
+  useEffect(() => { customImagesRef.current = customImages; }, [customImages]);
+  useEffect(() => { indexRef.current = index; }, [index]);
 
   // Cancel any running sequence when card changes
   useEffect(() => {
@@ -50,13 +54,11 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
       const img = new Image();
       img.src = card.image;
     });
-    // Preload word audio
     const audioUrls = wordList.map((c) => c.audio).filter(Boolean);
     if (audioUrls.length > 0) preloadAudio(audioUrls);
-    // Preload and warm up all letter sounds if enabled
     if (enableLetterSounds) {
-      const letters = [...new Set(wordList.flatMap((c) => c.word.split("")))];      const letterUrls = letters.map(getLetterSoundUrl).filter(Boolean);
-      // warmupAudio: resolves blob URLs + warms browser audio engine so first tap is instant
+      const letters = [...new Set(wordList.flatMap((c) => c.word.split("")))];
+      const letterUrls = letters.map(getLetterSoundUrl).filter(Boolean);
       if (letterUrls.length > 0) warmupAudio(letterUrls);
     }
   }, []);
@@ -68,14 +70,14 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
 
   const cancelSequence = useCallback(() => {
     if (sequenceRef.current) {
-      sequenceRef.current(); // call the cancel function returned by playAudioSequence
+      sequenceRef.current();
       sequenceRef.current = null;
     }
     if (activeTimerRef.current) {
       clearTimeout(activeTimerRef.current);
       activeTimerRef.current = null;
     }
-  }, []); 
+  }, []);
 
   const handleLetterTap = useCallback((letter, i) => {
     cancelSequence();
@@ -102,7 +104,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
       })
       .filter(Boolean);
 
-    // Append full word audio at the end of the letter sequence
     if (card.audio) {
       steps.push({
         url: card.audio,
@@ -130,19 +131,20 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     e.target.value = "";
   };
 
-  const handleSave = () => {
-    const imageToSave = customImages[index];
+  const handleSave = useCallback(() => {
+    const imageToSave = customImagesRef.current[indexRef.current];
     if (!imageToSave) return;
+    const currentWord = wordList[indexRef.current]?.word;
     const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    album.push({ id: Date.now(), word: card.word, snapshot: imageToSave, date: new Date().toLocaleDateString() });
+    album.push({ id: Date.now(), word: currentWord, snapshot: imageToSave, date: new Date().toLocaleDateString() });
     localStorage.setItem("cody_album", JSON.stringify(album));
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2000);
-  };
+  }, [wordList]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
-      <div style={{ background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)", borderBottom: "1.5px solid rgba(0,0,0,0.06)", borderBottomLeftRadius: 0, borderBottomRightRadius: 0, padding: "10px 20px 14px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+      <div style={{ background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)", borderBottom: "1.5px solid rgba(0,0,0,0.06)", padding: "10px 20px 14px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <BackArrow onPress={onBack} />
         <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E293B", marginRight: 40 }}>{screenTitle}</h1>
       </div>
@@ -202,7 +204,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                   onClick={() => handleLetterTap(letter, i)}
                 />
               ))}
-              {/* Yellow play button */}
               <button
                 onClick={handlePlaySequence}
                 style={{
