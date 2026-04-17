@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Check, BookImage } from "lucide-react";
+import { Camera, Check } from "lucide-react";
 import BackArrow from "./BackArrow";
 import html2canvas from "html2canvas";
 import { shortAWords } from "../lib/shortAWords";
@@ -164,36 +164,36 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                 onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
                 style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
               />
-              <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
-                <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
-              </button>
+              <div style={{ position: "absolute", bottom: 18, right: 18, display: "flex", alignItems: "center", gap: 8, zIndex: 2 }}>
+                <AnimatePresence>
+                  {hasCustom && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      onClick={handleSave}
+                      style={{ width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }}
+                      aria-label="Save to Album"
+                    >
+                      {justSaved ? (
+                        <Check size={24} color="#4ECDC4" strokeWidth={2.2} />
+                      ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8D0E6" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                          <polyline points="17 21 17 13 7 13 7 21"/>
+                          <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                      )}
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+                <button onClick={handleCamera} style={{ width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
+                </button>
+              </div>
             </motion.div>
           </AnimatePresence>
         </div>
-
-        <AnimatePresence>
-          {hasCustom && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              onClick={handleSave}
-              style={{
-                position: "absolute", top: 18, left: 18,
-                width: 48, height: 48, borderRadius: 24,
-                background: justSaved ? "#4ECDC4" : "#5B8DEF",
-                color: "white", border: "none", cursor: "pointer",
-                boxShadow: "0 4px 16px rgba(91,141,239,0.40)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                zIndex: 3, transition: "background 0.3s",
-                touchAction: "manipulation",
-              }}
-              aria-label="Save to Album"
-            >
-              {justSaved ? <Check size={22} /> : <BookImage size={22} />}
-            </motion.button>
-          )}
-        </AnimatePresence>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, zIndex: 1 }}>
           {enableLetterSounds ? (
