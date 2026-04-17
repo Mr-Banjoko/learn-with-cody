@@ -146,6 +146,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     const currentIdx = indexRef.current;
     const currentCard = wordList[currentIdx];
     const currentImage = customImagesRef.current[currentIdx] || currentCard.image;
+    console.log("[Save] Saving card:", currentCard.word, "idx:", currentIdx);
     const entry = {
       id: Date.now(),
       word: currentCard.word,
@@ -179,9 +180,9 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                 onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
                 style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
               />
-              {/* Save button — appears to the left of camera only after a custom photo is chosen */}
+              {/* Save button — always visible when enableSave is true */}
               <AnimatePresence>
-                {enableSave && customImages[index] && (
+                {enableSave && (
                   <motion.button
                     key="save-btn"
                     initial={{ opacity: 0, scale: 0.7 }}
@@ -189,7 +190,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                     exit={{ opacity: 0, scale: 0.7 }}
                     transition={{ duration: 0.18 }}
                     onClick={handleSave}
-                    style={{ position: "absolute", bottom: 18, right: 74, width: 48, height: 48, borderRadius: 24, background: justSaved ? "#E8FFF8" : "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, transition: "background 0.3s" }}
+                    style={{ position: "absolute", bottom: 18, right: 74, width: 48, height: 48, borderRadius: 24, background: justSaved ? "#E8FFF8" : "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, transition: "background 0.3s", touchAction: "manipulation" }}
                     aria-label="Save to Album"
                   >
                     <SaveIcon color={justSaved ? "#4ECDC4" : "#A8D0E6"} size={24} />
