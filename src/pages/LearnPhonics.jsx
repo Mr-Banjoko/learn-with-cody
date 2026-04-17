@@ -32,16 +32,16 @@ export default function LearnPhonics({ onDeepScreen, lang = "en" }) {
 
   if (openFolder) {
     const wordMap = {
-      "short-a": { words: undefined, title: "Short a Words", enableSave: true },
-      "short-e": { words: shortEWords, title: "Short e Words", enableSave: false },
-      "short-i": { words: shortIWords, title: "Short i Words", enableSave: false },
-      "short-o": { words: shortOWords, title: "Short o Words", enableSave: false },
-      "short-u": { words: shortUWords, title: "Short u Words", enableSave: false },
+      "short-a": { words: undefined, title: "Short a Words" },
+      "short-e": { words: shortEWords, title: "Short e Words" },
+      "short-i": { words: shortIWords, title: "Short i Words" },
+      "short-o": { words: shortOWords, title: "Short o Words" },
+      "short-u": { words: shortUWords, title: "Short u Words" },
     };
     const cfg = wordMap[openFolder];
     return (
       <div style={{ display: "flex", flexDirection: "column", flex: 1, height: "100%" }}>
-        <FlashcardScreen onBack={exitFolder} words={cfg.words} title={cfg.title} enableLetterSounds enableSave={cfg.enableSave} lang={lang} />
+        <FlashcardScreen onBack={exitFolder} words={cfg.words} title={cfg.title} enableLetterSounds lang={lang} />
       </div>
     );
   }

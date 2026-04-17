@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
-import { Home, BookOpen, Gamepad2, BookImage } from "lucide-react";
+import { Home, BookOpen, Gamepad2 } from "lucide-react";
 
 const tabs = [
   { id: "home", label: "Home", icon: Home, labelZh: "首页" },
   { id: "learn", label: "Learn", icon: BookOpen, labelZh: "学习" },
   { id: "games", label: "Games", icon: Gamepad2, labelZh: "游戏" },
-  { id: "album", label: "Album", icon: BookImage, labelZh: "相册" },
 ];
 
 export default function TabBar({ activeTab, onTabChange, language = "en", showCodyInBar = false }) {

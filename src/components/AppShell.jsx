@@ -5,7 +5,6 @@ import LanguageToggle from "./LanguageToggle";
 import Home from "../pages/Home";
 import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
-import Album from "../pages/Album";
 import CampaignHome from "./campaign/CampaignHome.jsx";
 import ShortALevels from "./campaign/ShortALevels.jsx";
 import Level1 from "./campaign/Level1.jsx";
@@ -93,9 +92,6 @@ export default function AppShell() {
 
       case "games":
         return <Games onDeepScreen={setChildDeepScreen} lang={language} />;
-
-      case "album":
-        return <Album lang={language} />;
 
       default:
         return <LearnPhonics onDeepScreen={setChildDeepScreen} lang={language} />;
