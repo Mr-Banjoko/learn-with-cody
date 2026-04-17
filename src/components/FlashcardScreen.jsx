@@ -7,7 +7,6 @@ import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/useAudio";
 
-// Save icon SVG matching the reference: arrow-down into a tray
 function SaveIcon({ color = "#A8D0E6", size = 24 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
@@ -22,48 +21,60 @@ const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
 function LetterBlock({ letter, index }) {
   return (
-    <div
-      style={{
-        width: 72, height: 72, borderRadius: 18,
-        background: LETTER_COLORS[index % LETTER_COLORS.length],
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 42, fontWeight: 700, color: "#1E3A5F",
-        fontFamily: "Fredoka, sans-serif",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-      }}
-    >
+    <div style={{ width: 72, height: 72, borderRadius: 18, background: LETTER_COLORS[index % LETTER_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 42, fontWeight: 700, color: "#1E3A5F", fontFamily: "Fredoka, sans-serif", boxShadow: "0 4px 12px rgba(0,0,0,0.10)" }}>
       {letter}
     </div>
   );
 }
 
+/**
+ * Per-card save state machine.
+ *
+ * Each card gets its own isolated save state object:
+ *   { capturedPhoto: string|null, justSaved: boolean, saving: boolean }
+ *
+ * Stored in a ref-map keyed by card index. React state (`cardSaveState`)
+ * is the single source of truth rendered to the UI — but ALL writes go
+ * through the ref first so handlers never read stale closure values.
+ *
+ * Key design decisions:
+ * - NO useCallback for handleSave — it is an inline closure that reads
+ *   `index` directly from render scope (always current).
+ * - NO indexRef / customImagesRef needed — we don't store photos in a
+ *   global map; each card's photo lives in cardSaveState[index].capturedPhoto.
+ * - `handleFileChange` uses a data-attribute on the file input to know
+ *   which card index the input was opened for (set synchronously on open).
+ * - `justSaved` is per-card and reset when moving away from that card.
+ */
 export default function FlashcardScreen({ onBack, words, title, enableLetterSounds, enableSave = false, lang = "en" }) {
   const wordList = words || shortAWords;
   const screenTitle = title || "Short a Words";
+
   const [index, setIndex] = useState(0);
-  const [customImages, setCustomImages] = useState({});
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
-  const [justSaved, setJustSaved] = useState(false);
+
+  // Per-card save state: { [cardIndex]: { capturedPhoto: string|null, justSaved: bool } }
+  const [cardSaveState, setCardSaveState] = useState({});
+
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
-  // Refs that always hold the latest values — prevents stale closure issues
-  const indexRef = useRef(index);
-  const customImagesRef = useRef(customImages);
-  useEffect(() => { indexRef.current = index; }, [index]);
-  useEffect(() => { customImagesRef.current = customImages; }, [customImages]);
-  // Cancel any running sequence and reset save state when card changes
-  useEffect(() => {
-    cancelSequence();
-    setActiveLetterIndex(null);
-    setJustSaved(false);
-  }, [index]);
+  // Tracks which card index the file input was opened for (set synchronously)
+  const fileInputCardRef = useRef(null);
 
+  const card = wordList[index];
+  const total = wordList.length;
+
+  // Per-card derived values — always read from current render's index
+  const thisSaveState = cardSaveState[index] || { capturedPhoto: null, justSaved: false };
+  const capturedPhoto = thisSaveState.capturedPhoto;
+  const justSaved = thisSaveState.justSaved;
+  const hasPhoto = capturedPhoto !== null;
+  const displayImage = capturedPhoto || card.image;
+
+  // Preload all images/audio once
   useEffect(() => {
-    wordList.forEach((card) => {
-      const img = new Image();
-      img.src = card.image;
-    });
+    wordList.forEach((c) => { const img = new Image(); img.src = c.image; });
     const audioUrls = wordList.map((c) => c.audio).filter(Boolean);
     if (audioUrls.length > 0) preloadAudio(audioUrls);
     if (enableLetterSounds) {
@@ -73,20 +84,18 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     }
   }, []);
 
-  const card = wordList[index];
-  const total = wordList.length;
-  const currentImage = customImages[index] || card.image;
-
+  // Cancel audio sequence on card change
   const cancelSequence = useCallback(() => {
-    if (sequenceRef.current) {
-      sequenceRef.current();
-      sequenceRef.current = null;
-    }
-    if (activeTimerRef.current) {
-      clearTimeout(activeTimerRef.current);
-      activeTimerRef.current = null;
-    }
+    if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
+    if (activeTimerRef.current) { clearTimeout(activeTimerRef.current); activeTimerRef.current = null; }
   }, []);
+
+  useEffect(() => {
+    cancelSequence();
+    setActiveLetterIndex(null);
+    // Do NOT reset cardSaveState here — we preserve per-card state if user
+    // navigates back. We only need to ensure the UI reads from the right slot.
+  }, [index]);
 
   const handleLetterTap = useCallback((letter, i) => {
     cancelSequence();
@@ -101,65 +110,79 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     cancelSequence();
     setActiveLetterIndex(null);
     const letters = card.word.split("");
-    const steps = letters
-      .map((letter, i) => {
-        const url = getLetterSoundUrl(letter);
-        if (!url) return null;
-        return {
-          url,
-          gain: getLetterGain(letter),
-          onStart: () => setActiveLetterIndex(i),
-        };
-      })
-      .filter(Boolean);
-
-    if (card.audio) {
-      steps.push({
-        url: card.audio,
-        onStart: () => setActiveLetterIndex(null),
-      });
-    }
-
-    const cancel = playAudioSequence(steps, () => {
-      setActiveLetterIndex(null);
-      sequenceRef.current = null;
-    });
+    const steps = letters.map((letter, i) => {
+      const url = getLetterSoundUrl(letter);
+      if (!url) return null;
+      return { url, gain: getLetterGain(letter), onStart: () => setActiveLetterIndex(i) };
+    }).filter(Boolean);
+    if (card.audio) steps.push({ url: card.audio, onStart: () => setActiveLetterIndex(null) });
+    const cancel = playAudioSequence(steps, () => { setActiveLetterIndex(null); sequenceRef.current = null; });
     sequenceRef.current = cancel;
   }, [card, cancelSequence]);
 
-  const handleCamera = () => fileInputRef.current.click();
+  // Open camera — record which card index we're opening it for
+  const handleCamera = () => {
+    fileInputCardRef.current = index;
+    fileInputRef.current.value = "";
+    fileInputRef.current.click();
+  };
 
+  // File selected — write photo into the card slot that was opened
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    const targetIdx = fileInputCardRef.current; // synchronously captured on open
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const currentIdx = indexRef.current;
-      setCustomImages((prev) => ({ ...prev, [currentIdx]: ev.target.result }));
-      setJustSaved(false); // reset saved state when new photo is chosen
+      setCardSaveState((prev) => ({
+        ...prev,
+        [targetIdx]: { capturedPhoto: ev.target.result, justSaved: false },
+      }));
     };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
 
-  const handleSave = useCallback(() => {
-    const currentIdx = indexRef.current;
-    const currentCard = wordList[currentIdx];
-    const currentImage = customImagesRef.current[currentIdx] || currentCard.image;
-    console.log("[Save] Saving card:", currentCard.word, "idx:", currentIdx);
+  // Save — reads directly from current render's `index` and `capturedPhoto`
+  // No useCallback — fresh closure every render guarantees correct index & photo
+  const handleSave = () => {
+    if (!hasPhoto) return; // guard: only save when photo exists
+    const currentCard = wordList[index];
+    const photoToSave = capturedPhoto; // from current render scope — always correct
+
     const entry = {
       id: Date.now(),
       word: currentCard.word,
       audio: currentCard.audio || null,
-      image: currentImage,
+      image: photoToSave,
       date: new Date().toLocaleDateString(),
     };
-    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    album.push(entry);
-    localStorage.setItem("cody_album", JSON.stringify(album));
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 2000);
-  }, [wordList]);
+
+    try {
+      const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+      album.push(entry);
+      localStorage.setItem("cody_album", JSON.stringify(album));
+    } catch (err) {
+      console.error("[Save] localStorage write failed:", err);
+      return;
+    }
+
+    // Mark this card as saved (per-card justSaved)
+    setCardSaveState((prev) => ({
+      ...prev,
+      [index]: { ...prev[index], justSaved: true },
+    }));
+
+    // Auto-reset justSaved after 2s using a functional update so no stale closure
+    const savedIdx = index;
+    setTimeout(() => {
+      setCardSaveState((prev) => {
+        const slot = prev[savedIdx];
+        if (!slot) return prev;
+        return { ...prev, [savedIdx]: { ...slot, justSaved: false } };
+      });
+    }, 2000);
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
@@ -172,84 +195,96 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
         <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
           <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
+
+          {/* Card frame — keyed by index so it fully remounts on card change */}
           <AnimatePresence mode="wait">
-            <motion.div key={index} initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.22 }} style={{ position: "relative", zIndex: 1, background: "white", borderRadius: 28, padding: 14, boxShadow: "0 12px 48px rgba(30,58,95,0.15)", width: "100%" }}>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.94 }}
+              transition={{ duration: 0.22 }}
+              style={{ position: "relative", zIndex: 1, background: "white", borderRadius: 28, padding: 14, boxShadow: "0 12px 48px rgba(30,58,95,0.15)", width: "100%" }}
+            >
               <img
-                src={currentImage}
+                src={displayImage}
                 alt={card.word}
                 onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
                 style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
               />
-              {/* Save button — always visible when enableSave is true */}
+
+              {/* Save button — only visible after a real photo has been captured for THIS card */}
               <AnimatePresence>
-                {enableSave && (
+                {enableSave && hasPhoto && (
                   <motion.button
-                    key="save-btn"
+                    key={`save-${index}`}
                     initial={{ opacity: 0, scale: 0.7 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.7 }}
                     transition={{ duration: 0.18 }}
                     onClick={handleSave}
-                    style={{ position: "absolute", bottom: 18, right: 74, width: 48, height: 48, borderRadius: 24, background: justSaved ? "#E8FFF8" : "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, transition: "background 0.3s", touchAction: "manipulation" }}
+                    style={{
+                      position: "absolute", bottom: 18, right: 74,
+                      width: 48, height: 48, borderRadius: 24,
+                      background: justSaved ? "#E8FFF8" : "white",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+                      border: "none", cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      zIndex: 2, touchAction: "manipulation",
+                      transition: "background 0.3s",
+                    }}
                     aria-label="Save to Album"
                   >
                     <SaveIcon color={justSaved ? "#4ECDC4" : "#A8D0E6"} size={24} />
                   </motion.button>
                 )}
               </AnimatePresence>
-              <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
+
+              {/* Camera button */}
+              <button
+                onClick={handleCamera}
+                style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, touchAction: "manipulation" }}
+              >
                 <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
               </button>
             </motion.div>
           </AnimatePresence>
         </div>
 
+        {/* Letter blocks */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, zIndex: 1 }}>
           {enableLetterSounds ? (
             <>
               {card.word.split("").map((letter, i) => (
-                <RainbowLetterBlock
-                  key={i}
-                  letter={letter}
-                  index={i}
-                  isActive={activeLetterIndex === i}
-                  onClick={() => handleLetterTap(letter, i)}
-                />
+                <RainbowLetterBlock key={i} letter={letter} index={i} isActive={activeLetterIndex === i} onClick={() => handleLetterTap(letter, i)} />
               ))}
               <button
                 onClick={handlePlaySequence}
-                style={{
-                  width: 56, height: 56, borderRadius: 28,
-                  background: "#FFD93D",
-                  border: "3px solid #F4B942",
-                  boxShadow: "0 4px 16px rgba(255,193,7,0.45)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: "pointer", flexShrink: 0, marginLeft: 6,
-                  transition: "transform 0.12s",
-                }}
+                style={{ width: 56, height: 56, borderRadius: 28, background: "#FFD93D", border: "3px solid #F4B942", boxShadow: "0 4px 16px rgba(255,193,7,0.45)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, marginLeft: 6, transition: "transform 0.12s" }}
                 onMouseDown={e => e.currentTarget.style.transform = "scale(0.92)"}
                 onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
                 onTouchStart={e => e.currentTarget.style.transform = "scale(0.92)"}
                 onTouchEnd={e => e.currentTarget.style.transform = "scale(1)"}
                 aria-label="Play letter sounds"
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="#1E3A5F">
-                  <polygon points="5,3 19,12 5,21" />
-                </svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#1E3A5F"><polygon points="5,3 19,12 5,21" /></svg>
               </button>
             </>
           ) : (
-            card.word.split("").map((letter, i) => (
-              <LetterBlock key={i} letter={letter} index={i} />
-            ))
+            card.word.split("").map((letter, i) => <LetterBlock key={i} letter={letter} index={i} />)
           )}
         </div>
       </div>
 
+      {/* Previous / Next */}
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 28px", paddingBottom: "calc(12px + env(safe-area-inset-bottom, 8px))", maxWidth: 480, width: "100%", alignSelf: "center", boxSizing: "border-box" }}>
-        <button onClick={() => { if (index > 0) setIndex(index - 1); }} disabled={index === 0} style={{ padding: "14px 28px", borderRadius: 999, background: index === 0 ? "#C5DCF0" : "#A8C8E0", color: index === 0 ? "#9CB8CC" : "#1E3A5F", border: "none", cursor: index === 0 ? "not-allowed" : "pointer", fontSize: 18, fontWeight: 600, fontFamily: "Fredoka, sans-serif", opacity: index === 0 ? 0.6 : 1, minWidth: 110, touchAction: "manipulation" }}>{lang === "zh" ? "上一张" : "Previous"}</button>
+        <button onClick={() => { if (index > 0) setIndex(index - 1); }} disabled={index === 0} style={{ padding: "14px 28px", borderRadius: 999, background: index === 0 ? "#C5DCF0" : "#A8C8E0", color: index === 0 ? "#9CB8CC" : "#1E3A5F", border: "none", cursor: index === 0 ? "not-allowed" : "pointer", fontSize: 18, fontWeight: 600, fontFamily: "Fredoka, sans-serif", opacity: index === 0 ? 0.6 : 1, minWidth: 110, touchAction: "manipulation" }}>
+          {lang === "zh" ? "上一张" : "Previous"}
+        </button>
         <span style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>{index + 1}/{total}</span>
-        <button onClick={() => { if (index < total - 1) setIndex(index + 1); }} disabled={index === total - 1} style={{ padding: "14px 28px", borderRadius: 999, background: index === total - 1 ? "#C5DCF0" : "#4A90C4", color: index === total - 1 ? "#9CB8CC" : "white", border: "none", cursor: index === total - 1 ? "not-allowed" : "pointer", fontSize: 18, fontWeight: 600, fontFamily: "Fredoka, sans-serif", opacity: index === total - 1 ? 0.6 : 1, minWidth: 110, touchAction: "manipulation" }}>{lang === "zh" ? "下一张" : "Next"}</button>
+        <button onClick={() => { if (index < total - 1) setIndex(index + 1); }} disabled={index === total - 1} style={{ padding: "14px 28px", borderRadius: 999, background: index === total - 1 ? "#C5DCF0" : "#4A90C4", color: index === total - 1 ? "#9CB8CC" : "white", border: "none", cursor: index === total - 1 ? "not-allowed" : "pointer", fontSize: 18, fontWeight: 600, fontFamily: "Fredoka, sans-serif", opacity: index === total - 1 ? 0.6 : 1, minWidth: 110, touchAction: "manipulation" }}>
+          {lang === "zh" ? "下一张" : "Next"}
+        </button>
       </div>
 
       <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleFileChange} />
