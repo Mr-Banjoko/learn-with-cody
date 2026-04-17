@@ -41,11 +41,13 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
 
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
+
+  // iOS Safari fix: we track a counter to force-remount the file input on every use.
+  // Safari suppresses onChange on a reused <input type="file"> — the only reliable fix
+  // is to unmount and remount the element entirely before each use.
+  const [fileInputKey, setFileInputKey] = useState(0);
   const fileInputRef = useRef(null);
 
-  // THE KEY FIX: a ref that always holds the current index.
-  // fileInputCardRef is set synchronously when camera opens.
-  // saveRef always points to the latest save handler — no stale closures possible.
   const fileInputCardRef = useRef(0);
   const saveRef = useRef(null);
 
@@ -138,8 +140,14 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
 
   const handleCamera = () => {
     fileInputCardRef.current = index;
-    fileInputRef.current.value = "";
-    fileInputRef.current.click();
+    // iOS Safari fix: bump key to remount the input element fresh before clicking.
+    // Without this, Safari silently ignores onChange after the first pick.
+    setFileInputKey((k) => k + 1);
+    // Click must happen after the remount — use a tiny timeout so React flushes the
+    // new input into the DOM before we programmatically click it.
+    setTimeout(() => {
+      if (fileInputRef.current) fileInputRef.current.click();
+    }, 0);
   };
 
   const handleFileChange = (e) => {
@@ -152,7 +160,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
       setSavedFlags((prev) => ({ ...prev, [targetIdx]: false }));
     };
     reader.readAsDataURL(file);
-    e.target.value = "";
   };
 
   return (
@@ -280,7 +287,18 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
         </button>
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleFileChange} />
+      {/* key={fileInputKey} forces a full remount on every camera open — the ONLY
+          reliable way to get Safari/iOS to fire onChange more than once.
+          capture attribute removed: "environment" locks to camera-only on iOS and
+          is less reliable than letting the user choose camera or photo library. */}
+      <input
+        key={fileInputKey}
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleFileChange}
+      />
     </div>
   );
 }
