@@ -1,27 +1,35 @@
 /**
- * Level1Phonics — wraps the existing FlashcardScreen for a single word.
- * Shows only that one word; "Next" calls onNext(); no back/navigation noise.
+ * Level1Phonics — phonics card for a single word inside the campaign.
+ * Camera photo persists per-word via localStorage (same store as FlashcardScreen).
+ * Reload icon appears only after user has replaced the image; resets to original.
  */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera } from "lucide-react";
+import { Camera, RotateCcw } from "lucide-react";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 
-const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
+// Shared storage helpers — same key scheme as FlashcardScreen
+const STORAGE_PREFIX = "cody_photo_";
+const storageKey = (word) => `${STORAGE_PREFIX}${word}`;
+const loadPhoto = (word) => { try { return localStorage.getItem(storageKey(word)) || null; } catch { return null; } };
+const savePhoto = (word, dataUrl) => { try { localStorage.setItem(storageKey(word), dataUrl); } catch {} };
+const clearPhoto = (word) => { try { localStorage.removeItem(storageKey(word)); } catch {} };
 
 export default function Level1Phonics({ card, onNext, lang = "en" }) {
-  const [customImage, setCustomImage] = useState(null);
+  // Load persisted photo for this word on mount / card change
+  const [customImage, setCustomImage] = useState(() => loadPhoto(card.word));
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // When card changes, load that word's persisted photo (or null)
   useEffect(() => {
     cancelSequence();
     setActiveLetterIndex(null);
-    setCustomImage(null);
+    setCustomImage(loadPhoto(card.word));
   }, [card.word]);
 
   useEffect(() => {
@@ -65,16 +73,27 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
   }, [card, cancelSequence]);
 
   const handleCamera = () => fileInputRef.current.click();
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    const word = card.word;
     const reader = new FileReader();
-    reader.onload = (ev) => setCustomImage(ev.target.result);
+    reader.onload = (ev) => {
+      savePhoto(word, ev.target.result);
+      setCustomImage(ev.target.result);
+    };
     reader.readAsDataURL(file);
-    e.target.value = "";
+    // Do NOT reset e.target.value — breaks subsequent picks on iOS Safari.
+  };
+
+  const handleReset = () => {
+    clearPhoto(card.word);
+    setCustomImage(null);
   };
 
   const currentImage = customImage || card.image;
+  const hasCustomPhoto = customImage !== null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif" }}>
@@ -83,6 +102,7 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
         <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
           <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
+
           <AnimatePresence mode="wait">
             <motion.div
               key={card.word}
@@ -98,11 +118,47 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
                 onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
                 style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
               />
-              <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
-                <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
-              </button>
             </motion.div>
           </AnimatePresence>
+
+          {/* Reload button — only visible after user has replaced the image */}
+          <AnimatePresence>
+            {hasCustomPhoto && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ duration: 0.18 }}
+                onClick={handleReset}
+                style={{
+                  position: "absolute", bottom: 32, right: 88,
+                  width: 48, height: 48, borderRadius: 24,
+                  background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+                  border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  zIndex: 10, touchAction: "manipulation",
+                }}
+                aria-label="Reset to original image"
+              >
+                <RotateCcw size={22} color="#A8D0E6" strokeWidth={2.2} />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          {/* Camera button */}
+          <button
+            onClick={handleCamera}
+            style={{
+              position: "absolute", bottom: 32, right: 32,
+              width: 48, height: 48, borderRadius: 24,
+              background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+              border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              zIndex: 10, touchAction: "manipulation",
+            }}
+          >
+            <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
+          </button>
         </div>
 
         {/* Letter blocks + play button */}
@@ -141,6 +197,7 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
         </button>
       </div>
 
+      {/* camera-only, no "Choose File" */}
       <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleFileChange} />
     </div>
   );
