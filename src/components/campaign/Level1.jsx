@@ -125,7 +125,7 @@ export default function Level1({ onBack, lang = "en" }) {
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {round.type === "phonics" ? (
-              <Level1Phonics card={round.card} onNext={advance} lang={lang} />
+              <Level1Phonics card={round.card} onNext={advance} lang={lang} isFirstCard={roundIndex === 0} />
             ) : (
               <Level1Drag card={round.card} onComplete={advance} lang={lang} />
             )}
