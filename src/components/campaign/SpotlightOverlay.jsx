@@ -57,13 +57,14 @@ export default function SpotlightOverlay({ targets, onDone }) {
 
     const baseH = targetRect.height + PAD * 2;
     const yShift = (t.yOffsetPct || 0) * baseH;
+    const stretchH = baseH * (1 + (t.stretchBottomPct || 0));
 
     setSpotlight({
       // Spotlight position relative to the overlay container
       x:  targetRect.left - origin.left - PAD,
       y:  targetRect.top  - origin.top  - PAD + yShift,
       w:  targetRect.width  + PAD * 2,
-      h:  baseH - yShift,            // shrink from top, bottom stays fixed
+      h:  stretchH - yShift,         // top fixed, bottom stretched
       // Container dimensions for the SVG viewBox
       vw: origin.width,
       vh: origin.height,
