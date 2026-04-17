@@ -41,13 +41,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
 
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
-
-  // iOS Safari fix: we track a counter to force-remount the file input on every use.
-  // Safari suppresses onChange on a reused <input type="file"> — the only reliable fix
-  // is to unmount and remount the element entirely before each use.
-  const [fileInputKey, setFileInputKey] = useState(0);
   const fileInputRef = useRef(null);
-
   const fileInputCardRef = useRef(0);
   const saveRef = useRef(null);
 
@@ -139,15 +133,11 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   }, [card, cancelSequence]);
 
   const handleCamera = () => {
+    // iOS Safari requires .click() to be called synchronously inside a user gesture.
+    // Any async delay (setTimeout, state update) causes Safari to block the file picker.
+    // So: record the card index, then click immediately — no delays, no remounting.
     fileInputCardRef.current = index;
-    // iOS Safari fix: bump key to remount the input element fresh before clicking.
-    // Without this, Safari silently ignores onChange after the first pick.
-    setFileInputKey((k) => k + 1);
-    // Click must happen after the remount — use a tiny timeout so React flushes the
-    // new input into the DOM before we programmatically click it.
-    setTimeout(() => {
-      if (fileInputRef.current) fileInputRef.current.click();
-    }, 0);
+    fileInputRef.current.click();
   };
 
   const handleFileChange = (e) => {
@@ -160,6 +150,9 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
       setSavedFlags((prev) => ({ ...prev, [targetIdx]: false }));
     };
     reader.readAsDataURL(file);
+    // Do NOT reset e.target.value on iOS — it breaks subsequent picks on Safari.
+    // Instead we rely on the fact that selecting any file (even the same one) always
+    // fires onChange on iOS as long as we never clear the input's value.
   };
 
   return (
@@ -287,12 +280,10 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
         </button>
       </div>
 
-      {/* key={fileInputKey} forces a full remount on every camera open — the ONLY
-          reliable way to get Safari/iOS to fire onChange more than once.
-          capture attribute removed: "environment" locks to camera-only on iOS and
-          is less reliable than letting the user choose camera or photo library. */}
+      {/* Single persistent input — no key remounting, no value reset.
+          iOS Safari fires onChange reliably when: (1) .click() is called synchronously
+          in a user gesture, (2) value is never cleared, (3) no capture attribute. */}
       <input
-        key={fileInputKey}
         ref={fileInputRef}
         type="file"
         accept="image/*"
