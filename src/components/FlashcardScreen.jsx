@@ -7,6 +7,17 @@ import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/useAudio";
 
+// Save icon SVG matching the reference: arrow-down into a tray
+function SaveIcon({ color = "#A8D0E6", size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="3" x2="12" y2="15" />
+      <polyline points="7,10 12,15 17,10" />
+      <path d="M5 19 Q5 21 7 21 L17 21 Q19 21 19 19" />
+    </svg>
+  );
+}
+
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
 function LetterBlock({ letter, index }) {
@@ -26,19 +37,26 @@ function LetterBlock({ letter, index }) {
   );
 }
 
-export default function FlashcardScreen({ onBack, words, title, enableLetterSounds, lang = "en" }) {
+export default function FlashcardScreen({ onBack, words, title, enableLetterSounds, enableSave = false, lang = "en" }) {
   const wordList = words || shortAWords;
   const screenTitle = title || "Short a Words";
   const [index, setIndex] = useState(0);
   const [customImages, setCustomImages] = useState({});
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
+  const [justSaved, setJustSaved] = useState(false);
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
-  // Cancel any running sequence when card changes
+  // Refs that always hold the latest values — prevents stale closure issues
+  const indexRef = useRef(index);
+  const customImagesRef = useRef(customImages);
+  useEffect(() => { indexRef.current = index; }, [index]);
+  useEffect(() => { customImagesRef.current = customImages; }, [customImages]);
+  // Cancel any running sequence and reset save state when card changes
   useEffect(() => {
     cancelSequence();
     setActiveLetterIndex(null);
+    setJustSaved(false);
   }, [index]);
 
   useEffect(() => {
@@ -116,11 +134,31 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      setCustomImages((prev) => ({ ...prev, [index]: ev.target.result }));
+      const currentIdx = indexRef.current;
+      setCustomImages((prev) => ({ ...prev, [currentIdx]: ev.target.result }));
+      setJustSaved(false); // reset saved state when new photo is chosen
     };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
+
+  const handleSave = useCallback(() => {
+    const currentIdx = indexRef.current;
+    const currentCard = wordList[currentIdx];
+    const currentImage = customImagesRef.current[currentIdx] || currentCard.image;
+    const entry = {
+      id: Date.now(),
+      word: currentCard.word,
+      audio: currentCard.audio || null,
+      image: currentImage,
+      date: new Date().toLocaleDateString(),
+    };
+    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+    album.push(entry);
+    localStorage.setItem("cody_album", JSON.stringify(album));
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
+  }, [wordList]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
@@ -141,6 +179,23 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                 onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
                 style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
               />
+              {/* Save button — appears to the left of camera only after a custom photo is chosen */}
+              <AnimatePresence>
+                {enableSave && customImages[index] && (
+                  <motion.button
+                    key="save-btn"
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.7 }}
+                    transition={{ duration: 0.18 }}
+                    onClick={handleSave}
+                    style={{ position: "absolute", bottom: 18, right: 74, width: 48, height: 48, borderRadius: 24, background: justSaved ? "#E8FFF8" : "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, transition: "background 0.3s" }}
+                    aria-label="Save to Album"
+                  >
+                    <SaveIcon color={justSaved ? "#4ECDC4" : "#A8D0E6"} size={24} />
+                  </motion.button>
+                )}
+              </AnimatePresence>
               <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
                 <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
               </button>
