@@ -6,6 +6,7 @@ import { shortAWords } from "../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/useAudio";
+import { captureFlashcard } from "../lib/captureFlashcard";
 
 function SaveIcon({ color = "#A8D0E6", size = 24 }) {
   return (
@@ -34,58 +35,22 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const [index, setIndex] = useState(0);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
 
-  // Per-card captured photo: { [cardIndex]: string (dataURL) }
+  // Per-card captured photo dataURL: { [cardIndex]: string }
   const [photos, setPhotos] = useState({});
-  // Per-card justSaved flag: { [cardIndex]: bool }
-  const [savedFlags, setSavedFlags] = useState({});
+  // Per-card save state: "idle" | "saving" | "saved"
+  const [saveState, setSaveState] = useState({});
 
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
   const fileInputCardRef = useRef(0);
-  const saveRef = useRef(null);
 
   const card = wordList[index];
   const total = wordList.length;
   const capturedPhoto = photos[index] || null;
   const hasPhoto = capturedPhoto !== null;
   const displayImage = capturedPhoto || card.image;
-  const justSaved = savedFlags[index] || false;
-
-  // THE REAL FIX: saveRef is updated on every single render.
-  // The button's onClick calls saveRef.current() which always runs
-  // the latest closure — never a stale one from a previous card.
-  saveRef.current = () => {
-    const currentIndex = index;
-    const currentCard = wordList[currentIndex];
-    const currentPhoto = photos[currentIndex];
-
-    if (!currentPhoto) return;
-
-    const entry = {
-      id: Date.now(),
-      word: currentCard.word,
-      audio: currentCard.audio || null,
-      image: currentPhoto,
-      date: new Date().toLocaleDateString(),
-    };
-
-    try {
-      const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-      album.push(entry);
-      localStorage.setItem("cody_album", JSON.stringify(album));
-    } catch (err) {
-      console.error("[Save] localStorage write failed:", err);
-      return;
-    }
-
-    setSavedFlags((prev) => ({ ...prev, [currentIndex]: true }));
-
-    const capturedIdx = currentIndex;
-    setTimeout(() => {
-      setSavedFlags((prev) => ({ ...prev, [capturedIdx]: false }));
-    }, 2000);
-  };
+  const currentSaveState = saveState[index] || "idle";
 
   // Preload assets once
   useEffect(() => {
@@ -133,9 +98,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   }, [card, cancelSequence]);
 
   const handleCamera = () => {
-    // iOS Safari requires .click() to be called synchronously inside a user gesture.
-    // Any async delay (setTimeout, state update) causes Safari to block the file picker.
-    // So: record the card index, then click immediately — no delays, no remounting.
+    // iOS Safari: .click() must be synchronous inside a user gesture — no setTimeout.
     fileInputCardRef.current = index;
     fileInputRef.current.click();
   };
@@ -147,13 +110,59 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     const reader = new FileReader();
     reader.onload = (ev) => {
       setPhotos((prev) => ({ ...prev, [targetIdx]: ev.target.result }));
-      setSavedFlags((prev) => ({ ...prev, [targetIdx]: false }));
+      setSaveState((prev) => ({ ...prev, [targetIdx]: "idle" }));
     };
     reader.readAsDataURL(file);
-    // Do NOT reset e.target.value on iOS — it breaks subsequent picks on Safari.
-    // Instead we rely on the fact that selecting any file (even the same one) always
-    // fires onChange on iOS as long as we never clear the input's value.
+    // Do NOT reset e.target.value — breaks subsequent picks on iOS Safari.
   };
+
+  // ── NEW screenshot-based save ─────────────────────────────────────────────
+  // Uses captureFlashcard() to composite a clean canvas image of the card
+  // content (image + letter blocks). No DOM scraping, no html2canvas.
+  // Works reliably on every card, every save, on mobile and desktop.
+  const handleSave = useCallback(async () => {
+    if (currentSaveState === "saving") return;
+
+    const currentIndex = index;
+    const currentCard = wordList[currentIndex];
+    const currentPhoto = photos[currentIndex] || null;
+
+    setSaveState((prev) => ({ ...prev, [currentIndex]: "saving" }));
+
+    const screenshotDataUrl = await captureFlashcard({
+      word: currentCard.word,
+      photoDataUrl: currentPhoto,
+      cardImageUrl: currentCard.image,
+    });
+
+    const entry = {
+      id: Date.now(),
+      word: currentCard.word,
+      audio: currentCard.audio || null,
+      // type = "screenshot" tells Album to render it as a full-screen image
+      type: "screenshot",
+      screenshotDataUrl,
+      date: new Date().toLocaleDateString(),
+    };
+
+    try {
+      const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+      album.push(entry);
+      localStorage.setItem("cody_album", JSON.stringify(album));
+    } catch (err) {
+      console.error("[Save] localStorage write failed:", err);
+      setSaveState((prev) => ({ ...prev, [currentIndex]: "idle" }));
+      return;
+    }
+
+    setSaveState((prev) => ({ ...prev, [currentIndex]: "saved" }));
+    setTimeout(() => {
+      setSaveState((prev) => ({ ...prev, [currentIndex]: "idle" }));
+    }, 2000);
+  }, [index, photos, wordList, currentSaveState]);
+
+  const isSaving = currentSaveState === "saving";
+  const isSaved = currentSaveState === "saved";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
@@ -166,20 +175,12 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
       {/* Card area */}
       <div style={{ flex: 1, padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
 
-        {/*
-          STRUCTURAL FIX:
-          The save and camera buttons are OUTSIDE the AnimatePresence/motion.div card frame.
-          They are positioned absolutely relative to a wrapper div that encompasses the card.
-          This means framer-motion exit animations on the card NEVER capture a stale onClick
-          on the save button — the button lives in normal React render flow, not inside
-          an exiting motion node.
-        */}
         <div style={{ position: "relative", width: "100%", maxWidth: 340 }}>
           {/* Decorative blobs */}
           <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
 
-          {/* Animated card image only — NO buttons inside */}
+          {/* Animated card image — NO buttons inside */}
           <AnimatePresence mode="wait">
             <motion.div
               key={index}
@@ -198,37 +199,35 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
             </motion.div>
           </AnimatePresence>
 
-          {/*
-            Buttons live OUTSIDE the animated card — they are always in the live
-            React tree with fresh closures. saveRef.current() is called so the
-            handler is ALWAYS the latest one regardless of animation state.
-          */}
-
-          {/* Save button — shown only when this card has a captured photo */}
-          {enableSave && hasPhoto && (
+          {/* Save button — shown always when enableSave; no photo required (saves card as-is) */}
+          {enableSave && (
             <motion.button
-              key={`save-btn-${index}`}
               initial={{ opacity: 0, scale: 0.7 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.7 }}
-              onClick={() => saveRef.current()}
+              onClick={handleSave}
+              disabled={isSaving}
               style={{
                 position: "absolute", bottom: 32, right: 88,
                 width: 48, height: 48, borderRadius: 24,
-                background: justSaved ? "#E8FFF8" : "white",
+                background: isSaved ? "#E8FFF8" : "white",
                 boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
-                border: "none", cursor: "pointer",
+                border: "none", cursor: isSaving ? "wait" : "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 zIndex: 10, touchAction: "manipulation",
                 transition: "background 0.3s",
+                opacity: isSaving ? 0.6 : 1,
               }}
               aria-label="Save to Album"
             >
-              <SaveIcon color={justSaved ? "#4ECDC4" : "#A8D0E6"} size={24} />
+              {isSaving ? (
+                <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2.5px solid #A8D0E6", borderTopColor: "transparent", animation: "spin 0.7s linear infinite" }} />
+              ) : (
+                <SaveIcon color={isSaved ? "#4ECDC4" : "#A8D0E6"} size={24} />
+              )}
             </motion.button>
           )}
 
-          {/* Camera button — always shown */}
+          {/* Camera button */}
           <button
             onClick={handleCamera}
             style={{
@@ -280,9 +279,10 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
         </button>
       </div>
 
-      {/* Single persistent input — no key remounting, no value reset.
-          iOS Safari fires onChange reliably when: (1) .click() is called synchronously
-          in a user gesture, (2) value is never cleared, (3) no capture attribute. */}
+      {/* Spin keyframe for saving spinner */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+      {/* Single persistent input — no key remounting, no value reset. */}
       <input
         ref={fileInputRef}
         type="file"
