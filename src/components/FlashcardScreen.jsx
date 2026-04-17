@@ -36,11 +36,9 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
-  const customImagesRef = useRef(customImages);
   const indexRef = useRef(index);
 
-  // Keep refs in sync with latest state
-  useEffect(() => { customImagesRef.current = customImages; }, [customImages]);
+  // Keep indexRef in sync
   useEffect(() => { indexRef.current = index; }, [index]);
 
   // Cancel any running sequence when card changes
@@ -132,12 +130,16 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   };
 
   const handleSave = useCallback(() => {
-    const imageToSave = customImagesRef.current[indexRef.current];
-    if (!imageToSave) return;
-    const currentWord = wordList[indexRef.current]?.word;
-    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    album.push({ id: Date.now(), word: currentWord, snapshot: imageToSave, date: new Date().toLocaleDateString() });
-    localStorage.setItem("cody_album", JSON.stringify(album));
+    const currentIndex = indexRef.current;
+    setCustomImages((prev) => {
+      const imageToSave = prev[currentIndex];
+      if (!imageToSave) return prev;
+      const currentWord = wordList[currentIndex]?.word;
+      const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+      album.push({ id: Date.now(), word: currentWord, snapshot: imageToSave, date: new Date().toLocaleDateString() });
+      localStorage.setItem("cody_album", JSON.stringify(album));
+      return prev;
+    });
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2000);
   }, [wordList]);
