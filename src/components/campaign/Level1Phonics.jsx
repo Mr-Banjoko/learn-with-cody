@@ -1,64 +1,31 @@
 /**
- * Level1Phonics — NEW ARCHITECTURE
- * Round-scoped save state: each round gets its own explicit state
- * Save logic is deterministic and not dependent on motion animation event capture
+ * Level1Phonics — wraps the existing FlashcardScreen for a single word.
+ * Shows only that one word; "Next" calls onNext(); no back/navigation noise.
  */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Check } from "lucide-react";
+import { Camera, Check, BookImage } from "lucide-react";
+import html2canvas from "html2canvas";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
-// Pure save function — no closures, explicit parameters
-function saveToAlbum(word, imageData, audioUrl) {
-  try {
-    if (!word || !imageData) {
-      console.warn("saveToAlbum: missing word or imageData");
-      return false;
-    }
-    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    if (!Array.isArray(album)) throw new Error("Corrupt album");
-    
-    album.push({
-      id: Date.now() + Math.random(),
-      word,
-      image: imageData,
-      audio: audioUrl || null,
-      date: new Date().toLocaleDateString(),
-    });
-    localStorage.setItem("cody_album", JSON.stringify(album));
-    return true;
-  } catch (error) {
-    console.error("saveToAlbum failed:", error);
-    return false;
-  }
-}
-
 export default function Level1Phonics({ card, onNext, lang = "en" }) {
-  // Round-scoped state: fresh per card load
   const [customImage, setCustomImage] = useState(null);
   const [justSaved, setJustSaved] = useState(false);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
-  
-  // Tracking refs
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
+  const captureRef = useRef(null);
   const fileInputRef = useRef(null);
-  const saveTimerRef = useRef(null);
-  // Round-scoped ID: changes when card changes
-  const roundIdRef = useRef(`${card.word}-${Date.now()}`);
 
   useEffect(() => {
-    // NEW ROUND: Reset all state, create new round ID
-    roundIdRef.current = `${card.word}-${Date.now()}`;
     cancelSequence();
     setActiveLetterIndex(null);
     setCustomImage(null);
     setJustSaved(false);
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
   }, [card.word]);
 
   useEffect(() => {
@@ -111,18 +78,18 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
     e.target.value = "";
   };
 
-  // Save handler: explicit parameters, no closure dependency
-  const handleSave = useCallback(() => {
-    if (!customImage && !card.image) return;
-    const imageToSave = customImage || card.image;
-    const success = saveToAlbum(card.word, imageToSave, card.audio);
-
-    if (success) {
-      setJustSaved(true);
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => setJustSaved(false), 2500);
-    }
-  }, [card.word, card.image, card.audio, customImage]);
+  const handleSave = async () => {
+    if (!captureRef.current) return;
+    const canvas = await html2canvas(captureRef.current, {
+      scale: 2, useCORS: true, allowTaint: true, backgroundColor: null,
+    });
+    const dataUrl = canvas.toDataURL("image/png");
+    const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+    album.push({ id: Date.now(), word: card.word, snapshot: dataUrl, date: new Date().toLocaleDateString() });
+    localStorage.setItem("cody_album", JSON.stringify(album));
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
+  };
 
   const currentImage = customImage || card.image;
 
@@ -130,6 +97,7 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
     <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif" }}>
       {/* Card area */}
       <div
+        ref={captureRef}
         style={{ flex: 1, padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}
       >
         <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
@@ -150,37 +118,26 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
                 onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
                 style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
               />
-              {/* Camera + Save buttons container */}
-              <div style={{ position: "absolute", bottom: 18, right: 18, display: "flex", gap: 10, alignItems: "center", zIndex: 2 }}>
-                {customImage && (
-                  <motion.div
-                    key={`save-${roundIdRef.current}`}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <button
-                      onClick={handleSave}
-                      style={{ width: 44, height: 44, borderRadius: 22, background: "white", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", transition: "all 0.3s", touchAction: "manipulation" }}
-                    >
-                      {justSaved ? <Check size={20} color="#4ECDC4" strokeWidth={3} /> : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A8D0E6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                      )}
-                    </button>
-                  </motion.div>
-                )}
-                <button onClick={handleCamera} style={{ width: 44, height: 44, borderRadius: 22, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Camera size={20} color="#A8D0E6" strokeWidth={2.2} />
-                </button>
-              </div>
-              </motion.div>
-              </AnimatePresence>
-              </div>
+              <button onClick={handleCamera} style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
+                <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
+              </button>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <AnimatePresence>
+          {customImage && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={handleSave}
+              style={{ position: "absolute", top: 18, left: 18, width: 48, height: 48, borderRadius: 24, background: justSaved ? "#4ECDC4" : "#5B8DEF", color: "white", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(91,141,239,0.40)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3, transition: "background 0.3s", touchAction: "manipulation" }}
+            >
+              {justSaved ? <Check size={22} /> : <BookImage size={22} />}
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         {/* Letter blocks + play button */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, zIndex: 1 }}>
