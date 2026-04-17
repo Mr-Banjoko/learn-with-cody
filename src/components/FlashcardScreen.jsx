@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Check } from "lucide-react";
 import BackArrow from "./BackArrow";
-import html2canvas from "html2canvas";
 import { shortAWords } from "../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
@@ -38,7 +37,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
-  const captureRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // Cancel any running sequence when card changes
@@ -132,14 +130,11 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     e.target.value = "";
   };
 
-  const handleSave = async () => {
-    if (!captureRef.current) return;
-    const canvas = await html2canvas(captureRef.current, {
-      scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#D6EEFF",
-    });
-    const dataUrl = canvas.toDataURL("image/png");
+  const handleSave = () => {
+    const imageToSave = customImages[index];
+    if (!imageToSave) return;
     const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-    album.push({ id: Date.now(), word: card.word, snapshot: dataUrl, date: new Date().toLocaleDateString() });
+    album.push({ id: Date.now(), word: card.word, snapshot: imageToSave, date: new Date().toLocaleDateString() });
     localStorage.setItem("cody_album", JSON.stringify(album));
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2000);
@@ -152,7 +147,7 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
         <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E293B", marginRight: 40 }}>{screenTitle}</h1>
       </div>
 
-      <div ref={captureRef} style={{ flex: 1, background: "transparent", padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
+      <div style={{ flex: 1, background: "transparent", padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
         <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
           <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
