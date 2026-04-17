@@ -34,6 +34,8 @@ function getRect(ref) {
   return ref.current.getBoundingClientRect();
 }
 
+// targets can optionally include a `yOffsetPct` (0–1) to shift the spotlight
+// downward by that fraction of the spotlight height (top-only, bottom stays).
 export default function SpotlightOverlay({ targets, onDone }) {
   const [step, setStep] = useState(0);
   const [spotlight, setSpotlight] = useState(null);
@@ -53,12 +55,15 @@ export default function SpotlightOverlay({ targets, onDone }) {
       ? container.getBoundingClientRect()
       : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
 
+    const baseH = targetRect.height + PAD * 2;
+    const yShift = (t.yOffsetPct || 0) * baseH;
+
     setSpotlight({
       // Spotlight position relative to the overlay container
-      x: targetRect.left - origin.left - PAD,
-      y: targetRect.top  - origin.top  - PAD,
-      w: targetRect.width  + PAD * 2,
-      h: targetRect.height + PAD * 2,
+      x:  targetRect.left - origin.left - PAD,
+      y:  targetRect.top  - origin.top  - PAD + yShift,
+      w:  targetRect.width  + PAD * 2,
+      h:  baseH - yShift,            // shrink from top, bottom stays fixed
       // Container dimensions for the SVG viewBox
       vw: origin.width,
       vh: origin.height,

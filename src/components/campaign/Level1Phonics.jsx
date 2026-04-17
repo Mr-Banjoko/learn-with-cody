@@ -40,7 +40,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   const refNext     = useRef(null); // Step 5: next button
 
   const spotlightTargets = [
-    { ref: refImage },
+    { ref: refImage, yOffsetPct: 0.2 },
     { ref: refLetterC },
     { ref: refPlay },
     { ref: refCamera },
