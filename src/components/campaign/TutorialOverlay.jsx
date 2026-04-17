@@ -81,25 +81,31 @@ export default function TutorialOverlay({ targetRef, padding = 14, borderRadius 
             position: "fixed",
             inset: 0,
             zIndex: 1000,
-            pointerEvents: "none", // overlay itself doesn't intercept — parent handles blocking
+            pointerEvents: "none",
           }}
         >
-          {/* Dim layer with cutout */}
+          {/* Dim layer — blocks taps outside the hole via pointer-events on SVG regions */}
           <svg
             width={vw}
             height={vh}
-            style={{ position: "absolute", inset: 0, display: "block" }}
+            style={{ position: "absolute", inset: 0, display: "block", pointerEvents: "all" }}
           >
             <defs>
               <clipPath id={clipId} clipRule="evenodd">
                 <path d={svgPath} fillRule="evenodd" />
               </clipPath>
             </defs>
-            {/* Full-screen dark overlay, cut out by the clip path */}
+            {/* Dark overlay rendered only outside the spotlight hole */}
             <rect
               x={0} y={0} width={vw} height={vh}
               fill="rgba(0,0,0,0.58)"
               clipPath={`url(#${clipId})`}
+            />
+            {/* Transparent rect covering the spotlight hole — passes pointer events through */}
+            <rect
+              x={box.x} y={box.y} width={box.w} height={box.h}
+              fill="transparent"
+              style={{ pointerEvents: "none" }}
             />
           </svg>
 

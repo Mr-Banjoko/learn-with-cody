@@ -65,7 +65,7 @@ export async function warmupAudio(urls) {
 }
 
 // Internal: actually construct and start an Audio element from a resolved blob/remote src.
-function _startPlayback(src, gain) {
+function _startPlayback(src, gain, onEnded) {
   const audio = new Audio();
   audio.preload = "auto";
   audio.playbackRate = 1.0;
@@ -74,10 +74,12 @@ function _startPlayback(src, gain) {
   currentAudio = audio;
   audio.onended = () => {
     if (currentAudio === audio) currentAudio = null;
+    onEnded && onEnded();
   };
   audio.load();
   audio.play().catch(() => {
     if (currentAudio === audio) currentAudio = null;
+    onEnded && onEnded();
   });
 }
 
@@ -88,7 +90,7 @@ function _startPlayback(src, gain) {
  * starts synchronously — zero async overhead, zero perceptible delay on touch.
  * SLOW PATH (first ever play): resolves the blob URL then plays.
  */
-export function playAudio(remoteUrl, gain = 1) {
+export function playAudio(remoteUrl, gain = 1, onEnded) {
   if (!remoteUrl) return;
   if (currentAudio) {
     currentAudio.pause();
@@ -97,11 +99,11 @@ export function playAudio(remoteUrl, gain = 1) {
   }
   // Sync fast-path — no await, no microtask queue, instant playback
   if (resolvedBlobUrls.has(remoteUrl)) {
-    _startPlayback(resolvedBlobUrls.get(remoteUrl), gain);
+    _startPlayback(resolvedBlobUrls.get(remoteUrl), gain, onEnded);
     return;
   }
   // Async fallback for first-ever play before warmup completes
-  getCachedAudioUrl(remoteUrl).then((src) => _startPlayback(src, gain));
+  getCachedAudioUrl(remoteUrl).then((src) => _startPlayback(src, gain, onEnded));
 }
 
 /**

@@ -80,8 +80,8 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
   const tutorialActive = tutStep !== STEP_DONE;
 
   // ── Refs for spotlight targets ─────────────────────────────────────────────
-  const pictureRef  = useRef(null);
-  const letterCRef  = useRef(null);   // set on the first RainbowLetterBlock (index 0)
+  const pictureRef  = useRef(null);  // inner white card div (not the full-width wrapper)
+  const letterCRef  = useRef(null);
   const playRef     = useRef(null);
   const cameraRef   = useRef(null);
   const resetRef    = useRef(null);
@@ -161,8 +161,14 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
 
   const handlePictureTap = useCallback((e) => {
     e.preventDefault();
-    if (card.audio) playAudio(card.audio);
-    if (tutStep === STEP_PICTURE) setTutStep(STEP_LETTER_C);
+    if (card.audio) {
+      playAudio(card.audio, 1, () => {
+        // Advance tutorial only AFTER the word audio finishes
+        if (tutStep === STEP_PICTURE) setTutStep(STEP_LETTER_C);
+      });
+    } else {
+      if (tutStep === STEP_PICTURE) setTutStep(STEP_LETTER_C);
+    }
   }, [card, tutStep]);
 
   const handleLetterTap = useCallback((letter, i) => {
@@ -230,27 +236,31 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
           <AnimatePresence mode="wait">
             <motion.div
               key={card.word}
-              ref={pictureRef}
               initial={{ opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.94 }}
               transition={{ duration: 0.22 }}
-              style={{
-                position: "relative", zIndex: tutStep === STEP_PICTURE ? 1010 : 1,
-                background: "white", borderRadius: 28, padding: 14,
-                boxShadow: "0 12px 48px rgba(30,58,95,0.15)", width: "100%",
-              }}
+              style={{ position: "relative", zIndex: 1, width: "100%" }}
             >
-              <img
-                src={currentImage}
-                alt={card.word}
-                onPointerDown={handlePictureTap}
+              {/* Inner white card — this is what we spotlight */}
+              <div
+                ref={pictureRef}
                 style={{
-                  width: "100%", aspectRatio: "1/1", objectFit: "cover",
-                  borderRadius: 18, display: "block",
-                  cursor: card.audio ? "pointer" : "default",
+                  background: "white", borderRadius: 28, padding: 14,
+                  boxShadow: "0 12px 48px rgba(30,58,95,0.15)",
                 }}
-              />
+              >
+                <img
+                  src={currentImage}
+                  alt={card.word}
+                  onPointerDown={handlePictureTap}
+                  style={{
+                    width: "100%", aspectRatio: "1/1", objectFit: "cover",
+                    borderRadius: 18, display: "block",
+                    cursor: card.audio ? "pointer" : "default",
+                  }}
+                />
+              </div>
             </motion.div>
           </AnimatePresence>
 
@@ -270,8 +280,7 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
                   background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
                   border: "none", cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  zIndex: tutStep === STEP_RESET ? 1010 : 10,
-                  touchAction: "manipulation",
+                  zIndex: 10, touchAction: "manipulation",
                 }}
                 aria-label="Reset to original image"
               >
@@ -290,8 +299,7 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
               background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
               border: "none", cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
-              zIndex: tutStep === STEP_CAMERA ? 1010 : 10,
-              touchAction: "manipulation",
+              zIndex: 10, touchAction: "manipulation",
             }}
           >
             <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
@@ -309,10 +317,6 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
             <div
               key={i}
               ref={i === 0 ? letterCRef : undefined}
-              style={{
-                zIndex: (tutStep === STEP_LETTER_C && i === 0) ? 1010 : "auto",
-                position: "relative",
-              }}
             >
               <RainbowLetterBlock
                 letter={letter}
@@ -334,8 +338,6 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
               display: "flex", alignItems: "center", justifyContent: "center",
               cursor: "pointer", flexShrink: 0, marginLeft: 6,
               transition: "transform 0.12s",
-              zIndex: tutStep === STEP_PLAY ? 1010 : "auto",
-              position: "relative",
             }}
             onMouseDown={e => e.currentTarget.style.transform = "scale(0.92)"}
             onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
@@ -372,28 +374,11 @@ export default function Level1Phonics({ card, onNext, lang = "en" }) {
             fontFamily: "Fredoka, sans-serif",
             touchAction: "manipulation",
             boxShadow: "0 4px 0 #2f6a9a",
-            position: "relative",
-            zIndex: tutStep === STEP_NEXT ? 1010 : "auto",
           }}
         >
           {lang === "zh" ? "下一步 →" : "Next →"}
         </button>
       </div>
-
-      {/* ── Tap-blocker: blocks non-spotlit taps while tutorial is active ── */}
-      {tutorialActive && (
-        <div
-          style={{
-            position: "fixed", inset: 0,
-            zIndex: 999, // below overlay (1000) and below spotlit elements (1010)
-            background: "transparent",
-            pointerEvents: "all",
-          }}
-          // Suppress taps on this blocker layer (spotlit elements are above it)
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-        />
-      )}
 
       {/* ── Tutorial overlay ──────────────────────────────────────────────── */}
       {tutorialActive && spotlightRef && (
