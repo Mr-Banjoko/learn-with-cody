@@ -27,25 +27,6 @@ function LetterBlock({ letter, index }) {
   );
 }
 
-/**
- * Per-card save state machine.
- *
- * Each card gets its own isolated save state object:
- *   { capturedPhoto: string|null, justSaved: boolean, saving: boolean }
- *
- * Stored in a ref-map keyed by card index. React state (`cardSaveState`)
- * is the single source of truth rendered to the UI — but ALL writes go
- * through the ref first so handlers never read stale closure values.
- *
- * Key design decisions:
- * - NO useCallback for handleSave — it is an inline closure that reads
- *   `index` directly from render scope (always current).
- * - NO indexRef / customImagesRef needed — we don't store photos in a
- *   global map; each card's photo lives in cardSaveState[index].capturedPhoto.
- * - `handleFileChange` uses a data-attribute on the file input to know
- *   which card index the input was opened for (set synchronously on open).
- * - `justSaved` is per-card and reset when moving away from that card.
- */
 export default function FlashcardScreen({ onBack, words, title, enableLetterSounds, enableSave = false, lang = "en" }) {
   const wordList = words || shortAWords;
   const screenTitle = title || "Short a Words";
@@ -53,26 +34,64 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const [index, setIndex] = useState(0);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
 
-  // Per-card save state: { [cardIndex]: { capturedPhoto: string|null, justSaved: bool } }
-  const [cardSaveState, setCardSaveState] = useState({});
+  // Per-card captured photo: { [cardIndex]: string (dataURL) }
+  const [photos, setPhotos] = useState({});
+  // Per-card justSaved flag: { [cardIndex]: bool }
+  const [savedFlags, setSavedFlags] = useState({});
 
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
-  // Tracks which card index the file input was opened for (set synchronously)
-  const fileInputCardRef = useRef(null);
+
+  // THE KEY FIX: a ref that always holds the current index.
+  // fileInputCardRef is set synchronously when camera opens.
+  // saveRef always points to the latest save handler — no stale closures possible.
+  const fileInputCardRef = useRef(0);
+  const saveRef = useRef(null);
 
   const card = wordList[index];
   const total = wordList.length;
-
-  // Per-card derived values — always read from current render's index
-  const thisSaveState = cardSaveState[index] || { capturedPhoto: null, justSaved: false };
-  const capturedPhoto = thisSaveState.capturedPhoto;
-  const justSaved = thisSaveState.justSaved;
+  const capturedPhoto = photos[index] || null;
   const hasPhoto = capturedPhoto !== null;
   const displayImage = capturedPhoto || card.image;
+  const justSaved = savedFlags[index] || false;
 
-  // Preload all images/audio once
+  // THE REAL FIX: saveRef is updated on every single render.
+  // The button's onClick calls saveRef.current() which always runs
+  // the latest closure — never a stale one from a previous card.
+  saveRef.current = () => {
+    const currentIndex = index;
+    const currentCard = wordList[currentIndex];
+    const currentPhoto = photos[currentIndex];
+
+    if (!currentPhoto) return;
+
+    const entry = {
+      id: Date.now(),
+      word: currentCard.word,
+      audio: currentCard.audio || null,
+      image: currentPhoto,
+      date: new Date().toLocaleDateString(),
+    };
+
+    try {
+      const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
+      album.push(entry);
+      localStorage.setItem("cody_album", JSON.stringify(album));
+    } catch (err) {
+      console.error("[Save] localStorage write failed:", err);
+      return;
+    }
+
+    setSavedFlags((prev) => ({ ...prev, [currentIndex]: true }));
+
+    const capturedIdx = currentIndex;
+    setTimeout(() => {
+      setSavedFlags((prev) => ({ ...prev, [capturedIdx]: false }));
+    }, 2000);
+  };
+
+  // Preload assets once
   useEffect(() => {
     wordList.forEach((c) => { const img = new Image(); img.src = c.image; });
     const audioUrls = wordList.map((c) => c.audio).filter(Boolean);
@@ -84,7 +103,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     }
   }, []);
 
-  // Cancel audio sequence on card change
   const cancelSequence = useCallback(() => {
     if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
     if (activeTimerRef.current) { clearTimeout(activeTimerRef.current); activeTimerRef.current = null; }
@@ -93,8 +111,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   useEffect(() => {
     cancelSequence();
     setActiveLetterIndex(null);
-    // Do NOT reset cardSaveState here — we preserve per-card state if user
-    // navigates back. We only need to ensure the UI reads from the right slot.
   }, [index]);
 
   const handleLetterTap = useCallback((letter, i) => {
@@ -120,83 +136,50 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     sequenceRef.current = cancel;
   }, [card, cancelSequence]);
 
-  // Open camera — record which card index we're opening it for
   const handleCamera = () => {
     fileInputCardRef.current = index;
     fileInputRef.current.value = "";
     fileInputRef.current.click();
   };
 
-  // File selected — write photo into the card slot that was opened
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const targetIdx = fileInputCardRef.current; // synchronously captured on open
+    const targetIdx = fileInputCardRef.current;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      setCardSaveState((prev) => ({
-        ...prev,
-        [targetIdx]: { capturedPhoto: ev.target.result, justSaved: false },
-      }));
+      setPhotos((prev) => ({ ...prev, [targetIdx]: ev.target.result }));
+      setSavedFlags((prev) => ({ ...prev, [targetIdx]: false }));
     };
     reader.readAsDataURL(file);
     e.target.value = "";
   };
 
-  // Save — reads directly from current render's `index` and `capturedPhoto`
-  // No useCallback — fresh closure every render guarantees correct index & photo
-  const handleSave = () => {
-    if (!hasPhoto) return; // guard: only save when photo exists
-    const currentCard = wordList[index];
-    const photoToSave = capturedPhoto; // from current render scope — always correct
-
-    const entry = {
-      id: Date.now(),
-      word: currentCard.word,
-      audio: currentCard.audio || null,
-      image: photoToSave,
-      date: new Date().toLocaleDateString(),
-    };
-
-    try {
-      const album = JSON.parse(localStorage.getItem("cody_album") || "[]");
-      album.push(entry);
-      localStorage.setItem("cody_album", JSON.stringify(album));
-    } catch (err) {
-      console.error("[Save] localStorage write failed:", err);
-      return;
-    }
-
-    // Mark this card as saved (per-card justSaved)
-    setCardSaveState((prev) => ({
-      ...prev,
-      [index]: { ...prev[index], justSaved: true },
-    }));
-
-    // Auto-reset justSaved after 2s using a functional update so no stale closure
-    const savedIdx = index;
-    setTimeout(() => {
-      setCardSaveState((prev) => {
-        const slot = prev[savedIdx];
-        if (!slot) return prev;
-        return { ...prev, [savedIdx]: { ...slot, justSaved: false } };
-      });
-    }, 2000);
-  };
-
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
+      {/* Header */}
       <div style={{ background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)", borderBottom: "1.5px solid rgba(0,0,0,0.06)", padding: "10px 20px 14px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <BackArrow onPress={onBack} />
         <h1 style={{ flex: 1, textAlign: "center", fontSize: 24, fontWeight: 700, color: "#1E293B", marginRight: 40 }}>{screenTitle}</h1>
       </div>
 
-      <div style={{ flex: 1, background: "transparent", padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
-        <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
+      {/* Card area */}
+      <div style={{ flex: 1, padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
+
+        {/*
+          STRUCTURAL FIX:
+          The save and camera buttons are OUTSIDE the AnimatePresence/motion.div card frame.
+          They are positioned absolutely relative to a wrapper div that encompasses the card.
+          This means framer-motion exit animations on the card NEVER capture a stale onClick
+          on the save button — the button lives in normal React render flow, not inside
+          an exiting motion node.
+        */}
+        <div style={{ position: "relative", width: "100%", maxWidth: 340 }}>
+          {/* Decorative blobs */}
           <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
 
-          {/* Card frame — keyed by index so it fully remounts on card change */}
+          {/* Animated card image only — NO buttons inside */}
           <AnimatePresence mode="wait">
             <motion.div
               key={index}
@@ -212,43 +195,53 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
                 onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
                 style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block", cursor: card.audio ? "pointer" : "default" }}
               />
-
-              {/* Save button — only visible after a real photo has been captured for THIS card */}
-              <AnimatePresence>
-                {enableSave && hasPhoto && (
-                  <motion.button
-                    key={`save-${index}`}
-                    initial={{ opacity: 0, scale: 0.7 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.7 }}
-                    transition={{ duration: 0.18 }}
-                    onClick={handleSave}
-                    style={{
-                      position: "absolute", bottom: 18, right: 74,
-                      width: 48, height: 48, borderRadius: 24,
-                      background: justSaved ? "#E8FFF8" : "white",
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
-                      border: "none", cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      zIndex: 2, touchAction: "manipulation",
-                      transition: "background 0.3s",
-                    }}
-                    aria-label="Save to Album"
-                  >
-                    <SaveIcon color={justSaved ? "#4ECDC4" : "#A8D0E6"} size={24} />
-                  </motion.button>
-                )}
-              </AnimatePresence>
-
-              {/* Camera button */}
-              <button
-                onClick={handleCamera}
-                style={{ position: "absolute", bottom: 18, right: 18, width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2, touchAction: "manipulation" }}
-              >
-                <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
-              </button>
             </motion.div>
           </AnimatePresence>
+
+          {/*
+            Buttons live OUTSIDE the animated card — they are always in the live
+            React tree with fresh closures. saveRef.current() is called so the
+            handler is ALWAYS the latest one regardless of animation state.
+          */}
+
+          {/* Save button — shown only when this card has a captured photo */}
+          {enableSave && hasPhoto && (
+            <motion.button
+              key={`save-btn-${index}`}
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              onClick={() => saveRef.current()}
+              style={{
+                position: "absolute", bottom: 32, right: 88,
+                width: 48, height: 48, borderRadius: 24,
+                background: justSaved ? "#E8FFF8" : "white",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+                border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                zIndex: 10, touchAction: "manipulation",
+                transition: "background 0.3s",
+              }}
+              aria-label="Save to Album"
+            >
+              <SaveIcon color={justSaved ? "#4ECDC4" : "#A8D0E6"} size={24} />
+            </motion.button>
+          )}
+
+          {/* Camera button — always shown */}
+          <button
+            onClick={handleCamera}
+            style={{
+              position: "absolute", bottom: 32, right: 32,
+              width: 48, height: 48, borderRadius: 24,
+              background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+              border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              zIndex: 10, touchAction: "manipulation",
+            }}
+          >
+            <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
+          </button>
         </div>
 
         {/* Letter blocks */}
