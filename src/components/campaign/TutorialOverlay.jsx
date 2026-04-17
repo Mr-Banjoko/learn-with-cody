@@ -68,6 +68,14 @@ export default function TutorialOverlay({ targetRef, padding = 14, borderRadius 
     Z
   `;
 
+  // 4 blocking rects around the hole: top, bottom, left-middle, right-middle
+  const blocks = [
+    { left: 0, top: 0, width: vw, height: box.y },                                      // top
+    { left: 0, top: box.y + box.h, width: vw, height: vh - (box.y + box.h) },           // bottom
+    { left: 0, top: box.y, width: box.x, height: box.h },                               // left
+    { left: box.x + box.w, top: box.y, width: vw - (box.x + box.w), height: box.h },   // right
+  ];
+
   return (
     <AnimatePresence>
       {visible && (
@@ -77,52 +85,43 @@ export default function TutorialOverlay({ targetRef, padding = 14, borderRadius 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1000,
-            pointerEvents: "none",
-          }}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, pointerEvents: "none" }}
         >
-          {/* Dim layer — blocks taps outside the hole via pointer-events on SVG regions */}
+          {/* SVG dim layer — visual only, no pointer events */}
           <svg
             width={vw}
             height={vh}
-            style={{ position: "absolute", inset: 0, display: "block", pointerEvents: "all" }}
+            style={{ position: "absolute", inset: 0, display: "block", pointerEvents: "none" }}
           >
             <defs>
               <clipPath id={clipId} clipRule="evenodd">
                 <path d={svgPath} fillRule="evenodd" />
               </clipPath>
             </defs>
-            {/* Dark overlay rendered only outside the spotlight hole */}
-            <rect
-              x={0} y={0} width={vw} height={vh}
-              fill="rgba(0,0,0,0.58)"
-              clipPath={`url(#${clipId})`}
-            />
-            {/* Transparent rect covering the spotlight hole — passes pointer events through */}
-            <rect
-              x={box.x} y={box.y} width={box.w} height={box.h}
-              fill="transparent"
-              style={{ pointerEvents: "none" }}
-            />
+            <rect x={0} y={0} width={vw} height={vh} fill="rgba(0,0,0,0.58)" clipPath={`url(#${clipId})`} />
           </svg>
 
-          {/* Soft glow ring around the spotlight */}
+          {/* 4 invisible blocking divs around the hole — intercept taps outside spotlight */}
+          {blocks.map((b, i) => (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                left: b.left, top: b.top, width: b.width, height: b.height,
+                pointerEvents: "all",
+              }}
+            />
+          ))}
+
+          {/* Glow ring */}
           <motion.div
             animate={{ boxShadow: ["0 0 0 0px rgba(255,255,255,0.15)", "0 0 0 8px rgba(255,255,255,0.10)", "0 0 0 0px rgba(255,255,255,0.15)"] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             style={{
               position: "absolute",
-              left: box.x,
-              top: box.y,
-              width: box.w,
-              height: box.h,
-              borderRadius,
-              border: "2.5px solid rgba(255,255,255,0.45)",
-              boxSizing: "border-box",
-              pointerEvents: "none",
+              left: box.x, top: box.y, width: box.w, height: box.h,
+              borderRadius, border: "2.5px solid rgba(255,255,255,0.45)",
+              boxSizing: "border-box", pointerEvents: "none",
             }}
           />
         </motion.div>
