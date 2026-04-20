@@ -10,8 +10,14 @@ const LETTER_EXT = {
   z: "mp3",
 };
 
+// Letters whose audio files were updated — append a version param to bust all caches
+const UPDATED_V2 = new Set(["a", "e", "i", "p", "q", "u"]);
+
 export const letterSoundUrls = Object.fromEntries(
-  Object.entries(LETTER_EXT).map(([l, ext]) => [l, `${BASE}/${l}.${ext}`])
+  Object.entries(LETTER_EXT).map(([l, ext]) => {
+    const url = `${BASE}/${l}.${ext}`;
+    return [l, UPDATED_V2.has(l) ? `${url}?v=2` : url];
+  })
 );
 
 export function getLetterSoundUrl(letter) {
