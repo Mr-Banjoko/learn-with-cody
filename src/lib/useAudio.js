@@ -1,6 +1,5 @@
-// v4: force audio/mpeg MIME type on blobs to fix iOS Safari decoder selection.
-// Old blobs (v3) had no explicit MIME → iOS used a slow generic decoder → half-speed playback.
-const CACHE_NAME = "cody-audio-v4";
+// v5: bust cache to pick up updated letter sounds (a, e, i, p, q, u).
+const CACHE_NAME = "cody-audio-v5";
 
 /**
  * APPROVED BLEND TIMING — source of truth for ALL phonics sequence playback across the app.
