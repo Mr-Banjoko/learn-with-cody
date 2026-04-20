@@ -2,9 +2,10 @@
  * Cody Learn – Service Worker
  * Strategy: Cache-first for GitHub raw assets (images + audio).
  * On first fetch → network → cache. Subsequent fetches → serve from cache (works offline).
+ * v2: bust cache to pick up updated letter sounds (a, e, i, p, q, u).
  */
 
-const CACHE_NAME = "cody-assets-v1";
+const CACHE_NAME = "cody-assets-v2";
 const CACHEABLE_ORIGINS = [
   "https://raw.githubusercontent.com",
 ];
