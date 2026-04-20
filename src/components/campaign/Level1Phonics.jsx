@@ -22,6 +22,15 @@ const clearPhoto = (word) => { try { localStorage.removeItem(storageKey(word)); 
 // Track if onboarding has run this session
 let onboardingDone = false;
 
+// Build raw GitHub URL for campaign intro audio
+const GITHUB_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/";
+function introAudioUrl(lang, filename) {
+  const folder = lang === "zh"
+    ? "letter_sound/campaign intro sound/level1_page1_chinese"
+    : "letter_sound/campaign intro sound/level1_page1_eng";
+  return GITHUB_BASE + folder.split("/").map(encodeURIComponent).join("/") + "/" + filename;
+}
+
 export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard = false }) {
   // Load persisted photo for this word on mount / card change
   const [customImage, setCustomImage] = useState(() => loadPhoto(card.word));
@@ -39,13 +48,42 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   const refCamera   = useRef(null); // Step 4: camera button
   const refNext     = useRef(null); // Step 5: next button
 
+  // Build spotlight targets with per-step audio — recalculated when lang changes
   const spotlightTargets = [
-    { ref: refImage, yOffsetPct: 0.2, stretchBottomPct: 0.15 },
-    { ref: refLetterC },
-    { ref: refPlay },
-    { ref: refCamera },
-    { ref: refNext },
+    {
+      ref: refImage,
+      yOffsetPct: 0.2,
+      stretchBottomPct: 0.15,
+      audio: [
+        { url: introAudioUrl(lang, "phase1.mp3"), pauseAfterMs: 1000 },
+        { url: introAudioUrl(lang, "phase2.mp3") },
+      ],
+    },
+    {
+      ref: refLetterC,
+      audio: [{ url: introAudioUrl(lang, "phase3.mp3") }],
+    },
+    {
+      ref: refPlay,
+      audio: [{ url: introAudioUrl(lang, "phase4.mp3") }],
+    },
+    {
+      ref: refCamera,
+      audio: [{ url: introAudioUrl(lang, "phase5.mp3") }],
+    },
+    {
+      ref: refNext,
+      audio: [{ url: introAudioUrl(lang, "phase6.mp3") }],
+    },
   ];
+
+  // Preload all intro audio when onboarding is active
+  useEffect(() => {
+    if (!showOnboarding) return;
+    const urls = ["phase1.mp3","phase2.mp3","phase3.mp3","phase4.mp3","phase5.mp3","phase6.mp3"]
+      .map(f => introAudioUrl(lang, f));
+    warmupAudio(urls);
+  }, [showOnboarding, lang]);
 
   const handleOnboardingDone = () => {
     onboardingDone = true;

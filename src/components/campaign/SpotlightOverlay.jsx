@@ -1,55 +1,133 @@
 /**
- * SpotlightOverlay — 5-step onboarding spotlight.
+ * SpotlightOverlay — 5-step onboarding spotlight with synchronized audio guidance.
  *
- * FIX NOTES (both issues resolved here):
- *
- * Issue 1 — Misalignment on Safari / preview iframe:
- *   Root cause: `window.innerWidth/innerHeight` diverges from the actual visual
- *   viewport on Safari (address bar, bottom bar) and inside preview iframes.
- *   The SVG was sized to those values while `getBoundingClientRect()` returns
- *   coordinates relative to the TRUE visual viewport. When they differ the
- *   spotlight rect is offset from the target.
- *   Fix: size the SVG to 100% of its fixed container (via width="100%" height="100%")
- *   and use a `viewBox` derived from the container's own `getBoundingClientRect`
- *   so coords are always self-consistent.
- *
- * Issue 2 — Inside spotlight still dimmed:
- *   Root cause: SVG `<clipPath>` keeps pixels that are INSIDE the clip region.
- *   The even-odd compound path technique requires `clipPathUnits` and
- *   `clip-rule="evenodd"` set on the *clipPath element*, not just the child path.
- *   Browser support for this combination is inconsistent.
- *   Fix: use an SVG `<mask>` instead. White = show, black = hide. The full screen
- *   is white (visible = dimmed overlay shows). The spotlight rect is black
- *   (hidden = overlay NOT drawn there = target fully clear). This is universally
- *   supported, deterministic, and has no clipping ambiguity.
+ * Props:
+ *   targets  — array of { ref, yOffsetPct?, stretchBottomPct?, audio? }
+ *              audio: array of { url, pauseAfterMs? } — played in sequence when step mounts.
+ *              tap-to-advance is LOCKED until all audio for the current step has finished.
+ *   onDone   — called after user taps on the final step.
  */
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { warmupAudio } from "../../lib/useAudio";
 
 const PAD = 14;
 const RADIUS = 18;
+
+const GITHUB_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/";
+
+// Build a raw GitHub URL from a repo-relative path (spaces encoded)
+function repoUrl(path) {
+  return GITHUB_BASE + path.split("/").map(encodeURIComponent).join("/");
+}
 
 function getRect(ref) {
   if (!ref?.current) return null;
   return ref.current.getBoundingClientRect();
 }
 
-// targets can optionally include a `yOffsetPct` (0–1) to shift the spotlight
-// downward by that fraction of the spotlight height (top-only, bottom stays).
+/**
+ * Play a sequence of audio steps for one spotlight step.
+ * Each entry: { url, pauseAfterMs? }
+ * pauseAfterMs — delay (ms) inserted AFTER that clip before the next one starts.
+ * Returns a cancel function.
+ * Calls onDone when all clips have finished (or if cancelled, onDone is NOT called).
+ */
+function playStepAudio(audioSteps, onDone) {
+  let cancelled = false;
+  let currentAudio = null;
+  let timerId = null;
+
+  function cleanup() {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.onended = null;
+      currentAudio = null;
+    }
+    if (timerId) {
+      clearTimeout(timerId);
+      timerId = null;
+    }
+  }
+
+  async function playIndex(i) {
+    if (cancelled || i >= audioSteps.length) {
+      if (!cancelled) onDone();
+      return;
+    }
+
+    const { url, pauseAfterMs = 0 } = audioSteps[i];
+
+    // Resolve blob URL via the existing cache infrastructure
+    let src = url;
+    try {
+      const cache = await caches.open("cody-audio-v4");
+      let response = await cache.match(url);
+      if (!response) {
+        const fetched = await fetch(url);
+        if (fetched.ok && fetched.status === 200) {
+          await cache.put(url, fetched.clone());
+          response = fetched;
+        }
+      }
+      if (response) {
+        const ab = await response.arrayBuffer();
+        const blob = new Blob([ab], { type: "audio/mpeg" });
+        src = URL.createObjectURL(blob);
+      }
+    } catch { /* fall through to remote URL */ }
+
+    if (cancelled) return;
+
+    const audio = new Audio();
+    audio.preload = "auto";
+    audio.playbackRate = 1.0;
+    audio.volume = 1;
+    audio.src = src;
+    currentAudio = audio;
+
+    audio.onended = () => {
+      currentAudio = null;
+      if (cancelled) return;
+      if (pauseAfterMs > 0) {
+        timerId = setTimeout(() => {
+          timerId = null;
+          if (!cancelled) playIndex(i + 1);
+        }, pauseAfterMs);
+      } else {
+        playIndex(i + 1);
+      }
+    };
+
+    audio.load();
+    audio.play().catch(() => {
+      currentAudio = null;
+      if (!cancelled) playIndex(i + 1);
+    });
+  }
+
+  playIndex(0);
+
+  return function cancel() {
+    cancelled = true;
+    cleanup();
+  };
+}
+
 export default function SpotlightOverlay({ targets, onDone }) {
   const [step, setStep] = useState(0);
   const [spotlight, setSpotlight] = useState(null);
+  const [audioReady, setAudioReady] = useState(false); // tap-advance gating
   const containerRef = useRef(null);
+  const cancelAudioRef = useRef(null);
 
+  // ── Spotlight geometry ───────────────────────────────────────────────────
   const measure = useCallback(() => {
     const t = targets[step];
     if (!t) return;
     const targetRect = getRect(t.ref);
     if (!targetRect) return;
 
-    // Use the overlay container's own bounding rect as the coordinate origin.
-    // This stays correct inside iframes and on Safari where window dimensions
-    // can diverge from the visual viewport.
     const container = containerRef.current;
     const origin = container
       ? container.getBoundingClientRect()
@@ -60,19 +138,16 @@ export default function SpotlightOverlay({ targets, onDone }) {
     const stretchH = baseH * (1 + (t.stretchBottomPct || 0));
 
     setSpotlight({
-      // Spotlight position relative to the overlay container
       x:  targetRect.left - origin.left - PAD,
       y:  targetRect.top  - origin.top  - PAD + yShift,
       w:  targetRect.width  + PAD * 2,
-      h:  stretchH - yShift,         // top fixed, bottom stretched
-      // Container dimensions for the SVG viewBox
+      h:  stretchH - yShift,
       vw: origin.width,
       vh: origin.height,
     });
   }, [step, targets]);
 
   useEffect(() => {
-    // Small rAF delay so layout is settled before measuring (fixes Safari timing)
     const id = requestAnimationFrame(measure);
     window.addEventListener("resize", measure);
     return () => {
@@ -81,15 +156,48 @@ export default function SpotlightOverlay({ targets, onDone }) {
     };
   }, [measure]);
 
+  // ── Audio for each step ──────────────────────────────────────────────────
+  useEffect(() => {
+    // Cancel any audio from the previous step
+    if (cancelAudioRef.current) {
+      cancelAudioRef.current();
+      cancelAudioRef.current = null;
+    }
+
+    const t = targets[step];
+    if (!t?.audio || t.audio.length === 0) {
+      // No audio for this step → unlock immediately
+      setAudioReady(true);
+      return;
+    }
+
+    // Lock tap-to-advance
+    setAudioReady(false);
+
+    const cancel = playStepAudio(t.audio, () => {
+      // All clips for this step finished → unlock
+      setAudioReady(true);
+    });
+    cancelAudioRef.current = cancel;
+
+    return () => {
+      cancel();
+      cancelAudioRef.current = null;
+    };
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Tap handler ──────────────────────────────────────────────────────────
   const advance = useCallback((e) => {
     e.stopPropagation();
+    if (!audioReady) return; // still playing — ignore tap
+
     const next = step + 1;
     if (next >= targets.length) {
       onDone();
     } else {
       setStep(next);
     }
-  }, [step, targets.length, onDone]);
+  }, [audioReady, step, targets.length, onDone]);
 
   return (
     <div
@@ -99,7 +207,8 @@ export default function SpotlightOverlay({ targets, onDone }) {
         position: "fixed",
         inset: 0,
         zIndex: 9999,
-        cursor: "pointer",
+        // Show wait cursor while audio is playing; pointer when ready
+        cursor: audioReady ? "pointer" : "default",
         touchAction: "manipulation",
       }}
     >
@@ -118,16 +227,8 @@ export default function SpotlightOverlay({ targets, onDone }) {
             style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
           >
             <defs>
-              {/*
-                Mask approach:
-                - white rect = overlay IS drawn (dimmed)
-                - black rounded rect = overlay is NOT drawn (spotlight = fully clear)
-                This is the only reliable cross-browser "punch-hole" technique.
-              */}
               <mask id={`sm-${step}`}>
-                {/* Everything dimmed by default */}
                 <rect x={0} y={0} width={spotlight.vw} height={spotlight.vh} fill="white" />
-                {/* Spotlight hole — black means transparent / not drawn */}
                 <rect
                   x={spotlight.x} y={spotlight.y}
                   width={spotlight.w} height={spotlight.h}
@@ -137,7 +238,6 @@ export default function SpotlightOverlay({ targets, onDone }) {
               </mask>
             </defs>
 
-            {/* Dim layer — only shows where mask is white */}
             <rect
               x={0} y={0}
               width={spotlight.vw} height={spotlight.vh}
@@ -145,7 +245,6 @@ export default function SpotlightOverlay({ targets, onDone }) {
               mask={`url(#sm-${step})`}
             />
 
-            {/* White border ring around the spotlight */}
             <rect
               x={spotlight.x} y={spotlight.y}
               width={spotlight.w} height={spotlight.h}
