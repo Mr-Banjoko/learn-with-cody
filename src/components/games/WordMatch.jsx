@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import BackArrow from "../BackArrow";
 import WordMatchGame from "./WordMatchGame";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
@@ -16,7 +16,7 @@ const VOWEL_GROUPS = [
   { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", words: shortUWords, available: true },
 ];
 
-export default function WordMatch({ onBack }) {
+export default function WordMatch({ onBack, lang = "en" }) {
   const [selected, setSelected] = useState(null);
 
   if (selected) {
@@ -27,6 +27,7 @@ export default function WordMatch({ onBack }) {
         title={group.label}
         color={group.color}
         onBack={() => setSelected(null)}
+        lang={lang}
       />
     );
   }
@@ -34,16 +35,11 @@ export default function WordMatch({ onBack }) {
   return (
     <div className="min-h-full pb-32" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}>
       {/* Header */}
-      <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "16px 20px 22px", display: "flex", alignItems: "center", gap: 12 }}>
-        <button
-          onClick={onBack}
-          style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(255,255,255,0.7)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-        >
-          <ArrowLeft size={22} color="#1E3A5F" />
-        </button>
+      <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+        <BackArrow onPress={onBack} />
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>Word Match 🎯</h1>
-          <p style={{ fontSize: 13, color: "#3A6080" }}>Pick a word group!</p>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1E3A5F" }}>{lang === "zh" ? "单词配对 🎯" : "Word Match 🎯"}</h1>
+          <p style={{ fontSize: 13, color: "#3A6080" }}>{lang === "zh" ? "选择一个单词组！" : "Pick a word group!"}</p>
         </div>
       </div>
 
@@ -72,14 +68,14 @@ export default function WordMatch({ onBack }) {
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 20, fontWeight: 700, color: "#1E3A5F" }}>{group.label}</p>
-              <p style={{ fontSize: 13, color: "#7BACC8" }}>{group.available ? "Tap to play!" : "Coming soon"}</p>
+              <p style={{ fontSize: 13, color: "#7BACC8" }}>{group.available ? (lang === "zh" ? "点击游玩！" : "Tap to play!") : (lang === "zh" ? "即将推出" : "Coming soon")}</p>
             </div>
             {group.available ? (
               <div style={{ width: 32, height: 32, borderRadius: 16, background: group.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <span style={{ color: "white", fontSize: 18, lineHeight: 1 }}>›</span>
               </div>
             ) : (
-              <span style={{ fontSize: 11, fontWeight: 600, color: "#7BACC8", background: "#EEF6FF", padding: "3px 10px", borderRadius: 99 }}>Soon</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: "#7BACC8", background: "#EEF6FF", padding: "3px 10px", borderRadius: 99 }}>{lang === "zh" ? "即将" : "Soon"}</span>
             )}
           </motion.button>
         ))}
