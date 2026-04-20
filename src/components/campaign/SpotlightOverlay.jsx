@@ -30,26 +30,34 @@ function getRect(ref) {
  * Play a sequence of audio steps for one spotlight step.
  * Each entry: { url, pauseAfterMs? }
  * pauseAfterMs — delay (ms) inserted AFTER that clip before the next one starts.
+ *
+ * Safari iOS fix: ALL Audio objects are pre-created and pre-loaded synchronously
+ * before any async work begins. Safari requires that Audio().play() be called
+ * in the same user-gesture stack OR on a pre-created element. Creating a new
+ * Audio() inside setTimeout breaks this requirement and silently fails.
+ * By pre-creating all elements upfront we keep them in the same gesture context.
+ *
  * Returns a cancel function.
- * Calls onDone when all clips have finished (or if cancelled, onDone is NOT called).
  */
 function playStepAudio(audioSteps, onDone) {
   let cancelled = false;
-  let currentAudio = null;
   let timerId = null;
 
+  // Pre-create ALL Audio elements synchronously (Safari gesture requirement)
+  const audioEls = audioSteps.map(() => {
+    const a = new Audio();
+    a.preload = "auto";
+    a.playbackRate = 1.0;
+    a.volume = 1;
+    return a;
+  });
+
   function cleanup() {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.onended = null;
-      currentAudio = null;
-    }
-    if (timerId) {
-      clearTimeout(timerId);
-      timerId = null;
-    }
+    if (timerId) { clearTimeout(timerId); timerId = null; }
+    audioEls.forEach(a => { a.pause(); a.onended = null; });
   }
 
+  // Resolve blob src then assign + play the pre-created element
   async function playIndex(i) {
     if (cancelled || i >= audioSteps.length) {
       if (!cancelled) onDone();
@@ -57,8 +65,9 @@ function playStepAudio(audioSteps, onDone) {
     }
 
     const { url, pauseAfterMs = 0 } = audioSteps[i];
+    const audio = audioEls[i];
 
-    // Resolve blob URL via the existing cache infrastructure
+    // Resolve via cache (same logic as useAudio.js)
     let src = url;
     try {
       const cache = await caches.open("cody-audio-v4");
@@ -79,15 +88,8 @@ function playStepAudio(audioSteps, onDone) {
 
     if (cancelled) return;
 
-    const audio = new Audio();
-    audio.preload = "auto";
-    audio.playbackRate = 1.0;
-    audio.volume = 1;
     audio.src = src;
-    currentAudio = audio;
-
     audio.onended = () => {
-      currentAudio = null;
       if (cancelled) return;
       if (pauseAfterMs > 0) {
         timerId = setTimeout(() => {
@@ -101,7 +103,6 @@ function playStepAudio(audioSteps, onDone) {
 
     audio.load();
     audio.play().catch(() => {
-      currentAudio = null;
       if (!cancelled) playIndex(i + 1);
     });
   }
