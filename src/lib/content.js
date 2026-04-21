@@ -137,4 +137,11 @@ export const games = [
     description: "Find animals whose names start with the sound",
     available: false,
   },
+  {
+    id: "drag-letters-v2",
+    label: "Drag the Letters V2",
+    emoji: "✍️",
+    description: "Place all letters then hit Submit to check your answer",
+    available: true,
+  },
 ];

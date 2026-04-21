@@ -10,12 +10,14 @@ const gameLabels = {
   "drag-letters":  { labelZh: "拖拽字母",   descZh: "把字母拖到对应的格子里拼出单词" },
   "missing-sound": { labelZh: "缺失的音",   descZh: "找到缺失的字母来补全单词" },
   "letter-catch":  { labelZh: "接字母",     descZh: "接住正确的字母来组成单词" },
-  "sound-safari":  { labelZh: "声音探险",   descZh: "找出以这个音开头的动物名字" },
+  "sound-safari":    { labelZh: "声音探险",   descZh: "找出以这个音开头的动物名字" },
+  "drag-letters-v2": { labelZh: "拖拽字母 V2", descZh: "放好所有字母后点击提交来检查答案" },
 };
 import { Lock } from "lucide-react";
 import PicSliceGame from "./PicSliceGame";
 import WordMatch from "../components/games/WordMatch";
 import DragTheLetters from "../components/games/DragTheLetters";
+import DragTheLettersV2 from "../components/games/DragTheLettersV2";
 import MissingSound from "../components/games/MissingSound";
 import LetterCatch from "../components/games/LetterCatch";
 
@@ -51,6 +53,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "letter-catch") {
     return <LetterCatch onBack={exitGame} lang={lang} />;
+  }
+  if (activeGame === "drag-letters-v2") {
+    return <DragTheLettersV2 onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "test") {
     return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;
