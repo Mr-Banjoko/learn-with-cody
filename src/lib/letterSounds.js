@@ -12,11 +12,13 @@ const LETTER_EXT = {
 
 // Letters whose audio files were updated — append a version param to bust all caches
 const UPDATED_V2 = new Set(["a", "e", "i", "p", "q", "u"]);
+// v3: force Safari to re-fetch (Safari ignores ?v=2 once HTTP-cached)
+const UPDATED_V3 = UPDATED_V2;
 
 export const letterSoundUrls = Object.fromEntries(
   Object.entries(LETTER_EXT).map(([l, ext]) => {
     const url = `${BASE}/${l}.${ext}`;
-    return [l, UPDATED_V2.has(l) ? `${url}?v=2` : url];
+    return [l, UPDATED_V3.has(l) ? `${url}?v=3` : url];
   })
 );
 

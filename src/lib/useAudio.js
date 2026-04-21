@@ -1,5 +1,5 @@
-// v6: bust cache to pick up updated letter sounds (a, e, i, p, q, u) with ?v=2 URLs.
-const CACHE_NAME = "cody-audio-v6";
+// v7: bust cache to pick up updated letter sounds on Safari (?v=3 URLs).
+const CACHE_NAME = "cody-audio-v7";
 
 /**
  * APPROVED BLEND TIMING — source of truth for ALL phonics sequence playback across the app.

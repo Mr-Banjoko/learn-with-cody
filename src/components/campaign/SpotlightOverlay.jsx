@@ -70,7 +70,7 @@ function playStepAudio(audioSteps, onDone) {
     // Resolve via cache (same logic as useAudio.js)
     let src = url;
     try {
-      const cache = await caches.open("cody-audio-v6");
+      const cache = await caches.open("cody-audio-v7");
       let response = await cache.match(url);
       if (!response) {
         const fetched = await fetch(url);

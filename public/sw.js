@@ -5,7 +5,7 @@
  * v2: bust cache to pick up updated letter sounds (a, e, i, p, q, u).
  */
 
-const CACHE_NAME = "cody-assets-v2";
+const CACHE_NAME = "cody-assets-v3";
 const CACHEABLE_ORIGINS = [
   "https://raw.githubusercontent.com",
 ];
