@@ -8,8 +8,7 @@ import { shortESlices } from "./shortESlices";
 import { shortISlices } from "./shortISlices";
 import { shortOSlices } from "./shortOSlices";
 import { shortUSlices } from "./shortUSlices";
-
-const BASE_LETTERS = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/audio-feature/letter_sound/letter_sounds";
+import { getLetterSoundUrl } from "./letterSounds";
 
 // Full-image lookup (for the reveal after all 3 slices placed)
 const WORD_LOOKUP = {};
@@ -114,7 +113,7 @@ export function buildWordData(word) {
       fullImage: fullImageAsset,
       phonemes: word.split("").map((letter, i) => ({
         letter,
-        audio: `${BASE_LETTERS}/${letter}.mp3`,
+        audio: getLetterSoundUrl(letter),
         sliceSrc: sliceData.slices[i],
       })),
     };
@@ -130,7 +129,7 @@ export function buildWordData(word) {
     slices: null,
     phonemes: word.split("").map((letter) => ({
       letter,
-      audio: `${BASE_LETTERS}/${letter}.mp3`,
+      audio: getLetterSoundUrl(letter),
       sliceSrc: null,
     })),
   };
