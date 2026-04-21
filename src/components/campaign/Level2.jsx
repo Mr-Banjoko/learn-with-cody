@@ -76,13 +76,7 @@ export default function Level2({ onBack, lang = "en" }) {
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
             {lang === "zh" ? "第 2 关" : "Level 2"}
           </p>
-          {!done && (
-            <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>
-              {lang === "zh"
-                ? `🧩 拼图 · 第 ${roundIndex + 1} / ${TOTAL_ROUNDS} 轮`
-                : `🧩 Rearrange the Pictures · Round ${roundIndex + 1} / ${TOTAL_ROUNDS}`}
-            </p>
-          )}
+          
         </div>
       </div>
 

@@ -380,11 +380,7 @@ export default function Level3({ onBack, lang = "en" }) {
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
             {lang === "zh" ? "第 3 关" : "Level 3"}
           </p>
-          {!done && (
-            <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>
-              {roundLabel} · {lang === "zh" ? `第 ${roundIndex + 1} / ${TOTAL_ROUNDS} 轮` : `Round ${roundIndex + 1} / ${TOTAL_ROUNDS}`}
-            </p>
-          )}
+          
         </div>
       </div>
 

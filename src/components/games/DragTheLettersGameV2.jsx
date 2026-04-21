@@ -202,7 +202,7 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1, textAlign: "center", marginRight: 40 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1E3A5F" }}>{lang === "zh" ? "拖拽字母 V2 ✋" : "Drag the Letters V2 ✋"}</h1>
-          <p style={{ fontSize: 13, color: "#3A6080" }}>{title} · {roundIndex + 1} / {total}</p>
+          
         </div>
       </div>
 
