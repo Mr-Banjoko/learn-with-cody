@@ -261,7 +261,11 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                         />
                       </motion.div>
-                    ) : null}
+                    ) : (
+                      <span style={{ fontSize: 13, fontWeight: 600, color: border, opacity: 0.7, userSelect: "none" }}>
+                        {si === 0 ? "1st" : si === 1 ? "2nd" : "3rd"}
+                      </span>
+                    )}
                   </div>
                 );
               })}
