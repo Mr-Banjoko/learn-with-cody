@@ -25,7 +25,7 @@ export default function LetterCatch({ onBack, lang = "en" }) {
   if (selected === "short-u") return <ShortUDifficulty onBack={() => setSelected(null)} lang={lang} />;
 
   return (
-    <div className="min-h-full pb-32" style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}>
+    <div className="min-h-full pb-32" style={{ background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif" }}>
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 16px", display: "flex", alignItems: "center", gap: 8 }}>
         <BackArrow onPress={onBack} />
         <div>

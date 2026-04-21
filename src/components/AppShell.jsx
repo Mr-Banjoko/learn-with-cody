@@ -9,9 +9,10 @@ import CampaignHome from "./campaign/CampaignHome.jsx";
 import ShortALevels from "./campaign/ShortALevels.jsx";
 import Level1 from "./campaign/Level1.jsx";
 import Level2 from "./campaign/Level2.jsx";
+import Level3 from "./campaign/Level3.jsx";
 
 // Screens that hide the tab bar and language toggle
-const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2"]);
+const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3"]);
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("home");
@@ -40,6 +41,14 @@ export default function AppShell() {
 
   const renderHomeScreen = () => {
     switch (homeSubScreen) {
+      case "campaign-short-a-level-3":
+        return (
+          <Level3
+            onBack={() => setHomeSubScreen("campaign-short-a")}
+            lang={language}
+          />
+        );
+
       case "campaign-short-a-level-2":
         return (
           <Level2
@@ -63,6 +72,7 @@ export default function AppShell() {
             onSelectLevel={(lvl) => {
               if (lvl === 1) setHomeSubScreen("campaign-short-a-level-1");
               if (lvl === 2) setHomeSubScreen("campaign-short-a-level-2");
+              if (lvl === 3) setHomeSubScreen("campaign-short-a-level-3");
             }}
             lang={language}
           />

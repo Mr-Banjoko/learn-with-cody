@@ -391,7 +391,7 @@ export default function MissingSoundGame({ words, title, color, onBack, lang = "
     <div
       style={{
         display: "flex", flexDirection: "column", height: "100%", flex: 1,
-        background: "#D6EEFF", fontFamily: "Fredoka, sans-serif",
+        background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif",
         overflow: "hidden",
       }}
     >

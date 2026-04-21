@@ -75,14 +75,14 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
 
   if (!round) {
     return (
-      <div style={{ background: "#D6EEFF", minHeight: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Fredoka, sans-serif" }}>
+      <div style={{ background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", minHeight: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Fredoka, sans-serif" }}>
         <p style={{ color: "#1E3A5F", fontSize: 20, fontWeight: 600 }}>{lang === "zh" ? "目前没有可用图片。" : "No images available right now."}</p>
       </div>
     );
   }
 
   return (
-    <div style={{ background: "#D6EEFF", minHeight: "100%", fontFamily: "Fredoka, sans-serif", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", minHeight: "100%", fontFamily: "Fredoka, sans-serif", display: "flex", flexDirection: "column" }}>
       {/* Header */}
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 16px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <BackArrow onPress={onBack} />
