@@ -19,8 +19,15 @@ const loadPhoto = (word) => { try { return localStorage.getItem(storageKey(word)
 const savePhoto = (word, dataUrl) => { try { localStorage.setItem(storageKey(word), dataUrl); } catch {} };
 const clearPhoto = (word) => { try { localStorage.removeItem(storageKey(word)); } catch {} };
 
-// Track if onboarding has run this session
-let onboardingDone = false;
+// Check if Level 1 has been successfully completed (persisted in localStorage)
+function isLevel1Completed() {
+  try {
+    const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
+    return data?.["short-a"]?.[1]?.completed === true;
+  } catch {
+    return false;
+  }
+}
 
 // Build raw GitHub URL for campaign intro audio
 const GITHUB_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/";
@@ -35,7 +42,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   // Load persisted photo for this word on mount / card change
   const [customImage, setCustomImage] = useState(() => loadPhoto(card.word));
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
-  const [showOnboarding, setShowOnboarding] = useState(isFirstCard && !onboardingDone);
+  const [showOnboarding, setShowOnboarding] = useState(isFirstCard && !isLevel1Completed());
 
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
@@ -86,7 +93,6 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   }, [showOnboarding, lang]);
 
   const handleOnboardingDone = () => {
-    onboardingDone = true;
     setShowOnboarding(false);
   };
 
