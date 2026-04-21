@@ -261,15 +261,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                         />
                       </motion.div>
-                    ) : (
-                      <span style={{
-                        fontSize: "clamp(11px, 3vw, 15px)",
-                        color: border,
-                        fontWeight: 700,
-                      }}>
-                        {si === 0 ? (lang === "zh" ? "第1片" : "1st") : si === 1 ? (lang === "zh" ? "第2片" : "2nd") : (lang === "zh" ? "第3片" : "3rd")}
-                      </span>
-                    )}
+                    ) : null}
                   </div>
                 );
               })}

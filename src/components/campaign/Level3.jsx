@@ -257,7 +257,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
         >
           <Play size={26} color="white" fill="white" />
         </motion.button>
-        <span style={{ fontSize: 11, color: "#7BACC8", fontWeight: 600 }}>{lang === "zh" ? "听单词" : "hear the word"}</span>
+        
       </div>
 
       {/* Answer tiles */}
@@ -301,9 +301,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
           transition: "all 0.25s", flexShrink: 0, touchAction: "manipulation",
         }}
       >
-        {feedback === "wrong" ? (lang === "zh" ? "再试一次！🔄" : "Try Again! 🔄")
-          : feedback === "completing" ? (lang === "zh" ? "🎉 太好了！" : "🎉 Great!")
-          : (lang === "zh" ? "提交 ✓" : "Submit ✓")}
+        ✓
       </motion.button>
 
       {/* Drag ghost */}

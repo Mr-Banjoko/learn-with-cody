@@ -274,28 +274,11 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
                   >
                     {placedOption.letter}
                   </motion.span>
-                ) : (
-                  <span style={{ fontSize: "min(22px, 5vw)", color: "rgba(74,144,196,0.3)", fontWeight: 700 }}>
-                    {i + 1}
-                  </span>
-                )}
+                ) : null}
               </motion.div>
             );
           })}
         </div>
-
-        {/* Status text */}
-        <p style={{ fontSize: 15, color: "#4A90C4", fontWeight: 600, textAlign: "center", flexShrink: 0 }}>
-          {completing
-            ? (lang === "zh" ? "🎉 好极了！听一听……" : "🎉 Great job! Listen...")
-            : submitError
-            ? (lang === "zh" ? "❌ 再试一次！" : "❌ Try again!")
-            : allFilled
-            ? (lang === "zh" ? "准备好了！点击提交！" : "Ready! Hit Submit!")
-            : progress === 0
-            ? (lang === "zh" ? "拖动字母来拼写单词！" : "Drag letters to spell the word!")
-            : (lang === "zh" ? `已放置 ${progress} 个，共 ${round.letters.length} 个` : `${progress} of ${round.letters.length} placed`)}
-        </p>
 
         {/* Letter tiles */}
         <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", flexShrink: 0, paddingBottom: 4 }}>

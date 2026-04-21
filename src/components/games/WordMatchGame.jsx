@@ -129,14 +129,11 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
               }}
             >
               <Volume2 size={20} color={color} />
-              {lang === "zh" ? "听单词" : "Hear the word"}
             </button>
           </motion.div>
         </AnimatePresence>
 
-        <p style={{ fontSize: 17, fontWeight: 600, color: "#3A6080", textAlign: "center", margin: 0 }}>
-          {lang === "zh" ? "哪个单词和图片匹配？" : "Which word matches the picture?"}
-        </p>
+        
 
         {/* 2×2 choice grid — constrained to viewport */}
         <div style={{
@@ -186,8 +183,6 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
                 }}
               >
                 {choice.word}
-                {isSelected && feedback === "correct" && " ⭐"}
-                {isSelected && feedback === "wrong" && " ❌"}
               </motion.button>
             );
           })}
