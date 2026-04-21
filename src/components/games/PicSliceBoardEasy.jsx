@@ -278,18 +278,6 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
         </AnimatePresence>
       </div>
 
-      {/* ── HINT ───────────────────────────────────────────────────────────── */}
-      <p style={{
-        textAlign: "center",
-        fontSize: 12,
-        color: "#7BACC8",
-        fontWeight: 600,
-        margin: 0,
-        flexShrink: 0,
-      }}>
-        {lang === "zh" ? "👆 拖动图片 · 点击听声音" : "👆 drag a piece · tap to hear its sound"}
-      </p>
-
       {/* ── SLICE TRAY ─────────────────────────────────────────────────────── */}
       <div style={{
         display: "grid",

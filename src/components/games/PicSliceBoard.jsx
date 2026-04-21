@@ -267,13 +267,6 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
         gap: 10,
         minHeight: 0,
       }}>
-        <p style={{
-          textAlign: "center", fontSize: 12, color: "#7BACC8",
-          fontWeight: 600, margin: "0 0 2px", flexShrink: 0,
-        }}>
-          {tx("👆 drag a piece · tap to hear its sound", "drag_piece_hint", lang)}
-        </p>
-
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",

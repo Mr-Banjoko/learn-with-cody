@@ -2,7 +2,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { tx } from "../../lib/i18n";
-import confetti from "canvas-confetti";
 import {
   VOWEL_GROUPS,
   GAME_ROUNDS,
@@ -147,7 +146,6 @@ export default function RearrangePictures({ onBack, lang = "en" }) {
   const [selectedVowel, setSelectedVowel] = useState(null);
   const [difficulty, setDifficulty] = useState("easy");
   const [roundIndex, setRoundIndex] = useState(0);
-  const [showCelebration, setShowCelebration] = useState(false);
   const [wordPair, setWordPair] = useState(null);
 
   const loadRound = (vowelId, difficulty, index) => {
@@ -171,20 +169,9 @@ export default function RearrangePictures({ onBack, lang = "en" }) {
   };
 
   const handleRoundComplete = () => {
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.55 },
-      colors: ["#4ECDC4", "#FFD93D", "#FF6B6B", "#6BCB77", "#A8D0E6"],
-    });
-    setShowCelebration(true);
-  };
-
-  const handleNextRound = () => {
     const nextIndex = roundIndex + 1;
     setRoundIndex(nextIndex);
     loadRound(selectedVowel, difficulty, nextIndex);
-    setShowCelebration(false);
   };
 
   // Header for game screen
@@ -254,73 +241,7 @@ export default function RearrangePictures({ onBack, lang = "en" }) {
         )}
       </AnimatePresence>
 
-      {/* Celebration overlay */}
-      <AnimatePresence>
-        {showCelebration && (
-          <motion.div
-            key="celebration"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(30,58,95,0.45)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 999,
-              padding: 24,
-            }}
-          >
-            <motion.div
-              initial={{ y: 30 }}
-              animate={{ y: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              style={{
-                background: "white",
-                borderRadius: 32,
-                padding: "36px 28px",
-                textAlign: "center",
-                maxWidth: 320,
-                width: "100%",
-                boxShadow: "0 20px 60px rgba(30,58,95,0.25)",
-              }}
-            >
-              <motion.div
-                animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.15, 1] }}
-                transition={{ repeat: Infinity, duration: 1.4 }}
-                style={{ fontSize: 64, marginBottom: 8 }}
-              >
-                🎉
-              </motion.div>
-              <h2 style={{ fontSize: 32, fontWeight: 700, color: "#1E3A5F", marginBottom: 6 }}>
-                {tx("Good Job!", "good_job", lang)}
-              </h2>
-              <p style={{ fontSize: 17, color: "#64748B", marginBottom: 28 }}>
-                {tx("You matched all the pictures! 🌟", "matched_all", lang)}
-              </p>
-              <button
-                onClick={handleNextRound}
-                style={{
-                  background: "#4ECDC4",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 999,
-                  padding: "14px 40px",
-                  fontSize: 20,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "Fredoka, sans-serif",
-                  boxShadow: "0 6px 20px rgba(78,205,196,0.4)",
-                }}
-              >
-                {tx("Next Round →", "next_round", lang)}
-                </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </div>
   );
 }
