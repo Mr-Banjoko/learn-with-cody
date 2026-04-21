@@ -13,7 +13,7 @@ function makeWord(word) {
   };
 }
 
-// The 10 short-a words with pre-sliced assets on main branch
+// The short-a words with pre-sliced assets on main branch
 export const shortASlices = [
   makeWord("bag"),
   makeWord("ban"),
@@ -25,4 +25,6 @@ export const shortASlices = [
   makeWord("dad"),
   makeWord("dam"),
   makeWord("fan"),
+  makeWord("rat"),
+  makeWord("hat"),
 ];
