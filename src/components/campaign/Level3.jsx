@@ -46,6 +46,7 @@ const TOTAL_ROUNDS = ROUND_SEQUENCE.length; // 7
 
 // ── TOP_COLORS for Missing Sound boxes ───────────────────────────────────────
 const TOP_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
+const DRAG_THRESHOLD = 6; // px
 
 function getDistractors(word, missingLetter) {
   const all = "abcdefghijklmnoprstw".split("");
@@ -147,7 +148,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
     const prev = dragStateRef.current;
     const dx = touch.clientX - prev.startX;
     const dy = touch.clientY - prev.startY;
-    if (!isDragging.current && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+    if (!isDragging.current && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
       isDragging.current = true;
       setIsActiveDrag(true);
     }
@@ -159,7 +160,13 @@ function MissingSoundRound({ round, onComplete, lang }) {
   const handleTouchEnd = useCallback((e) => {
     const ds = dragStateRef.current;
     if (!ds) return;
-    if (isDragging.current) {
+
+    if (!isDragging.current) {
+      // TAP: play the letter's phoneme sound
+      const url = getLetterSoundUrl(ds.letter);
+      if (url) playAudio(url, getLetterGain(ds.letter));
+    } else {
+      // DRAG: silent — check drop zone
       const touch = e.changedTouches[0];
       if (dropZoneRef.current && !placedOptionRef.current) {
         const rect = dropZoneRef.current.getBoundingClientRect();
@@ -170,6 +177,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
         if (hit) syncSetPlaced({ id: ds.id, letter: ds.letter, isCorrect: ds.isCorrect, optionIndex: ds.optionIndex });
       }
     }
+
     dragStateRef.current = null;
     setDragState(null);
     setIsActiveDrag(false);
