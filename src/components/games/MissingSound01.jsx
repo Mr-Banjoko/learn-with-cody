@@ -8,10 +8,16 @@ import BackArrow from "../BackArrow";
 import MissingSoundGame01 from "./MissingSoundGame01";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
+import { shortIWords } from "../../lib/shortIWords";
+import { shortOWords } from "../../lib/shortOWords";
+import { shortUWords } from "../../lib/shortUWords";
 
 const VOWEL_GROUPS = [
   { id: "short-a", label: "Short a", emoji: "🍎", color: "#FF6B6B", bg: "#FFF0F0", words: shortAWords },
   { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", bg: "#FFFDE7", words: shortEWords },
+  { id: "short-i", label: "Short i", emoji: "🐟", color: "#6BCB77", bg: "#F0FFF4", words: shortIWords },
+  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", bg: "#EFF6FF", words: shortOWords },
+  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", bg: "#FAF0FF", words: shortUWords },
 ];
 
 export default function MissingSound01({ onBack, lang = "en" }) {
