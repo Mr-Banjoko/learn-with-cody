@@ -144,4 +144,11 @@ export const games = [
     description: "Place all letters then hit Submit to check your answer",
     available: true,
   },
+  {
+    id: "missing-sound-01",
+    label: "Missing Sound 0.1",
+    emoji: "🔤",
+    description: "Tap a letter to hear it · Drag it to fill the missing sound",
+    available: true,
+  },
 ];
