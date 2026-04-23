@@ -16,7 +16,6 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level1Phonics from "./Level1Phonics";
-import Level1Drag from "./Level1Drag";
 import Level1DragV2 from "./Level1DragV2";
 import Level1Complete from "./Level1Complete";
 import { shortAWords } from "../../lib/shortAWords";
@@ -39,7 +38,7 @@ const ROUNDS = [
   { type: "phonics",  card: batCard, guided: false },  // Round 8:  bat phonics
   { type: "drag",     card: batCard },                 // Round 9:  bat drag
   { type: "phonics",  card: catCard, guided: false },  // Round 10: unguided cat phonics
-  { type: "dragV2",   card: catCard },                 // Round 11: cat DragV2 → complete
+  { type: "drag",     card: catCard },                 // Round 11: cat DragV2 → complete
 ];
 
 const TOTAL_ROUNDS = ROUNDS.length;
@@ -153,10 +152,8 @@ export default function Level1({ onBack, lang = "en" }) {
                 lang={lang}
                 isFirstCard={round.guided === true}
               />
-            ) : round.type === "dragV2" ? (
-              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} />
             ) : (
-              <Level1Drag card={round.card} onComplete={advance} lang={lang} />
+              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} />
             )}
           </motion.div>
         )}
