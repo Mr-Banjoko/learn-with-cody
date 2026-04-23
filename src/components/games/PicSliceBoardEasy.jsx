@@ -29,26 +29,73 @@ function buildState(wordArr) {
   };
 }
 
+// Simple child-friendly padlock SVG icon
+function PadlockIcon({ size = 28 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 36 36"
+      fill="none"
+      style={{ pointerEvents: "none" }}
+    >
+      {/* shackle */}
+      <path
+        d="M11 16V12a7 7 0 0 1 14 0v4"
+        stroke="white"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* body */}
+      <rect x="7" y="16" width="22" height="14" rx="4" fill="white" fillOpacity="0.92" />
+      {/* keyhole circle */}
+      <circle cx="18" cy="23" r="3" fill="#64748B" />
+      {/* keyhole stem */}
+      <rect x="16.5" y="23" width="3" height="3.5" rx="1" fill="#64748B" />
+    </svg>
+  );
+}
+
 export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en" }) {
   const wd = wordPair[0];
 
-  // Pick a new palette each time the word changes
   const palette = useMemo(() => pickPalette(), [wordPair]);
 
   const [state, setState] = useState(() => buildState(wordPair));
   const [dragState, setDragState] = useState(null);
   const [playingSequence, setPlayingSequence] = useState(false);
+
+  // ── LISTEN-FIRST LOCK STATE ──────────────────────────────────────────────
+  // Set of piece IDs that have been tapped (listened to). All 3 must be in
+  // this set before any dragging is permitted.
+  const [listenedIds, setListenedIds] = useState(new Set());
+  const allListened = listenedIds.size >= 3;
+
   const isDragging = useRef(false);
   const dropZoneRefs = useRef({});
+  // Guards auto-play: if the component remounts for a new word, the previous
+  // timeout must not fire.
+  const autoPlayRef = useRef(null);
 
+  // ── RESET on new word ────────────────────────────────────────────────────
   useEffect(() => {
     setState(buildState(wordPair));
     setDragState(null);
     setPlayingSequence(false);
+    setListenedIds(new Set());   // ← reset locks every round
     isDragging.current = false;
-  }, [wordPair]);
 
-  // After word is complete: play phoneme sequence then advance
+    // Auto-play the word after a short settle delay
+    clearTimeout(autoPlayRef.current);
+    autoPlayRef.current = setTimeout(() => {
+      if (wd.audio) playAudio(wd.audio);
+    }, 380);
+
+    return () => clearTimeout(autoPlayRef.current);
+  }, [wordPair]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── After word complete: play phoneme sequence then advance ───────────────
   useEffect(() => {
     if (!state.wordComplete || playingSequence) return;
     setPlayingSequence(true);
@@ -66,7 +113,9 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
     playAudioSequence(steps, () => {
       setTimeout(onRoundComplete, 300);
     });
-  }, [state.wordComplete]);
+  }, [state.wordComplete]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── TOUCH HANDLERS ───────────────────────────────────────────────────────
 
   const handleTouchStart = useCallback((e, piece) => {
     if (!state.trayIds.includes(piece.id)) return;
@@ -76,7 +125,12 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
     const rect = e.currentTarget.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    setDragState({ piece, x: cx, y: cy, startX: touch.clientX, startY: touch.clientY, originX: cx, originY: cy });
+    setDragState({
+      piece,
+      x: cx, y: cy,
+      startX: touch.clientX, startY: touch.clientY,
+      originX: cx, originY: cy,
+    });
   }, [state.trayIds]);
 
   const handleTouchMove = useCallback((e) => {
@@ -85,26 +139,44 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
     const touch = e.touches[0];
     const dx = touch.clientX - dragState.startX;
     const dy = touch.clientY - dragState.startY;
-    if (!isDragging.current && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) isDragging.current = true;
-    setDragState((prev) => prev ? { ...prev, x: prev.originX + dx, y: prev.originY + dy } : null);
-  }, [dragState]);
+    if (!isDragging.current && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+      // Only start dragging if ALL slices have been listened to
+      if (allListened) {
+        isDragging.current = true;
+      }
+      // If not all listened, silently absorb the move (no drag ghost)
+    }
+    if (allListened) {
+      setDragState((prev) => prev ? { ...prev, x: prev.originX + dx, y: prev.originY + dy } : null);
+    }
+  }, [dragState, allListened]);
 
   const handleTouchEnd = useCallback((e) => {
     if (!dragState) return;
 
     if (!isDragging.current) {
-      playAudio(dragState.piece.letterAudio, getLetterGain(dragState.piece.phoneme));
+      // ── TAP: play letter sound and mark as listened ──────────────────────
+      const { piece } = dragState;
+      playAudio(piece.letterAudio, getLetterGain(piece.phoneme));
+      setListenedIds((prev) => {
+        const next = new Set(prev);
+        next.add(piece.id);
+        return next;
+      });
       setDragState(null);
       return;
     }
 
+    // ── DRAG DROP (only reachable if allListened was true) ───────────────
     const touch = e.changedTouches[0];
     let hitKey = null;
     Object.entries(dropZoneRefs.current).forEach(([key, ref]) => {
       if (!ref) return;
       const rect = ref.getBoundingClientRect();
-      if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
-          touch.clientY >= rect.top  && touch.clientY <= rect.bottom) {
+      if (
+        touch.clientX >= rect.left && touch.clientX <= rect.right &&
+        touch.clientY >= rect.top  && touch.clientY <= rect.bottom
+      ) {
         hitKey = key;
       }
     });
@@ -129,7 +201,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
 
     setDragState(null);
     isDragging.current = false;
-  }, [dragState, state, wordPair]);
+  }, [dragState, state]);
 
   const handlePlacedTap = useCallback((slotKey) => {
     const pid = state.placed[slotKey];
@@ -210,7 +282,6 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
               />
             </motion.div>
           ) : (
-            /* ── 3-slot box — same pattern as PicSliceBoard (difficult) ──── */
             <motion.div
               key="slots"
               style={{
@@ -240,7 +311,6 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      // ── Same dashed borderRight treatment as PicSliceBoard ──
                       borderRight: si < 2 ? `2px dashed ${border}` : "none",
                       animation: isRejected ? "psShake 0.4s ease" : "none",
                       position: "relative",
@@ -275,6 +345,29 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       </div>
 
       {/* ── SLICE TRAY ─────────────────────────────────────────────────────── */}
+      {/* Hint bar — shown until all 3 tapped */}
+      <AnimatePresence>
+        {!allListened && (
+          <motion.p
+            key="hint"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              margin: 0,
+              fontSize: 14,
+              fontWeight: 600,
+              color: "#64748B",
+              textAlign: "center",
+              flexShrink: 0,
+            }}
+          >
+            {lang === "zh" ? "🔒 先点每一块，听声音！" : "🔒 Tap each piece to hear its sound!"}
+          </motion.p>
+        )}
+      </AnimatePresence>
+
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
@@ -286,6 +379,8 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
         {state.pieces.map((piece) => {
           const isPlaced = !state.trayIds.includes(piece.id);
           const isDraggingThis = dragState?.piece.id === piece.id;
+          const isListened = listenedIds.has(piece.id);
+          const locked = !allListened; // dragging locked until all 3 tapped
 
           if (isPlaced) {
             return <div key={piece.id} style={{ aspectRatio: "2 / 3", visibility: "hidden" }} />;
@@ -300,26 +395,74 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                 aspectRatio: "2 / 3",
                 borderRadius: 16,
                 overflow: "hidden",
-                border: `2.5px solid ${border}`,
-                boxShadow: `0 4px 14px ${shadow}`,
+                border: isListened
+                  ? `2.5px solid #4ECDC4`          // tapped → teal highlight
+                  : `2.5px solid ${border}`,
+                boxShadow: isListened
+                  ? `0 4px 14px rgba(78,205,196,0.38)`
+                  : `0 4px 14px ${shadow}`,
                 background: bg,
-                cursor: "grab",
+                cursor: locked ? "pointer" : "grab",
                 touchAction: "none",
+                position: "relative",
               }}
             >
               <img
                 src={piece.sliceSrc}
                 alt=""
                 draggable={false}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                  pointerEvents: "none",
+                  // Dim locked slices slightly to signal they need attention
+                  filter: locked && !isListened ? "brightness(0.72)" : "none",
+                  transition: "filter 0.25s",
+                }}
               />
+
+              {/* Padlock overlay — visible until this slice has been tapped */}
+              <AnimatePresence>
+                {!isListened && (
+                  <motion.div
+                    key="lock"
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ type: "spring", stiffness: 340, damping: 20 }}
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {/* semi-transparent dark pill behind the lock */}
+                    <div style={{
+                      background: "rgba(30,58,95,0.55)",
+                      borderRadius: 50,
+                      width: 44,
+                      height: 44,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                      <PadlockIcon size={26} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           );
         })}
       </div>
 
-      {/* ── Drag ghost ─────────────────────────────────────────────────────── */}
-      {dragState && isDragging.current && (
+      {/* ── Drag ghost — only shown when actually dragging (requires allListened) ── */}
+      {dragState && isDragging.current && allListened && (
         <div style={{
           position: "fixed",
           left: dragState.x,
