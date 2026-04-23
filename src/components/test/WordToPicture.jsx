@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import IdentifyingRound from "../games/IdentifyingRound";
@@ -18,6 +18,8 @@ const ALL_WORDS = [
   ...shortUWords,
 ];
 
+
+
 function buildRound(lastWord) {
   const pool = lastWord ? ALL_WORDS.filter((w) => w !== lastWord) : ALL_WORDS;
   const target = pool[Math.floor(Math.random() * pool.length)];
@@ -30,18 +32,13 @@ function buildRound(lastWord) {
 
 export default function WordToPicture({ onBack, lang = "en", onRoundComplete, hideBackArrow }) {
   const [round, setRound] = useState(() => buildRound(null));
-  // roundKey forces IdentifyingRound to fully remount on advance
-  const [roundKey, setRoundKey] = useState(0);
   const wrongAttempts = useRef(0);
-  const lastWordRef = useRef(null);
 
-  const handleRoundComplete = useCallback(() => {
+  const handleComplete = useCallback(() => {
     if (onRoundComplete) onRoundComplete(Math.max(0, 2 - wrongAttempts.current));
     wrongAttempts.current = 0;
-    lastWordRef.current = round.target;
-    setRound(buildRound(round.target));
-    setRoundKey((k) => k + 1);
-  }, [onRoundComplete, round]);
+    setRound((prev) => buildRound(prev.target));
+  }, [onRoundComplete]);
 
   return (
     <div
@@ -62,10 +59,12 @@ export default function WordToPicture({ onBack, lang = "en", onRoundComplete, hi
       )}
 
       <IdentifyingRound
-        key={roundKey}
+        key={round.target.word}
         round={round}
-        onComplete={handleRoundComplete}
+        onComplete={handleComplete}
         lang={lang}
+        submitLabel={tx("Submit ✓", "submit_btn", lang)}
+        nextLabel={tx("Next →", "next_btn", lang)}
       />
     </div>
   );
