@@ -37,3 +37,19 @@ Open [Base44.com](http://Base44.com) and click on Publish.
 Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
 
 Support: [https://app.base44.com/support](https://app.base44.com/support)
+
+## GitHub Pages Lottie demo
+
+A static page for the uploaded Lottie animation is available in `docs/index.html` with the asset at `docs/assets/hand-tap.lottie`.
+
+### Enable GitHub Pages
+
+1. Open **Repository Settings → Pages**.
+2. Under **Build and deployment**, choose **Deploy from a branch**.
+3. Set branch to **main** (or your target branch), and folder to **/docs**.
+4. Save, then wait for Pages deployment to complete.
+
+Once deployed, the page is available at:
+
+`https://mr-banjoko.github.io/learn-with-cody/`
+
