@@ -23,9 +23,11 @@ const clearPhoto = (word) => { try { localStorage.removeItem(storageKey(word)); 
 // ── Tutorial helpers ───────────────────────────────────────────────────────────
 function isTutorialDone() {
   try {
-    const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
-    return data?.["short-a"]?.[1]?.completed === true;
+    return localStorage.getItem("level1_tutorial_done") === "true";
   } catch { return false; }
+}
+function markTutorialDone() {
+  try { localStorage.setItem("level1_tutorial_done", "true"); } catch {}
 }
 
 const PHASE_TEXTS = {
@@ -205,6 +207,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     if (tutPhase === 6) {
       setTutPhase(0);
       setHandVisible(false);
+      markTutorialDone();
     }
     onNext();
   }, [tutPhase, isTutorial, onNext]);
