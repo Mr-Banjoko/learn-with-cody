@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level10Complete from "./Level10Complete";
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
-import Level1Drag from "./Level1Drag";
+import Level1DragV2 from "./Level1DragV2";
 import IdentifyingRound from "../games/IdentifyingRound";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
@@ -126,7 +126,7 @@ export default function Level10({ onBack, lang = "en" }) {
             {roundDef.type === "rearrange" && rearrangeWordPair ? (
               <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} />
             ) : roundDef.type === "drag" && dragCard ? (
-              <Level1Drag key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} />
+              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} />
             ) : roundDef.type === "identifying" && identifyingRound ? (
               <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} />
             ) : null}

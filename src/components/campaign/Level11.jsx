@@ -8,7 +8,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level6Phonics from "./Level6Phonics";
-import Level1Drag from "./Level1Drag";
+import Level1DragV2 from "./Level1DragV2";
 import Level11Complete from "./Level11Complete";
 import { shortAWords } from "../../lib/shortAWords";
 
@@ -123,7 +123,7 @@ export default function Level11({ onBack, lang = "en" }) {
             {round.type === "phonics" ? (
               <Level6Phonics card={round.card} onNext={advance} lang={lang} />
             ) : (
-              <Level1Drag card={round.card} onComplete={advance} lang={lang} />
+              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} />
             )}
           </motion.div>
         )}

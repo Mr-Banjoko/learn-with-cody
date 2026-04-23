@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
 import BackArrow from "../BackArrow";
 import Level3Complete from "./Level3Complete";
-import Level1Drag from "./Level1Drag";
+import Level1DragV2 from "./Level1DragV2";
 import { shortAWords } from "../../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
@@ -433,7 +433,7 @@ export default function Level3({ onBack, lang = "en" }) {
                 lang={lang}
               />
             ) : roundDef.type === "drag" && dragCard ? (
-              <Level1Drag
+              <Level1DragV2
                 key={`drag-${roundIndex}`}
                 card={dragCard}
                 onComplete={advance}

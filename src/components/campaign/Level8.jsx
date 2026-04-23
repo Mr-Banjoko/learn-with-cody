@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
 import BackArrow from "../BackArrow";
 import Level8Complete from "./Level8Complete";
-import Level1Drag from "./Level1Drag";
+import Level1DragV2 from "./Level1DragV2";
 import { shortAWords } from "../../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
@@ -332,7 +332,7 @@ export default function Level8({ onBack, lang = "en" }) {
             {roundDef.type === "missing" && missingRound ? (
               <MissingSoundRound key={`missing-${roundIndex}`} round={missingRound} onComplete={advance} lang={lang} />
             ) : roundDef.type === "drag" && dragCard ? (
-              <Level1Drag key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} />
+              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} />
             ) : null}
           </motion.div>
         )}
