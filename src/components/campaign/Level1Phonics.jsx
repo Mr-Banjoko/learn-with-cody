@@ -33,7 +33,8 @@ const PHASE_TEXTS = {
   2: "tap on the letter to hear the letter sound.",
   3: "tap on the play icon to blend the letter sounds.",
   4: "tap on the camera icon to take your own picture and make your learning special.",
-  5: "tap next when you have finished learning",
+  5: "tap on this button to reset the picture.",
+  6: "tap next when you have finished learning",
 };
 
 // How long the hand animation shows before hiding (ms)
@@ -43,14 +44,14 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   const [customImage, setCustomImage] = useState(() => loadPhoto(card.word));
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
 
-  // Tutorial state: 0 = no tutorial; 1-5 = active phase; 6 = done
+  // Tutorial state: 0 = no tutorial; 1-6 = active phase; 0 (done) = done
   const [tutPhase, setTutPhase] = useState(() =>
     isFirstCard && !isTutorialDone() ? 1 : 0
   );
   const [handVisible, setHandVisible] = useState(false);
   const [handPos, setHandPos] = useState({ left: 0, top: 0 });
 
-  const isTutorial = tutPhase >= 1 && tutPhase <= 5;
+  const isTutorial = tutPhase >= 1 && tutPhase <= 6;
 
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
@@ -63,9 +64,10 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   const refLetterC = useRef(null); // Phase 2
   const refPlay    = useRef(null); // Phase 3
   const refCamera  = useRef(null); // Phase 4
-  const refNext    = useRef(null); // Phase 5
+  const refReset   = useRef(null); // Phase 5
+  const refNext    = useRef(null); // Phase 6
 
-  const phaseRefs = { 1: refImage, 2: refLetterC, 3: refPlay, 4: refCamera, 5: refNext };
+  const phaseRefs = { 1: refImage, 2: refLetterC, 3: refPlay, 4: refCamera, 5: refReset, 6: refNext };
 
   // Show hand animation over the current phase target
   useEffect(() => {
@@ -94,7 +96,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   const advancePhase = useCallback(() => {
     setHandVisible(false);
     setTutPhase((p) => {
-      if (p >= 5) return 0; // tutorial done
+      if (p >= 6) return 0; // tutorial done
       return p + 1;
     });
   }, []);
@@ -169,8 +171,11 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   const handleCamera = useCallback(() => {
     if (isTutorial && tutPhase !== 4) return; // locked
     fileInputRef.current.click();
-    if (tutPhase === 4) setTimeout(() => advancePhase(), 400);
-  }, [tutPhase, isTutorial, advancePhase]);
+    // Do NOT advance here — wait for the photo to actually be taken (handleFileChange)
+  }, [tutPhase, isTutorial]);
+
+  const tutPhaseRef = useRef(tutPhase);
+  useEffect(() => { tutPhaseRef.current = tutPhase; }, [tutPhase]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -180,20 +185,24 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     reader.onload = (ev) => {
       savePhoto(word, ev.target.result);
       setCustomImage(ev.target.result);
+      // Advance to phase 5 only after the photo has been saved
+      if (tutPhaseRef.current === 4) setTimeout(() => advancePhase(), 400);
     };
     reader.readAsDataURL(file);
   };
 
-  const handleReset = () => {
-    if (isTutorial) return; // locked during tutorial
+  // ── Phase 5: reset ─────────────────────────────────────────────────────────
+  const handleReset = useCallback(() => {
+    if (isTutorial && tutPhase !== 5) return; // locked during tutorial except phase 5
     clearPhoto(card.word);
     setCustomImage(null);
-  };
+    if (tutPhase === 5) setTimeout(() => advancePhase(), 400);
+  }, [isTutorial, tutPhase, card.word, advancePhase]);
 
-  // ── Phase 5: next ──────────────────────────────────────────────────────────
+  // ── Phase 6: next ──────────────────────────────────────────────────────────
   const handleNext = useCallback(() => {
-    if (isTutorial && tutPhase !== 5) return; // locked
-    if (tutPhase === 5) {
+    if (isTutorial && tutPhase !== 6) return; // locked
+    if (tutPhase === 6) {
       setTutPhase(0);
       setHandVisible(false);
     }
@@ -240,10 +249,11 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
             </motion.div>
           </AnimatePresence>
 
-          {/* Reload button — hidden during tutorial */}
+          {/* Reload button — shown when custom photo exists (including phase 5 tutorial) */}
           <AnimatePresence>
-            {hasCustomPhoto && !isTutorial && (
+            {hasCustomPhoto && (!isTutorial || tutPhase === 5) && (
               <motion.button
+                ref={refReset}
                 initial={{ opacity: 0, scale: 0.7 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.7 }}
@@ -277,6 +287,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
               zIndex: 10, touchAction: "manipulation",
               pointerEvents: (isTutorial && tutPhase !== 4) ? "none" : "auto",
               opacity: (isTutorial && tutPhase !== 4) ? 0.4 : 1,
+
             }}
           >
             <Camera size={24} color="#A8D0E6" strokeWidth={2.2} />
@@ -336,8 +347,8 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
             cursor: "pointer", fontSize: 18, fontWeight: 600,
             fontFamily: "Fredoka, sans-serif", touchAction: "manipulation",
             boxShadow: "0 4px 0 #2f6a9a",
-            pointerEvents: (isTutorial && tutPhase !== 5) ? "none" : "auto",
-            opacity: (isTutorial && tutPhase !== 5) ? 0.4 : 1,
+            pointerEvents: (isTutorial && tutPhase !== 6) ? "none" : "auto",
+            opacity: (isTutorial && tutPhase !== 6) ? 0.4 : 1,
           }}
         >
           {lang === "zh" ? "下一步 →" : "Next →"}
