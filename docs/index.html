@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hand Tap Lottie Demo</title>
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f3f7ff;
+        --card: #ffffff;
+        --text: #1e293b;
+        --muted: #64748b;
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: radial-gradient(circle at top, #dbeafe 0%, var(--bg) 45%, #eef2ff 100%);
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .card {
+        width: min(720px, 100%);
+        background: var(--card);
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+        padding: 24px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.4rem, 1.2rem + 1vw, 2rem);
+      }
+
+      p {
+        margin: 10px 0 18px;
+        color: var(--muted);
+      }
+
+      .player-wrap {
+        background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+        border: 1px solid #cbd5e1;
+        border-radius: 16px;
+        min-height: 260px;
+        display: grid;
+        place-items: center;
+        padding: 12px;
+      }
+
+      lottie-player {
+        width: min(380px, 100%);
+        height: min(380px, 70vw);
+      }
+
+      .controls {
+        margin-top: 18px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        background: var(--primary);
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--primary-hover);
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .row label {
+        font-weight: 600;
+      }
+
+      input[type='range'] {
+        width: min(280px, 100%);
+      }
+
+      .status {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      code {
+        background: #e2e8f0;
+        border-radius: 6px;
+        padding: 2px 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Hand Tap Lottie Animation</h1>
+      <p>
+        GitHub Pages-ready demo using the Lottie Web Player.
+        Asset path: <code>docs/assets/hand-tap.lottie</code>
+      </p>
+
+      <section class="player-wrap">
+        <lottie-player
+          id="handTapPlayer"
+          src="./assets/hand-tap.lottie"
+          background="transparent"
+          speed="1"
+          loop
+          autoplay
+        ></lottie-player>
+      </section>
+
+      <section class="controls" aria-label="animation controls">
+        <div class="buttons">
+          <button id="playBtn" type="button">Play</button>
+          <button id="pauseBtn" type="button">Pause</button>
+          <button id="stopBtn" type="button">Stop</button>
+          <button id="restartBtn" type="button">Restart</button>
+          <button id="loopBtn" type="button">Loop: On</button>
+        </div>
+
+        <div class="row">
+          <label for="speedControl">Speed</label>
+          <input id="speedControl" type="range" min="0.25" max="2" step="0.25" value="1" />
+          <strong id="speedLabel">1.00x</strong>
+        </div>
+
+        <div class="status" id="statusText">Status: Loading animation...</div>
+      </section>
+    </main>
+
+    <script>
+      const player = document.getElementById('handTapPlayer');
+      const playBtn = document.getElementById('playBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const restartBtn = document.getElementById('restartBtn');
+      const loopBtn = document.getElementById('loopBtn');
+      const speedControl = document.getElementById('speedControl');
+      const speedLabel = document.getElementById('speedLabel');
+      const statusText = document.getElementById('statusText');
+
+      const setStatus = (message) => {
+        statusText.textContent = `Status: ${message}`;
+      };
+
+      playBtn.addEventListener('click', () => {
+        player.play();
+        setStatus('Playing');
+      });
+
+      pauseBtn.addEventListener('click', () => {
+        player.pause();
+        setStatus('Paused');
+      });
+
+      stopBtn.addEventListener('click', () => {
+        player.stop();
+        setStatus('Stopped');
+      });
+
+      restartBtn.addEventListener('click', () => {
+        player.stop();
+        player.play();
+        setStatus('Restarted');
+      });
+
+      loopBtn.addEventListener('click', () => {
+        player.loop = !player.loop;
+        loopBtn.textContent = `Loop: ${player.loop ? 'On' : 'Off'}`;
+        setStatus(player.loop ? 'Looping enabled' : 'Looping disabled');
+      });
+
+      speedControl.addEventListener('input', (event) => {
+        const speed = Number(event.target.value);
+        player.setSpeed(speed);
+        speedLabel.textContent = `${speed.toFixed(2)}x`;
+        setStatus(`Speed set to ${speed.toFixed(2)}x`);
+      });
+
+      player.addEventListener('ready', () => {
+        setStatus('Ready');
+      });
+
+      player.addEventListener('error', () => {
+        setStatus('Could not load animation. Check the file path and format.');
+      });
+    </script>
+  </body>
+</html>
