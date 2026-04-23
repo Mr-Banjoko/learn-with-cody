@@ -12,20 +12,31 @@ import Level1Complete from "./Level1Complete";
 import { shortAWords } from "../../lib/shortAWords";
 
 // Fixed word set: exactly cat, dad, rat, hat, bat (first 5 in order)
-const WORDS = shortAWords.slice(0, 5);
-const TOTAL_ROUNDS = WORDS.length * 2; // 10
+const WORDS = shortAWords.slice(0, 5); // [cat, dad, rat, hat, bat]
 
-// Build the flat round sequence
+// New sequence:
+// 1. cat phonics (with tutorial) → then skip cat drag
+// 2. dad phonics → dad drag → rat phonics → rat drag → hat phonics → hat drag → bat phonics → bat drag
+// 3. cat phonics (no tutorial) → cat drag
 function buildRounds() {
-  const rounds = [];
-  WORDS.forEach((card) => {
-    rounds.push({ type: "phonics", card });
-    rounds.push({ type: "drag",    card });
-  });
-  return rounds;
+  const [cat, dad, rat, hat, bat] = WORDS;
+  return [
+    { type: "phonics", card: cat, isTutorialCard: true  }, // round 0 — tutorial
+    { type: "phonics", card: dad, isTutorialCard: false },  // round 1
+    { type: "drag",    card: dad },                          // round 2
+    { type: "phonics", card: rat, isTutorialCard: false },  // round 3
+    { type: "drag",    card: rat },                          // round 4
+    { type: "phonics", card: hat, isTutorialCard: false },  // round 5
+    { type: "drag",    card: hat },                          // round 6
+    { type: "phonics", card: bat, isTutorialCard: false },  // round 7
+    { type: "drag",    card: bat },                          // round 8
+    { type: "phonics", card: cat, isTutorialCard: false },  // round 9 — no tutorial
+    { type: "drag",    card: cat },                          // round 10
+  ];
 }
 
 const ROUNDS = buildRounds();
+const TOTAL_ROUNDS = ROUNDS.length; // 11
 
 function markLevel1Complete() {
   try {
@@ -43,11 +54,12 @@ export default function Level1({ onBack, lang = "en" }) {
 
   const advance = () => {
     setDirection(1);
-    if (roundIndex + 1 >= TOTAL_ROUNDS) {
+    const next = roundIndex + 1;
+    if (next >= ROUNDS.length) {
       markLevel1Complete();
       setDone(true);
     } else {
-      setRoundIndex((i) => i + 1);
+      setRoundIndex(next);
     }
   };
 
@@ -125,7 +137,7 @@ export default function Level1({ onBack, lang = "en" }) {
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {round.type === "phonics" ? (
-              <Level1Phonics card={round.card} onNext={advance} lang={lang} isFirstCard={roundIndex === 0} />
+              <Level1Phonics card={round.card} onNext={advance} lang={lang} isFirstCard={round.isTutorialCard === true} />
             ) : (
               <Level1Drag card={round.card} onComplete={advance} lang={lang} />
             )}
