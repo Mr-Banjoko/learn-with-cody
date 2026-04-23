@@ -27,4 +27,8 @@ export const shortASlices = [
   makeWord("fan"),
   makeWord("rat"),
   makeWord("hat"),
+  makeWord("pan"),
+  makeWord("jam"),
+  makeWord("map"),
+  makeWord("mat"),
 ];
