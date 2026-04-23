@@ -1,31 +1,48 @@
 /**
- * Level 1 — 10-round fixed sequence:
- * For each of 5 words: Learn Phonics → Drag the Letters
- * Ends with a celebration screen.
+ * Level 1 round order:
+ * 1.  cat  — guided phonics (Phase 1–6 tutorial)
+ * 2.  dad  — phonics
+ * 3.  dad  — drag (Level1Drag)
+ * 4.  rat  — phonics
+ * 5.  rat  — drag (Level1Drag)
+ * 6.  hat  — phonics
+ * 7.  hat  — drag (Level1Drag)
+ * 8.  bat  — phonics
+ * 9.  bat  — drag (Level1Drag)
+ * 10. cat  — unguided phonics (no tutorial)
+ * 11. cat  — drag (Level1DragV2) → marks level complete
  */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level1Phonics from "./Level1Phonics";
 import Level1Drag from "./Level1Drag";
+import Level1DragV2 from "./Level1DragV2";
 import Level1Complete from "./Level1Complete";
 import { shortAWords } from "../../lib/shortAWords";
 
-// Fixed word set: exactly cat, dad, rat, hat, bat (first 5 in order)
-const WORDS = shortAWords.slice(0, 5);
-const TOTAL_ROUNDS = WORDS.length * 2; // 10
+const catCard  = shortAWords[0]; // cat
+const dadCard  = shortAWords[1]; // dad
+const ratCard  = shortAWords[2]; // rat
+const hatCard  = shortAWords[3]; // hat
+const batCard  = shortAWords[4]; // bat
 
-// Build the flat round sequence
-function buildRounds() {
-  const rounds = [];
-  WORDS.forEach((card) => {
-    rounds.push({ type: "phonics", card });
-    rounds.push({ type: "drag",    card });
-  });
-  return rounds;
-}
+// Flat round sequence — explicit ordering
+const ROUNDS = [
+  { type: "phonics",  card: catCard, guided: true  }, // Round 1:  guided cat phonics
+  { type: "phonics",  card: dadCard, guided: false },  // Round 2:  dad phonics
+  { type: "drag",     card: dadCard },                 // Round 3:  dad drag
+  { type: "phonics",  card: ratCard, guided: false },  // Round 4:  rat phonics
+  { type: "drag",     card: ratCard },                 // Round 5:  rat drag
+  { type: "phonics",  card: hatCard, guided: false },  // Round 6:  hat phonics
+  { type: "drag",     card: hatCard },                 // Round 7:  hat drag
+  { type: "phonics",  card: batCard, guided: false },  // Round 8:  bat phonics
+  { type: "drag",     card: batCard },                 // Round 9:  bat drag
+  { type: "phonics",  card: catCard, guided: false },  // Round 10: unguided cat phonics
+  { type: "dragV2",   card: catCard },                 // Round 11: cat DragV2 → complete
+];
 
-const ROUNDS = buildRounds();
+const TOTAL_ROUNDS = ROUNDS.length;
 
 function markLevel1Complete() {
   try {
@@ -47,11 +64,12 @@ export default function Level1({ onBack, lang = "en" }) {
 
   const advance = () => {
     setDirection(1);
-    if (roundIndex + 1 >= TOTAL_ROUNDS) {
+    const nextIndex = roundIndex + 1;
+    if (nextIndex >= TOTAL_ROUNDS) {
       markLevel1Complete();
       setDone(true);
     } else {
-      setRoundIndex((i) => i + 1);
+      setRoundIndex(nextIndex);
     }
   };
 
@@ -129,7 +147,14 @@ export default function Level1({ onBack, lang = "en" }) {
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {round.type === "phonics" ? (
-              <Level1Phonics card={round.card} onNext={advance} lang={lang} isFirstCard={roundIndex === 0} />
+              <Level1Phonics
+                card={round.card}
+                onNext={advance}
+                lang={lang}
+                isFirstCard={round.guided === true}
+              />
+            ) : round.type === "dragV2" ? (
+              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} />
             ) : (
               <Level1Drag card={round.card} onComplete={advance} lang={lang} />
             )}
