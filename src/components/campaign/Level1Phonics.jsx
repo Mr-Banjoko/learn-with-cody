@@ -37,7 +37,7 @@ const PHASE_TEXTS = {
 };
 
 // How long the hand animation shows before hiding (ms)
-const HAND_SHOW_MS = 1800;
+const HAND_SHOW_MS = 6000;
 
 export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard = false }) {
   const [customImage, setCustomImage] = useState(() => loadPhoto(card.word));
@@ -385,9 +385,10 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
                   position: "absolute",
                   left: handPos.left,
                   top: handPos.top,
-                  width: 80, height: 80,
+                  width: 240, height: 240,
                   zIndex: 300,
                   pointerEvents: "none",
+                  filter: "invert(68%) sepia(60%) saturate(400%) hue-rotate(180deg) brightness(110%)",
                 }}
               >
                 <Lottie animationData={handTapData} loop={false} autoplay={true} />
