@@ -75,8 +75,11 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const targetRect = targetRef.current.getBoundingClientRect();
-    const left = targetRect.left - containerRect.left + targetRect.width / 2 - 40;
-    const top  = targetRect.top  - containerRect.top  + targetRect.height / 2 - 40;
+    // For phase 4, shift the hand so it lands right on the camera icon
+    const offsetX = tutPhase === 4 ? -180 : -120;
+    const offsetY = tutPhase === 4 ? -180 : -120;
+    const left = targetRect.left - containerRect.left + targetRect.width / 2 + offsetX;
+    const top  = targetRect.top  - containerRect.top  + targetRect.height / 2 + offsetY;
 
     setHandPos({ left, top });
     setHandVisible(true);
