@@ -37,6 +37,10 @@ function markLevel1Complete() {
 }
 
 export default function Level1({ onBack, lang = "en" }) {
+  // Always reset tutorial flag when Level 1 is mounted so tutorial shows every time
+  useState(() => {
+    try { localStorage.removeItem("level1_tutorial_done"); } catch {}
+  });
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [direction, setDirection] = useState(1);
