@@ -75,11 +75,12 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const targetRect = targetRef.current.getBoundingClientRect();
-    // For phase 4, shift the hand so it lands right on the camera icon
-    const offsetX = tutPhase === 4 ? -180 : -120;
-    const offsetY = tutPhase === 4 ? -180 : -120;
-    const left = targetRect.left - containerRect.left + targetRect.width / 2 + offsetX;
-    const top  = targetRect.top  - containerRect.top  + targetRect.height / 2 + offsetY;
+    // Place so the index finger tip (at ~49px from left, ~58px from top of the 180px icon)
+    // lands exactly at the center of the target element
+    const fingerTipX = 49;
+    const fingerTipY = 58;
+    const left = targetRect.left - containerRect.left + targetRect.width / 2 - fingerTipX;
+    const top  = targetRect.top  - containerRect.top  + targetRect.height / 2 - fingerTipY;
 
     setHandPos({ left, top });
     setHandVisible(true);
@@ -388,7 +389,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
                   position: "absolute",
                   left: handPos.left,
                   top: handPos.top,
-                  width: 240, height: 240,
+                  width: 180, height: 180,
                   zIndex: 300,
                   pointerEvents: "none",
                   filter: "invert(68%) sepia(60%) saturate(400%) hue-rotate(180deg) brightness(110%)",
