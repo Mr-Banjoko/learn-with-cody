@@ -118,6 +118,7 @@ export default function Level2({ onBack, lang = "en" }) {
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             <PicSliceBoardEasy
+              key={`round-${roundIndex}`}
               wordPair={wordPair}
               onRoundComplete={handleRoundComplete}
               lang={lang}

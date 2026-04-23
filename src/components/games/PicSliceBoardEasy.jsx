@@ -74,9 +74,8 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
 
   const isDragging = useRef(false);
   const dropZoneRefs = useRef({});
-  // Guards auto-play: if the component remounts for a new word, the previous
-  // timeout must not fire.
   const autoPlayRef = useRef(null);
+  const cancelSequenceRef = useRef(null);
 
   // ── RESET on new word ────────────────────────────────────────────────────
   useEffect(() => {
@@ -85,6 +84,8 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
     setPlayingSequence(false);
     setListenedIds(new Set());   // ← reset locks every round
     isDragging.current = false;
+    // Cancel any in-flight completion sequence from the previous round
+    if (cancelSequenceRef.current) { cancelSequenceRef.current(); cancelSequenceRef.current = null; }
 
     // Auto-play the word after a short settle delay
     clearTimeout(autoPlayRef.current);
@@ -110,9 +111,15 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       { url: wd.audio, gain: 1 },
     ];
 
-    playAudioSequence(steps, () => {
-      setTimeout(onRoundComplete, 300);
+    const advanceTimer = { id: null };
+    cancelSequenceRef.current = playAudioSequence(steps, () => {
+      advanceTimer.id = setTimeout(onRoundComplete, 300);
     });
+
+    return () => {
+      if (cancelSequenceRef.current) cancelSequenceRef.current();
+      clearTimeout(advanceTimer.id);
+    };
   }, [state.wordComplete]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── TOUCH HANDLERS ───────────────────────────────────────────────────────
