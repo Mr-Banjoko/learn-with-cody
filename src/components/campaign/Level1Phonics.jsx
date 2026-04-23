@@ -11,7 +11,7 @@ import { Camera, RotateCcw } from "lucide-react";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
-import handTapData from "/handTap.json";
+import handTapData from "../../lib/handTap.json";
 
 // ── Storage helpers ────────────────────────────────────────────────────────────
 const STORAGE_PREFIX = "cody_photo_";
