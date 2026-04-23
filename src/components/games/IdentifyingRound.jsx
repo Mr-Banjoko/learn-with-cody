@@ -30,23 +30,33 @@ function SpeakerIcon({ color = "#4ECDC4", size = 26 }) {
 }
 
 /**
- * Preload all image URLs in parallel via Promise.all.
- * Resolves (never rejects) once every image has loaded or errored,
- * so a single broken URL can never hang the reveal.
+ * Preload AND FULLY DECODE all images in parallel via Promise.all.
+ * Uses img.decode() which guarantees the image is pixel-ready to paint —
+ * not just downloaded. This eliminates the per-image decode stagger that
+ * causes images to appear sequentially even from cache.
+ * Returns a map of url → objectURL so we render from blob: (local) URLs,
+ * which are guaranteed to be synchronously available and never re-fetch.
  */
-function preloadAll(urls) {
-  return Promise.all(
-    urls.map(
-      (url) =>
-        new Promise((resolve) => {
-          if (!url) { resolve(); return; }
-          const img = new Image();
-          img.onload = resolve;
-          img.onerror = resolve;
-          img.src = url;
-        })
-    )
+async function preloadAll(urls) {
+  const entries = await Promise.all(
+    urls.map(async (url) => {
+      if (!url) return [url, url];
+      try {
+        // Fetch into a blob so we own the bytes locally
+        const resp = await fetch(url);
+        const blob = await resp.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        // Decode into a bitmap to ensure GPU-upload is complete
+        const img = new Image();
+        img.src = objectUrl;
+        await img.decode().catch(() => {});
+        return [url, objectUrl];
+      } catch {
+        return [url, url]; // fallback to original on any error
+      }
+    })
   );
+  return Object.fromEntries(entries);
 }
 
 /**
@@ -59,12 +69,16 @@ export default function IdentifyingRound({ round, onComplete, lang = "en" }) {
   const [selected, setSelected]     = useState(null);
   const [showNext, setShowNext]      = useState(false);
   const [wrongShake, setWrongShake]  = useState(false);
-  // Gate: choices are hidden until ALL 3 images are fully loaded
+  // Gate: choices are hidden until ALL 3 images are decoded and blob-ready
   const [imagesReady, setImagesReady] = useState(false);
+  // Map of original url → local blob: url (guaranteed sync paint)
+  const [blobUrls, setBlobUrls] = useState({});
 
   const shakeTimeout = useRef(null);
   // Stale-closure guard: only the current round's preload may flip imagesReady
   const roundKeyRef  = useRef(null);
+  // Track blob URLs for cleanup
+  const prevBlobsRef = useRef([]);
 
   useEffect(() => {
     // Reset visible state immediately when round changes
@@ -76,12 +90,18 @@ export default function IdentifyingRound({ round, onComplete, lang = "en" }) {
     const key = round.target.word;
     roundKeyRef.current = key;
 
-    // Kick off all 3 fetches at exactly the same moment
     const urls = round.choices.map((c) => c.image);
-    preloadAll(urls).then(() => {
-      if (roundKeyRef.current === key) {
-        setImagesReady(true);
+    preloadAll(urls).then((urlMap) => {
+      if (roundKeyRef.current !== key) {
+        // Round changed while loading — revoke blobs we just created
+        Object.values(urlMap).forEach((u) => { if (u?.startsWith("blob:")) URL.revokeObjectURL(u); });
+        return;
       }
+      // Revoke previous round's blobs
+      prevBlobsRef.current.forEach((u) => { if (u?.startsWith("blob:")) URL.revokeObjectURL(u); });
+      prevBlobsRef.current = Object.values(urlMap).filter((u) => u?.startsWith("blob:"));
+      setBlobUrls(urlMap);
+      setImagesReady(true);
     });
 
     return () => { clearTimeout(shakeTimeout.current); };
@@ -186,8 +206,8 @@ export default function IdentifyingRound({ round, onComplete, lang = "en" }) {
                     whileTap={{ scale: 0.97 }}
                     style={{ background: "white", borderRadius: 22, border: isSelected ? `3.5px solid ${colorSet.border}` : "3px solid rgba(168,208,230,0.25)", boxShadow: isSelected ? `0 8px 28px ${colorSet.shadow}, 0 0 0 5px ${colorSet.ring}` : "0 4px 18px rgba(30,58,95,0.09)", overflow: "hidden", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center", transition: "border 0.16s, box-shadow 0.16s", WebkitTapHighlightColor: "transparent", width: "100%", height: 130, flexShrink: 0 }}
                   >
-                    {/* Images already preloaded — render from cache, no stagger */}
-                    <img src={choice.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }} />
+                    {/* Render as CSS background from blob: URL — synchronous, no decode lag */}
+                    <div style={{ width: "100%", height: "100%", backgroundImage: `url(${blobUrls[choice.image] || choice.image})`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none" }} />
                   </motion.button>
                 );
               })}
