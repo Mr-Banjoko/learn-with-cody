@@ -31,12 +31,22 @@ function markTutorialDone() {
 }
 
 const PHASE_TEXTS = {
-  1: "tap on the picture to listen to the word.",
-  2: "tap on the letter to hear the letter sound.",
-  3: "tap on the play icon to blend the letter sounds.",
-  4: "tap on the camera icon to take your own picture and make your learning special.",
-  5: "tap on this button to reset the picture.",
-  6: "tap next when you have finished learning",
+  en: {
+    1: "Tap on the picture to listen to the word.",
+    2: "Tap on the letter to hear the letter sound.",
+    3: "Tap on the play icon to blend the letter sounds.",
+    4: "Tap on the camera icon to take your own picture and make your learning special.",
+    5: "Tap on this button to reset the picture.",
+    6: "Tap Next when you have finished learning.",
+  },
+  zh: {
+    1: "点击图片，听听这个单词。",
+    2: "点击字母，听听字母的发音。",
+    3: "点击播放按钮，拼读字母发音。",
+    4: "点击相机图标，拍一张你自己的照片，让学习更有趣！",
+    5: "点击这个按钮，恢复原来的图片。",
+    6: "学完后，点击「下一步」继续。",
+  },
 };
 
 // How long the hand animation shows before hiding (ms)
@@ -222,7 +232,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif", position: "relative" }}
     >
       {/* Card area */}
-      <div style={{ flex: 1, padding: "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
+      <div style={{ flex: 1, padding: isTutorial ? "80px 24px 16px" : "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
         <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
           {/* Decorative blobs */}
           <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
@@ -364,17 +374,17 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       {/* ── Tutorial overlay ──────────────────────────────────────────────── */}
       {isTutorial && (
         <>
-          {/* Instruction text */}
+          {/* Instruction text — top banner */}
           <div
             style={{
-              position: "absolute", bottom: 90, left: 0, right: 0,
+              position: "absolute", top: 16, left: 0, right: 0,
               display: "flex", justifyContent: "center",
               zIndex: 200, pointerEvents: "none", padding: "0 24px",
             }}
           >
             <motion.div
               key={tutPhase}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
               style={{
@@ -384,9 +394,10 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
                 fontFamily: "Fredoka, sans-serif",
                 boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
                 textAlign: "center", maxWidth: 340, lineHeight: 1.4,
+                borderLeft: "4px solid #4ECDC4",
               }}
             >
-              {PHASE_TEXTS[tutPhase]}
+              {(PHASE_TEXTS[lang] || PHASE_TEXTS.en)[tutPhase]}
             </motion.div>
           </div>
 
@@ -406,7 +417,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
                   width: 180, height: 180,
                   zIndex: 300,
                   pointerEvents: "none",
-                  filter: "invert(68%) sepia(60%) saturate(400%) hue-rotate(180deg) brightness(110%)",
+                  filter: "invert(68%) sepia(60%) saturate(400%) hue-rotate(130deg) brightness(110%)",
                 }}
               >
                 <Lottie animationData={handTapData} loop={false} autoplay={true} />
