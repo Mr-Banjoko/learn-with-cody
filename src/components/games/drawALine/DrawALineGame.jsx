@@ -68,8 +68,9 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
   // wrongFlash: { topId, bottomId } | null — both sides glow red together
   const [wrongFlash, setWrongFlash] = useState(null);
 
-  // successAnim: topId currently playing its bounce/audio sequence, or null
-  const [successAnim, setSuccessAnim] = useState(null);
+  // separate bounce flags so letter and word jump at their own audio moment
+  const [bouncingBottom, setBouncingBottom] = useState(null); // bottomId
+  const [bouncingTop, setBouncingTop] = useState(null);       // topId
 
   // revealedLetters: { [bottomId]: letter } — shown after speaker disappears
   const [revealedLetters, setRevealedLetters] = useState({});
@@ -124,7 +125,8 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
       setMatches({});
       setLines([]);
       setWrongFlash(null);
-      setSuccessAnim(null);
+      setBouncingBottom(null);
+      setBouncingTop(null);
       setRevealedLetters({});
       setLocked(false);
     }
@@ -160,23 +162,30 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
   const runSuccessSequence = useCallback((topId, bottomId, bottomItem, topItem, colorIdx) => {
     // Step 1 — reveal letter immediately
     setRevealedLetters((prev) => ({ ...prev, [bottomId]: bottomItem.letter }));
-    // Step 2 — lock UI, start animation on both items
+    // Step 2 — lock UI, kick off letter bounce immediately
     setLocked(true);
-    setSuccessAnim({ topId, bottomId });
+    setBouncingBottom(bottomId);
 
-    // Step 3+4 — play letter then word audio
+    // Step 3+4 — letter sound first, then word sound; each bounce starts with its audio
     const steps = [];
     if (bottomItem.soundUrl) {
       steps.push({ url: bottomItem.soundUrl, gain: bottomItem.gain });
     }
     if (topItem.audio) {
-      steps.push({ url: topItem.audio });
+      steps.push({
+        url: topItem.audio,
+        onStart: () => {
+          setBouncingBottom(null);
+          setBouncingTop(topId);
+        },
+      });
     }
 
     const cancel = playAudioSequence(steps, () => {
       // Step 5 — unlock
       cancelAudioRef.current = null;
-      setSuccessAnim(null);
+      setBouncingBottom(null);
+      setBouncingTop(null);
       setLocked(false);
     });
     cancelAudioRef.current = cancel;
@@ -279,7 +288,7 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
           const matched = isTopMatched(item.id);
           const mc = matched ? PAIR_COLORS[matches[item.id].colorIdx % PAIR_COLORS.length] : null;
           const isWrong = wrongFlash?.topId === item.id;
-          const isBouncing = successAnim?.topId === item.id;
+          const isBouncing = bouncingTop === item.id;
 
           return (
             <div key={item.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
@@ -350,7 +359,7 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
           const mEntry = Object.values(matches).find((m) => m.bottomId === item.id);
           const mc = mEntry ? PAIR_COLORS[mEntry.colorIdx % PAIR_COLORS.length] : null;
           const isWrong = wrongFlash?.bottomId === item.id;
-          const isBouncing = successAnim?.bottomId === item.id;
+          const isBouncing = bouncingBottom === item.id;
           const revealedLetter = revealedLetters[item.id];
 
           return (
