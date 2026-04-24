@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
+import { playAudio } from "../../lib/useAudio";
 import { tx } from "../../lib/i18n";
 
 const ALL_LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -20,35 +21,6 @@ function buildRound() {
   return { target, choices };
 }
 
-function playLetterSound(letter) {
-  const url = getLetterSoundUrl(letter);
-  if (!url) return;
-  const gain = getLetterGain(letter);
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    fetch(url)
-      .then((r) => r.arrayBuffer())
-      .then((buf) => ctx.decodeAudioData(buf))
-      .then((decoded) => {
-        const gainNode = ctx.createGain();
-        gainNode.gain.value = gain;
-        const source = ctx.createBufferSource();
-        source.buffer = decoded;
-        source.connect(gainNode);
-        gainNode.connect(ctx.destination);
-        source.start(0);
-      })
-      .catch(() => {
-        const audio = new Audio(url);
-        audio.volume = Math.min(1, gain * 0.7);
-        audio.play().catch(() => {});
-      });
-  } catch {
-    const audio = new Audio(url);
-    audio.play().catch(() => {});
-  }
-}
-
 export default function OneLetter3Sounds({ onBack, lang = "en", onRoundComplete, hideBackArrow }) {
   const [round, setRound] = useState(() => buildRound());
   const [selected, setSelected] = useState(null);
@@ -58,7 +30,7 @@ export default function OneLetter3Sounds({ onBack, lang = "en", onRoundComplete,
   const wrongAttempts = useRef(0);
 
   const handleSpeakerTap = useCallback((letter, colorIdx) => {
-    playLetterSound(letter);
+    playAudio(getLetterSoundUrl(letter), getLetterGain(letter));
     setSelected({ letter, colorIdx });
     if (showNext) setShowNext(false);
     if (wrongShake) setWrongShake(false);
