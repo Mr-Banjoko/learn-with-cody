@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RotateCcw } from "lucide-react";
 import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { tx } from "../../lib/i18n";
 import { playAudio } from "../../lib/useAudio";
@@ -128,6 +129,25 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
     if (piece) playAudio(piece.letterAudio, getLetterGain(piece.phoneme));
   }, [state]);
 
+  const handleReset = useCallback((wi) => {
+    setState((prev) => {
+      const returnedIds = [];
+      const newPlaced = { ...prev.placed };
+      [0, 1, 2].forEach((si) => {
+        const k = `${wi}-${si}`;
+        if (newPlaced[k]) { returnedIds.push(newPlaced[k]); delete newPlaced[k]; }
+      });
+      const newWordComplete = [...prev.wordComplete];
+      newWordComplete[wi] = false;
+      return {
+        ...prev,
+        placed: newPlaced,
+        trayIds: [...prev.trayIds, ...returnedIds],
+        wordComplete: newWordComplete,
+      };
+    });
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -172,7 +192,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
         {wordPair.map((wd, wi) => {
           const done = state.wordComplete[wi];
           return (
-            <div key={wi} style={{ flex: 1 }}>
+            <div key={wi} style={{ flex: 1, position: "relative" }}>
               <AnimatePresence mode="wait">
                 {done ? (
                   // Completed: reveal full unchopped image
@@ -260,6 +280,26 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Reset button — bottom-right of the drop box */}
+              {!done && (
+                <button
+                  onPointerDown={(e) => { e.stopPropagation(); handleReset(wi); }}
+                  style={{
+                    position: "absolute", bottom: 6, right: 6,
+                    width: 36, height: 36, borderRadius: 18,
+                    background: "white",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+                    border: "none", cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    zIndex: 10, touchAction: "manipulation",
+                    opacity: [0,1,2].some((si) => state.placed[`${wi}-${si}`]) ? 1 : 0.35,
+                  }}
+                  aria-label="Reset pieces"
+                >
+                  <RotateCcw size={18} color="#A8D0E6" strokeWidth={2.2} />
+                </button>
+              )}
             </div>
           );
         })}

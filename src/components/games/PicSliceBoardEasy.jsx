@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RotateCcw } from "lucide-react";
 import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
@@ -224,6 +225,23 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
     if (piece) playAudio(piece.letterAudio, getLetterGain(piece.phoneme));
   }, [state]);
 
+  const handleReset = useCallback(() => {
+    setState((prev) => {
+      const returnedIds = [];
+      const newPlaced = { ...prev.placed };
+      [0, 1, 2].forEach((si) => {
+        const k = `0-${si}`;
+        if (newPlaced[k]) { returnedIds.push(newPlaced[k]); delete newPlaced[k]; }
+      });
+      return {
+        ...prev,
+        placed: newPlaced,
+        trayIds: [...prev.trayIds, ...returnedIds],
+        wordComplete: false,
+      };
+    });
+  }, []);
+
   const { bg, border, shadow } = palette;
 
   return (
@@ -272,7 +290,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       </motion.button>
 
       {/* ── DROP BOX ───────────────────────────────────────────────────────── */}
-      <div style={{ flexShrink: 0, width: "100%", maxWidth: 280 }}>
+      <div style={{ flexShrink: 0, width: "100%", maxWidth: 280, position: "relative" }}>
         <AnimatePresence mode="wait">
           {state.wordComplete ? (
             <motion.div
@@ -356,6 +374,26 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Reset button — bottom-right of the drop box */}
+        {!state.wordComplete && (
+          <button
+            onPointerDown={(e) => { e.stopPropagation(); handleReset(); }}
+            style={{
+              position: "absolute", bottom: 6, right: 6,
+              width: 36, height: 36, borderRadius: 18,
+              background: "white",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+              border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              zIndex: 10, touchAction: "manipulation",
+              opacity: [0,1,2].some((si) => state.placed[`0-${si}`]) ? 1 : 0.35,
+            }}
+            aria-label="Reset pieces"
+          >
+            <RotateCcw size={18} color="#A8D0E6" strokeWidth={2.2} />
+          </button>
+        )}
       </div>
 
       {/* ── SLICE TRAY ─────────────────────────────────────────────────────── */}
