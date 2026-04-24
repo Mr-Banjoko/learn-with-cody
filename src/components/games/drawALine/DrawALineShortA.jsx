@@ -52,14 +52,7 @@ export default function DrawALineShortA({ onBack, lang = "en" }) {
         </div>
       </div>
 
-      {/* Instruction strip */}
-      {phase === "playing" && (
-        <div style={{ flexShrink: 0, textAlign: "center", padding: "6px 16px 0", fontSize: 13, color: "#64748B", fontWeight: 500 }}>
-          {lang === "zh"
-            ? "点击单词或喇叭来收听 · 点击方块来连线"
-            : "Tap a word or 🔊 to listen · tap the boxes to match"}
-        </div>
-      )}
+
 
       {/* Game area */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>

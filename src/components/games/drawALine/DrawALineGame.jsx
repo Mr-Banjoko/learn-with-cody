@@ -205,7 +205,7 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        padding: "20px 14px 24px",
+        padding: "14px 14px 18px",
         overflow: "hidden",
       }}
     >
@@ -292,7 +292,7 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
       </div>
 
       {/* Middle gap — lines pass through */}
-      <div style={{ flex: 1, minHeight: 56 }} />
+      <div style={{ flex: 1, minHeight: 28 }} />
 
       {/* ROW 2 — Speakers */}
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexShrink: 0 }}>
