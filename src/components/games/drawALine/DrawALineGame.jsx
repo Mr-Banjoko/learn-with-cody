@@ -266,6 +266,8 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
         position: "relative",
         padding: "10px 14px 12px",
         overflow: "hidden",
+        paddingTop: "15%",
+        paddingBottom: "20%",
         // pointer-events off on outer div when locked; individual matched items still work via zIndex
         pointerEvents: locked ? "none" : "auto",
       }}
