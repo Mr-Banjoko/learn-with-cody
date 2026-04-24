@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
 
-const PAIR_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
+const PAIR_COLORS = ["#C77DFF", "#4ECDC4", "#FFD93D"];
 
 function SpeakerIcon({ color = "#4ECDC4", size = 36 }) {
   return (
@@ -205,7 +205,7 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
         display: "flex",
         flexDirection: "column",
         position: "relative",
-        padding: "14px 14px 18px",
+        padding: "10px 14px 12px",
         overflow: "hidden",
       }}
     >
@@ -229,6 +229,8 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
         {top.map((item) => {
           const matched = isTopMatched(item.id);
           const mc = matched ? PAIR_COLORS[matches[item.id].colorIdx % PAIR_COLORS.length] : null;
+          const isWrongTop = wrongFlash && pendingTop === item.id;
+          const isWrongBottom_forTop = wrongFlash && pendingBottom !== null && !matched;
           return (
             <div key={item.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
               {/* Word pill — tapping plays full word audio */}
@@ -239,9 +241,11 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
                   width: "100%",
                   padding: "11px 4px",
                   borderRadius: 18,
-                  background: matched ? mc + "25" : "white",
-                  border: `2.5px solid ${matched ? mc : "#E2E8F0"}`,
-                  boxShadow: matched
+                  background: isWrongTop ? "#FEE2E2" : matched ? mc + "25" : "white",
+                  border: `2.5px solid ${isWrongTop ? "#FF6B6B" : matched ? mc : "#E2E8F0"}`,
+                  boxShadow: isWrongTop
+                    ? "0 0 0 3px #FF6B6B55, 0 4px 18px rgba(255,107,107,0.35)"
+                    : matched
                     ? `0 4px 18px ${mc}40`
                     : "0 3px 12px rgba(30,58,95,0.09)",
                   fontSize: "clamp(20px, 5.5vw, 28px)",
@@ -292,7 +296,7 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
       </div>
 
       {/* Middle gap — lines pass through */}
-      <div style={{ flex: 1, minHeight: 28 }} />
+      <div style={{ flex: 1, minHeight: 12 }} />
 
       {/* ROW 2 — Speakers */}
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexShrink: 0 }}>
@@ -300,6 +304,7 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
           const matched = isBottomMatched(item.id);
           const mEntry = Object.values(matches).find((m) => m.bottomId === item.id);
           const mc = mEntry ? PAIR_COLORS[mEntry.colorIdx % PAIR_COLORS.length] : null;
+          const isWrongBottom = wrongFlash && pendingBottom === item.id;
           return (
             <div key={item.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
               {/* Bottom connector box — wrapper provides larger hit area */}
@@ -342,9 +347,11 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
                   width: "100%",
                   padding: "13px 4px",
                   borderRadius: 20,
-                  background: matched ? mc + "25" : "white",
-                  border: `2.5px solid ${matched ? mc : "#E2E8F0"}`,
-                  boxShadow: matched
+                  background: isWrongBottom ? "#FEE2E2" : matched ? mc + "25" : "white",
+                  border: `2.5px solid ${isWrongBottom ? "#FF6B6B" : matched ? mc : "#E2E8F0"}`,
+                  boxShadow: isWrongBottom
+                    ? "0 0 0 3px #FF6B6B55, 0 4px 18px rgba(255,107,107,0.35)"
+                    : matched
                     ? `0 4px 18px ${mc}40`
                     : "0 3px 12px rgba(30,58,95,0.09)",
                   display: "flex",
@@ -355,33 +362,14 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
                   transition: "background 0.18s, border 0.18s",
                 }}
               >
-                <SpeakerIcon color={matched ? mc : "#4ECDC4"} size={38} />
+                <SpeakerIcon color={isWrongBottom ? "#FF6B6B" : matched ? mc : "#4ECDC4"} size={38} />
               </motion.button>
             </div>
           );
         })}
       </div>
 
-      {/* Wrong-answer gentle flash */}
-      <AnimatePresence>
-        {wrongFlash && (
-          <motion.div
-            key="wrongflash"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.14 }}
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "rgba(255,107,107,0.09)",
-              borderRadius: 24,
-              pointerEvents: "none",
-              zIndex: 20,
-            }}
-          />
-        )}
-      </AnimatePresence>
+
     </div>
   );
 }
