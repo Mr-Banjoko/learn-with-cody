@@ -164,10 +164,14 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
     // All 3 boxes must be filled
     if (placed.some((p) => p === null)) return;
 
-    // Check all 3 boxes are correct
+    // Check all 3 boxes are correct using letter-value matching (not tile-ID matching).
+    // This makes duplicate letters (e.g. both 'd' tiles in "dad") interchangeable
+    // across any valid slot that requires that letter.
     const allCorrect = placed.every((optionId, boxIndex) => {
       const opt = round.options.find((o) => o.id === optionId);
-      return opt && opt.correctPos === boxIndex;
+      // The required letter at this position is round.letters[boxIndex].
+      // A tile is correct if its letter matches the required letter for this box.
+      return opt && opt.letter === round.letters[boxIndex];
     });
 
     if (allCorrect) {

@@ -118,9 +118,11 @@ export default function Level1DragV2({ card, onComplete, lang = "en" }) {
   const handleSubmit = useCallback(() => {
     if (completing) return;
     if (placed.some((p) => p === null)) return;
+    // Validate by letter value, not tile-instance ID, so duplicate letters
+    // (e.g. both 'd' tiles in "dad") are interchangeable across matching slots.
     const allCorrect = placed.every((optionId, boxIndex) => {
       const opt = round.options.find((o) => o.id === optionId);
-      return opt && opt.correctPos === boxIndex;
+      return opt && opt.letter === round.letters[boxIndex];
     });
     if (allCorrect) {
       playCompletion();

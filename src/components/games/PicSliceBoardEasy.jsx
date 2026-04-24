@@ -192,7 +192,14 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
 
     if (hitKey && !state.placed[hitKey]) {
       const [wi, si] = hitKey.split("-").map(Number);
-      if (piece.wordIndex === wi && piece.targetSlot === si) {
+      // Semantic correctness: piece must belong to this word AND its phoneme must
+      // match the required phoneme at slot si — not a strict tile-instance check.
+      // This makes duplicate-phoneme slices (e.g. both 'd' slices in "dad")
+      // interchangeable across any valid slot that requires that phoneme.
+      const wordData = wordPair[wi];
+      const requiredPhoneme = wordData?.phonemes?.[si]?.letter;
+      const isCorrect = piece.wordIndex === wi && piece.phoneme === requiredPhoneme;
+      if (isCorrect) {
         const newPlaced = { ...state.placed, [hitKey]: piece.id };
         const newTrayIds = state.trayIds.filter((id) => id !== piece.id);
         const wordComplete = [0, 1, 2].every((slotIdx) => {
