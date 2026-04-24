@@ -3,6 +3,13 @@
  * Manages all rounds internally. Shows 3 words (top) + 3 speaker icons (bottom).
  * Children tap small connector boxes to draw matching lines.
  * Calls onComplete() after all rounds finish.
+ *
+ * LINE ANIMATION:
+ * On a correct match the connecting line is drawn (not instant).
+ * Direction: top→bottom if Row 1 box was tapped first; bottom→top if Row 2 box was tapped first.
+ * Technique: SVG stroke-dasharray / stroke-dashoffset CSS animation.
+ *   - fromTop=true  → line defined top-to-bottom (x1,y1=top box), dashoffset shrinks → draws down.
+ *   - fromTop=false → line defined bottom-to-top (x1,y1=bottom box), dashoffset shrinks → draws up.
  */
 import { useState, useRef, useLayoutEffect, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,6 +17,7 @@ import { playAudio, playAudioSequence } from "../../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
 
 const PAIR_COLORS = ["#C77DFF", "#4ECDC4", "#FFD93D"];
+const DRAW_DURATION_MS = 320; // line draw speed — fast but visible
 
 function SpeakerIcon({ color = "#4ECDC4", size = 36 }) {
   return (
@@ -18,6 +26,45 @@ function SpeakerIcon({ color = "#4ECDC4", size = 36 }) {
       <path d="M30 20.5a8 8 0 0 1 0 11" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" />
       <path d="M33.5 17a13 13 0 0 1 0 18" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.6" />
     </svg>
+  );
+}
+
+/** Animated SVG line — draws from (x1,y1) toward (x2,y2) */
+function AnimatedLine({ x1, y1, x2, y2, color, id }) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  const animName = `draw-line-${id}`;
+
+  return (
+    <>
+      <style>{`
+        @keyframes ${animName} {
+          from { stroke-dashoffset: ${len}; }
+          to   { stroke-dashoffset: 0; }
+        }
+      `}</style>
+      <g>
+        <line
+          x1={x1} y1={y1} x2={x2} y2={y2}
+          stroke="rgba(0,0,0,0.12)"
+          strokeWidth={7}
+          strokeLinecap="round"
+          strokeDasharray={len}
+          strokeDashoffset={0}
+          style={{ animation: `${animName} ${DRAW_DURATION_MS}ms ease-out both` }}
+        />
+        <line
+          x1={x1} y1={y1} x2={x2} y2={y2}
+          stroke={color}
+          strokeWidth={4.5}
+          strokeLinecap="round"
+          strokeDasharray={len}
+          strokeDashoffset={0}
+          style={{ animation: `${animName} ${DRAW_DURATION_MS}ms ease-out both` }}
+        />
+      </g>
+    </>
   );
 }
 
@@ -62,20 +109,18 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
   const [pendingTop, setPendingTop] = useState(null);
   const [pendingBottom, setPendingBottom] = useState(null);
 
-  // matches: { [topId]: { bottomId, colorIdx } }
+  // Track which row was selected FIRST for the current pending pair
+  const [firstSelectedRow, setFirstSelectedRow] = useState(null);
+
+  // matches: { [topId]: { bottomId, colorIdx, fromTop: bool } }
   const [matches, setMatches] = useState({});
 
-  // wrongFlash: { topId, bottomId } | null — both sides glow red together
   const [wrongFlash, setWrongFlash] = useState(null);
 
-  // separate bounce flags so letter and word jump at their own audio moment
-  const [bouncingBottom, setBouncingBottom] = useState(null); // bottomId
-  const [bouncingTop, setBouncingTop] = useState(null);       // topId
+  const [bouncingBottom, setBouncingBottom] = useState(null);
+  const [bouncingTop, setBouncingTop] = useState(null);
 
-  // revealedLetters: { [bottomId]: letter } — shown after speaker disappears
   const [revealedLetters, setRevealedLetters] = useState({});
-
-  // locked: true during the success sequence — blocks all interaction
   const [locked, setLocked] = useState(false);
 
   const topBoxRefs = useRef({});
@@ -88,18 +133,25 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
     if (!containerRef.current) return;
     const cr = containerRef.current.getBoundingClientRect();
     const result = [];
-    Object.entries(matches).forEach(([topIdStr, { bottomId, colorIdx }]) => {
+    Object.entries(matches).forEach(([topIdStr, { bottomId, colorIdx, fromTop }]) => {
       const tEl = topBoxRefs.current[Number(topIdStr)];
       const bEl = bottomBoxRefs.current[bottomId];
       if (!tEl || !bEl) return;
       const tR = tEl.getBoundingClientRect();
       const bR = bEl.getBoundingClientRect();
+
+      const topX = tR.left + tR.width / 2 - cr.left;
+      const topY = tR.bottom - cr.top;
+      const botX = bR.left + bR.width / 2 - cr.left;
+      const botY = bR.top - cr.top;
+
       result.push({
-        x1: tR.left + tR.width / 2 - cr.left,
-        y1: tR.bottom - cr.top,
-        x2: bR.left + bR.width / 2 - cr.left,
-        y2: bR.top - cr.top,
+        x1: fromTop ? topX : botX,
+        y1: fromTop ? topY : botY,
+        x2: fromTop ? botX : topX,
+        y2: fromTop ? botY : topY,
         color: PAIR_COLORS[colorIdx % PAIR_COLORS.length],
+        id: `${topIdStr}-${bottomId}`,
       });
     });
     setLines(result);
@@ -112,7 +164,6 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
     return () => window.removeEventListener("resize", recalcLines);
   }, [recalcLines]);
 
-  // Advance to next round or call onComplete
   const advanceRound = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= rounds.length) {
@@ -122,6 +173,7 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
       setRoundState(buildRoundState(rounds[next]));
       setPendingTop(null);
       setPendingBottom(null);
+      setFirstSelectedRow(null);
       setMatches({});
       setLines([]);
       setWrongFlash(null);
@@ -132,7 +184,6 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
     }
   }, [roundIndex, rounds, onComplete]);
 
-  // Watch for all 3 matches complete — wait until no sequence is running
   useEffect(() => {
     if (
       !locked &&
@@ -144,29 +195,17 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
     }
   }, [matches, locked, roundState.top.length, advanceRound]);
 
-  // Clean up audio sequence on unmount
   useEffect(() => () => { cancelAudioRef.current && cancelAudioRef.current(); }, []);
 
   const isTopMatched = (topId) => topId in matches;
   const isBottomMatched = (bottomId) =>
     Object.values(matches).some((m) => m.bottomId === bottomId);
 
-  /**
-   * Run the success sequence for a newly-matched pair:
-   * 1. Reveal the letter (speaker disappears)
-   * 2. Lock UI
-   * 3. Bounce letter + play letter sound
-   * 4. Bounce word + play word audio
-   * 5. Unlock UI
-   */
-  const runSuccessSequence = useCallback((topId, bottomId, bottomItem, topItem, colorIdx) => {
-    // Step 1 — reveal letter immediately
+  const runSuccessSequence = useCallback((topId, bottomId, bottomItem, topItem) => {
     setRevealedLetters((prev) => ({ ...prev, [bottomId]: bottomItem.letter }));
-    // Step 2 — lock UI, kick off letter bounce immediately
     setLocked(true);
     setBouncingBottom(bottomId);
 
-    // Step 3+4 — letter sound first, then word sound; each bounce starts with its audio
     const steps = [];
     if (bottomItem.soundUrl) {
       steps.push({ url: bottomItem.soundUrl, gain: bottomItem.gain });
@@ -182,7 +221,6 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
     }
 
     const cancel = playAudioSequence(steps, () => {
-      // Step 5 — unlock
       cancelAudioRef.current = null;
       setBouncingBottom(null);
       setBouncingTop(null);
@@ -191,26 +229,26 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
     cancelAudioRef.current = cancel;
   }, []);
 
-  const tryMatch = useCallback((topId, bottomId) => {
+  const tryMatch = useCallback((topId, bottomId, resolvedFromTop) => {
     const isCorrect = bottomId === topId;
     if (isCorrect) {
       const colorIdx = Object.keys(matches).length;
-      // Find the bottom item and top item for the sequence
       const bottomItem = roundState.bottom.find((b) => b.id === bottomId);
       const topItem = roundState.top.find((t) => t.id === topId);
-      // Register the match
-      setMatches((prev) => ({ ...prev, [topId]: { bottomId, colorIdx } }));
+
+      setMatches((prev) => ({ ...prev, [topId]: { bottomId, colorIdx, fromTop: resolvedFromTop } }));
       setPendingTop(null);
       setPendingBottom(null);
-      // Run the sequence
+      setFirstSelectedRow(null);
+
       runSuccessSequence(topId, bottomId, bottomItem, topItem, colorIdx);
     } else {
-      // Both sides glow red simultaneously
       setWrongFlash({ topId, bottomId });
       setTimeout(() => {
         setWrongFlash(null);
         setPendingTop(null);
         setPendingBottom(null);
+        setFirstSelectedRow(null);
       }, 500);
     }
   }, [matches, roundState, runSuccessSequence]);
@@ -218,20 +256,24 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
   const handleTopBox = useCallback((topId) => {
     if (locked || isTopMatched(topId)) return;
     if (pendingBottom !== null) {
-      tryMatch(topId, pendingBottom);
+      tryMatch(topId, pendingBottom, false);
     } else {
+      if (pendingTop !== topId) setFirstSelectedRow("top");
+      else setFirstSelectedRow(null);
       setPendingTop((prev) => (prev === topId ? null : topId));
     }
-  }, [locked, isTopMatched, pendingBottom, tryMatch]);
+  }, [locked, isTopMatched, pendingBottom, tryMatch, pendingTop]);
 
   const handleBottomBox = useCallback((bottomId) => {
     if (locked || isBottomMatched(bottomId)) return;
     if (pendingTop !== null) {
-      tryMatch(pendingTop, bottomId);
+      tryMatch(pendingTop, bottomId, true);
     } else {
+      if (pendingBottom !== bottomId) setFirstSelectedRow("bottom");
+      else setFirstSelectedRow(null);
       setPendingBottom((prev) => (prev === bottomId ? null : bottomId));
     }
-  }, [locked, isBottomMatched, pendingTop, tryMatch]);
+  }, [locked, isBottomMatched, pendingTop, tryMatch, pendingBottom]);
 
   const getTopBoxStyle = (topId) => {
     if (isTopMatched(topId)) {
@@ -268,19 +310,18 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
         overflow: "hidden",
         paddingTop: "15%",
         paddingBottom: "20%",
-        // pointer-events off on outer div when locked; individual matched items still work via zIndex
         pointerEvents: locked ? "none" : "auto",
       }}
     >
-      {/* SVG line overlay */}
       <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 5 }}>
-        {lines.map((l, i) => (
-          <g key={i}>
-            <line x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
-              stroke="rgba(0,0,0,0.12)" strokeWidth={7} strokeLinecap="round" />
-            <line x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
-              stroke={l.color} strokeWidth={4.5} strokeLinecap="round" />
-          </g>
+        {lines.map((l) => (
+          <AnimatedLine
+            key={l.id}
+            x1={l.x1} y1={l.y1}
+            x2={l.x2} y2={l.y2}
+            color={l.color}
+            id={l.id}
+          />
         ))}
       </svg>
 
@@ -294,7 +335,6 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
 
           return (
             <div key={item.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-              {/* Word pill */}
               <motion.button
                 whileTap={locked ? {} : { scale: 0.92 }}
                 animate={isBouncing
@@ -304,22 +344,15 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
                 transition={isBouncing ? { duration: 0.6, ease: "easeOut" } : {}}
                 onPointerDown={(e) => { e.stopPropagation(); if (!locked) playAudio(item.audio); }}
                 style={{
-                  width: "100%",
-                  padding: "11px 4px",
-                  borderRadius: 18,
+                  width: "100%", padding: "11px 4px", borderRadius: 18,
                   background: isWrong ? "#FEE2E2" : matched ? mc + "25" : "white",
                   border: `2.5px solid ${isWrong ? "#FF6B6B" : matched ? mc : "#E2E8F0"}`,
                   boxShadow: isWrong
                     ? "0 0 0 3px #FF6B6B55, 0 4px 18px rgba(255,107,107,0.35)"
-                    : matched
-                    ? `0 4px 18px ${mc}40`
-                    : "0 3px 12px rgba(30,58,95,0.09)",
-                  fontSize: "clamp(20px, 5.5vw, 28px)",
-                  fontWeight: 700,
-                  fontFamily: "Fredoka, sans-serif",
-                  color: "#1E293B",
-                  cursor: "pointer",
-                  textAlign: "center",
+                    : matched ? `0 4px 18px ${mc}40` : "0 3px 12px rgba(30,58,95,0.09)",
+                  fontSize: "clamp(20px, 5.5vw, 28px)", fontWeight: 700,
+                  fontFamily: "Fredoka, sans-serif", color: "#1E293B",
+                  cursor: "pointer", textAlign: "center",
                   WebkitTapHighlightColor: "transparent",
                   transition: "background 0.18s, border 0.18s, box-shadow 0.18s",
                   letterSpacing: 1,
@@ -327,23 +360,13 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
               >
                 {item.word}
               </motion.button>
-
-              {/* Top connector box */}
               <div
                 onPointerDown={(e) => { e.stopPropagation(); handleTopBox(item.id); }}
-                style={{
-                  padding: 8, margin: -8, cursor: matched ? "default" : "pointer",
-                  touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
-                  zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center",
-                }}
+                style={{ padding: 8, margin: -8, cursor: matched ? "default" : "pointer", touchAction: "manipulation", WebkitTapHighlightColor: "transparent", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 <div
                   ref={(el) => (topBoxRefs.current[item.id] = el)}
-                  style={{
-                    width: 28, height: 28, borderRadius: 7, border: "2.5px solid",
-                    transition: "all 0.16s", pointerEvents: "none",
-                    ...getTopBoxStyle(item.id),
-                  }}
+                  style={{ width: 28, height: 28, borderRadius: 7, border: "2.5px solid", transition: "all 0.16s", pointerEvents: "none", ...getTopBoxStyle(item.id) }}
                 />
               </div>
             </div>
@@ -351,7 +374,6 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
         })}
       </div>
 
-      {/* Middle gap — lines pass through */}
       <div style={{ flex: 1, minHeight: 12 }} />
 
       {/* ROW 2 — Speakers / Revealed letters */}
@@ -366,62 +388,40 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
 
           return (
             <div key={item.id} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-              {/* Bottom connector box */}
               <div
                 onPointerDown={(e) => { e.stopPropagation(); handleBottomBox(item.id); }}
-                style={{
-                  padding: 8, margin: -8, cursor: matched ? "default" : "pointer",
-                  touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
-                  zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center",
-                }}
+                style={{ padding: 8, margin: -8, cursor: matched ? "default" : "pointer", touchAction: "manipulation", WebkitTapHighlightColor: "transparent", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 <div
                   ref={(el) => (bottomBoxRefs.current[item.id] = el)}
-                  style={{
-                    width: 28, height: 28, borderRadius: 7, border: "2.5px solid",
-                    transition: "all 0.16s", pointerEvents: "none",
-                    ...getBottomBoxStyle(item.id),
-                  }}
+                  style={{ width: 28, height: 28, borderRadius: 7, border: "2.5px solid", transition: "all 0.16s", pointerEvents: "none", ...getBottomBoxStyle(item.id) }}
                 />
               </div>
-
-              {/* Speaker → revealed letter after correct match */}
               <motion.div
-                animate={isBouncing
-                  ? { y: [0, -16, 0, -9, 0, -4, 0], scale: [1, 1.15, 1, 1.07, 1] }
-                  : { y: 0, scale: 1 }
-                }
+                animate={isBouncing ? { y: [0, -16, 0, -9, 0, -4, 0], scale: [1, 1.15, 1, 1.07, 1] } : { y: 0, scale: 1 }}
                 transition={isBouncing ? { duration: 0.55, ease: "easeOut" } : {}}
                 style={{ width: "100%" }}
               >
                 <AnimatePresence mode="wait">
                   {revealedLetter ? (
-                    /* Letter tile — replaces speaker after match */
                     <motion.div
                       key="letter"
                       initial={{ opacity: 0, scale: 0.5 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ type: "spring", stiffness: 300, damping: 18 }}
                       style={{
-                        width: "100%",
-                        padding: "10px 4px",
-                        borderRadius: 20,
+                        width: "100%", padding: "10px 4px", borderRadius: 20,
                         background: mc ? mc + "25" : "white",
                         border: `2.5px solid ${mc || "#E2E8F0"}`,
                         boxShadow: mc ? `0 4px 18px ${mc}40` : "0 3px 12px rgba(30,58,95,0.09)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "clamp(26px, 7vw, 36px)",
-                        fontWeight: 700,
-                        fontFamily: "Fredoka, sans-serif",
-                        color: mc || "#1E293B",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "clamp(26px, 7vw, 36px)", fontWeight: 700,
+                        fontFamily: "Fredoka, sans-serif", color: mc || "#1E293B",
                       }}
                     >
                       {revealedLetter}
                     </motion.div>
                   ) : (
-                    /* Speaker button */
                     <motion.button
                       key="speaker"
                       initial={{ opacity: 1 }}
@@ -433,19 +433,14 @@ export default function DrawALineGame({ rounds, onComplete, lang = "en" }) {
                         if (!locked && item.soundUrl) playAudio(item.soundUrl, item.gain);
                       }}
                       style={{
-                        width: "100%",
-                        padding: "13px 4px",
-                        borderRadius: 20,
+                        width: "100%", padding: "13px 4px", borderRadius: 20,
                         background: isWrong ? "#FEE2E2" : "white",
                         border: `2.5px solid ${isWrong ? "#FF6B6B" : "#E2E8F0"}`,
                         boxShadow: isWrong
                           ? "0 0 0 3px #FF6B6B55, 0 4px 18px rgba(255,107,107,0.35)"
                           : "0 3px 12px rgba(30,58,95,0.09)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        WebkitTapHighlightColor: "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        cursor: "pointer", WebkitTapHighlightColor: "transparent",
                         transition: "background 0.18s, border 0.18s, box-shadow 0.18s",
                       }}
                     >
