@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RotateCcw } from "lucide-react";
 import BackArrow from "../BackArrow";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
@@ -239,7 +240,7 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
           />
         </motion.div>
 
-        {/* Drop boxes */}
+        {/* Drop boxes + reset button */}
         <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {round.letters.map((_, i) => {
             const placedId = placed[i];
@@ -282,6 +283,28 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
               </motion.div>
             );
           })}
+
+          {/* Reset button — same style as photo-remove RotateCcw icon */}
+          <button
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              if (completing) return;
+              setPlaced([null, null, null]);
+              setPlacedColors({});
+            }}
+            style={{
+              width: 48, height: 48, borderRadius: 24,
+              background: "white",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+              border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0, touchAction: "manipulation",
+              opacity: placed.some(Boolean) && !completing ? 1 : 0.35,
+            }}
+            aria-label="Reset letters"
+          >
+            <RotateCcw size={22} color="#A8D0E6" strokeWidth={2.2} />
+          </button>
         </div>
 
         {/* Letter tiles */}
