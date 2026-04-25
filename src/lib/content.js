@@ -151,11 +151,4 @@ export const games = [
     description: "Tap a letter to hear it · Drag it to fill the missing sound",
     available: true,
   },
-  {
-    id: "draw-a-line",
-    label: "Draw a Line",
-    emoji: "🖊️",
-    description: "Listen to words and sounds · draw a line to match them",
-    available: true,
-  },
 ];
