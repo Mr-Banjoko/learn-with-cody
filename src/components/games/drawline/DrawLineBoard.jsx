@@ -15,8 +15,10 @@ import { playAudio, playAudioSequence } from "../../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
 
 // ── Colours ──────────────────────────────────────────────────────────────────
-const CARD_COLORS = ["#A8D8EA", "#FFAFC5", "#B5EAD7"];
-const LINE_COLORS = ["#4ECDC4", "#FF6B6B", "#FFD93D"];
+// Each index: [border/accent, light bg, line color]
+const CARD_COLORS  = ["#7EC8E3", "#F4A7C3", "#B39DDB"]; // light blue, pink, purple
+const CARD_BG      = ["#E8F7FC", "#FDEEF5", "#F3EFFE"]; // matching light bg tints
+const LINE_COLORS  = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 
 // ── SVG line layer ────────────────────────────────────────────────────────────
 function LinesLayer({ matches, connectorRects, containerRect }) {
@@ -258,7 +260,9 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en" }) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "16px 12px 20px",
+        padding: "0 12px 0",
+        paddingTop: "15%",
+        paddingBottom: "20%",
         gap: 0,
         overflow: "visible",
       }}
@@ -306,21 +310,23 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en" }) {
                   background: isWrongTop
                     ? "#FFECEC"
                     : isMatched
-                    ? "#E8FFFE"
+                    ? CARD_BG[i]
                     : "white",
                   border: isWrongTop
                     ? "2.5px solid #FF6B6B"
                     : isMatched
-                    ? "2.5px solid #4ECDC4"
+                    ? `2.5px solid ${CARD_COLORS[i]}`
                     : isSelectedTop
-                    ? "2.5px solid #4A90C4"
+                    ? `2.5px solid ${CARD_COLORS[i]}`
                     : `2.5px solid ${CARD_COLORS[i]}`,
                   borderRadius: 18,
                   overflow: "hidden",
                   boxShadow: isWrongTop
                     ? "0 0 0 4px rgba(255,107,107,0.25)"
+                    : isMatched
+                    ? `0 0 0 5px ${CARD_COLORS[i]}55`
                     : isSelectedTop
-                    ? "0 0 0 4px rgba(74,144,196,0.2)"
+                    ? `0 0 0 4px ${CARD_COLORS[i]}44`
                     : "0 4px 14px rgba(0,0,0,0.09)",
                   cursor: "pointer",
                   width: "100%",
@@ -348,7 +354,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en" }) {
                     textAlign: "center",
                     fontSize: 18,
                     fontWeight: 700,
-                    color: isWrongTop ? "#FF6B6B" : isMatched ? "#4ECDC4" : "#1E3A5F",
+                    color: isWrongTop ? "#FF6B6B" : isMatched ? CARD_COLORS[i] : "#1E3A5F",
                     fontFamily: "Fredoka, sans-serif",
                     letterSpacing: 0.5,
                     transition: "color 0.18s",
@@ -390,6 +396,11 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en" }) {
           const isWrongBot = wrongFeedback?.botIdx === botIdx;
           const isBouncing = bounceBot === botIdx;
           const isRevealed = revealedBotIdxs.has(botIdx);
+          // Find which top-card index this bottom slot matched with (for color)
+          const matchedTopCardId = isMatched ? matches.find((m) => m.botIdx === botIdx)?.topCardId : null;
+          const matchColorIdx = matchedTopCardId ? topCards.findIndex((c) => c.id === matchedTopCardId) : -1;
+          const matchColor = matchColorIdx >= 0 ? CARD_COLORS[matchColorIdx] : null;
+          const matchBg = matchColorIdx >= 0 ? CARD_BG[matchColorIdx] : null;
 
           return (
             <div
@@ -423,19 +434,21 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en" }) {
                   background: isWrongBot
                     ? "#FFECEC"
                     : isMatched
-                    ? "#E8FFFE"
+                    ? matchBg
                     : "white",
                   border: isWrongBot
                     ? "2.5px solid #FF6B6B"
                     : isMatched
-                    ? "2.5px solid #4ECDC4"
+                    ? `2.5px solid ${matchColor}`
                     : isSelectedBot
-                    ? "2.5px solid #4A90C4"
+                    ? "2.5px solid #A8D0E6"
                     : "2.5px solid #CBD5E1",
                   boxShadow: isWrongBot
                     ? "0 0 0 4px rgba(255,107,107,0.25)"
+                    : isMatched
+                    ? `0 0 0 5px ${matchColor}55`
                     : isSelectedBot
-                    ? "0 0 0 4px rgba(74,144,196,0.2)"
+                    ? "0 0 0 4px rgba(168,208,230,0.3)"
                     : "0 4px 14px rgba(0,0,0,0.09)",
                   display: "flex",
                   alignItems: "center",
@@ -455,9 +468,9 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en" }) {
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: "spring", stiffness: 300, damping: 18 }}
                       style={{
-                        fontSize: 36,
-                        fontWeight: 700,
-                        color: "#4ECDC4",
+                      fontSize: 36,
+                      fontWeight: 700,
+                      color: matchColor || "#A8D0E6",
                         fontFamily: "Fredoka, sans-serif",
                         lineHeight: 1,
                       }}
