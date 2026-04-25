@@ -1,10 +1,13 @@
 /**
- * Cody Learn – Service Worker v5
+ * Cody Learn – Service Worker v6
+ * - skipWaiting() on install (no waiting, immediate activation)
+ * - Deletes all previous caches (v1/v3/v5) on activate
+ * - Cache-first ONLY for GitHub raw assets; app JS/CSS served normally by browser
  */
-const CACHE_NAME = "cody-assets-v5";
+const CACHE_NAME = "cody-assets-v6";
 const CACHEABLE_ORIGINS = ["https://raw.githubusercontent.com"];
 
-self.addEventListener("install", () => {});
+self.addEventListener("install", () => { self.skipWaiting(); });
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
