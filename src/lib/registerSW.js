@@ -1,5 +1,7 @@
 import { shortAWords } from "./shortAWords";
 
+const ASSET_CACHE_NAME = "cody-assets-v6";
+
 export function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
   navigator.serviceWorker.register("/sw.js").then((reg) => {
@@ -11,6 +13,7 @@ export function registerServiceWorker() {
         if (nw.state === "installed" && navigator.serviceWorker.controller) nw.postMessage({ type: "SKIP_WAITING" });
       });
     });
+    reg.update().catch(() => {});
   }).catch((err) => console.warn("[SW] Registration failed", err));
 
   let refreshing = false;
@@ -21,10 +24,9 @@ export function registerServiceWorker() {
 
 export async function prefetchCoreImages() {
   if (!("caches" in window)) return;
-  const CACHE_NAME = "cody-assets-v5";
   const urls = shortAWords.map((w) => w.image).filter(Boolean);
   try {
-    const cache = await caches.open(CACHE_NAME);
+    const cache = await caches.open(ASSET_CACHE_NAME);
     await Promise.allSettled(urls.map(async (url) => {
       const cached = await cache.match(url);
       if (!cached) { const res = await fetch(url, { mode: "cors" }); if (res.ok) await cache.put(url, res); }
