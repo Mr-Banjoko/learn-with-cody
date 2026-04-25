@@ -13,6 +13,7 @@ const gameLabels = {
   "sound-safari":    { labelZh: "声音探险",   descZh: "找出以这个音开头的动物名字" },
   "drag-letters-v2": { labelZh: "拖拽字母 V2", descZh: "放好所有字母后点击提交来检查答案" },
   "missing-sound-01": { labelZh: "缺失的音 0.1", descZh: "点击字母听音，拖动字母填空" },
+  "draw-line":        { labelZh: "连线游戏",     descZh: "听声音，把图片和字母用线连起来" },
 };
 import { Lock } from "lucide-react";
 import PicSliceGame from "./PicSliceGame";
@@ -22,6 +23,7 @@ import DragTheLettersV2 from "../components/games/DragTheLettersV2";
 import MissingSound from "../components/games/MissingSound";
 import MissingSound01 from "../components/games/MissingSound01";
 import LetterCatch from "../components/games/LetterCatch";
+import DrawLineGame from "../components/games/DrawLineGame";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 
@@ -61,6 +63,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "missing-sound-01") {
     return <MissingSound01 onBack={exitGame} lang={lang} />;
+  }
+  if (activeGame === "draw-line") {
+    return <DrawLineGame onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "test") {
     return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;

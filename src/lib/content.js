@@ -151,4 +151,11 @@ export const games = [
     description: "Tap a letter to hear it · Drag it to fill the missing sound",
     available: true,
   },
+  {
+    id: "draw-line",
+    label: "Draw a Line",
+    emoji: "〰️",
+    description: "Listen and match pictures to their letter sounds by drawing a line",
+    available: true,
+  },
 ];
