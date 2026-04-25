@@ -1,10 +1,11 @@
 import { shortAWords } from "./shortAWords";
 
-const ASSET_CACHE_NAME = "cody-assets-v6";
+const ASSET_CACHE_NAME = "cody-assets-v7";
 
 export function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
-  navigator.serviceWorker.register("/sw.js").then((reg) => {
+  // ?v=7 forces Safari to bypass its HTTP cache for sw.js
+  navigator.serviceWorker.register("/sw.js?v=7").then((reg) => {
     if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
     reg.addEventListener("updatefound", () => {
       const nw = reg.installing;
