@@ -11,25 +11,40 @@ export function registerServiceWorker() {
     .register("/sw.js")
     .then((reg) => {
       console.log("[SW] Registered", reg.scope);
+
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+
+      reg.addEventListener("updatefound", () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            newWorker.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      });
     })
     .catch((err) => {
       console.warn("[SW] Registration failed", err);
     });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
 }
 
-/**
- * Warm the SW cache with all core lesson images so they are available offline.
- * Uses the Cache API directly — works even before SW intercepts fetches.
- */
 export async function prefetchCoreImages() {
   if (!("caches" in window)) return;
-
-  const CACHE_NAME = "cody-assets-v1";
+  const CACHE_NAME = "cody-assets-v5";
   const urls = shortAWords.map((w) => w.image).filter(Boolean);
-
   try {
     const cache = await caches.open(CACHE_NAME);
-    // Only fetch what's not already cached
     await Promise.allSettled(
       urls.map(async (url) => {
         const cached = await cache.match(url);
