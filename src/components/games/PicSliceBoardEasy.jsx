@@ -358,7 +358,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                         style={{ position: "absolute", inset: 0 }}
                       >
                         <img
-                          src={placedPiece.sliceSrc}
+                          src={placedPiece.sliceSrc || placedPiece.image || wd.fullImage || wd.image}
                           alt=""
                           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                         />
@@ -460,7 +460,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
               }}
             >
               <img
-                src={piece.sliceSrc}
+                src={piece.sliceSrc || piece.image || wd.fullImage || wd.image}
                 alt=""
                 draggable={false}
                 style={{
@@ -530,7 +530,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
           border: "3px solid #4ECDC4",
         }}>
           <img
-            src={dragState.piece.sliceSrc}
+            src={dragState.piece.sliceSrc || dragState.piece.image || wd.fullImage || wd.image}
             alt=""
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
