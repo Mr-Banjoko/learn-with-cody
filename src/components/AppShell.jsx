@@ -17,7 +17,7 @@ import Level7 from "./campaign/Level7.jsx";
 import Level8 from "./campaign/Level8.jsx";
 import Level9 from "./campaign/Level9.jsx";
 import Level10 from "./campaign/Level10.jsx";
-import Level11 from "./campaign/Level11.jsx";
+import Level11 from "./campaign/Level11";
 
 // Screens that hide the tab bar and language toggle
 const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11"]);
