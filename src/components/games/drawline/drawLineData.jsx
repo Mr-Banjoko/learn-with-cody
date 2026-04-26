@@ -6,9 +6,17 @@
  * Rounds are validated to have exactly one unique one-to-one solution.
  */
 import { shortAWords } from "../../../lib/shortAWords";
+import { shortEWords } from "../../../lib/shortEWords";
+import { shortIWords } from "../../../lib/shortIWords";
+import { shortOWords } from "../../../lib/shortOWords";
+import { shortUWords } from "../../../lib/shortUWords";
 
-// ── Short A word pool ────────────────────────────────────────────────────────
+// ── Word pools ───────────────────────────────────────────────────────────────
 export const SHORT_A_WORDS = shortAWords;
+export const SHORT_E_WORDS = shortEWords;
+export const SHORT_I_WORDS = shortIWords;
+export const SHORT_O_WORDS = shortOWords;
+export const SHORT_U_WORDS = shortUWords;
 
 // ── Round-generation helpers ─────────────────────────────────────────────────
 
@@ -95,7 +103,7 @@ export function generateRounds(wordPool, count = 5) {
   return rounds;
 }
 
-// ── Scaffold data for other vowels (to be filled later) ─────────────────────
+// ── Vowel group config ───────────────────────────────────────────────────────
 export const VOWEL_GROUPS = [
   {
     id: "short-a",
@@ -110,31 +118,31 @@ export const VOWEL_GROUPS = [
     label: "Short e",
     emoji: "🥚",
     color: "#FFD93D",
-    wordPool: [],
-    available: false,
+    wordPool: SHORT_E_WORDS,
+    available: true,
   },
   {
     id: "short-i",
     label: "Short i",
     emoji: "🐛",
     color: "#6BCB77",
-    wordPool: [],
-    available: false,
+    wordPool: SHORT_I_WORDS,
+    available: true,
   },
   {
     id: "short-o",
     label: "Short o",
     emoji: "🐙",
     color: "#4D96FF",
-    wordPool: [],
-    available: false,
+    wordPool: SHORT_O_WORDS,
+    available: true,
   },
   {
     id: "short-u",
     label: "Short u",
     emoji: "☂️",
     color: "#C77DFF",
-    wordPool: [],
-    available: false,
+    wordPool: SHORT_U_WORDS,
+    available: true,
   },
 ];
