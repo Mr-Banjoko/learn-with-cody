@@ -1,27 +1,31 @@
 /**
  * Level 11 — 10-round fixed sequence:
- * For each of 5 words: Learn Phonics → Drag the Letters
- * Words: sad, sat, pat, mad, ham (in this exact order)
+ * For each of 5 words: Learn Phonics → Rearrange the Pictures
+ * Words: bat, can, cat, hat, mat (in this exact order)
  * No spotlight overlay. No audio guide.
  */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level6Phonics from "./Level6Phonics";
-import Level1DragV2 from "./Level1DragV2";
 import Level11Complete from "./Level11Complete";
-import { shortAWords } from "../../lib/shortAWords";
+import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
+import { buildWordData } from "../../lib/picSliceGameData";
 
-// Fixed word set: sad, sat, pat, mad, ham — exactly in this order
-const WORD_NAMES = ["sad", "sat", "pat", "mad", "ham"];
-const WORDS = WORD_NAMES.map((name) => shortAWords.find((w) => w.word === name));
+// Fixed word set — must all have slice assets
+const WORD_NAMES = ["bat", "can", "cat", "hat", "mat"];
+// Ensure .image is set for Level6Phonics (buildWordData uses fullImage for slice-words)
+const WORDS = WORD_NAMES.map((name) => {
+  const wd = buildWordData(name);
+  return { ...wd, image: wd.image || wd.fullImage };
+});
 const TOTAL_ROUNDS = WORDS.length * 2; // 10
 
 function buildRounds() {
   const rounds = [];
-  WORDS.forEach((card) => {
-    rounds.push({ type: "phonics", card });
-    rounds.push({ type: "drag",    card });
+  WORDS.forEach((wordData) => {
+    rounds.push({ type: "phonics", card: wordData });
+    rounds.push({ type: "rearrange", wordData });
   });
   return rounds;
 }
@@ -123,7 +127,7 @@ export default function Level11({ onBack, lang = "en" }) {
             {round.type === "phonics" ? (
               <Level6Phonics card={round.card} onNext={advance} lang={lang} />
             ) : (
-              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} />
+              <PicSliceBoardEasy wordPair={[round.wordData]} onRoundComplete={advance} lang={lang} />
             )}
           </motion.div>
         )}
