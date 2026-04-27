@@ -8,23 +8,22 @@
  *
  * Round map:
  *  1. gas  — phonics
- *  2. gas  — rearrange (easy)
+ *  2. gas  — drag (V2)
  *  3. jar  — phonics
- *  4. jar  — rearrange (easy)
+ *  4. jar  — drag (V2)
  *  5. tag  — phonics
- *  6. tag  — rearrange (easy)
+ *  6. tag  — drag (V2)
  *  7. tap  — phonics
- *  8. tap  — rearrange (easy)
+ *  8. tap  — drag (V2)
  *  9. bag  — phonics
- * 10. bag  — rearrange (easy)  → marks level complete
+ * 10. bag  — drag (V2)  → marks level complete
  */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level1Phonics from "./Level1Phonics";
+import Level1DragV2 from "./Level1DragV2";
 import Level16Complete from "./Level16Complete";
-import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
-import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 
 const findWord = (w) => shortAWords.find((x) => x.word === w);
@@ -35,16 +34,16 @@ const tapCard = findWord("tap");
 const bagCard = findWord("bag");
 
 const ROUNDS = [
-  { type: "phonics",   card: gasCard }, // Round 1:  gas phonics
-  { type: "rearrange", card: gasCard }, // Round 2:  gas rearrange
-  { type: "phonics",   card: jarCard }, // Round 3:  jar phonics
-  { type: "rearrange", card: jarCard }, // Round 4:  jar rearrange
-  { type: "phonics",   card: tagCard }, // Round 5:  tag phonics
-  { type: "rearrange", card: tagCard }, // Round 6:  tag rearrange
-  { type: "phonics",   card: tapCard }, // Round 7:  tap phonics
-  { type: "rearrange", card: tapCard }, // Round 8:  tap rearrange
-  { type: "phonics",   card: bagCard }, // Round 9:  bag phonics
-  { type: "rearrange", card: bagCard }, // Round 10: bag rearrange → complete
+  { type: "phonics", card: gasCard }, // Round 1:  gas phonics
+  { type: "drag",    card: gasCard }, // Round 2:  gas drag
+  { type: "phonics", card: jarCard }, // Round 3:  jar phonics
+  { type: "drag",    card: jarCard }, // Round 4:  jar drag
+  { type: "phonics", card: tagCard }, // Round 5:  tag phonics
+  { type: "drag",    card: tagCard }, // Round 6:  tag drag
+  { type: "phonics", card: tapCard }, // Round 7:  tap phonics
+  { type: "drag",    card: tapCard }, // Round 8:  tap drag
+  { type: "phonics", card: bagCard }, // Round 9:  bag phonics
+  { type: "drag",    card: bagCard }, // Round 10: bag drag → complete
 ];
 
 const TOTAL_ROUNDS = ROUNDS.length;
@@ -76,8 +75,6 @@ export default function Level16({ onBack, lang = "en" }) {
 
   const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-
-  const wordPair = round ? [buildWordData(round.card.word)] : null;
 
   return (
     <div
@@ -152,9 +149,10 @@ export default function Level16({ onBack, lang = "en" }) {
                 isFirstCard={false}
               />
             ) : (
-              <PicSliceBoardEasy
-                wordPair={wordPair}
-                onRoundComplete={advance}
+              <Level1DragV2
+                key={`drag-${roundIndex}`}
+                card={round.card}
+                onComplete={advance}
                 lang={lang}
               />
             )}
