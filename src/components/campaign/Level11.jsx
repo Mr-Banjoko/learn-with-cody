@@ -18,7 +18,7 @@
  *  9. ham  — phonics
  * 10. ham  — rearrange (easy)  → marks level complete
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level1Phonics from "./Level1Phonics";
@@ -79,8 +79,12 @@ export default function Level11({ onBack, lang = "en" }) {
   const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  // Build wordPair for PicSliceBoardEasy (expects an array of 1 word data object)
-  const wordPair = round ? [buildWordData(round.card.word)] : null;
+  // Build wordPair for PicSliceBoardEasy — memoized so the array reference is
+  // stable across re-renders, preventing spurious game resets in the child.
+  const wordPair = useMemo(
+    () => (round && round.type === "rearrange" ? [buildWordData(round.card.word)] : null),
+    [roundIndex] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   return (
     <div
