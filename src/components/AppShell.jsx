@@ -22,9 +22,14 @@ import Level12 from "./campaign/Level12";
 import Level13 from "./campaign/Level13";
 import Level14 from "./campaign/Level14";
 import Level15 from "./campaign/Level15";
+import Level16 from "./campaign/Level16";
+import Level17 from "./campaign/Level17";
+import Level18 from "./campaign/Level18";
+import Level19 from "./campaign/Level19";
+import Level20 from "./campaign/Level20";
 
 // Screens that hide the tab bar and language toggle
-const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15"]);
+const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15", "campaign-short-a-level-16", "campaign-short-a-level-17", "campaign-short-a-level-18", "campaign-short-a-level-19", "campaign-short-a-level-20"]);
 
 export default function AppShell() {
   const [activeTab, setActiveTab] = useState("home");
@@ -53,6 +58,46 @@ export default function AppShell() {
 
   const renderHomeScreen = () => {
     switch (homeSubScreen) {
+      case "campaign-short-a-level-20":
+        return (
+          <Level20
+            onBack={() => setHomeSubScreen("campaign-short-a")}
+            lang={language}
+          />
+        );
+
+      case "campaign-short-a-level-19":
+        return (
+          <Level19
+            onBack={() => setHomeSubScreen("campaign-short-a")}
+            lang={language}
+          />
+        );
+
+      case "campaign-short-a-level-18":
+        return (
+          <Level18
+            onBack={() => setHomeSubScreen("campaign-short-a")}
+            lang={language}
+          />
+        );
+
+      case "campaign-short-a-level-17":
+        return (
+          <Level17
+            onBack={() => setHomeSubScreen("campaign-short-a")}
+            lang={language}
+          />
+        );
+
+      case "campaign-short-a-level-16":
+        return (
+          <Level16
+            onBack={() => setHomeSubScreen("campaign-short-a")}
+            lang={language}
+          />
+        );
+
       case "campaign-short-a-level-15":
         return (
           <Level15
@@ -193,6 +238,11 @@ export default function AppShell() {
               if (lvl === 13) setHomeSubScreen("campaign-short-a-level-13");
               if (lvl === 14) setHomeSubScreen("campaign-short-a-level-14");
               if (lvl === 15) setHomeSubScreen("campaign-short-a-level-15");
+              if (lvl === 16) setHomeSubScreen("campaign-short-a-level-16");
+              if (lvl === 17) setHomeSubScreen("campaign-short-a-level-17");
+              if (lvl === 18) setHomeSubScreen("campaign-short-a-level-18");
+              if (lvl === 19) setHomeSubScreen("campaign-short-a-level-19");
+              if (lvl === 20) setHomeSubScreen("campaign-short-a-level-20");
             }}
             lang={language}
           />
