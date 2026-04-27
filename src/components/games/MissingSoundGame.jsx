@@ -181,7 +181,8 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
     if (url) playAudio(url, getLetterGain(letter));
   }, []);
 
-  const canSubmit = placedOption !== null && feedback !== "completing";
+  const isCompleting = feedback === "completing";
+  const canSubmit = placedOption !== null && !isCompleting;
 
   return (
     <div
@@ -190,10 +191,20 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
         alignItems: "center", justifyContent: "space-evenly",
         padding: "10px 20px 14px", minHeight: 0,
         touchAction: "none", userSelect: "none",
+        position: "relative",
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Invisible overlay to block all taps during audio playback */}
+      {isCompleting && (
+        <div
+          style={{
+            position: "absolute", inset: 0, zIndex: 100,
+            touchAction: "none", pointerEvents: "all",
+          }}
+        />
+      )}
       {/* ── TOP LAYER: shared frame + 3 letter boxes ── */}
       <div style={{
         background: "rgba(255,255,255,0.55)",
@@ -225,7 +236,7 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
                   : {}
               }
               transition={{ duration: isWrong ? 0.38 : 0.5 }}
-              onPointerDown={!isMissing ? (e) => { e.preventDefault(); handleTopLetterTap(letter); } : undefined}
+              onPointerDown={!isMissing && !isCompleting ? (e) => { e.preventDefault(); handleTopLetterTap(letter); } : undefined}
               style={{
                 width: "min(108px, 27vw)",
                 height: "min(108px, 27vw)",
@@ -270,7 +281,7 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0 }}>
         <motion.button
           whileTap={{ scale: 0.88 }}
-          onPointerDown={(e) => { e.preventDefault(); round.card.audio && playAudio(round.card.audio); }}
+          onPointerDown={(e) => { e.preventDefault(); if (!isCompleting) { round.card.audio && playAudio(round.card.audio); } }}
           style={{
             width: "min(64px, 16vw)", height: "min(64px, 16vw)", borderRadius: "50%",
             background: accentColor, border: "none",
