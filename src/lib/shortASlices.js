@@ -40,4 +40,9 @@ export const shortASlices = [
   makeWord("jar"),
   makeWord("tag"),
   makeWord("tap"),
+  makeWord("gap"),
+  makeWord("wax"),
+  makeWord("tan"),
+  makeWord("tax"),
+  makeWord("dam"),
 ];
