@@ -24,6 +24,7 @@ import MissingSound from "../components/games/MissingSound";
 import MissingSound01 from "../components/games/MissingSound01";
 import LetterCatch from "../components/games/LetterCatch";
 import DrawLineGame from "../components/games/DrawLineGame";
+import WriteHub from "../components/write/WriteHub";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 
@@ -66,6 +67,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "draw-line") {
     return <DrawLineGame onBack={exitGame} lang={lang} />;
+  }
+  if (activeGame === "write") {
+    return <WriteHub onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "test") {
     return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;

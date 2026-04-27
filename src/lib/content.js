@@ -158,4 +158,11 @@ export const games = [
     description: "Listen and match pictures to their letter sounds by drawing a line",
     available: true,
   },
+  {
+    id: "write",
+    label: "Write",
+    emoji: "✏️",
+    description: "Swipe to trace letters and write words with your finger",
+    available: true,
+  },
 ];
