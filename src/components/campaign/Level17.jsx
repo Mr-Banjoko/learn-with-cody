@@ -145,10 +145,14 @@ function MissingLetterRound({ card, onComplete }) {
     isDragging.current = false;
   }, [syncSetPlaced]);
 
-  const canSubmit = placedOption !== null && feedback !== "completing";
+  const isCompleting = feedback === "completing";
+  const canSubmit = placedOption !== null && !isCompleting;
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0, touchAction: "none", userSelect: "none" }} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0, touchAction: "none", userSelect: "none", position: "relative" }} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+      {isCompleting && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />
+      )}
       <div style={{ background: "rgba(255,255,255,0.55)", borderRadius: 32, padding: "18px 22px", boxShadow: "0 8px 32px rgba(30,58,95,0.10)", border: "2px solid rgba(255,255,255,0.85)", display: "flex", gap: "min(20px, 4vw)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         {round.letters.map((letter, i) => {
           const isMissing = i === round.missingPos;
@@ -159,7 +163,7 @@ function MissingLetterRound({ card, onComplete }) {
             <motion.div key={i} ref={isMissing ? dropZoneRef : null}
               animate={isWrong ? { x: [0, -10, 10, -7, 7, 0] } : isBouncing ? { y: [0, -20, 0, -10, 0, -4, 0] } : {}}
               transition={{ duration: isWrong ? 0.38 : 0.5 }}
-              onPointerDown={!isMissing ? (e) => { e.preventDefault(); const url = getLetterSoundUrl(letter); if (url) playAudio(url, getLetterGain(letter)); } : undefined}
+              onPointerDown={!isMissing && !isCompleting ? (e) => { e.preventDefault(); const url = getLetterSoundUrl(letter); if (url) playAudio(url, getLetterGain(letter)); } : undefined}
               style={{ width: "min(108px, 27vw)", height: "min(108px, 27vw)", borderRadius: 26, background: isPlacedHere ? TOP_COLORS[placedOption.optionIndex % TOP_COLORS.length] : isMissing ? "rgba(255,255,255,0.5)" : TOP_COLORS[i], border: isMissing && !isPlacedHere ? `3px dashed ${accentColor}60` : "3px solid rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isMissing && !isPlacedHere ? "none" : "0 6px 20px rgba(0,0,0,0.10)", cursor: isMissing ? "default" : "pointer", touchAction: "manipulation", transition: "background 0.2s, border 0.2s", flexShrink: 0 }}
             >
               {isPlacedHere ? (
@@ -174,7 +178,7 @@ function MissingLetterRound({ card, onComplete }) {
         })}
       </div>
 
-      <motion.button whileTap={{ scale: 0.88 }} onPointerDown={(e) => { e.preventDefault(); round.card.audio && playAudio(round.card.audio); }} style={{ width: "min(64px, 16vw)", height: "min(64px, 16vw)", borderRadius: "50%", background: accentColor, border: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 24px ${accentColor}55`, cursor: "pointer", touchAction: "manipulation", flexShrink: 0 }}>
+      <motion.button whileTap={{ scale: 0.88 }} onPointerDown={(e) => { e.preventDefault(); if (!isCompleting) { round.card.audio && playAudio(round.card.audio); } }} style={{ width: "min(64px, 16vw)", height: "min(64px, 16vw)", borderRadius: "50%", background: accentColor, border: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 24px ${accentColor}55`, cursor: "pointer", touchAction: "manipulation", flexShrink: 0 }}>
         <Play size={26} color="white" fill="white" />
       </motion.button>
 
