@@ -180,8 +180,8 @@ export default function WriteGame({ wordList, onBack, lang = "en" }) {
               alt={currentWord.word}
               onLoad={() => setImageLoaded(true)}
               style={{
-                width: "min(160px, 38vw)",
-                height: "min(160px, 38vw)",
+                width: "min(200px, 45vw)",
+                height: "min(200px, 45vw)",
                 objectFit: "cover",
                 borderRadius: 22,
                 display: "block",

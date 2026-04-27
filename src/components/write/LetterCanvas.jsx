@@ -89,8 +89,9 @@ function RevealPath({ d, strokeWidth = IDEAL_STROKE_WIDTH, color = STROKE_COLOR,
 export default function LetterCanvas({
   letter,
   onLetterComplete,
+  onLetterFail,
   isActive = true,
-  showGhost = true,
+  showGhost = false,
   size = 200, // rendered px size
 }) {
   const letterDef = LETTER_DEFS[letter];
@@ -185,6 +186,7 @@ export default function LetterCanvas({
     } else {
       // Wrong — gentle red flash, then clear
       setWrongFlash(true);
+      onLetterFail && onLetterFail();
       setTimeout(() => {
         setWrongFlash(false);
         setLivePath([]);
