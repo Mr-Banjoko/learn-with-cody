@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
+import { getBestStars } from "../../lib/campaignPerformance";
 
 const TOTAL_LEVELS = 50;
 // Winding path: 5 columns across the screen, offset left%
@@ -25,78 +27,110 @@ function nodeColor(n) {
   return NODE_COLORS[(n - 1) % NODE_COLORS.length];
 }
 
-function LevelNode({ num, color, onTap, isMilestone }) {
+function StarStrip({ stars }) {
+  return (
+    <div style={{ display: "flex", gap: 3, marginTop: 5, justifyContent: "center" }}>
+      {[1, 2, 3].map((s) => (
+        <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill={stars >= s ? "#FFD93D" : "none"} stroke={stars >= s ? "#F59E0B" : "#CBD5E1"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
+function LevelNode({ num, color, onTap, isMilestone, stars }) {
   const size = isMilestone ? 76 : 68;
   return (
-    <motion.div
-      whileTap={{ scale: 0.85 }}
-      onClick={() => onTap(num)}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        background: `linear-gradient(145deg, ${color} 0%, ${color}CC 100%)`,
-        border: "3px solid white",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        boxShadow: `0 6px 0 ${color}99, 0 10px 22px ${color}44`,
-        WebkitTapHighlightColor: "transparent",
-        position: "relative",
-        flexShrink: 0,
-      }}
-    >
-      {isMilestone && (
-        <span
-          style={{
-            position: "absolute",
-            top: -18,
-            fontSize: 18,
-            pointerEvents: "none",
-            filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.15))",
-          }}
-        >
-          ⭐
-        </span>
-      )}
-      <span
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <motion.div
+        whileTap={{ scale: 0.85 }}
+        onClick={() => onTap(num)}
         style={{
-          fontSize: num >= 10 ? 20 : 24,
-          fontWeight: 700,
-          color: "white",
-          textShadow: "0 1px 4px rgba(0,0,0,0.20)",
-          userSelect: "none",
-          lineHeight: 1,
-          pointerEvents: "none",
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          background: `linear-gradient(145deg, ${color} 0%, ${color}CC 100%)`,
+          border: "3px solid white",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          boxShadow: `0 6px 0 ${color}99, 0 10px 22px ${color}44`,
+          WebkitTapHighlightColor: "transparent",
+          position: "relative",
+          flexShrink: 0,
         }}
       >
-        {num}
-      </span>
-      {isMilestone && (
+        {isMilestone && (
+          <span
+            style={{
+              position: "absolute",
+              top: -18,
+              fontSize: 18,
+              pointerEvents: "none",
+              filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.15))",
+            }}
+          >
+            ⭐
+          </span>
+        )}
         <span
           style={{
-            fontSize: 9,
-            color: "rgba(255,255,255,0.9)",
-            pointerEvents: "none",
+            fontSize: num >= 10 ? 20 : 24,
+            fontWeight: 700,
+            color: "white",
+            textShadow: "0 1px 4px rgba(0,0,0,0.20)",
+            userSelect: "none",
             lineHeight: 1,
-            marginTop: 2,
-            letterSpacing: 0.5,
+            pointerEvents: "none",
           }}
         >
-          BOSS
+          {num}
         </span>
-      )}
-    </motion.div>
+        {isMilestone && (
+          <span
+            style={{
+              fontSize: 9,
+              color: "rgba(255,255,255,0.9)",
+              pointerEvents: "none",
+              lineHeight: 1,
+              marginTop: 2,
+              letterSpacing: 0.5,
+            }}
+          >
+            BOSS
+          </span>
+        )}
+      </motion.div>
+      <StarStrip stars={stars} />
+    </div>
   );
 }
 
 export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   const levels = Array.from({ length: TOTAL_LEVELS }, (_, i) => i + 1);
-  // NODE_SPACING controls vertical gap between nodes — keep it comfortable
   const NODE_SPACING = 100;
   const TOP_OFFSET = 36;
+
+  // Load all best-stars — re-reads localStorage every time this screen mounts
+  // (covers the case where user completes a level and comes back)
+  const [starMap, setStarMap] = useState(() => {
+    const map = {};
+    for (let i = 1; i <= TOTAL_LEVELS; i++) {
+      map[i] = getBestStars("short-a", i);
+    }
+    return map;
+  });
+
+  useEffect(() => {
+    const map = {};
+    for (let i = 1; i <= TOTAL_LEVELS; i++) {
+      map[i] = getBestStars("short-a", i);
+    }
+    setStarMap(map);
+  }, []);
 
   return (
     <div
@@ -191,6 +225,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
                   color={color}
                   isMilestone={isMilestone}
                   onTap={onSelectLevel || (() => {})}
+                  stars={starMap[lvl] ?? 0}
                 />
               </div>
             );
