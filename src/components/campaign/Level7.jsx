@@ -3,13 +3,17 @@
  * 5-round Rearrange the Pictures (easy mode)
  * Words: can → pan → jam → map → mat
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import Level7Complete from "./Level7Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+const LEVEL_NUM = 7;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 
 const WORD_NAMES = ["can", "pan", "jam", "map", "mat"];
 const WORDS = WORD_NAMES.map((name) => shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" });

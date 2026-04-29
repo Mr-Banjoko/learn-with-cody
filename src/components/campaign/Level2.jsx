@@ -49,6 +49,9 @@ export default function Level2({ onBack, lang = "en" }) {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel2Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
       setDone(true);
     } else {
       setRoundIndex(next);
@@ -84,8 +87,8 @@ export default function Level2({ onBack, lang = "en" }) {
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
             {lang === "zh" ? "第 2 关" : "Level 2"}
           </p>
-          
         </div>
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
 
       {/* Progress bar */}
@@ -114,7 +117,7 @@ export default function Level2({ onBack, lang = "en" }) {
             transition={{ duration: 0.3 }}
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
-            <Level2Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div
@@ -130,6 +133,7 @@ export default function Level2({ onBack, lang = "en" }) {
               wordPair={wordPair}
               onRoundComplete={handleRoundComplete}
               lang={lang}
+              onMistake={onMistake}
             />
           </motion.div>
         )}

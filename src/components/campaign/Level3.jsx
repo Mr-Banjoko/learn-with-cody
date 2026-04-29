@@ -12,8 +12,12 @@ import { useState, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
 import BackArrow from "../BackArrow";
-import Level3Complete from "./Level3Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
 import Level1DragV2 from "./Level1DragV2";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+const LEVEL_NUM = 3;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { shortAWords } from "../../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
@@ -78,7 +82,7 @@ function buildMissingRound(def) {
 }
 
 // ── MissingSoundRound (inline, campaign-aware) ────────────────────────────────
-function MissingSoundRound({ round, onComplete, lang }) {
+function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   const accentColor = "#4ECDC4";
 
   const [placedOption, setPlacedOption] = useState(null);
@@ -120,9 +124,10 @@ function MissingSoundRound({ round, onComplete, lang }) {
       playCompletion();
     } else {
       setFeedback("wrong");
+      onMistake && onMistake();
       setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700);
     }
-  }, [feedback, playCompletion, syncSetPlaced]);
+  }, [feedback, playCompletion, syncSetPlaced, onMistake]);
 
   const handleTouchStart = useCallback((e, option) => {
     if (placedOptionRef.current?.id === option.id) return;
@@ -336,6 +341,9 @@ function MissingSoundRound({ round, onComplete, lang }) {
 export default function Level3({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
@@ -343,11 +351,14 @@ export default function Level3({ onBack, lang = "en" }) {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel3Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
       setDone(true);
     } else {
       setRoundIndex(next);
     }
-  }, [roundIndex]);
+  }, [roundIndex, mistakes]);
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
 
@@ -388,8 +399,8 @@ export default function Level3({ onBack, lang = "en" }) {
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
             {lang === "zh" ? "第 3 关" : "Level 3"}
           </p>
-          
         </div>
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
 
       {/* Progress bar */}
@@ -414,7 +425,7 @@ export default function Level3({ onBack, lang = "en" }) {
             transition={{ duration: 0.3 }}
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
-            <Level3Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div
@@ -426,19 +437,9 @@ export default function Level3({ onBack, lang = "en" }) {
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {roundDef.type === "missing" && missingRound ? (
-              <MissingSoundRound
-                key={`missing-${roundIndex}`}
-                round={missingRound}
-                onComplete={advance}
-                lang={lang}
-              />
+              <MissingSoundRound key={`missing-${roundIndex}`} round={missingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "drag" && dragCard ? (
-              <Level1DragV2
-                key={`drag-${roundIndex}`}
-                card={dragCard}
-                onComplete={advance}
-                lang={lang}
-              />
+              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : null}
           </motion.div>
         )}

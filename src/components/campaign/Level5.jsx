@@ -20,7 +20,11 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import Level5Complete from "./Level5Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+const LEVEL_NUM = 5;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import Level1DragV2 from "./Level1DragV2";
 import IdentifyingRound from "../games/IdentifyingRound";
@@ -75,6 +79,9 @@ function buildIdentifyingRound(targetWord) {
 export default function Level5({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
@@ -82,11 +89,14 @@ export default function Level5({ onBack, lang = "en" }) {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel5Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
       setDone(true);
     } else {
       setRoundIndex(next);
     }
-  }, [roundIndex]);
+  }, [roundIndex, mistakes]);
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
 
@@ -128,9 +138,7 @@ export default function Level5({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 5 关 — 复习" : "Level 5 — Review"}
           </p>
         </div>
-        <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginRight: 4 }}>
-          {roundIndex + 1}/{TOTAL_ROUNDS}
-        </span>
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
 
       {/* Progress bar */}
@@ -155,7 +163,7 @@ export default function Level5({ onBack, lang = "en" }) {
             transition={{ duration: 0.3 }}
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
-            <Level5Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div
@@ -167,26 +175,11 @@ export default function Level5({ onBack, lang = "en" }) {
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {roundDef.type === "rearrange" && rearrangeWordPair ? (
-              <PicSliceBoardEasy
-                key={`rearrange-${roundIndex}`}
-                wordPair={rearrangeWordPair}
-                onRoundComplete={advance}
-                lang={lang}
-              />
+              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "drag" && dragCard ? (
-              <Level1DragV2
-                key={`drag-${roundIndex}`}
-                card={dragCard}
-                onComplete={advance}
-                lang={lang}
-              />
+              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "identifying" && identifyingRound ? (
-              <IdentifyingRound
-                key={`identifying-${roundIndex}`}
-                round={identifyingRound}
-                onComplete={advance}
-                lang={lang}
-              />
+              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : null}
           </motion.div>
         )}
