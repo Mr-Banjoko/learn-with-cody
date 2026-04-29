@@ -205,7 +205,7 @@ export default function Level33({ onBack, lang = "en" }) {
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>{lang === "zh" ? "第 33 关" : "Level 33"}</p>
         </div>
-        <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginRight: 4 }}>{roundIndex + 1}/{TOTAL_ROUNDS}</span>
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
 
       {!done && (

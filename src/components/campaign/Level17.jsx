@@ -253,7 +253,7 @@ export default function Level17({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 17 关" : "Level 17"}
           </p>
         </div>
-        <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginRight: 4 }}>{roundIndex + 1}/{TOTAL_ROUNDS}</span>
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
 
       {!done && (

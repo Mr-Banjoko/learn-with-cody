@@ -175,7 +175,7 @@ export default function Level29({ onBack, lang = "en" }) {
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>{lang === "zh" ? "第 29 关" : "Level 29"}</p>
         </div>
-        <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginRight: 4 }}>{roundIndex + 1}/{TOTAL_ROUNDS}</span>
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>

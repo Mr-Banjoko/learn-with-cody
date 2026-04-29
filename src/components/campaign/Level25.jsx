@@ -245,7 +245,7 @@ export default function Level25({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 25 关" : "Level 25"}
           </p>
         </div>
-        <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginRight: 4 }}>{roundIndex + 1}/{TOTAL_ROUNDS}</span>
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
 
       {/* Progress bar */}

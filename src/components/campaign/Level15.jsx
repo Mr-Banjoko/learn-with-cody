@@ -341,9 +341,7 @@ export default function Level15({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 15 关 — 复习" : "Level 15 — Review"}
           </p>
         </div>
-        <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginRight: 4 }}>
-          {roundIndex + 1}/{TOTAL_ROUNDS}
-        </span>
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
 
       {/* Progress bar */}
