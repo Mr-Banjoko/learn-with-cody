@@ -8,11 +8,15 @@
  *  4. ham
  *  5. pat
  */
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level1DragV2 from "./Level1DragV2";
-import Level12Complete from "./Level12Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+const LEVEL_NUM = 12;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { shortAWords } from "../../lib/shortAWords";
 
 const findWord = (w) => shortAWords.find((x) => x.word === w);
@@ -39,11 +43,17 @@ function markLevel12Complete() {
 export default function Level12({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = () => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel12Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
       setDone(true);
     } else {
       setRoundIndex(next);
@@ -78,7 +88,7 @@ export default function Level12({ onBack, lang = "en" }) {
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <Level12Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -87,6 +97,7 @@ export default function Level12({ onBack, lang = "en" }) {
               card={ROUNDS[roundIndex]}
               onComplete={advance}
               lang={lang}
+              onMistake={onMistake}
             />
           </motion.div>
         )}

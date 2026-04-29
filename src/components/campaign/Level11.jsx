@@ -18,11 +18,15 @@
  *  9. ham  — phonics
  * 10. ham  — rearrange (easy)  → marks level complete
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level1Phonics from "./Level1Phonics";
-import Level11Complete from "./Level11Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+const LEVEL_NUM = 11;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
@@ -64,12 +68,18 @@ export default function Level11({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [direction, setDirection] = useState(1);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = () => {
     setDirection(1);
     const nextIndex = roundIndex + 1;
     if (nextIndex >= TOTAL_ROUNDS) {
       markLevel11Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
       setDone(true);
     } else {
       setRoundIndex(nextIndex);
@@ -140,7 +150,7 @@ export default function Level11({ onBack, lang = "en" }) {
             transition={{ duration: 0.3 }}
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
-            <Level11Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div
@@ -163,6 +173,7 @@ export default function Level11({ onBack, lang = "en" }) {
                 wordPair={wordPair}
                 onRoundComplete={advance}
                 lang={lang}
+                onMistake={onMistake}
               />
             )}
           </motion.div>

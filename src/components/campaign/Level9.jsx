@@ -5,7 +5,11 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import Level9Complete from "./Level9Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+const LEVEL_NUM = 9;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import IdentifyingRound from "../games/IdentifyingRound";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
@@ -38,6 +42,8 @@ function markLevel9Complete() {
 export default function Level9({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
@@ -45,11 +51,14 @@ export default function Level9({ onBack, lang = "en" }) {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel9Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
       setDone(true);
     } else {
       setRoundIndex(next);
     }
-  }, [roundIndex]);
+  }, [roundIndex, mistakes]);
 
   const round = useMemo(() => buildRound(TARGET_WORDS[roundIndex]), [roundIndex]);
 
@@ -73,11 +82,11 @@ export default function Level9({ onBack, lang = "en" }) {
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <Level9Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <IdentifyingRound key={roundIndex} round={round} onComplete={advance} lang={lang} />
+            <IdentifyingRound key={roundIndex} round={round} onComplete={advance} lang={lang} onMistake={(m) => setMistakes(prev => prev + m)} />
           </motion.div>
         )}
       </AnimatePresence>

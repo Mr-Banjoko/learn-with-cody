@@ -8,7 +8,11 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import Level29Complete from "./Level29Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+const LEVEL_NUM = 29;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { shortAWords } from "../../lib/shortAWords";
 import { playAudio } from "../../lib/useAudio";
 
@@ -148,12 +152,19 @@ function markLevel29Complete() {
 export default function Level29({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
-    if (next >= TOTAL_ROUNDS) { markLevel29Complete(); setDone(true); }
-    else setRoundIndex(next);
-  }, [roundIndex]);
+    if (next >= TOTAL_ROUNDS) {
+      markLevel29Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
+      setDone(true);
+    } else setRoundIndex(next);
+  }, [roundIndex, mistakes]);
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
@@ -174,7 +185,7 @@ export default function Level29({ onBack, lang = "en" }) {
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <Level29Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>

@@ -16,7 +16,11 @@ import Level1DragV2 from "./Level1DragV2";
 import DrawLineBoard from "../games/drawline/DrawLineBoard";
 import IdentifyingRound from "../games/IdentifyingRound";
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
-import Level25Complete from "./Level25Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+const LEVEL_NUM = 25;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
@@ -191,16 +195,22 @@ function markLevel25Complete() {
 export default function Level25({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel25Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
       setDone(true);
     } else {
       setRoundIndex(next);
     }
-  }, [roundIndex]);
+  }, [roundIndex, mistakes]);
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
@@ -249,7 +259,7 @@ export default function Level25({ onBack, lang = "en" }) {
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <Level25Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -260,13 +270,13 @@ export default function Level25({ onBack, lang = "en" }) {
               <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} />
             )}
             {roundDef.type === "drag" && dragCard && (
-              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} />
+              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "drawline" && drawLineRound && (
               <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} />
             )}
             {roundDef.type === "rearrange" && rearrangeWordPair && (
-              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} />
+              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
           </motion.div>
         )}
