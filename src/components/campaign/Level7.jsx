@@ -31,6 +31,9 @@ function markLevel7Complete() {
 export default function Level7({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const wordPair = useMemo(() => {
     const word = WORDS[roundIndex];
@@ -43,6 +46,9 @@ export default function Level7({ onBack, lang = "en" }) {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel7Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
       setDone(true);
     } else {
       setRoundIndex(next);
@@ -68,6 +74,7 @@ export default function Level7({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 7 关" : "Level 7"}
           </p>
         </div>
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
 
       {!done && (
@@ -90,7 +97,7 @@ export default function Level7({ onBack, lang = "en" }) {
             transition={{ duration: 0.3 }}
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
-            <Level7Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div
@@ -106,6 +113,7 @@ export default function Level7({ onBack, lang = "en" }) {
               wordPair={wordPair}
               onRoundComplete={handleRoundComplete}
               lang={lang}
+              onMistake={onMistake}
             />
           </motion.div>
         )}
