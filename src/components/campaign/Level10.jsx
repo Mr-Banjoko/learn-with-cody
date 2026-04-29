@@ -72,6 +72,7 @@ export default function Level10({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
