@@ -37,7 +37,7 @@ function buildRound(card) {
   return { card, letters, options };
 }
 
-export default function Level1DragV2({ card, onComplete, lang = "en" }) {
+export default function Level1DragV2({ card, onComplete, lang = "en", onMistake }) {
   const [round] = useState(() => buildRound(card));
   const [placed, setPlaced] = useState(Array(card.word.length).fill(null));
   const [placedColors, setPlacedColors] = useState({});
@@ -129,6 +129,7 @@ export default function Level1DragV2({ card, onComplete, lang = "en" }) {
       playCompletion();
     } else {
       setSubmitError(true);
+      onMistake && onMistake();
       setTimeout(() => {
         setSubmitError(false);
         setPlaced(Array(card.word.length).fill(null));

@@ -33,7 +33,7 @@ function buildCompletionSequence(wordData) {
   return steps;
 }
 
-export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }) {
+export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", onMistake }) {
   const [state, setState] = useState(() => buildState(wordPair));
   const [dragState, setDragState] = useState(null);
 
@@ -231,13 +231,14 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
         });
       } else {
         setState((prev) => ({ ...prev, rejectedSlot: hitKey }));
+        onMistake && onMistake();
         setTimeout(() => setState((prev) => ({ ...prev, rejectedSlot: null })), 500);
       }
     }
 
     setDragState(null);
     isDragging.current = false;
-  }, [playbackLocked, dragState, state, wordPair, onWordCompleted]);
+  }, [playbackLocked, dragState, state, wordPair, onWordCompleted, onMistake]);
 
   const handlePlacedTap = useCallback((slotKey) => {
     if (playbackLocked) return;                        // 🔒 LOCK

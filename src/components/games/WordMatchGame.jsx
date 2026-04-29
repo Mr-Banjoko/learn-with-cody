@@ -21,7 +21,7 @@ function buildRound(words, excludeUsed, brokenImages) {
   return { target, choices };
 }
 
-export default function WordMatchGame({ words, title, color, onBack, lang = "en" }) {
+export default function WordMatchGame({ words, title, color, onBack, lang = "en", onMistake }) {
   const usedRef = useRef(new Set());
   const brokenRef = useRef(new Set());
   const [round, setRound] = useState(() => buildRound(words, usedRef.current, brokenRef.current));
@@ -53,6 +53,8 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
     if (correct) {
       setScore((s) => s + 1);
       playAudio(round.target.audio);
+    } else {
+      onMistake && onMistake();
     }
     setTimeout(() => {
       setFeedback(null);

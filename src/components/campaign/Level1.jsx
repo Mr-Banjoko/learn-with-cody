@@ -12,13 +12,15 @@
  * 10. cat  — unguided phonics (no tutorial)
  * 11. cat  — drag (Level1DragV2) → marks level complete
  */
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level1Phonics from "./Level1Phonics";
 import Level1DragV2 from "./Level1DragV2";
-import Level1Complete from "./Level1Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
 const catCard  = shortAWords[0]; // cat
 const dadCard  = shortAWords[1]; // dad
@@ -52,6 +54,9 @@ function markLevel1Complete() {
   } catch (_) {}
 }
 
+const LEVEL_NUM = 1;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+
 export default function Level1({ onBack, lang = "en" }) {
   // Always reset tutorial flag when Level 1 is mounted so tutorial shows every time
   useState(() => {
@@ -60,12 +65,19 @@ export default function Level1({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [direction, setDirection] = useState(1);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
+
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = () => {
     setDirection(1);
     const nextIndex = roundIndex + 1;
     if (nextIndex >= TOTAL_ROUNDS) {
       markLevel1Complete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
       setDone(true);
     } else {
       setRoundIndex(nextIndex);
@@ -109,7 +121,7 @@ export default function Level1({ onBack, lang = "en" }) {
           </p>
         </div>
 
-
+        <HeartDisplay mistakes={mistakes} size={22} />
       </div>
 
       {/* Progress bar */}
@@ -134,7 +146,7 @@ export default function Level1({ onBack, lang = "en" }) {
             transition={{ duration: 0.3 }}
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
-            <Level1Complete onBack={onBack} lang={lang} />
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
           <motion.div
@@ -153,7 +165,7 @@ export default function Level1({ onBack, lang = "en" }) {
                 isFirstCard={round.guided === true}
               />
             ) : (
-              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} />
+              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
           </motion.div>
         )}

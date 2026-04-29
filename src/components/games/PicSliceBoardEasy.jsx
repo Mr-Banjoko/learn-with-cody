@@ -58,7 +58,7 @@ function PadlockIcon({ size = 28 }) {
   );
 }
 
-export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en" }) {
+export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake }) {
   const wd = wordPair[0];
 
   const palette = useMemo(() => pickPalette(), [wordPair]);
@@ -210,13 +210,14 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
         setState((prev) => ({ ...prev, placed: newPlaced, trayIds: newTrayIds, wordComplete }));
       } else {
         setState((prev) => ({ ...prev, rejectedSlot: hitKey }));
+        onMistake && onMistake();
         setTimeout(() => setState((prev) => ({ ...prev, rejectedSlot: null })), 500);
       }
     }
 
     setDragState(null);
     isDragging.current = false;
-  }, [dragState, state]);
+  }, [dragState, state, onMistake]);
 
   const handlePlacedTap = useCallback((slotKey) => {
     const pid = state.placed[slotKey];

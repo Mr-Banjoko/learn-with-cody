@@ -65,7 +65,7 @@ async function preloadAll(urls) {
  *   onComplete () => void
  *   lang       "en" | "zh"
  */
-export default function IdentifyingRound({ round, onComplete, lang = "en" }) {
+export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake }) {
   const [selected, setSelected]     = useState(null);
   const [showNext, setShowNext]      = useState(false);
   const [wrongShake, setWrongShake]  = useState(false);
@@ -133,6 +133,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en" }) {
       clearTimeout(shakeTimeout.current);
       setWrongShake(true);
       shakeTimeout.current = setTimeout(() => setWrongShake(false), 600);
+      onMistake && onMistake();
     }
   }, [selected, round, showNext]);
 

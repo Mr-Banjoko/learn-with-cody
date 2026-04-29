@@ -3,13 +3,18 @@
  * Rearrange the Pictures (easy mode) for each of the 5 Short-a words:
  * cat → dad → rat → hat → bat
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import Level2Complete from "./Level2Complete";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import HeartDisplay from "./HeartDisplay";
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+
+const LEVEL_NUM = 2;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 
 // Fixed word order — do NOT randomize
 const WORD_NAMES = ["cat", "dad", "rat", "hat", "bat"];
@@ -28,6 +33,9 @@ function markLevel2Complete() {
 export default function Level2({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   // Build wordPair for PicSliceBoardEasy — it expects an array (easy uses index 0 only)
   const wordPair = useMemo(() => {

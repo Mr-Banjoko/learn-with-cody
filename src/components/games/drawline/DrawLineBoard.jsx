@@ -88,7 +88,7 @@ function ConnectorDot({ id, selected, matched, onTap, dotRef }) {
   );
 }
 
-export default function DrawLineBoard({ round, onRoundComplete, lang = "en" }) {
+export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onMistake }) {
   const { topCards, bottomLetters } = round;
 
   // Which connector is selected ("top-<id>" | "bot-<idx>" | null)
@@ -229,11 +229,12 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en" }) {
 
   const triggerWrong = useCallback((topCardId, botIdx) => {
     setWrongFeedback({ topCardId, botIdx });
+    onMistake && onMistake();
     setTimeout(() => {
       setWrongFeedback(null);
       setSelected(null);
     }, 700);
-  }, []);
+  }, [onMistake]);
 
   const handleTopCardTap = useCallback((card) => {
     if (locked) return;
