@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw } from "lucide-react";
 import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { tx } from "../../lib/i18n";
-import { playAudio } from "../../lib/useAudio";
-import { getLetterGain } from "../../lib/letterSounds";
+import { playAudio, playAudioSequence } from "../../lib/useAudio";
+import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 
 function buildState(wordPair) {
   const pieces = buildRoundPieces(wordPair);
@@ -17,28 +17,136 @@ function buildState(wordPair) {
   };
 }
 
+/**
+ * Build the audio sequence steps for a completed word:
+ *   letter[0] → letter[1] → letter[2] → full word
+ */
+function buildCompletionSequence(wordData) {
+  const letters = wordData.word.toLowerCase().split("");
+  const steps = letters.map((letter) => {
+    const url = getLetterSoundUrl(letter);
+    return url ? { url, gain: getLetterGain(letter) } : null;
+  }).filter(Boolean);
+  if (wordData.audio) {
+    steps.push({ url: wordData.audio, gain: 1 });
+  }
+  return steps;
+}
+
 export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }) {
   const [state, setState] = useState(() => buildState(wordPair));
   const [dragState, setDragState] = useState(null);
+
+  // ── Completion / playback state ──────────────────────────────────────────
+  // `playbackLocked` — when true, ALL user interaction is blocked
+  const [playbackLocked, setPlaybackLocked] = useState(false);
+  // Which word index is currently playing its sequence (for visual highlight)
+  const [playingWordIdx, setPlayingWordIdx] = useState(null);
+  // Track which word indices have had their completion sequence played
+  const completionSequenceDone = useRef([false, false]);
+  // Queue of word indices awaiting their completion sequence
+  const completionQueue = useRef([]);
+  // Is the sequence runner currently active?
+  const runningSequence = useRef(false);
+  // Cancel fn for any in-progress audio sequence
+  const cancelSequence = useRef(null);
+
   const isDragging = useRef(false);
   const dropZoneRefs = useRef({});
   const containerRef = useRef(null);
 
+  // ── Reset on new word pair ───────────────────────────────────────────────
   useEffect(() => {
+    // Cancel any active sequence
+    if (cancelSequence.current) {
+      cancelSequence.current();
+      cancelSequence.current = null;
+    }
     setState(buildState(wordPair));
     setDragState(null);
+    setPlaybackLocked(false);
+    setPlayingWordIdx(null);
+    completionSequenceDone.current = [false, false];
+    completionQueue.current = [];
+    runningSequence.current = false;
     isDragging.current = false;
   }, [wordPair]);
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (state.wordComplete[0] && state.wordComplete[1]) {
-      const t = setTimeout(onRoundComplete, 700);
-      return () => clearTimeout(t);
-    }
-  }, [state.wordComplete, onRoundComplete]);
+    return () => {
+      if (cancelSequence.current) {
+        cancelSequence.current();
+        cancelSequence.current = null;
+      }
+    };
+  }, []);
 
-  // ── Touch handlers ──────────────────────────────────────────────────────────
+  // ── Sequence runner ──────────────────────────────────────────────────────
+  /**
+   * Drains the completionQueue one entry at a time.
+   * For each entry:
+   *   1. Lock UI
+   *   2. Play letter sequence → full word
+   *   3. Mark that word's sequence done
+   *   4. If more in queue, repeat
+   *   5. If queue empty:
+   *      - Unlock UI
+   *      - If both sequences done, trigger onRoundComplete
+   */
+  const runNextInQueue = useCallback(() => {
+    if (completionQueue.current.length === 0) {
+      runningSequence.current = false;
+      setPlaybackLocked(false);
+      setPlayingWordIdx(null);
+      // Check if both words are done → advance round
+      if (completionSequenceDone.current[0] && completionSequenceDone.current[1]) {
+        setTimeout(onRoundComplete, 300);
+      }
+      return;
+    }
+
+    runningSequence.current = true;
+    const wi = completionQueue.current.shift();
+    setPlaybackLocked(true);
+    setPlayingWordIdx(wi);
+
+    const steps = buildCompletionSequence(wordPair[wi]);
+
+    if (steps.length === 0) {
+      // No audio available — mark done and move on
+      completionSequenceDone.current[wi] = true;
+      runNextInQueue();
+      return;
+    }
+
+    const cancel = playAudioSequence(steps, () => {
+      // Sequence finished cleanly
+      cancelSequence.current = null;
+      completionSequenceDone.current[wi] = true;
+      runNextInQueue();
+    });
+    cancelSequence.current = cancel;
+  }, [wordPair, onRoundComplete]);
+
+  // ── Called when a word box becomes complete ──────────────────────────────
+  const onWordCompleted = useCallback((wi) => {
+    // Prevent duplicate enqueuing
+    if (completionSequenceDone.current[wi]) return;
+    if (completionQueue.current.includes(wi)) return;
+
+    completionQueue.current.push(wi);
+
+    // If not already running, start immediately
+    if (!runningSequence.current) {
+      runNextInQueue();
+    }
+    // If already running, the queue will drain naturally
+  }, [runNextInQueue]);
+
+  // ── Touch handlers ───────────────────────────────────────────────────────
   const handleTouchStart = useCallback((e, piece) => {
+    if (playbackLocked) return;                        // 🔒 LOCK
     if (!state.trayIds.includes(piece.id)) return;
     e.stopPropagation();
     isDragging.current = false;
@@ -52,9 +160,10 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
       startX: touch.clientX, startY: touch.clientY,
       originX: cx, originY: cy,
     });
-  }, [state.trayIds]);
+  }, [playbackLocked, state.trayIds]);
 
   const handleTouchMove = useCallback((e) => {
+    if (playbackLocked) return;                        // 🔒 LOCK
     if (!dragState) return;
     e.preventDefault();
     const touch = e.touches[0];
@@ -66,9 +175,14 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
     setDragState((prev) =>
       prev ? { ...prev, x: prev.originX + dx, y: prev.originY + dy } : null
     );
-  }, [dragState]);
+  }, [playbackLocked, dragState]);
 
   const handleTouchEnd = useCallback((e) => {
+    if (playbackLocked) {                              // 🔒 LOCK
+      setDragState(null);
+      isDragging.current = false;
+      return;
+    }
     if (!dragState) return;
 
     if (!isDragging.current) {
@@ -94,10 +208,6 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
 
     if (hitKey && !state.placed[hitKey]) {
       const [wi, si] = hitKey.split("-").map(Number);
-      // Semantic correctness: piece must belong to this word AND its phoneme must
-      // match the required phoneme at slot si — not a strict tile-instance check.
-      // This makes duplicate-phoneme slices (e.g. both 'd' slices in "dad")
-      // interchangeable across any valid slot that requires that phoneme.
       const wordData = wordPair[wi];
       const requiredPhoneme = wordData?.phonemes?.[si]?.letter;
       const isCorrect = piece.wordIndex === wi && piece.phoneme === requiredPhoneme;
@@ -110,9 +220,16 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
             return k === hitKey ? true : !!newPlaced[k];
           })
         );
+
         setState((prev) => ({ ...prev, placed: newPlaced, trayIds: newTrayIds, wordComplete }));
+
+        // Check which word(s) just became complete
+        wordComplete.forEach((done, idx) => {
+          if (done && !state.wordComplete[idx]) {
+            onWordCompleted(idx);
+          }
+        });
       } else {
-        // Wrong — shake
         setState((prev) => ({ ...prev, rejectedSlot: hitKey }));
         setTimeout(() => setState((prev) => ({ ...prev, rejectedSlot: null })), 500);
       }
@@ -120,16 +237,25 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
 
     setDragState(null);
     isDragging.current = false;
-  }, [dragState, state, wordPair]);
+  }, [playbackLocked, dragState, state, wordPair, onWordCompleted]);
 
   const handlePlacedTap = useCallback((slotKey) => {
+    if (playbackLocked) return;                        // 🔒 LOCK
     const pid = state.placed[slotKey];
     if (!pid) return;
     const piece = state.pieces.find((p) => p.id === pid);
     if (piece) playAudio(piece.letterAudio, getLetterGain(piece.phoneme));
-  }, [state]);
+  }, [playbackLocked, state]);
+
+  const handleWordLabelTap = useCallback((wd) => {
+    if (playbackLocked) return;                        // 🔒 LOCK
+    wd.audio && playAudio(wd.audio);
+  }, [playbackLocked]);
 
   const handleReset = useCallback((wi) => {
+    if (playbackLocked) return;                        // 🔒 LOCK
+    // Cannot reset a completed word
+    if (state.wordComplete[wi]) return;
     setState((prev) => {
       const returnedIds = [];
       const newPlaced = { ...prev.placed };
@@ -146,8 +272,9 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
         wordComplete: newWordComplete,
       };
     });
-  }, []);
+  }, [playbackLocked, state.wordComplete]);
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
       ref={containerRef}
@@ -157,45 +284,74 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
         fontFamily: "Fredoka, sans-serif",
         touchAction: "none", userSelect: "none", WebkitUserSelect: "none",
         overflow: "hidden",
+        position: "relative",
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
 
+      {/* ── Full-screen interaction blocker during playback ─────────────────── */}
+      {playbackLocked && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 500,
+            touchAction: "none",
+            pointerEvents: "all",
+            // Transparent — purely captures / blocks all touch/click events
+            background: "transparent",
+          }}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => { e.stopPropagation(); e.preventDefault(); }}
+          onTouchEnd={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
+
       {/* ── ROW 1: Word labels ─────────────────────────────────────────────── */}
       <div style={{ display: "flex", gap: 12, padding: "10px 16px 4px", flexShrink: 0 }}>
-        {wordPair.map((wd, wi) => (
-          <motion.button
-            key={wi}
-            whileTap={{ scale: 0.93 }}
-            onPointerDown={(e) => { e.preventDefault(); wd.audio && playAudio(wd.audio); }}
-            style={{
-              flex: 1, padding: "10px 8px",
-              background: wi === 0 ? "#FFD6E0" : "#D6F0FF",
-              border: `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
-              borderRadius: 18,
-              fontSize: "clamp(26px, 7.5vw, 40px)",
-              fontWeight: 700, color: "#1E3A5F",
-              letterSpacing: 2, textAlign: "center",
-              cursor: "pointer",
-              fontFamily: "Fredoka, sans-serif",
-              boxShadow: "0 4px 16px rgba(30,58,95,0.10)",
-            }}
-          >
-            {wd.word.toLowerCase()}
-          </motion.button>
-        ))}
+        {wordPair.map((wd, wi) => {
+          const isPlaying = playingWordIdx === wi;
+          return (
+            <motion.button
+              key={wi}
+              whileTap={playbackLocked ? {} : { scale: 0.93 }}
+              onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
+              animate={isPlaying ? { scale: [1, 1.06, 1.06, 1], boxShadow: ["0 4px 16px rgba(30,58,95,0.10)", "0 0 0 4px rgba(78,205,196,0.55)", "0 0 0 4px rgba(78,205,196,0.55)", "0 4px 16px rgba(30,58,95,0.10)"] } : {}}
+              transition={isPlaying ? { duration: 0.5, repeat: Infinity, repeatType: "loop" } : {}}
+              style={{
+                flex: 1, padding: "10px 8px",
+                background: wi === 0 ? "#FFD6E0" : "#D6F0FF",
+                border: isPlaying
+                  ? "3px solid #4ECDC4"
+                  : `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
+                borderRadius: 18,
+                fontSize: "clamp(26px, 7.5vw, 40px)",
+                fontWeight: 700, color: "#1E3A5F",
+                letterSpacing: 2, textAlign: "center",
+                cursor: playbackLocked ? "default" : "pointer",
+                fontFamily: "Fredoka, sans-serif",
+                boxShadow: "0 4px 16px rgba(30,58,95,0.10)",
+                transition: "border 0.2s",
+              }}
+            >
+              {wd.word.toLowerCase()}
+            </motion.button>
+          );
+        })}
       </div>
 
-      {/* ── ROW 2: Drop frames (true squares) ─────────────────────────────── */}
+      {/* ── ROW 2: Drop frames ─────────────────────────────────────────────── */}
       <div style={{ display: "flex", gap: 12, padding: "6px 16px 0", flexShrink: 0 }}>
         {wordPair.map((wd, wi) => {
           const done = state.wordComplete[wi];
+          const isPlaying = playingWordIdx === wi;
           return (
             <div key={wi} style={{ flex: 1, position: "relative" }}>
               <AnimatePresence mode="wait">
                 {done ? (
-                  // Completed: reveal full unchopped image
                   <motion.div
                     key="done"
                     initial={{ scale: 0.85, opacity: 0 }}
@@ -206,8 +362,11 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
                       aspectRatio: "1 / 1",
                       borderRadius: 20,
                       overflow: "hidden",
-                      border: "3px solid #4ECDC4",
-                      boxShadow: "0 6px 28px rgba(78,205,196,0.4)",
+                      border: isPlaying ? "3px solid #4ECDC4" : "3px solid #4ECDC4",
+                      boxShadow: isPlaying
+                        ? "0 0 0 4px rgba(78,205,196,0.45), 0 6px 28px rgba(78,205,196,0.4)"
+                        : "0 6px 28px rgba(78,205,196,0.4)",
+                      transition: "box-shadow 0.25s",
                     }}
                   >
                     <img
@@ -215,9 +374,30 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
                       alt={wd.word}
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />
+                    {/* Listening indicator overlay */}
+                    {isPlaying && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        style={{
+                          position: "absolute", inset: 0,
+                          background: "rgba(78,205,196,0.18)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          borderRadius: 18,
+                          pointerEvents: "none",
+                        }}
+                      >
+                        <motion.div
+                          animate={{ scale: [1, 1.18, 1], opacity: [0.7, 1, 0.7] }}
+                          transition={{ duration: 0.9, repeat: Infinity }}
+                          style={{ fontSize: 36 }}
+                        >
+                          🔊
+                        </motion.div>
+                      </motion.div>
+                    )}
                   </motion.div>
                 ) : (
-                  // 3 droppable slots — true square
                   <motion.div
                     key="slots"
                     style={{
@@ -227,8 +407,10 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
                       borderRadius: 20,
                       overflow: "hidden",
                       border: `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
-                      background: "rgba(255,255,255,0.75)",
+                      background: playbackLocked ? "rgba(240,240,240,0.6)" : "rgba(255,255,255,0.75)",
                       boxShadow: "0 4px 16px rgba(30,58,95,0.08)",
+                      opacity: playbackLocked ? 0.55 : 1,
+                      transition: "opacity 0.2s, background 0.2s",
                     }}
                   >
                     {[0, 1, 2].map((si) => {
@@ -241,7 +423,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
                         <div
                           key={si}
                           ref={(el) => (dropZoneRefs.current[slotKey] = el)}
-                          onPointerDown={() => placedPiece && handlePlacedTap(slotKey)}
+                          onPointerDown={() => !playbackLocked && placedPiece && handlePlacedTap(slotKey)}
                           style={{
                             flex: 1,
                             display: "flex", alignItems: "center", justifyContent: "center",
@@ -249,7 +431,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
                             animation: isRejected ? "psShake 0.4s ease" : "none",
                             position: "relative",
                             overflow: "hidden",
-                            cursor: placedPiece ? "pointer" : "default",
+                            cursor: (playbackLocked || !placedPiece) ? "default" : "pointer",
                           }}
                         >
                           {placedPiece ? (
@@ -281,7 +463,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
                 )}
               </AnimatePresence>
 
-              {/* Reset button — bottom-right of the drop box */}
+              {/* Reset button */}
               {!done && (
                 <button
                   onPointerDown={(e) => { e.stopPropagation(); handleReset(wi); }}
@@ -290,10 +472,11 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
                     width: 36, height: 36, borderRadius: 18,
                     background: "white",
                     boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
-                    border: "none", cursor: "pointer",
+                    border: "none", cursor: playbackLocked ? "default" : "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     zIndex: 10, touchAction: "manipulation",
-                    opacity: [0,1,2].some((si) => state.placed[`${wi}-${si}`]) ? 1 : 0.35,
+                    opacity: (playbackLocked || ![0,1,2].some((si) => state.placed[`${wi}-${si}`])) ? 0.25 : 0.85,
+                    pointerEvents: playbackLocked ? "none" : "auto",
                   }}
                   aria-label="Reset pieces"
                 >
@@ -305,7 +488,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
         })}
       </div>
 
-      {/* ── ROW 3: Slice tray (2 rows × 3) ────────────────────────────────── */}
+      {/* ── ROW 3: Slice tray ──────────────────────────────────────────────── */}
       <div style={{
         flex: 1,
         padding: "16px 16px 10px",
@@ -330,17 +513,18 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
             return (
               <motion.div
                 key={piece.id}
-                animate={isDraggingThis ? { opacity: 0.25, scale: 1.04 } : { opacity: 1, scale: 1 }}
-                onTouchStart={(e) => handleTouchStart(e, piece)}
+                animate={isDraggingThis ? { opacity: 0.25, scale: 1.04 } : { opacity: playbackLocked ? 0.4 : 1, scale: 1 }}
+                onTouchStart={(e) => !playbackLocked && handleTouchStart(e, piece)}
                 style={{
                   aspectRatio: "1",
                   borderRadius: 16,
                   overflow: "hidden",
                   boxShadow: "0 4px 14px rgba(30,58,95,0.14)",
                   border: "3px solid rgba(255,255,255,0.85)",
-                  cursor: "grab",
+                  cursor: playbackLocked ? "default" : "grab",
                   touchAction: "none",
                   background: "white",
+                  pointerEvents: playbackLocked ? "none" : "auto",
                 }}
               >
                 <img
