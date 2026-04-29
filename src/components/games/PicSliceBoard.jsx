@@ -374,28 +374,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en" }
                       alt={wd.word}
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />
-                    {/* Listening indicator overlay */}
-                    {isPlaying && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        style={{
-                          position: "absolute", inset: 0,
-                          background: "rgba(78,205,196,0.18)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          borderRadius: 18,
-                          pointerEvents: "none",
-                        }}
-                      >
-                        <motion.div
-                          animate={{ scale: [1, 1.18, 1], opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 0.9, repeat: Infinity }}
-                          style={{ fontSize: 36 }}
-                        >
-                          🔊
-                        </motion.div>
-                      </motion.div>
-                    )}
+
                   </motion.div>
                 ) : (
                   <motion.div
