@@ -133,7 +133,7 @@ export default function Level24({ onBack, lang = "en" }) {
               <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "drawline" && drawLineRound && (
-              <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} />
+              <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
           </motion.div>
         )}

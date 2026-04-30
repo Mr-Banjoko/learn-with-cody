@@ -49,7 +49,7 @@ function buildMissingRound(card) {
   return { card, letters, missingPos, options };
 }
 
-function MissingLetterRound({ card, onComplete }) {
+function MissingLetterRound({ card, onComplete, onMistake }) {
   const [round] = useState(() => buildMissingRound(card));
   const [placedOption, setPlacedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -80,8 +80,8 @@ function MissingLetterRound({ card, onComplete }) {
   const handleSubmit = useCallback(() => {
     const placed = placedOptionRef.current;
     if (!placed || feedback === "completing") return;
-    if (placed.isCorrect) { playCompletion(); } else { setFeedback("wrong"); setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700); }
-  }, [feedback, playCompletion, syncSetPlaced]);
+    if (placed.isCorrect) { playCompletion(); } else { setFeedback("wrong"); onMistake && onMistake(); setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700); }
+  }, [feedback, playCompletion, syncSetPlaced, onMistake]);
 
   const handleTouchStart = useCallback((e, option) => {
     if (placedOptionRef.current?.id === option.id) return;
@@ -221,7 +221,7 @@ export default function Level33({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <MissingLetterRound key={`missing-${roundIndex}`} card={currentCard} onComplete={advance} />
+            <MissingLetterRound key={`missing-${roundIndex}`} card={currentCard} onComplete={advance} onMistake={onMistake} />
           </motion.div>
         )}
       </AnimatePresence>

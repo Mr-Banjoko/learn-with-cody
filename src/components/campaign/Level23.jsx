@@ -50,6 +50,7 @@ export default function Level23({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -101,6 +102,7 @@ export default function Level23({ onBack, lang = "en" }) {
               round={identifyingRound}
               onComplete={advance}
               lang={lang}
+              onMistake={onMistake}
             />
           </motion.div>
         )}

@@ -76,7 +76,7 @@ function SpeakerIcon({ color = "#4ECDC4", size = 38 }) {
   );
 }
 
-function WordAudioRound({ wordNames, onComplete }) {
+function WordAudioRound({ wordNames, onComplete, onMistake }) {
   const round = useMemo(() => {
     const picked = wordNames.map(findWord).filter(Boolean);
     const leftItems = shuffleArr(picked).map((w, i) => ({ ...w, id: `left-${i}-${w.word}` }));
@@ -117,6 +117,7 @@ function WordAudioRound({ wordNames, onComplete }) {
     } else {
       clearTimeout(wrongTimeout.current);
       setWrongFlash(true);
+      onMistake && onMistake();
       wrongTimeout.current = setTimeout(() => { setWrongFlash(false); setSelectedLeft(null); setSelectedRight(null); }, 500);
     }
   }, [selectedLeft, selectedRight]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -264,16 +265,16 @@ export default function Level25({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {roundDef.type === "wordaudio" && (
-              <WordAudioRound key={`wam-${roundIndex}`} wordNames={roundDef.words} onComplete={advance} />
+              <WordAudioRound key={`wam-${roundIndex}`} wordNames={roundDef.words} onComplete={advance} onMistake={onMistake} />
             )}
             {roundDef.type === "identifying" && identifyingRound && (
-              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} />
+              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "drag" && dragCard && (
               <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "drawline" && drawLineRound && (
-              <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} />
+              <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "rearrange" && rearrangeWordPair && (
               <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />

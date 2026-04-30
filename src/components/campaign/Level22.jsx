@@ -66,7 +66,7 @@ function SpeakerIcon({ color = "#4ECDC4", size = 32 }) {
 }
 
 // ── Single matching round component ─────────────────────────────────────────
-function WordAudioRound({ wordNames, onComplete }) {
+function WordAudioRound({ wordNames, onComplete, onMistake }) {
   const round = useMemo(() => buildRound(wordNames), []); // eslint-disable-line react-hooks/exhaustive-deps
   const [selectedLeft, setSelectedLeft] = useState(null);
   const [selectedRight, setSelectedRight] = useState(null);
@@ -99,6 +99,7 @@ function WordAudioRound({ wordNames, onComplete }) {
     } else {
       clearTimeout(wrongTimeout.current);
       setWrongFlash(true);
+      onMistake && onMistake();
       wrongTimeout.current = setTimeout(() => {
         setWrongFlash(false);
         setSelectedLeft(null);
@@ -223,6 +224,7 @@ export default function Level22({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -271,6 +273,7 @@ export default function Level22({ onBack, lang = "en" }) {
               key={`wam-${roundIndex}`}
               wordNames={ROUND_WORDS[roundIndex]}
               onComplete={advance}
+              onMistake={onMistake}
             />
           </motion.div>
         )}

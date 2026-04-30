@@ -57,7 +57,7 @@ function markLevel27Complete() {
   } catch (_) {}
 }
 
-function WordMatchRound({ def, onComplete, lang }) {
+function WordMatchRound({ def, onComplete, lang, onMistake }) {
   const [round] = useState(() => buildRound(def));
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -77,6 +77,7 @@ function WordMatchRound({ def, onComplete, lang }) {
     const correct = choice.word === round.target.word;
     setFeedback(correct ? "correct" : "wrong");
     if (correct && round.target.audio) playAudio(round.target.audio);
+    if (!correct) { onMistake && onMistake(); }
     setTimeout(() => {
       if (correct) onComplete();
       else { setFeedback(null); setSelected(null); }
@@ -126,6 +127,7 @@ export default function Level27({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -163,7 +165,7 @@ export default function Level27({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <WordMatchRound key={roundIndex} def={ROUND_DEFS[roundIndex]} onComplete={advance} lang={lang} />
+            <WordMatchRound key={roundIndex} def={ROUND_DEFS[roundIndex]} onComplete={advance} lang={lang} onMistake={onMistake} />
           </motion.div>
         )}
       </AnimatePresence>

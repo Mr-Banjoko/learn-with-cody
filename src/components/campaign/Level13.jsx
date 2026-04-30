@@ -84,6 +84,8 @@ export default function Level13({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
 
+  const onMistake = () => setMistakes((m) => m + 1);
+
   const advance = () => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
@@ -132,6 +134,7 @@ export default function Level13({ onBack, lang = "en" }) {
               round={rounds[roundIndex]}
               onRoundComplete={advance}
               lang={lang}
+              onMistake={onMistake}
             />
           </motion.div>
         )}
