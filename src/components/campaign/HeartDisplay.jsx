@@ -18,8 +18,6 @@
  */
 import { useEffect, useRef, useState, useCallback } from "react";
 import Lottie from "lottie-react";
-import bouncingHeartData from "../../lib/bouncing-heart.json";
-import brokenHeartData from "../../lib/broken-heart.json";
 
 // Broken-heart anim: 50 frames @ ~30fps ≈ 1670ms. Add small buffer.
 const BREAK_DURATION_MS = 1750;
@@ -79,7 +77,7 @@ function HeartSlot({ displayState, size, staggerFrame, onBreakComplete }) {
     return (
       <div style={base}>
         <Lottie
-          animationData={brokenHeartData}
+          path="/broken-heart.json"
           loop={false}
           autoplay={true}
           style={{ width: size * 1.2, height: size * 1.2 }}
@@ -93,10 +91,9 @@ function HeartSlot({ displayState, size, staggerFrame, onBreakComplete }) {
     return (
       <div style={base}>
         <Lottie
-          animationData={bouncingHeartData}
+          path="/bouncing-heart.json"
           loop={true}
           autoplay={true}
-          initialSegment={[staggerFrame, 80]}
           style={{ width: size * 1.1, height: size * 1.5 }}
           rendererSettings={{ preserveAspectRatio: "xMidYMid meet" }}
         />
@@ -136,10 +133,9 @@ function HeartSlot({ displayState, size, staggerFrame, onBreakComplete }) {
           }}
         >
           <Lottie
-            animationData={bouncingHeartData}
+            path="/bouncing-heart.json"
             loop={true}
             autoplay={true}
-            initialSegment={[staggerFrame, 80]}
             style={{
               width: size * 1.1,
               height: size * 1.5,
