@@ -8,9 +8,9 @@ import bouncingHeartData from "../../lib/BouncingHeart.json";
 
 export default function HeartDisplay({ mistakes = 0, size = 22 }) {
   return (
-    <div style={{ display: "flex", gap: 0, alignItems: "center", flexShrink: 0 }}>
+    <div style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
       {[0, 1, 2].map((i) => (
-        <div key={i} style={{ width: (size + 4) * 2.1, height: (size + 4) * 2.1 }}>
+        <div key={i} style={{ width: (size + 4) * 2.1, height: (size + 4) * 2.1, marginRight: i < 2 ? -(size + 4) * 0.7 : 0 }}>
           <Lottie
             animationData={bouncingHeartData}
             loop={true}
