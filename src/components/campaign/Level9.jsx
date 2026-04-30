@@ -71,7 +71,7 @@ export default function Level9({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 9 关" : "Level 9"}
           </p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={36} />
+        <HeartDisplay mistakes={mistakes} size={54} />
       </div>
 
       {!done && (

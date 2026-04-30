@@ -115,7 +115,7 @@ export default function Level10({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 10 关 — 复习" : "Level 10 — Review"}
           </p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={36} />
+        <HeartDisplay mistakes={mistakes} size={54} />
       </div>
 
       {!done && (

@@ -147,7 +147,7 @@ export default function Level27({ onBack, lang = "en" }) {
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>{lang === "zh" ? "第 27 关" : "Level 27"}</p>
         </div>
-        <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginRight: 4 }}>{roundIndex + 1}/{TOTAL_ROUNDS}</span>
+        <HeartDisplay mistakes={mistakes} size={54} />
       </div>
 
       {!done && (

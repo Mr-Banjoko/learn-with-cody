@@ -313,7 +313,7 @@ export default function Level20({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 20 关 — 复习" : "Level 20 — Review"}
           </p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={36} />
+        <HeartDisplay mistakes={mistakes} size={54} />
       </div>
 
       {!done && (

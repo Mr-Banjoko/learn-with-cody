@@ -93,7 +93,7 @@ export default function Level19({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 19 关" : "Level 19"}
           </p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={36} />
+        <HeartDisplay mistakes={mistakes} size={54} />
       </div>
 
       {!done && (
