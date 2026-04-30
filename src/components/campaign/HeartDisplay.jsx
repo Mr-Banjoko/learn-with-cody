@@ -10,7 +10,7 @@ export default function HeartDisplay({ mistakes = 0, size = 22 }) {
   return (
     <div style={{ display: "flex", gap: 0, alignItems: "center", flexShrink: 0 }}>
       {[0, 1, 2].map((i) => (
-        <div key={i} style={{ width: size + 4, height: size + 4 }}>
+        <div key={i} style={{ width: (size + 4) * 1.4, height: (size + 4) * 1.4 }}>
           <Lottie
             animationData={bouncingHeartData}
             loop={true}
