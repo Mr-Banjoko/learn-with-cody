@@ -112,7 +112,7 @@ function buildMissingRound(card) {
   return { card, letters, missingPos, options };
 }
 
-function MissingLetterRound({ card, onComplete, lang = "en" }) {
+function MissingLetterRound({ card, onComplete, lang = "en", onMistake }) {
   const [round] = useState(() => buildMissingRound(card));
   const [placedOption, setPlacedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -157,9 +157,10 @@ function MissingLetterRound({ card, onComplete, lang = "en" }) {
       playCompletion();
     } else {
       setFeedback("wrong");
+      onMistake && onMistake();
       setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700);
     }
-  }, [feedback, playCompletion, syncSetPlaced]);
+  }, [feedback, playCompletion, syncSetPlaced, onMistake]);
 
   const handleTouchStart = useCallback((e, option) => {
     if (placedOptionRef.current?.id === option.id) return;
@@ -366,13 +367,13 @@ export default function Level15({ onBack, lang = "en" }) {
               <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "missing" && missingCard && (
-              <MissingLetterRound key={`missing-${roundIndex}`} card={missingCard} onComplete={advance} lang={lang} />
+              <MissingLetterRound key={`missing-${roundIndex}`} card={missingCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "identifying" && identifyingRound && (
-              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} />
+              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "drawline" && drawLineRound && (
-              <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} />
+              <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
           </motion.div>
         )}

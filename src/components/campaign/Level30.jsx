@@ -64,7 +64,7 @@ function buildFixedDrawLineRound(wordNames) {
 }
 
 // ── Inline Word Match (single-round, fixed distractors) ─────────────────────
-function WordMatchRound({ targetWord, distractorWords, onComplete }) {
+function WordMatchRound({ targetWord, distractorWords, onComplete, onMistake }) {
   const target = useMemo(() => findWord(targetWord), [targetWord]);
   const round = useMemo(() => {
     const distractors = distractorWords.map(findWord).filter(Boolean);
@@ -90,6 +90,7 @@ function WordMatchRound({ targetWord, distractorWords, onComplete }) {
     const correct = choice.word === round.target.word;
     setFeedback(correct ? "correct" : "wrong");
     if (correct && round.target.audio) playAudio(round.target.audio);
+    else if (!correct) { onMistake && onMistake(); }
     setTimeout(() => {
       if (correct) onComplete();
       else { setFeedback(null); setSelected(null); }
@@ -212,16 +213,16 @@ export default function Level30({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {roundDef.type === "wordmatch" && (
-              <WordMatchRound key={`wm-${roundIndex}`} targetWord={roundDef.word} distractorWords={roundDef.distractors} onComplete={advance} />
+              <WordMatchRound key={`wm-${roundIndex}`} targetWord={roundDef.word} distractorWords={roundDef.distractors} onComplete={advance} onMistake={onMistake} />
             )}
             {roundDef.type === "identifying" && identifyingRound && (
-              <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} />
+              <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "drag" && dragCard && (
               <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "drawline" && drawLineRound && (
-              <DrawLineBoard key={`dl-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} />
+              <DrawLineBoard key={`dl-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "rearrange" && rearrangeWordPair && (
               <PicSliceBoardEasy key={`easy-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />

@@ -46,7 +46,7 @@ function SpeakerIcon({ color = "#4ECDC4", size = 38 }) {
   );
 }
 
-function WordAudioRound({ wordNames, onComplete }) {
+function WordAudioRound({ wordNames, onComplete, onMistake }) {
   const round = useMemo(() => {
     const picked = wordNames.map(findWord).filter(Boolean);
     const leftItems = shuffleArr(picked).map((w, i) => ({ ...w, id: `left-${i}-${w.word}` }));
@@ -87,6 +87,7 @@ function WordAudioRound({ wordNames, onComplete }) {
     } else {
       clearTimeout(wrongTimeout.current);
       setWrongFlash(true);
+      onMistake && onMistake();
       wrongTimeout.current = setTimeout(() => { setWrongFlash(false); setSelectedLeft(null); setSelectedRight(null); }, 500);
     }
   }, [selectedLeft, selectedRight]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -154,6 +155,7 @@ export default function Level29({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -189,7 +191,7 @@ export default function Level29({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <WordAudioRound key={`wam-${roundIndex}`} wordNames={ROUND_WORD_SETS[roundIndex]} onComplete={advance} />
+            <WordAudioRound key={`wam-${roundIndex}`} wordNames={ROUND_WORD_SETS[roundIndex]} onComplete={advance} onMistake={onMistake} />
           </motion.div>
         )}
       </AnimatePresence>

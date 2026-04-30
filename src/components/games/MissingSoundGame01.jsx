@@ -53,7 +53,7 @@ function buildRound(card) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MissingSoundRound01 — fresh-mounted each round via key={roundIndex}
 // ─────────────────────────────────────────────────────────────────────────────
-function MissingSoundRound01({ round, color, onComplete, lang = "en" }) {
+function MissingSoundRound01({ round, color, onComplete, lang = "en", onMistake }) {
   const accentColor = color || "#4A90C4";
 
   const [placedOption, setPlacedOption] = useState(null);
@@ -102,12 +102,13 @@ function MissingSoundRound01({ round, color, onComplete, lang = "en" }) {
       playCompletion();
     } else {
       setFeedback("wrong");
+      onMistake && onMistake();
       setTimeout(() => {
         syncSetPlaced(null);
         setFeedback(null);
       }, 700);
     }
-  }, [feedback, playCompletion, syncSetPlaced]);
+  }, [feedback, playCompletion, syncSetPlaced, onMistake]);
 
   // ── Touch start: record origin, reset isDragging flag ──
   const handleTouchStart = useCallback((e, option) => {
@@ -391,7 +392,7 @@ function MissingSoundRound01({ round, color, onComplete, lang = "en" }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // MissingSoundGame01 — shell with header + progress bar + round cycling
 // ─────────────────────────────────────────────────────────────────────────────
-export default function MissingSoundGame01({ words, title, color, onBack, lang = "en" }) {
+export default function MissingSoundGame01({ words, title, color, onBack, lang = "en", onMistake }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const total = words.length;
   const accentColor = color || "#4A90C4";
@@ -438,6 +439,7 @@ export default function MissingSoundGame01({ words, title, color, onBack, lang =
         color={color}
         onComplete={handleComplete}
         lang={lang}
+        onMistake={onMistake}
       />
     </div>
   );
