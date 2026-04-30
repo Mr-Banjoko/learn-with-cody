@@ -97,7 +97,7 @@ export default function Level18({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 18 关" : "Level 18"}
           </p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={22} />
+        <HeartDisplay mistakes={mistakes} size={36} />
       </div>
 
       {!done && (

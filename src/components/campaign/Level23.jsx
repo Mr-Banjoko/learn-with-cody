@@ -78,7 +78,7 @@ export default function Level23({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 23 关" : "Level 23"}
           </p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={22} />
+        <HeartDisplay mistakes={mistakes} size={36} />
       </div>
 
       {/* Progress bar */}

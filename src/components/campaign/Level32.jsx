@@ -70,7 +70,7 @@ export default function Level32({ onBack, lang = "en" }) {
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>{lang === "zh" ? "第 32 关" : "Level 32"}</p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={22} />
+        <HeartDisplay mistakes={mistakes} size={36} />
       </div>
 
       {!done && (

@@ -121,7 +121,7 @@ export default function Level1({ onBack, lang = "en" }) {
           </p>
         </div>
 
-        <HeartDisplay mistakes={mistakes} size={22} />
+        <HeartDisplay mistakes={mistakes} size={36} />
       </div>
 
       {/* Progress bar */}

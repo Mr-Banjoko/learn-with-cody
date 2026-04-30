@@ -400,7 +400,7 @@ export default function Level3({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 3 关" : "Level 3"}
           </p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={22} />
+        <HeartDisplay mistakes={mistakes} size={36} />
       </div>
 
       {/* Progress bar */}

@@ -324,7 +324,7 @@ export default function Level8({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 8 关" : "Level 8"}
           </p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={22} />
+        <HeartDisplay mistakes={mistakes} size={36} />
       </div>
 
       {!done && (

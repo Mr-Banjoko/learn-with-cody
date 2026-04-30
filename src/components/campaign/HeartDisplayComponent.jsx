@@ -46,7 +46,7 @@ function HeartSlot({ slotIndex, mistakes, size }) {
   );
 }
 
-export default function HeartDisplay({ mistakes = 0, size = 28 }) {
+export default function HeartDisplay({ mistakes = 0, size = 36 }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
       {[0, 1, 2].map((i) => (

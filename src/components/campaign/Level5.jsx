@@ -138,7 +138,7 @@ export default function Level5({ onBack, lang = "en" }) {
             {lang === "zh" ? "第 5 关 — 复习" : "Level 5 — Review"}
           </p>
         </div>
-        <HeartDisplay mistakes={mistakes} size={22} />
+        <HeartDisplay mistakes={mistakes} size={36} />
       </div>
 
       {/* Progress bar */}
