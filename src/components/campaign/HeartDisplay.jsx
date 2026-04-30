@@ -4,7 +4,7 @@
  * (Half/empty states to be added later.)
  */
 import Lottie from "lottie-react";
-import bouncingHeartData from "../../public/BouncingHeart.json";
+import bouncingHeartData from "../../lib/BouncingHeart.json";
 
 export default function HeartDisplay({ mistakes = 0, size = 22 }) {
   return (
