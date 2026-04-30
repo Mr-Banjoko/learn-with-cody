@@ -1,1 +1,1 @@
-export { default } from "./HeartDisplay";
+export { default } from "./HeartDisplayComponent.jsx";
