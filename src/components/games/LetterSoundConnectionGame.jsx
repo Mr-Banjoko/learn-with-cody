@@ -14,15 +14,12 @@
 import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import { shortAWords } from "../../lib/shortAWords";
+import { shortASlices } from "../../lib/shortASlices";
+import { buildWordData } from "../../lib/picSliceGameData";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 
-const SLICES_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/a_slices";
-// Returns the URL for a single letter slice image: e.g. cat_1.webp (1-indexed)
-function getSliceUrl(word, letterIdx) {
-  return `${SLICES_BASE}/${word}_${letterIdx + 1}.webp`;
-}
+
 
 // ── Colours (same as DrawLineBoard) ──────────────────────────────────────────
 const CARD_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
@@ -106,7 +103,8 @@ function WinScreen({ card, onDone }) {
       const url = getLetterSoundUrl(letter);
       return url ? { url, gain: getLetterGain(letter) } : null;
     }).filter(Boolean);
-    if (card.audio) steps.push({ url: card.audio });
+    const wordAudio = card.audio;
+    if (wordAudio) steps.push({ url: wordAudio });
 
     // Small delay before starting
     const t = setTimeout(() => {
@@ -136,7 +134,7 @@ function WinScreen({ card, onDone }) {
         transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
         style={{ background: "white", borderRadius: 28, padding: 16, boxShadow: "0 12px 48px rgba(30,58,95,0.18)", width: "min(260px, calc(100vw - 48px))" }}
       >
-        <img src={card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
+        <img src={card.fullImage || card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
       </motion.div>
 
       {/* Letters */}
@@ -155,9 +153,10 @@ function WinScreen({ card, onDone }) {
 // ── Main round component ──────────────────────────────────────────────────────
 function ConnectionRound({ card, onComplete }) {
   const letters = card.word.split(""); // e.g. ['c','a','t']
-
   // shuffledOrder[botSlot] = letterIndex (which letter belongs at this bottom slot)
   const [shuffledOrder] = useState(() => buildShuffledOrder());
+  // Build a stable shuffled mapping of botSlot → original phoneme index
+  // card.phonemes[i].sliceSrc gives the correct slice image for letter i
 
   // selected: "top-N" | "bot-N" | null
   const [selected, setSelected] = useState(null);
@@ -331,7 +330,7 @@ function ConnectionRound({ card, onComplete }) {
                 }}
               >
                 <img
-                  src={getSliceUrl(card.word, letterIdx)}
+                  src={card.phonemes?.[letterIdx]?.sliceSrc || ""}
                   alt={letters[letterIdx]}
                   draggable={false}
                   style={{
@@ -356,7 +355,7 @@ function ConnectionRound({ card, onComplete }) {
 
 // ── Level shell ───────────────────────────────────────────────────────────────
 export default function LetterSoundConnectionGame({ group, onBack, lang = "en" }) {
-  const words = shortAWords;
+  const words = shortASlices.map((s) => buildWordData(s.word));
   const [wordIndex, setWordIndex] = useState(0);
   const [showWin, setShowWin] = useState(false);
   const [roundKey, setRoundKey] = useState(0);
@@ -368,7 +367,7 @@ export default function LetterSoundConnectionGame({ group, onBack, lang = "en" }
     const letterSet = new Set(words.flatMap((w) => w.word.split("")));
     const letterUrls = [...letterSet].map(getLetterSoundUrl).filter(Boolean);
     warmupAudio([...letterUrls, ...words.map((w) => w.audio).filter(Boolean)]);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRoundComplete = useCallback(() => {
     setShowWin(true);
