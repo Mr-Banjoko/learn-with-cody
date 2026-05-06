@@ -18,6 +18,12 @@ import { shortAWords } from "../../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 
+const SLICES_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/a_slices";
+// Returns the URL for a single letter slice image: e.g. cat_1.webp (1-indexed)
+function getSliceUrl(word, letterIdx) {
+  return `${SLICES_BASE}/${word}_${letterIdx + 1}.webp`;
+}
+
 // ── Colours (same as DrawLineBoard) ──────────────────────────────────────────
 const CARD_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
@@ -324,20 +330,17 @@ function ConnectionRound({ card, onComplete }) {
                   touchAction: "manipulation",
                 }}
               >
-                {/* Crop: show only 1/3 of the image corresponding to letterIdx */}
                 <img
-                  src={card.image}
+                  src={getSliceUrl(card.word, letterIdx)}
                   alt={letters[letterIdx]}
                   draggable={false}
                   style={{
                     position: "absolute",
                     top: 0,
-                    // offset left to show letterIdx-th third
-                    left: `${-letterIdx * 100}%`,
-                    width: "300%",
+                    left: 0,
+                    width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    objectPosition: "center",
                     pointerEvents: "none",
                     userSelect: "none",
                   }}
