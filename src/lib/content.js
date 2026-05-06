@@ -165,4 +165,11 @@ export const games = [
     description: "Swipe to trace letters and write words with your finger",
     available: true,
   },
+  {
+    id: "letter-sound-connection",
+    label: "Letter to Sound Connection",
+    emoji: "🔗",
+    description: "Connect each letter to its picture slice by drawing a line",
+    available: true,
+  },
 ];
