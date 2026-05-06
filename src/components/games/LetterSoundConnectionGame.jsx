@@ -262,7 +262,7 @@ function ConnectionRound({ card, onComplete }) {
       <LinesLayer matches={matches} connectorRects={connectorRects} containerRect={containerRect} />
 
       {/* ── ROW 1: Letters ── */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 10 }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 10, transform: "translateY(20px)" }}>
         {letters.map((letter, i) => (
           <div key={i} style={{ flex: 1, maxWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
             {/* Letter tile */}
@@ -287,7 +287,7 @@ function ConnectionRound({ card, onComplete }) {
       <div style={{ flex: 1, minHeight: 16 }} />
 
       {/* ── ROW 3 + ROW 4: Bottom dots + slices (shuffled) ── */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 10 }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 10, transform: "translateY(-25%)" }}>
         {[0, 1, 2].map((botSlot) => {
           const letterIdx = shuffledOrder[botSlot]; // which letter this slot represents
           const isMatched = matchedBotIdxs.has(botSlot);
@@ -316,7 +316,7 @@ function ConnectionRound({ card, onComplete }) {
                 onPointerDown={(e) => { e.preventDefault(); handleSliceTap(botSlot); }}
                 style={{
                   width: "100%",
-                  aspectRatio: "1/1",
+                  aspectRatio: "1/2",
                   borderRadius: 18,
                   overflow: "hidden",
                   border: isMatched ? `2.5px solid ${dotColor}` : isWrongBot ? "2.5px solid #FF6B6B" : "2.5px solid rgba(168,208,230,0.5)",
