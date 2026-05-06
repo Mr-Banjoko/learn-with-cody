@@ -18,6 +18,7 @@ import { shortASlices } from "../../lib/shortASlices";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
+import RainbowLetterBlock from "../RainbowLetterBlock";
 
 
 
@@ -95,21 +96,21 @@ function ConnectorDot({ dotRef, selected, matched, wrong, onTap, color }) {
 // ── Win Screen ─────────────────────────────────────────────────────────────────
 function WinScreen({ card, onDone }) {
   const seqRef = useRef(null);
+  const [activeLetterIndex, setActiveLetterIndex] = useState(null);
 
   useEffect(() => {
-    // Auto-play blend sequence on mount
     const letters = card.word.split("");
-    const steps = letters.map((letter) => {
+    const steps = letters.map((letter, i) => {
       const url = getLetterSoundUrl(letter);
-      return url ? { url, gain: getLetterGain(letter) } : null;
+      return url ? { url, gain: getLetterGain(letter), onStart: () => setActiveLetterIndex(i) } : null;
     }).filter(Boolean);
     const wordAudio = card.audio;
-    if (wordAudio) steps.push({ url: wordAudio });
+    if (wordAudio) steps.push({ url: wordAudio, onStart: () => setActiveLetterIndex(null) });
 
-    // Small delay before starting
     const t = setTimeout(() => {
       seqRef.current = playAudioSequence(steps, () => {
         seqRef.current = null;
+        setActiveLetterIndex(null);
         setTimeout(onDone, 600);
       });
     }, 400);
@@ -118,7 +119,7 @@ function WinScreen({ card, onDone }) {
       clearTimeout(t);
       if (seqRef.current) { seqRef.current(); seqRef.current = null; }
     };
-  }, [card]);
+  }, [card]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <motion.div
@@ -128,24 +129,17 @@ function WinScreen({ card, onDone }) {
       transition={{ duration: 0.3 }}
       style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 24px", gap: 20 }}
     >
-      {/* Full word image */}
-      <motion.div
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-        style={{ background: "white", borderRadius: 28, padding: 16, boxShadow: "0 12px 48px rgba(30,58,95,0.18)", width: "min(364px, calc(100vw - 48px))" }}
-      >
+      {/* Full word image — static */}
+      <div style={{ background: "white", borderRadius: 28, padding: 16, boxShadow: "0 12px 48px rgba(30,58,95,0.18)", width: "min(364px, calc(100vw - 48px))" }}>
         <img src={card.fullImage || card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
-      </motion.div>
-
-      {/* Letters */}
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        {card.word.split("").map((letter, i) => (
-          <div key={i} style={{ width: 64, height: 64, borderRadius: 16, background: LETTER_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 38, fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 12px rgba(0,0,0,0.10)" }}>
-            {letter}
-          </div>
-        ))}
       </div>
 
+      {/* Letters — bounce one by one as sound plays */}
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        {card.word.split("").map((letter, i) => (
+          <RainbowLetterBlock key={i} letter={letter} index={i} isActive={activeLetterIndex === i} />
+        ))}
+      </div>
     </motion.div>
   );
 }
