@@ -24,7 +24,7 @@ export function registerServiceWorker() {
 export async function prefetchCoreImages() {
   if (!("caches" in window)) return;
 
-  const CACHE_NAME = "cody-assets-v1";
+  const CACHE_NAME = "cody-assets-v2";
   const urls = shortAWords.map((w) => w.image).filter(Boolean);
 
   try {
