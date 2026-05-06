@@ -142,7 +142,6 @@ function WinScreen({ card, onDone }) {
         ))}
       </div>
 
-      <div style={{ fontSize: 48 }}>🎉</div>
     </motion.div>
   );
 }
@@ -263,7 +262,7 @@ function ConnectionRound({ card, onComplete }) {
           <div key={i} style={{ flex: 1, maxWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
             {/* Letter tile */}
             <div style={{ width: "100%", height: "min(80px, 22vw)", borderRadius: 20, background: LETTER_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px, 12vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 16px rgba(0,0,0,0.10)" }}>
-              {letter.toUpperCase()}
+              {letter}
             </div>
 
             {/* ── ROW 2: Top connector dot ── */}
