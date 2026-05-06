@@ -132,7 +132,7 @@ function WinScreen({ card, onDone }) {
       <motion.div
         animate={{ y: [0, -8, 0] }}
         transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-        style={{ background: "white", borderRadius: 28, padding: 16, boxShadow: "0 12px 48px rgba(30,58,95,0.18)", width: "min(260px, calc(100vw - 48px))" }}
+        style={{ background: "white", borderRadius: 28, padding: 16, boxShadow: "0 12px 48px rgba(30,58,95,0.18)", width: "min(364px, calc(100vw - 48px))" }}
       >
         <img src={card.fullImage || card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
       </motion.div>
