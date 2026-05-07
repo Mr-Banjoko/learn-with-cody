@@ -70,8 +70,8 @@ export const LETTER_DEFS = {
   },
 
   // ── d ─────────────────────────────────────────────────────────────────────
-  // Stroke 1: CCW oval (like c but closed loop on right)
-  // Stroke 2: tall upstroke from oval top to ascender, then back down to baseline + hook
+  // Stroke 1: CCW oval
+  // Stroke 2: tall downstroke from ascender top down to baseline with exit hook
   d: {
     strokes: [
       {
@@ -79,8 +79,8 @@ export const LETTER_DEFS = {
         start: [38, 44],
       },
       {
-        d: "M 38,44 C 38,36 38,10 40,6 C 40,6 40,66 40,66 C 40,66 42,68 46,68",
-        start: [38, 44],
+        d: "M 40,6 C 40,6 40,66 40,66 C 40,66 42,68 46,68",
+        start: [40, 6],
       },
     ],
   },
