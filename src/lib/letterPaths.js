@@ -215,17 +215,17 @@ export const LETTER_DEFS = {
   },
 
   // ── n ─────────────────────────────────────────────────────────────────────
-  // Stroke 1: first arch
-  // Stroke 2: second arch with exit hook
+  // Stroke 1: downstroke from baseline up to midline
+  // Stroke 2: arch over to the right then back down with exit hook
   n: {
     strokes: [
       {
-        d: "M 8,68 C 8,68 8,44 8,40 C 8,32 14,28 20,30 C 26,32 28,38 28,44 C 28,50 28,68 28,68",
-        start: [8, 68],
+        d: "M 10,68 C 10,68 10,40 10,36",
+        start: [10, 68],
       },
       {
-        d: "M 28,44 C 28,32 34,28 40,30 C 46,32 48,38 48,44 C 48,50 48,66 48,66 C 48,66 50,68 54,68",
-        start: [28, 44],
+        d: "M 10,40 C 10,30 18,26 26,28 C 34,30 38,38 38,46 C 38,54 38,66 38,66 C 38,66 40,68 44,68",
+        start: [10, 40],
       },
     ],
   },
