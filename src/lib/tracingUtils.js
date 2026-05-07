@@ -1,43 +1,147 @@
 /**
  * tracingUtils.js
  * 
- * Strict Duolingo-style stroke validation.
- * 
+ * Strict Duolingo-style stroke validation — NO DOM dependency.
+ * Guide points are computed purely from the SVG path `d` string
+ * so it works reliably in Safari where getTotalLength() can return 0.
+ *
  * Rules enforced:
- *  1. Must start near the stroke's defined start point
- *  2. Must end near the stroke's defined end point  
- *  3. Must cover at least 60% of the guide path in forward order
- *  4. Must not trace backward (reverse direction rejected)
- *  5. Must stay within corridor (off-path points rejected)
- *  6. Minimum drawn length (taps / tiny scribbles rejected)
+ *  1. Minimum touch points (rejects taps)
+ *  2. Must START near the stroke's defined start point
+ *  3. Must END near the stroke's defined end point
+ *  4. Must cover ≥60% of guide path in FORWARD order
+ *  5. Backward tracing rejected
+ *  6. Must stay within ±14 SVG-unit corridor of the path
+ *  7. Minimum drawn arc-length (≥40% of guide length)
  */
 
-// ── Tuning constants ──────────────────────────────────────────────────────────
+// ── Tuning ────────────────────────────────────────────────────────────────────
+const START_TOLERANCE   = 14;   // SVG units — must start this close to stroke start
+const END_TOLERANCE     = 16;   // SVG units — must end this close to stroke end
+const CORRIDOR_WIDTH    = 14;   // SVG units — max off-path distance allowed
+const MIN_COVERAGE      = 0.60; // fraction of guide points that must be hit in order
+const MIN_POINTS        = 8;    // minimum user touch samples
+const MIN_LENGTH_RATIO  = 0.40; // user arc-length ÷ guide arc-length
+const MAX_REVERSE_FRAC  = 0.20; // fraction of in-corridor points that go backward
+const MAX_OFF_PATH_FRAC = 0.35; // fraction of user points that can miss corridor
 
-// How close (in SVG units, within the 60×80 cell) the finger must land to start
-const START_TOLERANCE = 12;
+// ── Pure-JS path sampler (no DOM) ────────────────────────────────────────────
 
-// How close the finger must be when lifted to the stroke end
-const END_TOLERANCE = 14;
+/** Linear interpolation */
+function lerp(a, b, t) { return a + (b - a) * t; }
 
-// Max perpendicular distance from the guide path before a point is "off-corridor"
-const CORRIDOR_WIDTH = 12;
+/**
+ * Very light SVG-path parser that handles M, L, C, Q, Z commands.
+ * Returns a flat array of [x, y] sample points.
+ */
+export function samplePathD(d, count = 80) {
+  if (!d) return [];
 
-// Fraction of guide points that must be hit (in order) for success
-const MIN_COVERAGE = 0.60;
+  // Tokenise the path string into commands + number arrays
+  const segments = [];
+  const re = /([MLCQZz])\s*([\d\s.,eE+-]*)/g;
+  let m;
+  while ((m = re.exec(d)) !== null) {
+    const cmd = m[1].toUpperCase();
+    const nums = (m[2].match(/[-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?/g) || []).map(Number);
+    segments.push({ cmd, nums });
+  }
 
-// Minimum number of recorded touch points (rejects taps)
-const MIN_POINTS = 8;
+  // Convert segments to polyline sample points
+  const rawPts = [];
+  let cx = 0, cy = 0;
+  let startX = 0, startY = 0;
+  const CURVE_STEPS = 20; // steps per curve segment
 
-// User's drawn length must be at least this fraction of the guide's arc-length
-const MIN_LENGTH_RATIO = 0.40;
+  for (const { cmd, nums } of segments) {
+    if (cmd === 'M') {
+      cx = nums[0]; cy = nums[1];
+      startX = cx; startY = cy;
+      rawPts.push([cx, cy]);
+    } else if (cmd === 'L') {
+      for (let i = 0; i < nums.length; i += 2) {
+        cx = nums[i]; cy = nums[i + 1];
+        rawPts.push([cx, cy]);
+      }
+    } else if (cmd === 'C') {
+      // Cubic bezier: 6 nums per segment
+      for (let i = 0; i < nums.length; i += 6) {
+        const [x1, y1, x2, y2, ex, ey] = nums.slice(i, i + 6);
+        const ox = cx, oy = cy;
+        for (let s = 1; s <= CURVE_STEPS; s++) {
+          const t = s / CURVE_STEPS;
+          const u = 1 - t;
+          const bx = u*u*u*ox + 3*u*u*t*x1 + 3*u*t*t*x2 + t*t*t*ex;
+          const by = u*u*u*oy + 3*u*u*t*y1 + 3*u*t*t*y2 + t*t*t*ey;
+          rawPts.push([bx, by]);
+        }
+        cx = ex; cy = ey;
+      }
+    } else if (cmd === 'Q') {
+      // Quadratic bezier: 4 nums per segment
+      for (let i = 0; i < nums.length; i += 4) {
+        const [x1, y1, ex, ey] = nums.slice(i, i + 4);
+        const ox = cx, oy = cy;
+        for (let s = 1; s <= CURVE_STEPS; s++) {
+          const t = s / CURVE_STEPS;
+          const u = 1 - t;
+          const bx = u*u*ox + 2*u*t*x1 + t*t*ex;
+          const by = u*u*oy + 2*u*t*y1 + t*t*ey;
+          rawPts.push([bx, by]);
+        }
+        cx = ex; cy = ey;
+      }
+    } else if (cmd === 'Z') {
+      rawPts.push([startX, startY]);
+      cx = startX; cy = startY;
+    }
+  }
 
-// Fraction of mapped points that can go backward before rejection
-const MAX_REVERSE_FRACTION = 0.20;
+  if (rawPts.length < 2) return rawPts;
 
-// Fraction of user points that can be outside the corridor before rejection
-const MAX_OFF_PATH_FRACTION = 0.35;
+  // Re-sample to exactly `count` evenly-spaced points by arc-length
+  const arcLen = [];
+  arcLen[0] = 0;
+  for (let i = 1; i < rawPts.length; i++) {
+    arcLen[i] = arcLen[i - 1] + Math.hypot(
+      rawPts[i][0] - rawPts[i - 1][0],
+      rawPts[i][1] - rawPts[i - 1][1]
+    );
+  }
+  const total = arcLen[arcLen.length - 1];
+  if (total === 0) return rawPts;
 
+  const result = [];
+  let j = 0;
+  for (let i = 0; i <= count; i++) {
+    const target = (i / count) * total;
+    while (j < arcLen.length - 2 && arcLen[j + 1] < target) j++;
+    const seg = arcLen[j + 1] - arcLen[j];
+    const t = seg === 0 ? 0 : (target - arcLen[j]) / seg;
+    result.push([
+      lerp(rawPts[j][0], rawPts[j + 1][0], t),
+      lerp(rawPts[j][1], rawPts[j + 1][1], t),
+    ]);
+  }
+  return result;
+}
+
+// Keep the DOM-based sampler as a secondary attempt (will work on desktop)
+export function samplePathPoints(pathEl, count = 80) {
+  if (!pathEl) return [];
+  try {
+    const total = pathEl.getTotalLength();
+    if (!total || total === 0) return [];
+    const pts = [];
+    for (let i = 0; i <= count; i++) {
+      const p = pathEl.getPointAtLength((i / count) * total);
+      pts.push([p.x, p.y]);
+    }
+    return pts;
+  } catch {
+    return [];
+  }
+}
 
 // ── Geometry helpers ──────────────────────────────────────────────────────────
 
@@ -51,60 +155,35 @@ function polylineLength(pts) {
   return len;
 }
 
-function distPointToSegment([px, py], [ax, ay], [bx, by]) {
-  const abx = bx - ax, aby = by - ay;
-  const len2 = abx * abx + aby * aby;
-  if (len2 === 0) return Math.hypot(px - ax, py - ay);
-  let t = ((px - ax) * abx + (py - ay) * aby) / len2;
-  t = Math.max(0, Math.min(1, t));
-  return Math.hypot(px - (ax + t * abx), py - (ay + t * aby));
-}
-
-function distToPolyline(guidePoints, px, py) {
+function distToPolyline(pts, px, py) {
   let minD = Infinity;
-  for (let i = 1; i < guidePoints.length; i++) {
-    const d = distPointToSegment([px, py], guidePoints[i - 1], guidePoints[i]);
-    if (d < minD) minD = d;
+  for (let i = 1; i < pts.length; i++) {
+    const [ax, ay] = pts[i - 1];
+    const [bx, by] = pts[i];
+    const abx = bx - ax, aby = by - ay;
+    const len2 = abx * abx + aby * aby;
+    let t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((px - ax) * abx + (py - ay) * aby) / len2));
+    minD = Math.min(minD, Math.hypot(px - (ax + t * abx), py - (ay + t * aby)));
   }
   return minD;
 }
 
-function closestGuideIndex(guidePoints, px, py) {
+function closestIdx(pts, px, py) {
   let best = Infinity, idx = 0;
-  for (let i = 0; i < guidePoints.length; i++) {
-    const d = dist2D(guidePoints[i], [px, py]);
+  for (let i = 0; i < pts.length; i++) {
+    const d = dist2D(pts[i], [px, py]);
     if (d < best) { best = d; idx = i; }
   }
   return idx;
 }
-
-
-// ── Path sampler ──────────────────────────────────────────────────────────────
-
-/**
- * Sample N evenly-spaced points from an SVG <path> DOM element.
- * Returns [[x, y], ...] in the element's local coordinate space.
- */
-export function samplePathPoints(pathEl, count = 80) {
-  if (!pathEl || typeof pathEl.getTotalLength !== "function") return [];
-  const total = pathEl.getTotalLength();
-  if (total === 0) return [];
-  const pts = [];
-  for (let i = 0; i <= count; i++) {
-    const p = pathEl.getPointAtLength((i / count) * total);
-    pts.push([p.x, p.y]);
-  }
-  return pts;
-}
-
 
 // ── Main validator ────────────────────────────────────────────────────────────
 
 /**
  * validateTrace(userPath, guidePoints)
  * 
- * @param {[number,number][]} userPath     - raw touch points in SVG coords
- * @param {[number,number][]} guidePoints  - sampled from the SVG <path> element
+ * @param {[number,number][]} userPath    - touch points in SVG coord space
+ * @param {[number,number][]} guidePoints - from samplePathD()
  * @returns {{ valid: boolean, reason: string }}
  */
 export function validateTrace(userPath, guidePoints) {
@@ -116,58 +195,54 @@ export function validateTrace(userPath, guidePoints) {
   }
 
   const first = userPath[0];
-  const last = userPath[userPath.length - 1];
+  const last  = userPath[userPath.length - 1];
   const gFirst = guidePoints[0];
-  const gLast = guidePoints[guidePoints.length - 1];
+  const gLast  = guidePoints[guidePoints.length - 1];
 
-  // ── 1. Start gate ─────────────────────────────────────────────────────────
+  // 1. Start gate
   if (dist2D(first, gFirst) > START_TOLERANCE) {
     return { valid: false, reason: "wrong_start" };
   }
 
-  // ── 2. End gate ───────────────────────────────────────────────────────────
+  // 2. End gate
   if (dist2D(last, gLast) > END_TOLERANCE) {
     return { valid: false, reason: "wrong_end" };
   }
 
-  // ── 3. Minimum arc-length ─────────────────────────────────────────────────
+  // 3. Minimum arc-length
   const guideLen = polylineLength(guidePoints);
-  const userLen = polylineLength(userPath);
+  const userLen  = polylineLength(userPath);
   if (userLen < guideLen * MIN_LENGTH_RATIO) {
     return { valid: false, reason: "too_short" };
   }
 
-  // ── 4. Off-path check ─────────────────────────────────────────────────────
+  // 4. Off-path fraction
   let offPath = 0;
   for (const [px, py] of userPath) {
     if (distToPolyline(guidePoints, px, py) > CORRIDOR_WIDTH) offPath++;
   }
-  if (offPath / userPath.length > MAX_OFF_PATH_FRACTION) {
+  if (offPath / userPath.length > MAX_OFF_PATH_FRAC) {
     return { valid: false, reason: "off_path" };
   }
 
-  // ── 5. Forward coverage with backward-travel check ───────────────────────
+  // 5. Forward coverage + backward check
   const N = guidePoints.length;
   const covered = new Array(N).fill(false);
-  let maxIdx = 0;
-  let reverseCount = 0;
-  let mappedCount = 0;
+  let maxIdx = 0, reverseCount = 0, mappedCount = 0;
 
   for (const [px, py] of userPath) {
-    const nearest = closestGuideIndex(guidePoints, px, py);
-    const d = dist2D(guidePoints[nearest], [px, py]);
-    if (d > CORRIDOR_WIDTH) continue; // outside corridor, skip
-
+    const ni = closestIdx(guidePoints, px, py);
+    if (dist2D(guidePoints[ni], [px, py]) > CORRIDOR_WIDTH) continue;
     mappedCount++;
-    if (nearest >= maxIdx) {
-      covered[nearest] = true;
-      maxIdx = nearest;
+    if (ni >= maxIdx) {
+      covered[ni] = true;
+      maxIdx = ni;
     } else {
       reverseCount++;
     }
   }
 
-  if (mappedCount > 0 && reverseCount / mappedCount > MAX_REVERSE_FRACTION) {
+  if (mappedCount > 0 && reverseCount / mappedCount > MAX_REVERSE_FRAC) {
     return { valid: false, reason: "backward" };
   }
 
