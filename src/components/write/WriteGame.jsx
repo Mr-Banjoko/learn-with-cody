@@ -1,271 +1,214 @@
 /**
- * WriteGame — Short a (and future vowel groups)
- * ==============================================
- * Full 2-row layout:
- *   ROW 1 (top):    Picture of the target word. Tap to hear full word audio.
- *   ROW 2 (bottom): Guided finger-writing area (WordWriter).
- *
- * Word progression:
- *   - Uses the existing shortAWords asset set (same images/audio as elsewhere in the app).
- *   - 3-letter CVC words only (all letters must have stroke definitions in letterPaths.js).
- *   - Shuffled so each session feels fresh.
- *   - After each word is completed, advance to the next word.
- *
- * Mobile Safari notes:
- *   - All touch events handled in LetterCanvas (touchstart/move/end + preventDefault).
- *   - No pointer events used.
- *   - Images loaded as <img> tags (not canvas) for Safari compatibility.
- *   - Audio uses the existing warmupAudio/playAudio system (blob URLs, iOS-compatible).
+ * WriteGame — Short A tracing game
+ * Shows word picture + 3 traceable letters (CVC) side by side.
+ * Letters must be traced left to right.
+ * On word completion, next word loads automatically.
+ * On batch completion, calls onComplete().
  */
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import WordWriter from "./WordWriter";
-import { playAudio, warmupAudio } from "../../lib/useAudio";
-import { LETTER_DEFS } from "../../lib/letterPaths";
+import TracingLetter from "./TracingLetter";
+import { shortAWords } from "../../lib/shortAWords";
 
-// Words that have ALL letters defined in our stroke system
-function isWritable(word) {
-  return word.split("").every((l) => !!LETTER_DEFS[l]);
+const WORDS = shortAWords;
+
+// How large to render each letter cell (scale on 60×80 base)
+// We want 3 letters + gaps to fit in ~90% of screen width
+// Screen ~ 390px wide → 3 letters + 2 gaps → each letter ≈ 100px → scale = 100/60 ≈ 1.65
+function getScale(screenW) {
+  const available = Math.min(screenW * 0.9, 380);
+  const perLetter = (available - 32) / 3; // 32px for 2 gaps
+  return Math.min(perLetter / 60, 1.8);
 }
 
-// Shuffle helper
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-export default function WriteGame({ wordList, onBack, lang = "en" }) {
-  const writableWords = useMemo(() =>
-    shuffle(wordList.filter((w) => isWritable(w.word))),
-    [wordList]
-  );
-
+export default function WriteGame({ onBack, lang = "en" }) {
   const [wordIndex, setWordIndex] = useState(0);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageTapFlash, setImageTapFlash] = useState(false);
-  const [writerKey, setWriterKey] = useState(0);
+  const [activeLetterIdx, setActiveLetterIdx] = useState(0);
+  const [wordKey, setWordKey] = useState(0);
+  const [allDone, setAllDone] = useState(false);
+  const screenW = typeof window !== "undefined" ? window.innerWidth : 390;
+  const scale = getScale(screenW);
 
-  const currentWord = writableWords[wordIndex] || writableWords[0];
+  const card = WORDS[wordIndex];
+  const letters = card.word.split("");
 
-  // Warmup audio for current + next word
-  useEffect(() => {
-    if (!currentWord) return;
-    const urls = writableWords.slice(wordIndex, wordIndex + 3).map((w) => w.audio).filter(Boolean);
-    warmupAudio(urls);
-  }, [wordIndex, writableWords, currentWord]);
-
-  // Auto-play word audio when word changes
-  useEffect(() => {
-    if (currentWord?.audio) {
-      setTimeout(() => playAudio(currentWord.audio), 400);
+  const handleLetterComplete = useCallback((letterIdx) => {
+    if (letterIdx < letters.length - 1) {
+      // Move to next letter
+      setTimeout(() => setActiveLetterIdx(letterIdx + 1), 350);
+    } else {
+      // Word complete — load next
+      setTimeout(() => {
+        const next = wordIndex + 1;
+        if (next >= WORDS.length) {
+          setAllDone(true);
+          onBack && onBack(); // Return to Write menu when all words done
+        } else {
+          setWordIndex(next);
+          setActiveLetterIdx(0);
+          setWordKey((k) => k + 1);
+        }
+      }, 700);
     }
-    setImageLoaded(false);
-  }, [wordIndex, currentWord]);
+  }, [wordIndex, letters.length, onBack]);
 
-  const handlePicturePress = useCallback(() => {
-    if (currentWord?.audio) {
-      playAudio(currentWord.audio);
-      setImageTapFlash(true);
-      setTimeout(() => setImageTapFlash(false), 300);
-    }
-  }, [currentWord]);
-
-  const handleWordComplete = useCallback(() => {
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      const next = (wordIndex + 1) % writableWords.length;
-      setWordIndex(next);
-      setWriterKey((k) => k + 1);
-    }, 2000);
-  }, [wordIndex, writableWords.length]);
-
-  if (!currentWord) {
-    return (
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ color: "#64748B", fontFamily: "Fredoka, sans-serif" }}>
-          No writable words available yet.
-        </p>
-      </div>
-    );
-  }
+  const progressPct = (wordIndex / WORDS.length) * 100;
+  const cellH = 80 * scale;
 
   return (
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
-      height: "100%",
-      fontFamily: "Fredoka, sans-serif",
-      background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
-      overflow: "hidden",
-      position: "relative",
-    }}>
-      {/* Header */}
-      <div style={{
-        flexShrink: 0,
+    <div
+      style={{
         display: "flex",
-        alignItems: "center",
-        gap: 6,
-        padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px",
-        borderBottom: "1.5px solid rgba(0,0,0,0.06)",
-        background: "rgba(255,255,255,0.80)",
-        backdropFilter: "blur(10px)",
-        zIndex: 10,
-      }}>
+        flexDirection: "column",
+        height: "100%",
+        fontFamily: "Fredoka, sans-serif",
+        background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
+        overflow: "hidden",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px",
+          borderBottom: "1.5px solid rgba(0,0,0,0.06)",
+          background: "rgba(255,255,255,0.8)",
+          backdropFilter: "blur(10px)",
+        }}
+      >
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#1E293B" }}>
-            ✏️ Write — Short a
+          <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
+            {lang === "zh" ? "描写 · Short a" : "Write · Short a"}
           </p>
         </div>
-        {/* Word counter */}
-        <div style={{
-          background: "#F0F9FF",
-          border: "1.5px solid #BAE6FD",
-          borderRadius: 99,
-          padding: "4px 12px",
-          fontSize: 13,
-          fontWeight: 700,
-          color: "#0369A1",
-          flexShrink: 0,
-        }}>
-          {wordIndex + 1}/{writableWords.length}
-        </div>
+        <span style={{ fontSize: 14, color: "#94A3B8", fontWeight: 600 }}>
+          {wordIndex + 1}/{WORDS.length}
+        </span>
       </div>
 
-      {/* ── ROW 1: PICTURE ─────────────────────────────────────────────── */}
-      <AnimatePresence mode="wait">
+      {/* Progress bar */}
+      <div style={{ height: 5, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
         <motion.div
-          key={`pic-${wordIndex}`}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
-          style={{
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "16px 20px 12px",
-          }}
-        >
-          {/* Tappable picture card */}
-          <motion.div
-            onPointerDown={(e) => { e.preventDefault(); handlePicturePress(); }}
-            onTouchStart={(e) => { e.preventDefault(); handlePicturePress(); }}
-            animate={imageTapFlash ? { scale: 0.94 } : { scale: 1 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            style={{
-              background: "white",
-              borderRadius: 28,
-              padding: 6,
-              boxShadow: imageTapFlash
-                ? "0 0 0 4px #4ECDC4AA, 0 8px 32px rgba(78,205,196,0.35)"
-                : "0 8px 32px rgba(0,0,0,0.10)",
-              border: "2.5px solid rgba(78,205,196,0.3)",
-              cursor: "pointer",
-              WebkitTapHighlightColor: "transparent",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            <img
-              src={currentWord.image}
-              alt={currentWord.word}
-              onLoad={() => setImageLoaded(true)}
-              style={{
-                width: "min(200px, 45vw)",
-                height: "min(200px, 45vw)",
-                objectFit: "cover",
-                borderRadius: 22,
-                display: "block",
-                opacity: imageLoaded ? 1 : 0,
-                transition: "opacity 0.3s",
-              }}
-            />
-            {/* Speaker hint */}
-            <div style={{
-              position: "absolute",
-              bottom: 10,
-              right: 10,
-              width: 30,
-              height: 30,
-              borderRadius: "50%",
-              background: "rgba(78,205,196,0.85)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-            }}>
-              <span style={{ fontSize: 14 }}>🔊</span>
-            </div>
-          </motion.div>
-        </motion.div>
-      </AnimatePresence>
+          animate={{ width: `${progressPct}%` }}
+          transition={{ duration: 0.4 }}
+          style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #C77DFF)" }}
+        />
+      </div>
 
-      {/* Divider */}
-      <div style={{
-        height: 1,
-        margin: "0 20px",
-        background: "linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)",
-        flexShrink: 0,
-      }} />
-
-      {/* ── ROW 2: WRITING AREA ─────────────────────────────────────────── */}
-      <AnimatePresence mode="wait">
-        {showSuccess ? (
+      {/* Content */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 16,
+          padding: "12px 16px 20px",
+          overflowY: "auto",
+        }}
+      >
+        <AnimatePresence mode="wait">
           <motion.div
-            key="success"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
+            key={wordKey}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.3 }}
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 12,
-            }}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%" }}
           >
-            <motion.div
-              animate={{ rotate: [0, -10, 10, -5, 5, 0], scale: [1, 1.3, 1] }}
-              transition={{ duration: 0.7 }}
-              style={{ fontSize: 72 }}
+            {/* Word picture */}
+            <div
+              style={{
+                background: "white",
+                borderRadius: 24,
+                padding: 10,
+                boxShadow: "0 8px 32px rgba(30,58,95,0.12)",
+                flexShrink: 0,
+              }}
             >
-              🌟
-            </motion.div>
-            <div style={{ fontSize: 32, fontWeight: 700, color: "#4ECDC4", fontFamily: "Fredoka, sans-serif" }}>
-              {currentWord.word}
+              <img
+                src={card.image}
+                alt={card.word}
+                style={{
+                  width: "min(220px, 52vw)",
+                  height: "min(220px, 52vw)",
+                  objectFit: "cover",
+                  borderRadius: 16,
+                  display: "block",
+                }}
+              />
             </div>
-            <div style={{ fontSize: 18, color: "#64748B", fontFamily: "Fredoka, sans-serif" }}>
-              You wrote it! ✨
+
+            {/* Word label */}
+            <p style={{ margin: 0, fontSize: 18, fontWeight: 600, color: "#64748B", letterSpacing: 4 }}>
+              {letters.map((l, i) => (
+                <span
+                  key={i}
+                  style={{
+                    color: i < activeLetterIdx ? "#4ECDC4" : i === activeLetterIdx ? "#1E293B" : "#CBD5E1",
+                    transition: "color 0.3s",
+                  }}
+                >
+                  {l}
+                </span>
+              ))}
+            </p>
+
+            {/* Tracing area — 4-line ruled background strip */}
+            <div
+              style={{
+                background: "rgba(255,255,255,0.85)",
+                borderRadius: 20,
+                border: "2px solid rgba(78,205,196,0.2)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+                padding: "12px 16px",
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                gap: 8,
+                width: "100%",
+                maxWidth: 380,
+              }}
+            >
+              {letters.map((letter, i) => (
+                <div key={`${wordKey}-${i}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <TracingLetter
+                    letter={letter}
+                    isActive={i === activeLetterIdx}
+                    onComplete={() => handleLetterComplete(i)}
+                    scale={scale}
+                  />
+                  {/* Letter label below */}
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: i < activeLetterIdx ? "#4ECDC4" : i === activeLetterIdx ? "#4ECDC4" : "#CBD5E1",
+                      transition: "color 0.3s",
+                      marginTop: 2,
+                    }}
+                  >
+                    {letter}
+                  </span>
+                </div>
+              ))}
             </div>
+
+            {/* Instruction prompt */}
+            <p style={{ margin: 0, fontSize: 14, color: "#94A3B8", textAlign: "center", fontWeight: 500 }}>
+              {lang === "zh"
+                ? `描写字母 "${letters[activeLetterIdx].toUpperCase()}"  ✏️`
+                : `Trace the letter "${letters[activeLetterIdx].toUpperCase()}"  ✏️`}
+            </p>
           </motion.div>
-        ) : (
-          <motion.div
-            key={`writer-${writerKey}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
-          >
-            <WordWriter
-              key={`ww-${writerKey}`}
-              wordData={currentWord}
-              onWordComplete={handleWordComplete}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

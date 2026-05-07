@@ -17,6 +17,7 @@ const gameLabels = {
   "letter-sound-connection": { labelZh: "字母音连线", descZh: "画线连接字母和对应的图片" },
 };
 import { Lock, ChevronDown, ChevronUp } from "lucide-react";
+import WriteHub from "../components/write/WriteHub";
 import PicSliceGame from "./PicSliceGame";
 import WordMatch from "../components/games/WordMatch";
 import DragTheLetters from "../components/games/DragTheLetters";
@@ -83,6 +84,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "test") {
     return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;
+  }
+  if (activeGame === "write") {
+    return <WriteHub onBack={exitGame} lang={lang} />;
   }
 
   return (
@@ -157,7 +161,7 @@ export default function Games({ onDeepScreen, lang = "en" }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: games.length * 0.1 }}
-          onClick={() => setWriteExpanded((v) => !v)}
+          onClick={() => enterGame("write")}
           className="relative rounded-3xl overflow-hidden p-5"
           style={{ background: "#FAF0FF", border: "2px solid #C77DFF25", boxShadow: "0 8px 32px #C77DFF15", cursor: "pointer" }}
         >
@@ -169,25 +173,10 @@ export default function Games({ onDeepScreen, lang = "en" }) {
               <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>Write</h3>
               <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>Trace letters and write words with your finger</p>
               <div className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "#C77DFF18", color: "#C77DFF" }}>
-                Coming Soon ✨
+                {tx("Play Now! 🎮", "play_now", lang)}
               </div>
             </div>
-            <div style={{ color: "#C77DFF", flexShrink: 0 }}>
-              {writeExpanded ? <ChevronUp size={22} /> : <ChevronDown size={22} />}
-            </div>
           </div>
-
-          {writeExpanded && (
-            <div className="mt-4 flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-              {WRITE_SUBFOLDERS.map((sub) => (
-                <div key={sub.id} className="flex items-center gap-3 px-3 py-3 rounded-2xl" style={{ background: "rgba(199,125,255,0.08)", border: "1.5px solid rgba(199,125,255,0.2)" }}>
-                  <span style={{ fontSize: 22 }}>{sub.emoji}</span>
-                  <span className="text-base font-semibold" style={{ color: "#1E293B", flex: 1 }}>{sub.label}</span>
-                  <Lock size={16} style={{ color: "#C77DFF", opacity: 0.5 }} />
-                </div>
-              ))}
-            </div>
-          )}
         </motion.div>
       </div>
 
