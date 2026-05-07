@@ -228,25 +228,28 @@ export default function TracingLetter({
           cursor: isActive && !letterDone ? "crosshair" : "default",
         }}
       >
-        {/* Hengshui-style faint reference letter */}
-        <text
-          x={CELL_W / 2}
-          y={BASELINE - 2}
-          textAnchor="middle"
-          fontSize={BASELINE - 4}
-          fontFamily="'ZCOOL XiaoWei', 'Noto Serif SC', serif"
-          fill="#B0C4DE"
-          opacity={0.35}
-          style={{ userSelect: "none", pointerEvents: "none" }}
-        >
-          {letter}
-        </text>
-
         {/* 4-line ruled guide */}
         <line x1={2} y1={0}        x2={CELL_W-2} y2={0}        stroke="#CBD5E1" strokeWidth={1} />
         <line x1={2} y1={MIDLINE}  x2={CELL_W-2} y2={MIDLINE}  stroke="#CBD5E1" strokeWidth={1} strokeDasharray="3 3" />
         <line x1={2} y1={BASELINE} x2={CELL_W-2} y2={BASELINE} stroke="#CBD5E1" strokeWidth={1} />
         <line x1={2} y1={DESCENDER} x2={CELL_W-2} y2={DESCENDER} stroke="#E2E8F0" strokeWidth={0.8} strokeDasharray="2 4" />
+
+        {/* Hengshui-font dashed guide letter */}
+        <text
+          x={CELL_W / 2}
+          y={BASELINE}
+          textAnchor="middle"
+          fontSize={BASELINE - MIDLINE + 30}
+          fontFamily="'ZCOOL XiaoWei', serif"
+          fill="none"
+          stroke={letterDone ? COMPLETE_COLOR : "#AAAAAA"}
+          strokeWidth={letterDone ? 3 : 2.5}
+          strokeDasharray={letterDone ? "none" : "5 4"}
+          opacity={letterDone ? 0.9 : 0.7}
+          style={{ userSelect: "none", pointerEvents: "none" }}
+        >
+          {letter}
+        </text>
 
         {/* Strokes */}
         {def.strokes.map((stroke, idx) => {
@@ -295,12 +298,12 @@ export default function TracingLetter({
                 </path>
               )}
 
-              {/* Dotted guide path */}
+              {/* Hengshui-font guide path */}
               <path
                 d={stroke.d}
                 fill="none"
                 stroke={isCompleted ? COMPLETE_COLOR : isLocked ? "#D1D5DB" : DOT_COLOR}
-                strokeWidth={isCompleted ? 5 : 4}
+                strokeWidth={isCompleted ? 5 : 6}
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeDasharray={isCompleted ? "none" : DOT_DASH}
