@@ -91,6 +91,48 @@ export default function TracingLetter({ letter, isActive, onComplete, scale = 1 
     setCurrentTrace([...traceRef.current]);
   }, [isActive, letterDone, toSVGCoords]);
 
+  // Mouse equivalents for desktop/preview testing
+  const mouseDownRef = useRef(false);
+  const handleMouseDown = useCallback((e) => {
+    if (!isActive || letterDone) return;
+    mouseDownRef.current = true;
+    const [sx, sy] = toSVGCoords(e.clientX, e.clientY);
+    traceRef.current = [[sx, sy]];
+    setCurrentTrace([[sx, sy]]);
+  }, [isActive, letterDone, toSVGCoords]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isActive || letterDone || !mouseDownRef.current) return;
+    const [sx, sy] = toSVGCoords(e.clientX, e.clientY);
+    traceRef.current.push([sx, sy]);
+    setCurrentTrace([...traceRef.current]);
+  }, [isActive, letterDone, toSVGCoords]);
+
+  const handleMouseUp = useCallback((e) => {
+    if (!mouseDownRef.current) return;
+    mouseDownRef.current = false;
+    // Reuse touch-end logic by synthesizing the same flow
+    if (!isActive || letterDone) { traceRef.current = []; setCurrentTrace(null); return; }
+    const userPath = traceRef.current;
+    traceRef.current = [];
+    setCurrentTrace(null);
+    const strokeIdx = activeStrokeIdx;
+    const stroke = def.strokes[strokeIdx];
+    if (stroke.isDot) {
+      const [sx, sy] = userPath[0] || stroke.start;
+      const [gx, gy] = stroke.start;
+      if (Math.hypot(sx - gx, sy - gy) <= 44) markStrokeComplete(strokeIdx);
+      else recordFail(strokeIdx);
+      return;
+    }
+    if (userPath.length < 2) { recordFail(strokeIdx); return; }
+    const guidePoints = ensureGuidePoints(strokeIdx);
+    if (guidePoints.length === 0) { recordFail(strokeIdx); return; }
+    const { valid } = validateTrace(userPath, guidePoints);
+    if (valid) markStrokeComplete(strokeIdx);
+    else recordFail(strokeIdx);
+  }, [isActive, letterDone, activeStrokeIdx, def, ensureGuidePoints]);
+
   const handleTouchEnd = useCallback((e) => {
   if (!isActive || letterDone) {
     traceRef.current = [];
@@ -191,6 +233,10 @@ export default function TracingLetter({ letter, isActive, onComplete, scale = 1 
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
         style={{
           touchAction: "none",
           userSelect: "none",
