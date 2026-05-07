@@ -274,13 +274,13 @@ export const LETTER_DEFS = {
   },
 
   // ── r ─────────────────────────────────────────────────────────────────────
-  // Stroke 1: downstroke from midline to baseline with exit hook
-  // Stroke 2: curved shoulder bump right from top of stroke 1
+  // Stroke 1: upstroke from baseline with exit bump shoulder (no full loop)
+  // Stroke 2: curved shoulder right
   r: {
     strokes: [
       {
-        d: "M 12,36 C 12,36 12,66 12,66 C 12,66 14,68 18,68",
-        start: [12, 36],
+        d: "M 12,68 C 12,68 12,38 12,36 C 12,36 14,34 16,34",
+        start: [12, 68],
       },
       {
         d: "M 12,40 C 16,30 24,28 34,32 C 40,36 42,42 40,48",
