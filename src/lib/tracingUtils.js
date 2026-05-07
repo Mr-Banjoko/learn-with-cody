@@ -16,14 +16,14 @@
  */
 
 // ── Tuning ────────────────────────────────────────────────────────────────────
-const START_TOLERANCE   = 14;   // SVG units — must start this close to stroke start
-const END_TOLERANCE     = 16;   // SVG units — must end this close to stroke end
-const CORRIDOR_WIDTH    = 14;   // SVG units — max off-path distance allowed
-const MIN_COVERAGE      = 0.60; // fraction of guide points that must be hit in order
-const MIN_POINTS        = 8;    // minimum user touch samples
-const MIN_LENGTH_RATIO  = 0.40; // user arc-length ÷ guide arc-length
-const MAX_REVERSE_FRAC  = 0.20; // fraction of in-corridor points that go backward
-const MAX_OFF_PATH_FRAC = 0.35; // fraction of user points that can miss corridor
+const START_TOLERANCE   = 20;   // SVG units — must start this close to stroke start
+const END_TOLERANCE     = 20;   // SVG units — must end this close to stroke end
+const CORRIDOR_WIDTH    = 18;   // SVG units — max off-path distance allowed
+const MIN_COVERAGE      = 0.55; // fraction of guide points that must be hit in order
+const MIN_POINTS        = 5;    // minimum user touch samples
+const MIN_LENGTH_RATIO  = 0.35; // user arc-length ÷ guide arc-length
+const MAX_REVERSE_FRAC  = 0.25; // fraction of in-corridor points that go backward
+const MAX_OFF_PATH_FRAC = 0.40; // fraction of user points that can miss corridor
 
 // ── Pure-JS path sampler (no DOM) ────────────────────────────────────────────
 
@@ -188,9 +188,11 @@ function closestIdx(pts, px, py) {
  */
 export function validateTrace(userPath, guidePoints) {
   if (!userPath || userPath.length < MIN_POINTS) {
+    console.log(`[trace] ❌ too_few_points: ${userPath?.length}`);
     return { valid: false, reason: "too_few_points" };
   }
   if (!guidePoints || guidePoints.length < 2) {
+    console.log(`[trace] ❌ no_guide`);
     return { valid: false, reason: "no_guide" };
   }
 
@@ -200,12 +202,16 @@ export function validateTrace(userPath, guidePoints) {
   const gLast  = guidePoints[guidePoints.length - 1];
 
   // 1. Start gate
-  if (dist2D(first, gFirst) > START_TOLERANCE) {
+  const startDist = dist2D(first, gFirst);
+  if (startDist > START_TOLERANCE) {
+    console.log(`[trace] ❌ wrong_start: dist=${startDist.toFixed(1)} first=[${first}] gFirst=[${gFirst}]`);
     return { valid: false, reason: "wrong_start" };
   }
 
   // 2. End gate
-  if (dist2D(last, gLast) > END_TOLERANCE) {
+  const endDist = dist2D(last, gLast);
+  if (endDist > END_TOLERANCE) {
+    console.log(`[trace] ❌ wrong_end: dist=${endDist.toFixed(1)} last=[${last}] gLast=[${gLast}]`);
     return { valid: false, reason: "wrong_end" };
   }
 
@@ -213,6 +219,7 @@ export function validateTrace(userPath, guidePoints) {
   const guideLen = polylineLength(guidePoints);
   const userLen  = polylineLength(userPath);
   if (userLen < guideLen * MIN_LENGTH_RATIO) {
+    console.log(`[trace] ❌ too_short: userLen=${userLen.toFixed(1)} guideLen=${guideLen.toFixed(1)} ratio=${(userLen/guideLen).toFixed(2)}`);
     return { valid: false, reason: "too_short" };
   }
 
@@ -222,6 +229,7 @@ export function validateTrace(userPath, guidePoints) {
     if (distToPolyline(guidePoints, px, py) > CORRIDOR_WIDTH) offPath++;
   }
   if (offPath / userPath.length > MAX_OFF_PATH_FRAC) {
+    console.log(`[trace] ❌ off_path: ${offPath}/${userPath.length} = ${(offPath/userPath.length).toFixed(2)}`);
     return { valid: false, reason: "off_path" };
   }
 
@@ -243,13 +251,16 @@ export function validateTrace(userPath, guidePoints) {
   }
 
   if (mappedCount > 0 && reverseCount / mappedCount > MAX_REVERSE_FRAC) {
+    console.log(`[trace] ❌ backward: reverseCount=${reverseCount} mappedCount=${mappedCount}`);
     return { valid: false, reason: "backward" };
   }
 
   const coverageRatio = covered.filter(Boolean).length / N;
   if (coverageRatio < MIN_COVERAGE) {
+    console.log(`[trace] ❌ low_coverage: ${Math.round(coverageRatio * 100)}% < ${MIN_COVERAGE*100}%`);
     return { valid: false, reason: `low_coverage:${Math.round(coverageRatio * 100)}%` };
   }
 
+  console.log(`[trace] ✅ valid — coverage=${Math.round(coverageRatio*100)}% userLen=${Math.round(userLen)} guideLen=${Math.round(guideLen)}`);
   return { valid: true, reason: "ok" };
 }
