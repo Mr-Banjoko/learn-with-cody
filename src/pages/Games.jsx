@@ -16,7 +16,7 @@ const gameLabels = {
   "draw-line":        { labelZh: "连线游戏",     descZh: "听声音，把图片和字母用线连起来" },
   "letter-sound-connection": { labelZh: "字母音连线", descZh: "画线连接字母和对应的图片" },
 };
-import { Lock } from "lucide-react";
+import { Lock, ChevronDown, ChevronUp } from "lucide-react";
 import PicSliceGame from "./PicSliceGame";
 import WordMatch from "../components/games/WordMatch";
 import DragTheLetters from "../components/games/DragTheLetters";
@@ -32,8 +32,17 @@ const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab18
 const gameColors = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF"];
 const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];
 
+const WRITE_SUBFOLDERS = [
+  { id: "write-short-a", label: "Short A", emoji: "🍎" },
+  { id: "write-short-e", label: "Short E", emoji: "🥚" },
+  { id: "write-short-i", label: "Short I", emoji: "🐛" },
+  { id: "write-short-o", label: "Short O", emoji: "🐙" },
+  { id: "write-short-u", label: "Short U", emoji: "☂️" },
+];
+
 export default function Games({ onDeepScreen, lang = "en" }) {
   const [activeGame, setActiveGame] = useState(null);
+  const [writeExpanded, setWriteExpanded] = useState(false);
 
   const enterGame = (id) => {
     setActiveGame(id);
@@ -140,6 +149,46 @@ export default function Games({ onDeepScreen, lang = "en" }) {
             </motion.div>
           );
         })}
+      </div>
+
+      {/* Write folder card */}
+      <div className="px-4 mt-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: games.length * 0.1 }}
+          onClick={() => setWriteExpanded((v) => !v)}
+          className="relative rounded-3xl overflow-hidden p-5"
+          style={{ background: "#FAF0FF", border: "2px solid #C77DFF25", boxShadow: "0 8px 32px #C77DFF15", cursor: "pointer" }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="rounded-2xl text-3xl flex items-center justify-center" style={{ width: 64, height: 64, background: "white", boxShadow: "0 4px 16px #C77DFF25", flexShrink: 0 }}>
+              ✏️
+            </div>
+            <div style={{ flex: 1 }}>
+              <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>Write</h3>
+              <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>Trace letters and write words with your finger</p>
+              <div className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "#C77DFF18", color: "#C77DFF" }}>
+                Coming Soon ✨
+              </div>
+            </div>
+            <div style={{ color: "#C77DFF", flexShrink: 0 }}>
+              {writeExpanded ? <ChevronUp size={22} /> : <ChevronDown size={22} />}
+            </div>
+          </div>
+
+          {writeExpanded && (
+            <div className="mt-4 flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+              {WRITE_SUBFOLDERS.map((sub) => (
+                <div key={sub.id} className="flex items-center gap-3 px-3 py-3 rounded-2xl" style={{ background: "rgba(199,125,255,0.08)", border: "1.5px solid rgba(199,125,255,0.2)" }}>
+                  <span style={{ fontSize: 22 }}>{sub.emoji}</span>
+                  <span className="text-base font-semibold" style={{ color: "#1E293B", flex: 1 }}>{sub.label}</span>
+                  <Lock size={16} style={{ color: "#C77DFF", opacity: 0.5 }} />
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
       </div>
 
       {/* Test Zone card */}
