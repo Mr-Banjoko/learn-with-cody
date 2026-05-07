@@ -1,223 +1,209 @@
 /**
  * TracingLetter
- * Renders a single letter as a dotted SVG path with:
- *  - 4-line ruled guide (top, dashed midline, baseline, descender)
- *  - Stroke-order enforcement for 2-stroke letters
- *  - Hint glow after 2 failed attempts
- *  - Solid fill on successful strokes
- *  - Touch-only interaction
+ *
+ * Renders a single letter as a guided tracing exercise.
+ * Uses pointer events (works on touch, mouse, stylus, tablet).
+ * Validation via checkpoint + corridor model from tracingRecognition.js.
  *
  * Props:
- *   letter       {string}           — lowercase letter to render
- *   isActive     {boolean}          — whether this letter is the current focus
- *   onComplete   {()=>void}         — called when all strokes done
- *   scale        {number}           — scale factor applied to 60×80 cell
+ *   letter       {string}   — lowercase letter
+ *   isActive     {boolean}  — whether this letter accepts input
+ *   onComplete   {()=>void} — called when all strokes are done
+ *   scale        {number}   — scale applied to 60×80 cell
+ *   config       {object}   — optional override for recognition config
  */
-import { useRef, useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
+import { useRef, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { LETTER_DEFS, LETTER_CELL } from "../../lib/letterPaths";
-import { samplePathD, validateTrace } from "../../lib/tracingUtils";
+import {
+  samplePathD,
+  buildCheckpoints,
+  createStrokeSession,
+  updateStrokeSession,
+  finalizeStrokeSession,
+  validateDotStroke,
+  DEFAULT_CONFIG,
+} from "../../lib/tracingRecognition";
 
-const CELL_W = LETTER_CELL.w;   // 60
-const CELL_H = LETTER_CELL.h;   // 80
-const MIDLINE = LETTER_CELL.midline;   // 28
-const BASELINE = LETTER_CELL.baseline; // 56
-const DESCENDER = LETTER_CELL.descender; // 80
+// ── Constants ──────────────────────────────────────────────────────────────────
+const CELL_W    = LETTER_CELL.w;        // 60
+const CELL_H    = LETTER_CELL.h;        // 80
+const MIDLINE   = LETTER_CELL.midline;  // 28
+const BASELINE  = LETTER_CELL.baseline; // 56
+const DESCENDER = LETTER_CELL.descender;// 80
 
-const THEME_COLOR = "#4ECDC4";
-const HINT_COLOR = "#FFD93D";
-const DOT_COLOR = "#AAAAAA";
+const THEME_COLOR    = "#4ECDC4";
+const HINT_COLOR     = "#FFD93D";
+const DOT_COLOR      = "#AAAAAA";
 const COMPLETE_COLOR = "#4ECDC4";
+const DOT_DASH       = "6 8";
 
-// Dot dash style for untraced paths
-const DOT_DASH = "6 8";
-const DOT_SIZE = 5;
+// Set to true to see checkpoint dots while tuning
+const SHOW_CHECKPOINTS = false;
 
-function dotsAlongD(d) {
-  // We render as a strokeDasharray dashed path to simulate dots
-  return d;
-}
-
-export default function TracingLetter({ letter, isActive, onComplete, scale = 1 }) {
+export default function TracingLetter({
+  letter,
+  isActive,
+  onComplete,
+  scale = 1,
+  config = {},
+}) {
   const def = LETTER_DEFS[letter];
   const numStrokes = def?.strokes?.length ?? 1;
+  const mergedConfig = { ...DEFAULT_CONFIG, ...config };
 
-  const [completedStrokes, setCompletedStrokes] = useState([]);
-  const [activeStrokeIdx, setActiveStrokeIdx] = useState(0);
-  const [failCounts, setFailCounts] = useState({});  // strokeIdx -> count
-  const [letterDone, setLetterDone] = useState(false);
-  const [bouncing, setBouncing] = useState(false);
-  const [currentTrace, setCurrentTrace] = useState(null); // [{x,y}] being drawn now
+  // ── State ──────────────────────────────────────────────────────────────────
+  const [completedStrokes, setCompletedStrokes]   = useState([]);
+  const [activeStrokeIdx, setActiveStrokeIdx]     = useState(0);
+  const [failCounts, setFailCounts]               = useState({});
+  const [letterDone, setLetterDone]               = useState(false);
+  const [bouncing, setBouncing]                   = useState(false);
+  const [currentTrace, setCurrentTrace]           = useState(null);
+  const [checkpointIndex, setCheckpointIndex]     = useState(0);
 
-  const svgRef = useRef(null);
-  const pathRefs = useRef([]); // refs to SVG <path> elements
-  const guidePointsCache = useRef({}); // strokeIdx -> [[x,y]]
-  const traceRef = useRef([]); // live touch points in SVG coords
+  // ── Refs ───────────────────────────────────────────────────────────────────
+  const svgRef        = useRef(null);
+  const sessionRef    = useRef(null);   // current stroke session
+  const guideCache    = useRef({});     // strokeIdx → guidePoints
+  const checkptsCache = useRef({});     // strokeIdx → checkpoints
 
-  // Sample guide points from the path `d` string — no DOM needed, works in Safari
-  const ensureGuidePoints = useCallback((strokeIdx) => {
-    if (guidePointsCache.current[strokeIdx]) return guidePointsCache.current[strokeIdx];
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const getGuidePoints = useCallback((strokeIdx) => {
+    if (guideCache.current[strokeIdx]) return guideCache.current[strokeIdx];
     const stroke = def?.strokes?.[strokeIdx];
     if (!stroke?.d) return [];
     const pts = samplePathD(stroke.d, 80);
-    guidePointsCache.current[strokeIdx] = pts;
+    guideCache.current[strokeIdx] = pts;
     return pts;
   }, [def]);
+
+  const getCheckpoints = useCallback((strokeIdx) => {
+    if (checkptsCache.current[strokeIdx]) return checkptsCache.current[strokeIdx];
+    const pts = getGuidePoints(strokeIdx);
+    const cps = buildCheckpoints(pts, mergedConfig.CHECKPOINT_COUNT);
+    checkptsCache.current[strokeIdx] = cps;
+    return cps;
+  }, [getGuidePoints, mergedConfig.CHECKPOINT_COUNT]);
 
   const toSVGCoords = useCallback((clientX, clientY) => {
     const svg = svgRef.current;
     if (!svg) return [0, 0];
     const rect = svg.getBoundingClientRect();
-    const sx = ((clientX - rect.left) / rect.width) * CELL_W;
-    const sy = ((clientY - rect.top) / rect.height) * CELL_H;
-    return [sx, sy];
+    return [
+      ((clientX - rect.left) / rect.width)  * CELL_W,
+      ((clientY - rect.top)  / rect.height) * CELL_H,
+    ];
   }, []);
 
-  const handleTouchStart = useCallback((e) => {
-    if (!isActive || letterDone) return;
-    e.preventDefault();
-    const t = e.touches[0];
-    const [sx, sy] = toSVGCoords(t.clientX, t.clientY);
-    traceRef.current = [[sx, sy]];
-    setCurrentTrace([[sx, sy]]);
-  }, [isActive, letterDone, toSVGCoords]);
-
-  const handleTouchMove = useCallback((e) => {
-    if (!isActive || letterDone || traceRef.current.length === 0) return;
-    e.preventDefault();
-    const t = e.touches[0];
-    const [sx, sy] = toSVGCoords(t.clientX, t.clientY);
-    traceRef.current.push([sx, sy]);
-    setCurrentTrace([...traceRef.current]);
-  }, [isActive, letterDone, toSVGCoords]);
-
-  // Mouse equivalents for desktop/preview testing
-  const mouseDownRef = useRef(false);
-  const handleMouseDown = useCallback((e) => {
-    if (!isActive || letterDone) return;
-    mouseDownRef.current = true;
-    const [sx, sy] = toSVGCoords(e.clientX, e.clientY);
-    traceRef.current = [[sx, sy]];
-    setCurrentTrace([[sx, sy]]);
-  }, [isActive, letterDone, toSVGCoords]);
-
-  const handleMouseMove = useCallback((e) => {
-    if (!isActive || letterDone || !mouseDownRef.current) return;
-    const [sx, sy] = toSVGCoords(e.clientX, e.clientY);
-    traceRef.current.push([sx, sy]);
-    setCurrentTrace([...traceRef.current]);
-  }, [isActive, letterDone, toSVGCoords]);
-
-  const handleMouseUp = useCallback((e) => {
-    if (!mouseDownRef.current) return;
-    mouseDownRef.current = false;
-    // Reuse touch-end logic by synthesizing the same flow
-    if (!isActive || letterDone) { traceRef.current = []; setCurrentTrace(null); return; }
-    const userPath = traceRef.current;
-    traceRef.current = [];
-    setCurrentTrace(null);
-    const strokeIdx = activeStrokeIdx;
-    const stroke = def.strokes[strokeIdx];
-    if (stroke.isDot) {
-      const [sx, sy] = userPath[0] || stroke.start;
-      const [gx, gy] = stroke.start;
-      if (Math.hypot(sx - gx, sy - gy) <= 44) markStrokeComplete(strokeIdx);
-      else recordFail(strokeIdx);
-      return;
-    }
-    if (userPath.length < 2) { recordFail(strokeIdx); return; }
-    const guidePoints = ensureGuidePoints(strokeIdx);
-    if (guidePoints.length === 0) { recordFail(strokeIdx); return; }
-    const { valid } = validateTrace(userPath, guidePoints);
-    if (valid) markStrokeComplete(strokeIdx);
-    else recordFail(strokeIdx);
-  }, [isActive, letterDone, activeStrokeIdx, def, ensureGuidePoints]);
-
-  const handleTouchEnd = useCallback((e) => {
-  if (!isActive || letterDone) {
-    traceRef.current = [];
-    setCurrentTrace(null);
-    return;
-  }
-  e.preventDefault();
-
-  const userPath = traceRef.current;
-  traceRef.current = [];
-  setCurrentTrace(null);
-
-  const strokeIdx = activeStrokeIdx;
-  const stroke = def.strokes[strokeIdx];
-
-  // For dot strokes (i-dot, j-dot) — just a tap near the point
-  if (stroke.isDot) {
-    const [sx, sy] = userPath[0] || stroke.start;
-    const [gx, gy] = stroke.start;
-    const dist = Math.hypot(sx - gx, sy - gy);
-    if (dist <= 44) {
-      markStrokeComplete(strokeIdx);
-    } else {
-      recordFail(strokeIdx);
-    }
-    return;
-  }
-
-  if (userPath.length < 2) {
-    recordFail(strokeIdx);
-    return;
-  }
-
-    const guidePoints = ensureGuidePoints(strokeIdx);
-    if (guidePoints.length === 0) {
-      recordFail(strokeIdx);
-      return;
-    }
-
-    const { valid } = validateTrace(userPath, guidePoints);
-    if (valid) {
-      markStrokeComplete(strokeIdx);
-    } else {
-      recordFail(strokeIdx);
-    }
-  }, [isActive, letterDone, activeStrokeIdx, def, ensureGuidePoints]);
-
-  const markStrokeComplete = (idx) => {
+  const markStrokeComplete = useCallback((idx) => {
+    setFailCounts((prev) => ({ ...prev, [idx]: 0 }));
     setCompletedStrokes((prev) => {
       const next = [...prev, idx];
       if (next.length === numStrokes) {
-        // All strokes done
         setBouncing(true);
         setLetterDone(true);
         setTimeout(() => {
           setBouncing(false);
-          onComplete && onComplete();
+          onComplete?.();
         }, 600);
       } else {
         setActiveStrokeIdx(idx + 1);
+        setCheckpointIndex(0);
       }
       return next;
     });
-    // Reset fail count for this stroke
-    setFailCounts((prev) => ({ ...prev, [idx]: 0 }));
-  };
+  }, [numStrokes, onComplete]);
 
-  const recordFail = (idx) => {
+  const recordFail = useCallback((idx) => {
     setFailCounts((prev) => ({ ...prev, [idx]: (prev[idx] || 0) + 1 }));
-  };
+  }, []);
 
+  // ── Pointer handlers ───────────────────────────────────────────────────────
+  const handlePointerDown = useCallback((e) => {
+    if (!isActive || letterDone) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+
+    const pt = toSVGCoords(e.clientX, e.clientY);
+    const strokeIdx = activeStrokeIdx;
+    const stroke = def?.strokes?.[strokeIdx];
+    if (!stroke) return;
+
+    // Dot strokes — handle entirely in pointerDown (tap)
+    if (stroke.isDot) {
+      sessionRef.current = { isDot: true, strokeIdx, dotCenter: stroke.start };
+      return;
+    }
+
+    // Check start proximity
+    const startDist = Math.hypot(pt[0] - stroke.start[0], pt[1] - stroke.start[1]);
+    if (startDist > mergedConfig.START_TOLERANCE) {
+      // Too far from start — don't begin session, will record fail on up
+      sessionRef.current = { tooFarFromStart: true, strokeIdx };
+      return;
+    }
+
+    const guidePoints = getGuidePoints(strokeIdx);
+    const session = createStrokeSession(stroke, guidePoints, mergedConfig);
+    session.started = true;
+    updateStrokeSession(session, pt);
+    sessionRef.current = session;
+    setCurrentTrace([pt]);
+    setCheckpointIndex(session.checkpointIndex);
+  }, [isActive, letterDone, activeStrokeIdx, def, mergedConfig, getGuidePoints, toSVGCoords]);
+
+  const handlePointerMove = useCallback((e) => {
+    if (!isActive || letterDone) return;
+    const session = sessionRef.current;
+    if (!session || session.isDot || session.tooFarFromStart || !session.started) return;
+
+    e.preventDefault();
+    const pt = toSVGCoords(e.clientX, e.clientY);
+    updateStrokeSession(session, pt);
+    setCurrentTrace([...session.trace]);
+    setCheckpointIndex(session.checkpointIndex);
+  }, [isActive, letterDone, toSVGCoords]);
+
+  const handlePointerUp = useCallback((e) => {
+    if (!isActive || letterDone) return;
+    const session = sessionRef.current;
+    sessionRef.current = null;
+    setCurrentTrace(null);
+
+    if (!session) return;
+    const strokeIdx = session.strokeIdx ?? activeStrokeIdx;
+
+    // Dot tap
+    if (session.isDot) {
+      const pt = toSVGCoords(e.clientX, e.clientY);
+      const ok = validateDotStroke(pt, session.dotCenter, mergedConfig.DOT_TOLERANCE);
+      if (ok) markStrokeComplete(strokeIdx);
+      else recordFail(strokeIdx);
+      return;
+    }
+
+    // Too far from start — instant fail
+    if (session.tooFarFromStart) {
+      recordFail(strokeIdx);
+      return;
+    }
+
+    if (!session.started) return;
+
+    const result = finalizeStrokeSession(session);
+    if (result.valid) markStrokeComplete(strokeIdx);
+    else recordFail(strokeIdx);
+  }, [isActive, letterDone, activeStrokeIdx, mergedConfig, toSVGCoords, markStrokeComplete, recordFail]);
+
+  // ── Render helpers ─────────────────────────────────────────────────────────
   const showHint = (idx) => (failCounts[idx] || 0) >= 2;
 
   if (!def) return null;
 
-  const isStrokeDot = (stroke) => {
-    return stroke.d === `M ${stroke.start[0]},${stroke.start[1]} L ${stroke.start[0]},${stroke.start[1]}`;
-  };
-
-  // Build the trace overlay polyline
   const tracePolyline = currentTrace && currentTrace.length > 1
     ? currentTrace.map(([x, y]) => `${x},${y}`).join(" ")
     : null;
-
-  const viewBox = `0 0 ${CELL_W} ${CELL_H}`;
 
   return (
     <motion.div
@@ -227,16 +213,13 @@ export default function TracingLetter({ letter, isActive, onComplete, scale = 1 
     >
       <svg
         ref={svgRef}
-        viewBox={viewBox}
+        viewBox={`0 0 ${CELL_W} ${CELL_H}`}
         width={CELL_W * scale}
         height={CELL_H * scale}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         style={{
           touchAction: "none",
           userSelect: "none",
@@ -246,24 +229,18 @@ export default function TracingLetter({ letter, isActive, onComplete, scale = 1 
         }}
       >
         {/* 4-line ruled guide */}
-        {/* Top line */}
-        <line x1={2} y1={0} x2={CELL_W - 2} y2={0} stroke="#CBD5E1" strokeWidth={1} />
-        {/* Dashed midline */}
-        <line x1={2} y1={MIDLINE} x2={CELL_W - 2} y2={MIDLINE} stroke="#CBD5E1" strokeWidth={1} strokeDasharray="3 3" />
-        {/* Baseline */}
-        <line x1={2} y1={BASELINE} x2={CELL_W - 2} y2={BASELINE} stroke="#CBD5E1" strokeWidth={1} />
-        {/* Descender line */}
-        <line x1={2} y1={DESCENDER} x2={CELL_W - 2} y2={DESCENDER} stroke="#E2E8F0" strokeWidth={0.8} strokeDasharray="2 4" />
+        <line x1={2} y1={0}        x2={CELL_W-2} y2={0}        stroke="#CBD5E1" strokeWidth={1} />
+        <line x1={2} y1={MIDLINE}  x2={CELL_W-2} y2={MIDLINE}  stroke="#CBD5E1" strokeWidth={1} strokeDasharray="3 3" />
+        <line x1={2} y1={BASELINE} x2={CELL_W-2} y2={BASELINE} stroke="#CBD5E1" strokeWidth={1} />
+        <line x1={2} y1={DESCENDER} x2={CELL_W-2} y2={DESCENDER} stroke="#E2E8F0" strokeWidth={0.8} strokeDasharray="2 4" />
 
-        {/* Letter strokes */}
+        {/* Strokes */}
         {def.strokes.map((stroke, idx) => {
-          const isCompleted = completedStrokes.includes(idx);
-          const isLocked = idx > activeStrokeIdx && !isCompleted;
+          const isCompleted    = completedStrokes.includes(idx);
+          const isLocked       = idx > activeStrokeIdx && !isCompleted;
           const isCurrentStroke = idx === activeStrokeIdx && !isCompleted;
-          const hint = showHint(idx) && isCurrentStroke;
-
-          // Dot letters (i-dot, j-dot) rendered as circle
-          const isDot = !!stroke.isDot;
+          const hint           = showHint(idx) && isCurrentStroke;
+          const isDot          = !!stroke.isDot;
 
           if (isDot) {
             return (
@@ -282,24 +259,29 @@ export default function TracingLetter({ letter, isActive, onComplete, scale = 1 
             );
           }
 
+          // Checkpoint dots (debug / SHOW_CHECKPOINTS mode)
+          const checkpoints = SHOW_CHECKPOINTS && isCurrentStroke
+            ? getCheckpoints(idx)
+            : [];
+
           return (
             <g key={idx}>
-              {/* Hint glow behind */}
+              {/* Hint glow */}
               {hint && (
                 <path
                   d={stroke.d}
                   fill="none"
                   stroke={HINT_COLOR}
-                  strokeWidth={18}
+                  strokeWidth={20}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  opacity={0.5}
+                  opacity={0.45}
                 >
-                  <animate attributeName="opacity" values="0.5;0.15;0.5" dur="1.2s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.45;0.12;0.45" dur="1.2s" repeatCount="indefinite" />
                 </path>
               )}
 
-              {/* Dotted guide path — always visible */}
+              {/* Dotted guide path */}
               <path
                 d={stroke.d}
                 fill="none"
@@ -311,39 +293,55 @@ export default function TracingLetter({ letter, isActive, onComplete, scale = 1 
                 opacity={isCompleted ? 0.9 : isLocked ? 0.25 : isActive ? 1 : 0.5}
               />
 
-              {/* Start indicator arrow/circle for active stroke */}
+              {/* Pulsing start circle for active stroke */}
               {isCurrentStroke && isActive && (
                 <circle
                   cx={stroke.start[0]}
                   cy={stroke.start[1]}
                   r={7}
-                  fill={hint ? HINT_COLOR : "#4ECDC4"}
+                  fill={hint ? HINT_COLOR : THEME_COLOR}
                   opacity={0.9}
                 >
-                  <animate attributeName="r" values="6;9;6" dur="1.4s" repeatCount="indefinite" />
+                  <animate attributeName="r"       values="6;9;6"       dur="1.4s" repeatCount="indefinite" />
                   <animate attributeName="opacity" values="0.9;0.5;0.9" dur="1.4s" repeatCount="indefinite" />
                 </circle>
               )}
+
+              {/* Checkpoint debug dots */}
+              {SHOW_CHECKPOINTS && checkpoints.map((cp, ci) => (
+                <circle
+                  key={ci}
+                  cx={cp[0]}
+                  cy={cp[1]}
+                  r={ci === checkpointIndex ? 4 : 2}
+                  fill={ci < checkpointIndex ? "#4ECDC4" : ci === checkpointIndex ? "#FFD93D" : "#94A3B8"}
+                  opacity={ci < checkpointIndex ? 0.6 : 0.9}
+                >
+                  {ci === checkpointIndex && (
+                    <animate attributeName="r" values="3;5;3" dur="0.8s" repeatCount="indefinite" />
+                  )}
+                </circle>
+              ))}
             </g>
           );
         })}
 
-        {/* Live trace overlay */}
+        {/* Live trace */}
         {tracePolyline && (
           <polyline
             points={tracePolyline}
             fill="none"
-            stroke="#4ECDC4"
+            stroke={THEME_COLOR}
             strokeWidth={5}
             strokeLinecap="round"
             strokeLinejoin="round"
-            opacity={0.7}
+            opacity={0.75}
           />
         )}
 
-        {/* Completion checkmark overlay */}
+        {/* Completion tick */}
         {letterDone && (
-          <motion.text
+          <text
             x={CELL_W / 2}
             y={MIDLINE - 4}
             textAnchor="middle"
@@ -352,7 +350,7 @@ export default function TracingLetter({ letter, isActive, onComplete, scale = 1 
             fontWeight="bold"
           >
             ✓
-          </motion.text>
+          </text>
         )}
       </svg>
     </motion.div>
