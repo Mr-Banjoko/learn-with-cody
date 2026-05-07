@@ -228,6 +228,20 @@ export default function TracingLetter({
           cursor: isActive && !letterDone ? "crosshair" : "default",
         }}
       >
+        {/* Hengshui-style faint reference letter */}
+        <text
+          x={CELL_W / 2}
+          y={BASELINE - 2}
+          textAnchor="middle"
+          fontSize={BASELINE - 4}
+          fontFamily="'ZCOOL XiaoWei', 'Noto Serif SC', serif"
+          fill="#B0C4DE"
+          opacity={0.35}
+          style={{ userSelect: "none", pointerEvents: "none" }}
+        >
+          {letter}
+        </text>
+
         {/* 4-line ruled guide */}
         <line x1={2} y1={0}        x2={CELL_W-2} y2={0}        stroke="#CBD5E1" strokeWidth={1} />
         <line x1={2} y1={MIDLINE}  x2={CELL_W-2} y2={MIDLINE}  stroke="#CBD5E1" strokeWidth={1} strokeDasharray="3 3" />
