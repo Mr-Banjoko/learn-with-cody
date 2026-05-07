@@ -1,257 +1,394 @@
 /**
  * letterPaths.js
- * 
- * SVG path definitions for all 26 lowercase letters.
- * Each letter is defined within a 60×80 coordinate space:
- *   - top line:       y=0   (ascender top)
- *   - dashed midline: y=28
- *   - baseline:       y=56
- *   - descender line: y=80
- * 
- * Single-stroke letters: one path segment
- * Two-stroke letters: array of two path segments with stroke order
- * 
- * Each stroke: { d: SVGPathString, start: [x,y] }
- * start = the expected starting point for validation
+ *
+ * D'Nealian-style cursive SVG paths for all 26 lowercase letters.
+ * Cell: 60 wide × 100 tall
+ *   top (ascender):  y = 0
+ *   midline:         y = 36
+ *   baseline:        y = 68
+ *   descender:       y = 100
+ *
+ * Key D'Nealian characteristics:
+ *  - All strokes are smooth cubic bezier curves (no straight L segments except crossbars)
+ *  - Slight forward slant (~5-10°)
+ *  - Each letter ends with a small exit hook/tail to the right at baseline
+ *  - x-height letters sit between midline (36) and baseline (68)
+ *  - Ascenders rise to ~y=4, descenders fall to ~y=96
  */
 
-// Helper: sample points along a cubic/quadratic bezier path for validation
-// We define guide points directly per letter for simplicity
-
-export const LETTER_CELL = { w: 60, h: 80, midline: 28, baseline: 56, descender: 80 };
-
-// All paths normalized to 60w x 80h cell
-// Single-stroke = strokes array with 1 item
-// Two-stroke = strokes array with 2 items (order enforced)
+export const LETTER_CELL = {
+  w: 60,
+  h: 100,
+  midline: 36,
+  baseline: 68,
+  descender: 100,
+};
 
 export const LETTER_DEFS = {
+
+  // ── a ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: CCW oval (start upper-right, sweep left/down/right back up)
+  // Stroke 2: retrace right side down to baseline with exit hook
   a: {
     strokes: [
       {
-        // CCW oval from upper-right, closes at baseline, then tail down-right
-        d: "M 42,20 C 42,12 34,8 28,8 C 16,8 8,16 8,28 C 8,42 16,52 28,52 C 38,52 44,44 44,36 C 44,28 42,20 42,20 L 44,56",
-        start: [42, 20],
-      }
-    ]
+        d: "M 38,44 C 38,36 32,30 26,30 C 18,30 12,37 12,48 C 12,59 18,66 26,66 C 34,66 38,59 38,50",
+        start: [38, 44],
+      },
+      {
+        d: "M 38,50 C 38,60 38,66 38,66 C 38,66 40,68 44,68",
+        start: [38, 50],
+      },
+    ],
   },
 
+  // ── b ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: tall downstroke from ascender to baseline with exit hook
+  // Stroke 2: CW bump — up from baseline, arch right, back to baseline
   b: {
     strokes: [
-      { d: "M 16,0 L 16,56", start: [16, 0] },
-      { d: "M 16,28 C 16,28 40,28 40,42 C 40,52 32,56 24,56 C 16,56 16,56 16,56", start: [16, 28] },
-    ]
+      {
+        d: "M 14,6 C 14,6 14,50 14,66 C 14,66 16,68 20,68",
+        start: [14, 6],
+      },
+      {
+        d: "M 14,50 C 14,40 20,32 28,32 C 38,32 44,40 44,50 C 44,60 38,68 28,68 C 20,68 14,62 14,56",
+        start: [14, 50],
+      },
+    ],
   },
 
+  // ── c ─────────────────────────────────────────────────────────────────────
+  // Single stroke: open CCW arc starting upper-right, ending mid-right
   c: {
     strokes: [
       {
-        d: "M 44,16 C 40,8 32,4 24,4 C 12,4 4,14 4,28 C 4,42 12,52 24,52 C 32,52 40,48 44,40",
-        start: [44, 16],
-      }
-    ]
+        d: "M 42,40 C 40,32 34,28 26,28 C 16,28 10,36 10,48 C 10,60 16,68 26,68 C 34,68 40,64 44,58",
+        start: [42, 40],
+      },
+    ],
   },
 
+  // ── d ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: CCW oval (like c but closed loop on right)
+  // Stroke 2: tall upstroke from oval top to ascender, then back down to baseline + hook
   d: {
     strokes: [
       {
-        // CCW oval (like 'a' body)
-        d: "M 36,20 C 36,12 30,8 24,8 C 14,8 8,16 8,28 C 8,42 14,52 24,52 C 32,52 36,44 36,36 C 36,28 36,20 36,20",
-        start: [36, 20],
+        d: "M 38,44 C 38,36 32,30 24,30 C 14,30 8,37 8,48 C 8,59 14,66 24,66 C 32,66 38,59 38,50",
+        start: [38, 44],
       },
-      { d: "M 36,0 L 36,56", start: [36, 0] },
-    ]
+      {
+        d: "M 38,44 C 38,36 38,10 40,6 C 40,6 40,66 40,66 C 40,66 42,68 46,68",
+        start: [38, 44],
+      },
+    ],
   },
 
+  // ── e ─────────────────────────────────────────────────────────────────────
+  // Single stroke: start mid-left, sweep right across middle, then CCW arc closing at right
   e: {
     strokes: [
       {
-        // Horizontal mid stroke then CCW arc
-        d: "M 10,30 L 44,30 C 44,30 44,10 28,10 C 14,10 6,18 6,30 C 6,44 14,54 28,54 C 36,54 42,50 46,44",
-        start: [10, 30],
-      }
-    ]
+        d: "M 12,48 C 12,48 40,48 40,48 C 42,38 36,28 26,28 C 16,28 8,36 8,48 C 8,60 16,68 26,68 C 34,68 42,64 46,58",
+        start: [12, 48],
+      },
+    ],
   },
 
+  // ── f ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: start at top-right ascender, curve left over top, sweep down through baseline, curl left at bottom
+  // Stroke 2: crossbar at midline
   f: {
     strokes: [
       {
-        // Tall curved downstroke with hook at bottom
-        d: "M 36,4 C 44,4 44,12 36,14 L 28,14 L 28,52 C 28,54 26,56 24,56",
-        start: [36, 4],
+        d: "M 36,8 C 44,8 46,14 42,18 C 38,22 32,22 30,22 C 30,22 30,66 30,66 C 30,66 28,68 24,68",
+        start: [36, 8],
       },
-      { d: "M 12,28 L 44,28", start: [12, 28] },
-    ]
+      {
+        d: "M 16,38 C 16,38 46,38 46,38",
+        start: [16, 38],
+      },
+    ],
   },
 
+  // ── g ─────────────────────────────────────────────────────────────────────
+  // Single stroke: CCW oval then descender looping left below baseline
   g: {
     strokes: [
       {
-        // CCW oval then descender curving left
-        d: "M 42,20 C 42,12 34,8 28,8 C 16,8 8,16 8,28 C 8,42 16,52 28,52 C 38,52 44,44 44,36 L 44,68 C 44,76 36,80 28,78",
-        start: [42, 20],
-      }
-    ]
+        d: "M 40,44 C 40,36 34,30 26,30 C 16,30 10,37 10,48 C 10,59 16,66 26,66 C 34,66 40,59 40,50 C 40,50 40,80 40,84 C 40,92 34,96 26,92 C 20,90 18,86 18,84",
+        start: [40, 44],
+      },
+    ],
   },
 
+  // ── h ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: tall downstroke with exit hook
+  // Stroke 2: arch up-right then down to baseline with exit hook
   h: {
     strokes: [
-      { d: "M 12,0 L 12,56", start: [12, 0] },
-      { d: "M 12,28 C 12,20 20,16 28,18 C 36,20 40,26 40,34 L 40,56", start: [12, 28] },
-    ]
+      {
+        d: "M 14,6 C 14,6 14,66 14,66 C 14,66 16,68 20,68",
+        start: [14, 6],
+      },
+      {
+        d: "M 14,44 C 14,34 20,28 28,30 C 36,32 40,40 40,48 C 40,56 40,66 40,66 C 40,66 42,68 46,68",
+        start: [14, 44],
+      },
+    ],
   },
 
+  // ── i ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: short downstroke from midline to baseline with exit hook
+  // Stroke 2: dot above midline
   i: {
     strokes: [
-      { d: "M 28,28 L 28,52 C 28,54 30,56 32,56", start: [28, 28] },
-      { d: "M28,18L28,18", start: [28, 18], isDot: true },
-    ]
+      {
+        d: "M 26,36 C 26,36 26,66 26,66 C 26,66 28,68 32,68",
+        start: [26, 36],
+      },
+      {
+        isDot: true,
+        start: [26, 24],
+      },
+    ],
   },
 
+  // ── j ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: downstroke from midline through baseline, descender curls left
+  // Stroke 2: dot
   j: {
     strokes: [
-      { d: "M 32,28 L 32,64 C 32,74 24,78 16,74", start: [32, 28] },
-      { d: "M32,18L32,18", start: [32, 18], isDot: true },
-    ]
+      {
+        d: "M 30,36 C 30,36 30,78 30,82 C 30,92 22,96 16,90 C 14,88 14,86 14,84",
+        start: [30, 36],
+      },
+      {
+        isDot: true,
+        start: [30, 24],
+      },
+    ],
   },
 
+  // ── k ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: tall downstroke with exit hook
+  // Stroke 2: upper kick (curves in from right to spine), lower kick (curves out to baseline)
   k: {
     strokes: [
-      { d: "M 12,0 L 12,56", start: [12, 0] },
-      { d: "M 12,32 L 40,12 M 12,32 L 40,56", start: [40, 12] },
-    ]
+      {
+        d: "M 14,6 C 14,6 14,66 14,66 C 14,66 16,68 20,68",
+        start: [14, 6],
+      },
+      {
+        d: "M 40,30 C 34,34 22,42 14,48 C 22,50 32,58 42,68",
+        start: [40, 30],
+      },
+    ],
   },
 
+  // ── l ─────────────────────────────────────────────────────────────────────
+  // Single stroke: tall downstroke with exit hook
   l: {
     strokes: [
-      { d: "M 28,0 L 28,52 C 28,54 30,56 34,56", start: [28, 0] }
-    ]
+      {
+        d: "M 28,6 C 28,6 28,66 28,66 C 28,66 30,68 34,68",
+        start: [28, 6],
+      },
+    ],
   },
 
+  // ── m ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: first arch — up from baseline, arch right, back down
+  // Stroke 2: second arch continuing right, exit hook
   m: {
     strokes: [
       {
-        // Left arch
-        d: "M 8,56 L 8,36 C 8,24 16,20 22,22 C 28,24 28,32 28,36 L 28,56",
-        start: [8, 56],
+        d: "M 8,68 C 8,68 8,44 8,40 C 8,32 14,28 20,30 C 26,32 28,38 28,44 C 28,50 28,68 28,68",
+        start: [8, 68],
       },
       {
-        // Right arch
-        d: "M 28,36 C 28,24 36,20 42,22 C 48,24 50,32 50,36 L 50,56 C 50,57 52,56 52,56",
-        start: [28, 36],
+        d: "M 28,44 C 28,32 34,28 40,30 C 46,32 48,38 48,44 C 48,50 48,66 48,66 C 48,66 50,68 54,68",
+        start: [28, 44],
       },
-    ]
+    ],
   },
 
+  // ── n ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: first arch
+  // Stroke 2: second arch with exit hook
   n: {
     strokes: [
       {
-        d: "M 8,56 L 8,36 C 8,24 16,20 22,22 C 28,24 28,32 28,36 L 28,56",
-        start: [8, 56],
+        d: "M 8,68 C 8,68 8,44 8,40 C 8,32 14,28 20,30 C 26,32 28,38 28,44 C 28,50 28,68 28,68",
+        start: [8, 68],
       },
       {
-        d: "M 28,36 C 28,24 36,20 42,22 C 48,24 48,32 48,36 L 48,56 C 48,57 50,56 50,56",
-        start: [28, 36],
+        d: "M 28,44 C 28,32 34,28 40,30 C 46,32 48,38 48,44 C 48,50 48,66 48,66 C 48,66 50,68 54,68",
+        start: [28, 44],
       },
-    ]
+    ],
   },
 
+  // ── o ─────────────────────────────────────────────────────────────────────
+  // Single stroke: full CCW oval, closes at upper-right with small exit
   o: {
     strokes: [
       {
-        // Full CCW oval
-        d: "M 42,28 C 42,14 34,6 28,6 C 16,6 8,16 8,28 C 8,42 16,52 28,52 C 40,52 44,42 44,34 C 44,30 42,28 42,28",
-        start: [42, 28],
-      }
-    ]
+        d: "M 42,46 C 42,36 36,28 28,28 C 18,28 10,36 10,48 C 10,60 18,68 28,68 C 38,68 44,60 44,50 C 44,48 44,46 42,46",
+        start: [42, 46],
+      },
+    ],
   },
 
+  // ── p ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: downstroke from midline through baseline to descender
+  // Stroke 2: CW bump from spine upward and around
   p: {
     strokes: [
-      { d: "M 12,28 L 12,76", start: [12, 28] },
-      { d: "M 12,28 C 12,18 20,14 28,16 C 38,18 40,28 38,38 C 36,48 28,54 20,50 C 14,46 12,40 12,36", start: [12, 28] },
-    ]
+      {
+        d: "M 14,36 C 14,36 14,90 14,90",
+        start: [14, 36],
+      },
+      {
+        d: "M 14,36 C 14,26 20,22 28,24 C 38,26 42,34 40,46 C 38,56 30,62 20,60 C 16,58 14,54 14,50",
+        start: [14, 36],
+      },
+    ],
   },
 
+  // ── q ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: CCW oval
+  // Stroke 2: downstroke on right side to descender with small hook
   q: {
     strokes: [
       {
-        d: "M 42,20 C 42,12 34,8 28,8 C 16,8 8,16 8,28 C 8,42 16,52 28,52 C 40,52 44,42 44,34 C 44,26 42,20 42,20",
-        start: [42, 20],
+        d: "M 40,44 C 40,36 34,30 26,30 C 16,30 10,37 10,48 C 10,59 16,66 26,66 C 34,66 40,59 40,50",
+        start: [40, 44],
       },
-      { d: "M 44,36 L 44,76", start: [44, 36] },
-    ]
+      {
+        d: "M 40,50 C 40,60 40,82 40,86 C 40,92 36,96 32,94",
+        start: [40, 50],
+      },
+    ],
   },
 
+  // ── r ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: upstroke from baseline with exit bump shoulder (no full loop)
+  // Stroke 2: curved shoulder right
   r: {
     strokes: [
-      { d: "M 10,56 L 10,28", start: [10, 56] },
-      { d: "M 10,28 C 14,20 22,18 32,22 C 38,24 40,28 38,32", start: [10, 28] },
-    ]
+      {
+        d: "M 12,68 C 12,68 12,38 12,36 C 12,36 14,34 16,34",
+        start: [12, 68],
+      },
+      {
+        d: "M 12,40 C 16,30 24,28 34,32 C 40,36 42,42 40,48",
+        start: [12, 40],
+      },
+    ],
   },
 
+  // ── s ─────────────────────────────────────────────────────────────────────
+  // Single stroke: flowing S-curve
   s: {
     strokes: [
       {
-        d: "M 42,16 C 38,8 28,6 20,10 C 12,14 10,22 16,28 C 22,34 36,34 40,40 C 44,46 40,54 30,56 C 20,58 10,54 8,46",
-        start: [42, 16],
-      }
-    ]
+        d: "M 40,36 C 38,28 32,26 24,28 C 16,30 12,36 16,42 C 20,48 32,48 38,54 C 42,60 40,66 32,68 C 24,70 16,66 12,60",
+        start: [40, 36],
+      },
+    ],
   },
 
+  // ── t ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: tall downstroke (from near-ascender) with exit hook
+  // Stroke 2: crossbar at midline
   t: {
     strokes: [
-      { d: "M 28,8 L 28,52 C 28,54 30,56 34,56", start: [28, 8] },
-      { d: "M 12,28 L 44,28", start: [12, 28] },
-    ]
+      {
+        d: "M 28,12 C 28,12 28,66 28,66 C 28,66 30,68 34,68",
+        start: [28, 12],
+      },
+      {
+        d: "M 14,38 C 14,38 44,38 44,38",
+        start: [14, 38],
+      },
+    ],
   },
 
+  // ── u ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: down from midline, curve at bottom, back up to midline
+  // Stroke 2: back down to baseline with exit hook
   u: {
     strokes: [
-      { d: "M 10,28 L 10,44 C 10,52 16,56 24,54 C 32,52 36,44 36,36", start: [10, 28] },
-      { d: "M 36,36 L 36,28 C 36,28 38,56 40,56", start: [36, 36] },
-    ]
+      {
+        d: "M 10,36 C 10,52 12,62 18,66 C 24,70 32,68 36,62 C 38,58 38,50 38,44",
+        start: [10, 36],
+      },
+      {
+        d: "M 38,44 C 38,44 38,66 38,66 C 38,66 40,68 44,68",
+        start: [38, 44],
+      },
+    ],
   },
 
+  // ── v ─────────────────────────────────────────────────────────────────────
+  // Single stroke: curve down-left to bottom, sweep up-right with exit hook
   v: {
     strokes: [
       {
-        d: "M 8,14 L 28,52 L 50,14",
-        start: [8, 14],
-      }
-    ]
+        d: "M 10,36 C 12,50 16,62 24,68 C 28,70 30,70 34,66 C 40,60 46,48 50,36",
+        start: [10, 36],
+      },
+    ],
   },
 
+  // ── w ─────────────────────────────────────────────────────────────────────
+  // Single stroke: double-v flowing curve
   w: {
     strokes: [
       {
-        d: "M 4,14 L 16,52 L 28,28 L 40,52 L 52,14",
-        start: [4, 14],
-      }
-    ]
+        d: "M 6,36 C 8,50 10,62 16,68 C 18,70 20,70 22,66 C 26,58 28,48 30,44 C 32,50 34,60 38,66 C 40,70 42,70 44,66 C 48,60 52,48 54,36",
+        start: [6, 36],
+      },
+    ],
   },
 
+  // ── x ─────────────────────────────────────────────────────────────────────
+  // Stroke 1: top-left to bottom-right with slight curve
+  // Stroke 2: top-right to bottom-left with slight curve
   x: {
     strokes: [
-      { d: "M 10,14 L 46,52", start: [10, 14] },
-      { d: "M 46,14 L 10,52", start: [46, 14] },
-    ]
+      {
+        d: "M 12,36 C 20,44 32,58 44,68",
+        start: [12, 36],
+      },
+      {
+        d: "M 44,36 C 36,44 24,58 12,68",
+        start: [44, 36],
+      },
+    ],
   },
 
+  // ── y ─────────────────────────────────────────────────────────────────────
+  // Single stroke: V shape then descender looping under baseline to left
   y: {
     strokes: [
       {
-        d: "M 8,14 L 28,42 L 48,14 M 28,42 L 20,68 C 16,76 10,78 6,74",
-        start: [8, 14],
-      }
-    ]
+        d: "M 10,36 C 14,50 18,60 24,66 C 28,70 30,68 32,64 C 36,56 40,46 46,36 C 40,52 34,66 30,76 C 26,86 20,92 14,88 C 10,86 10,84 10,82",
+        start: [10, 36],
+      },
+    ],
   },
 
+  // ── z ─────────────────────────────────────────────────────────────────────
+  // Single stroke: top bar, diagonal down-left, bottom bar with exit hook
   z: {
     strokes: [
       {
-        d: "M 8,14 L 48,14 L 8,52 L 48,52",
-        start: [8, 14],
-      }
-    ]
+        d: "M 12,36 C 12,36 44,36 44,36 C 38,44 24,58 14,68 C 14,68 46,68 48,68",
+        start: [12, 36],
+      },
+    ],
   },
 };

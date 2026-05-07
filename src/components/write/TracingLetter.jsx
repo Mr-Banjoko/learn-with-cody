@@ -37,7 +37,7 @@ const THEME_COLOR    = "#4ECDC4";
 const HINT_COLOR     = "#FFD93D";
 const DOT_COLOR      = "#AAAAAA";
 const COMPLETE_COLOR = "#4ECDC4";
-const DOT_DASH       = "6 8";
+const DOT_DASH       = "5 6";
 
 // Set to true to see checkpoint dots while tuning
 const SHOW_CHECKPOINTS = false;
