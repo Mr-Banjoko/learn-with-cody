@@ -16,7 +16,7 @@ const gameLabels = {
   "draw-line":        { labelZh: "连线游戏",     descZh: "听声音，把图片和字母用线连起来" },
   "letter-sound-connection": { labelZh: "字母音连线", descZh: "画线连接字母和对应的图片" },
 };
-import { Lock, ChevronDown, ChevronUp } from "lucide-react";
+import { Lock } from "lucide-react";
 import WriteHub from "../components/write/WriteHub";
 import PicSliceGame from "./PicSliceGame";
 import WordMatch from "../components/games/WordMatch";
@@ -33,17 +33,8 @@ const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab18
 const gameColors = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF"];
 const gameBgs = ["#FFF0F0", "#EFF6FF", "#F0FFF4"];
 
-const WRITE_SUBFOLDERS = [
-  { id: "write-short-a", label: "Short A", emoji: "🍎" },
-  { id: "write-short-e", label: "Short E", emoji: "🥚" },
-  { id: "write-short-i", label: "Short I", emoji: "🐛" },
-  { id: "write-short-o", label: "Short O", emoji: "🐙" },
-  { id: "write-short-u", label: "Short U", emoji: "☂️" },
-];
-
 export default function Games({ onDeepScreen, lang = "en" }) {
   const [activeGame, setActiveGame] = useState(null);
-  const [writeExpanded, setWriteExpanded] = useState(false);
 
   const enterGame = (id) => {
     setActiveGame(id);
