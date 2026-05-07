@@ -13,13 +13,11 @@ import { shortAWords } from "../../lib/shortAWords";
 
 const WORDS = shortAWords;
 
-// How large to render each letter cell (scale on 60×80 base)
-// We want 3 letters + gaps to fit in ~90% of screen width
-// Screen ~ 390px wide → 3 letters + 2 gaps → each letter ≈ 100px → scale = 100/60 ≈ 1.65
+// Scale so 3 letters fit across ~90% screen width. Cell is 60×100.
 function getScale(screenW) {
-  const available = Math.min(screenW * 0.9, 380);
-  const perLetter = (available - 32) / 3; // 32px for 2 gaps
-  return Math.min(perLetter / 60, 1.8);
+  const available = Math.min(screenW * 0.88, 360);
+  const perLetter = (available - 32) / 3;
+  return Math.min(perLetter / 60, 1.7);
 }
 
 export default function WriteGame({ onBack, lang = "en" }) {
@@ -81,11 +79,7 @@ export default function WriteGame({ onBack, lang = "en" }) {
         }}
       >
         <BackArrow onPress={onBack} />
-        <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
-            {lang === "zh" ? "描写 · Short a" : "Write · Short a"}
-          </p>
-        </div>
+        <div style={{ flex: 1 }} />
         <span style={{ fontSize: 14, color: "#94A3B8", fontWeight: 600 }}>
           {wordIndex + 1}/{WORDS.length}
         </span>
@@ -145,31 +139,16 @@ export default function WriteGame({ onBack, lang = "en" }) {
               />
             </div>
 
-            {/* Word label */}
-            <p style={{ margin: 0, fontSize: 18, fontWeight: 600, color: "#64748B", letterSpacing: 4 }}>
-              {letters.map((l, i) => (
-                <span
-                  key={i}
-                  style={{
-                    color: i < activeLetterIdx ? "#4ECDC4" : i === activeLetterIdx ? "#1E293B" : "#CBD5E1",
-                    transition: "color 0.3s",
-                  }}
-                >
-                  {l}
-                </span>
-              ))}
-            </p>
-
-            {/* Tracing area — 4-line ruled background strip */}
+            {/* Tracing area */}
             <div
               style={{
-                background: "rgba(255,255,255,0.85)",
+                background: "transparent",
                 borderRadius: 20,
                 border: "2px solid rgba(78,205,196,0.2)",
                 boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
                 padding: "12px 16px",
                 display: "flex",
-                alignItems: "flex-start",
+                alignItems: "center",
                 justifyContent: "center",
                 gap: 8,
                 width: "100%",
@@ -177,35 +156,15 @@ export default function WriteGame({ onBack, lang = "en" }) {
               }}
             >
               {letters.map((letter, i) => (
-                <div key={`${wordKey}-${i}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <TracingLetter
-                    letter={letter}
-                    isActive={i === activeLetterIdx}
-                    onComplete={() => handleLetterComplete(i)}
-                    scale={scale}
-                  />
-                  {/* Letter label below */}
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: i < activeLetterIdx ? "#4ECDC4" : i === activeLetterIdx ? "#4ECDC4" : "#CBD5E1",
-                      transition: "color 0.3s",
-                      marginTop: 2,
-                    }}
-                  >
-                    {letter}
-                  </span>
-                </div>
+                <TracingLetter
+                  key={`${wordKey}-${i}`}
+                  letter={letter}
+                  isActive={i === activeLetterIdx}
+                  onComplete={() => handleLetterComplete(i)}
+                  scale={scale}
+                />
               ))}
             </div>
-
-            {/* Instruction prompt */}
-            <p style={{ margin: 0, fontSize: 14, color: "#94A3B8", textAlign: "center", fontWeight: 500 }}>
-              {lang === "zh"
-                ? `描写字母 "${letters[activeLetterIdx].toUpperCase()}"  ✏️`
-                : `Trace the letter "${letters[activeLetterIdx].toUpperCase()}"  ✏️`}
-            </p>
           </motion.div>
         </AnimatePresence>
       </div>

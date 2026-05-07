@@ -27,11 +27,11 @@ import {
 } from "../../lib/tracingRecognition";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
-const CELL_W    = LETTER_CELL.w;        // 60
-const CELL_H    = LETTER_CELL.h;        // 80
-const MIDLINE   = LETTER_CELL.midline;  // 28
-const BASELINE  = LETTER_CELL.baseline; // 56
-const DESCENDER = LETTER_CELL.descender;// 80
+const CELL_W    = LETTER_CELL.w;         // 60
+const CELL_H    = LETTER_CELL.h;         // 100
+const MIDLINE   = LETTER_CELL.midline;   // 36
+const BASELINE  = LETTER_CELL.baseline;  // 68
+const DESCENDER = LETTER_CELL.descender; // 100
 
 const THEME_COLOR    = "#4ECDC4";
 const HINT_COLOR     = "#FFD93D";
@@ -339,19 +339,7 @@ export default function TracingLetter({
           />
         )}
 
-        {/* Completion tick */}
-        {letterDone && (
-          <text
-            x={CELL_W / 2}
-            y={MIDLINE - 4}
-            textAnchor="middle"
-            fontSize={14}
-            fill={THEME_COLOR}
-            fontWeight="bold"
-          >
-            ✓
-          </text>
-        )}
+        {/* No completion tick — handled by parent */}
       </svg>
     </motion.div>
   );
