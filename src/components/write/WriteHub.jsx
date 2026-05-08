@@ -6,10 +6,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import BackArrow from "../BackArrow";
-import WriteGame from "./WriteGame";
 
 const VOWEL_GROUPS = [
-  { id: "short-a", label: "Short A", emoji: "🍎", color: "#FF6B6B", bg: "#FFF0F0", available: true },
+  { id: "short-a", label: "Short A", emoji: "🍎", color: "#FF6B6B", bg: "#FFF0F0", available: false },
   { id: "short-e", label: "Short E", emoji: "🥚", color: "#FFD93D", bg: "#FFFDE7", available: false },
   { id: "short-i", label: "Short I", emoji: "🐛", color: "#6BCB77", bg: "#F0FFF4", available: false },
   { id: "short-o", label: "Short O", emoji: "🐙", color: "#4D96FF", bg: "#EFF6FF", available: false },
@@ -18,10 +17,6 @@ const VOWEL_GROUPS = [
 
 export default function WriteHub({ onBack, lang = "en" }) {
   const [activeGroup, setActiveGroup] = useState(null);
-
-  if (activeGroup === "short-a") {
-    return <WriteGame onBack={() => setActiveGroup(null)} lang={lang} />;
-  }
 
   return (
     <div
