@@ -1,19 +1,19 @@
 /**
  * WriteGame — Short A tracing game
- * Shows word picture + 3 traceable letters (CVC) side by side.
- * Letters must be traced left to right.
- * On word completion, next word loads automatically.
- * On batch completion, calls onComplete().
+ * - Auto-plays word audio when a new round starts
+ * - Tapping the picture replays word audio
+ * - On word completion: letter bounce + letter sounds → word audio → advance
  */
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import TracingLetter from "./TracingLetter";
 import { shortAWords } from "../../lib/shortAWords";
+import { playAudio, playAudioSequence } from "../../lib/useAudio";
+import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 
 const WORDS = shortAWords;
 
-// Scale so 3 letters fit across ~90% screen width. Cell is 60×100.
 function getScale(screenW) {
   const available = Math.min(screenW * 0.88, 360);
   const perLetter = (available - 32) / 3;
@@ -21,38 +21,93 @@ function getScale(screenW) {
 }
 
 export default function WriteGame({ onBack, lang = "en" }) {
-  const [wordIndex, setWordIndex] = useState(0);
+  const [wordIndex, setWordIndex]       = useState(0);
   const [activeLetterIdx, setActiveLetterIdx] = useState(0);
-  const [wordKey, setWordKey] = useState(0);
-  const [allDone, setAllDone] = useState(false);
+  const [wordKey, setWordKey]           = useState(0);
+  const [blocked, setBlocked]           = useState(false);
+  // Which letter index is currently bouncing (-1 = none)
+  const [bouncingIdx, setBouncingIdx]   = useState(-1);
+
+  const cancelSeqRef = useRef(null);
   const screenW = typeof window !== "undefined" ? window.innerWidth : 390;
   const scale = getScale(screenW);
 
-  const card = WORDS[wordIndex];
+  const card    = WORDS[wordIndex];
   const letters = card.word.split("");
 
-  const handleLetterComplete = useCallback((letterIdx) => {
-    if (letterIdx < letters.length - 1) {
-      // Move to next letter
-      setTimeout(() => setActiveLetterIdx(letterIdx + 1), 350);
-    } else {
-      // Word complete — load next
+  // Play word audio whenever wordKey changes (new round)
+  useEffect(() => {
+    if (card.audio) {
+      playAudio(card.audio);
+    }
+  }, [wordKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { cancelSeqRef.current?.(); };
+  }, []);
+
+  const handleImageTap = useCallback(() => {
+    if (card.audio) playAudio(card.audio);
+  }, [card.audio]);
+
+  /**
+   * Called when the last letter of the word is successfully traced.
+   * Runs the completion sequence:
+   *   1. Block UI
+   *   2. Bounce letter 0 + play its sound → letter 1 → letter 2
+   *   3. Play full word audio
+   *   4. Advance to next word
+   */
+  const runCompletionSequence = useCallback(() => {
+    setBlocked(true);
+
+    // Build the audio steps: letter0 sound, letter1 sound, letter2 sound, word audio
+    const audioSteps = letters.map((ch, i) => ({
+      url: getLetterSoundUrl(ch),
+      gain: getLetterGain(ch),
+      onStart: (stepIdx) => {
+        // Bounce the letter whose sound is playing
+        setBouncingIdx(stepIdx);
+        // After 600ms stop bounce, prepare for next
+        setTimeout(() => setBouncingIdx(-1), 600);
+      },
+    }));
+
+    // After all letter sounds, play the word
+    const cancel = playAudioSequence(audioSteps, () => {
+      // Word blend
+      if (card.audio) {
+        playAudio(card.audio);
+      }
+      // Advance after a short pause (word audio duration ~800ms)
       setTimeout(() => {
+        setBlocked(false);
+        setBouncingIdx(-1);
         const next = wordIndex + 1;
         if (next >= WORDS.length) {
-          setAllDone(true);
-          onBack && onBack(); // Return to Write menu when all words done
+          onBack && onBack();
         } else {
           setWordIndex(next);
           setActiveLetterIdx(0);
           setWordKey((k) => k + 1);
         }
-      }, 700);
+      }, 900);
+    });
+
+    cancelSeqRef.current = cancel;
+  }, [letters, card, wordIndex, onBack]);
+
+  const handleLetterComplete = useCallback((letterIdx) => {
+    if (letterIdx < letters.length - 1) {
+      setTimeout(() => setActiveLetterIdx(letterIdx + 1), 350);
+    } else {
+      // Last letter done — run completion sequence
+      setTimeout(() => runCompletionSequence(), 200);
     }
-  }, [wordIndex, letters.length, onBack]);
+  }, [letters.length, runCompletionSequence]);
 
   const progressPct = (wordIndex / WORDS.length) * 100;
-  const cellH = 80 * scale;
 
   return (
     <div
@@ -116,14 +171,17 @@ export default function WriteGame({ onBack, lang = "en" }) {
             transition={{ duration: 0.3 }}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%" }}
           >
-            {/* Word picture */}
+            {/* Word picture — tappable to replay audio */}
             <div
+              onClick={handleImageTap}
               style={{
                 background: "white",
                 borderRadius: 24,
                 padding: 10,
                 boxShadow: "0 8px 32px rgba(30,58,95,0.12)",
                 flexShrink: 0,
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
               }}
             >
               <img
@@ -135,6 +193,7 @@ export default function WriteGame({ onBack, lang = "en" }) {
                   objectFit: "cover",
                   borderRadius: 16,
                   display: "block",
+                  pointerEvents: "none",
                 }}
               />
             </div>
@@ -153,15 +212,18 @@ export default function WriteGame({ onBack, lang = "en" }) {
                 gap: 8,
                 width: "100%",
                 maxWidth: 380,
+                // Block pointer events during completion sequence
+                pointerEvents: blocked ? "none" : "auto",
               }}
             >
               {letters.map((letter, i) => (
                 <TracingLetter
                   key={`${wordKey}-${i}`}
                   letter={letter}
-                  isActive={i === activeLetterIdx}
+                  isActive={!blocked && i === activeLetterIdx}
                   onComplete={() => handleLetterComplete(i)}
                   scale={scale}
+                  bouncing={bouncingIdx === i}
                 />
               ))}
             </div>

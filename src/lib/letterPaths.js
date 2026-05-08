@@ -27,17 +27,17 @@ export const LETTER_CELL = {
 export const LETTER_DEFS = {
 
   // ── a ─────────────────────────────────────────────────────────────────────
-  // Stroke 1: CCW oval (start upper-right, sweep left/down/right back up)
-  // Stroke 2: retrace right side down to baseline with exit hook
+  // Stroke 1: c-shaped CCW arc — start upper-right, sweep left/down, end lower-right
+  // Stroke 2: vertical downstroke from top-right of oval down to baseline with exit hook
   a: {
     strokes: [
       {
-        d: "M 38,44 C 38,36 32,30 26,30 C 18,30 12,37 12,48 C 12,59 18,66 26,66 C 34,66 38,59 38,50",
-        start: [38, 44],
+        d: "M 40,38 C 38,30 32,28 26,28 C 16,28 10,36 10,48 C 10,60 16,68 26,68 C 32,68 38,64 40,58",
+        start: [40, 38],
       },
       {
-        d: "M 38,50 C 38,60 38,66 38,66 C 38,66 40,68 44,68",
-        start: [38, 50],
+        d: "M 40,36 C 40,36 40,66 40,66 C 40,66 42,68 46,68",
+        start: [40, 36],
       },
     ],
   },
@@ -274,13 +274,13 @@ export const LETTER_DEFS = {
   },
 
   // ── r ─────────────────────────────────────────────────────────────────────
-  // Stroke 1: upstroke from baseline with exit bump shoulder (no full loop)
-  // Stroke 2: curved shoulder right
+  // Stroke 1: downstroke — start at midline, stroke down to baseline with exit hook
+  // Stroke 2: shoulder — from top of stroke 1, curve right and slightly up (left→right)
   r: {
     strokes: [
       {
-        d: "M 12,68 C 12,68 12,38 12,36 C 12,36 14,34 16,34",
-        start: [12, 68],
+        d: "M 12,36 C 12,36 12,66 12,66 C 12,66 14,68 18,68",
+        start: [12, 36],
       },
       {
         d: "M 12,40 C 16,30 24,28 34,32 C 40,36 42,42 40,48",
