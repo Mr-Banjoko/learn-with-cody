@@ -1,26 +1,14 @@
 /**
  * syncToMain — pushes current app source files to the `main` branch on GitHub.
  * Admin-only.
+ *
+ * Expects payload: { files: { "github/path": "file content string", ... } }
+ * The frontend reads file contents and sends them here for GitHub upsert.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const REPO = "Mr-Banjoko/learn-with-cody";
 const TARGET_BRANCH = "main";
-
-const FILES_TO_SYNC = [
-  "src/App.jsx",
-  "src/index.css",
-  "src/pages/Games.jsx",
-  "src/lib/content.js",
-  "src/lib/shortAWords.js",
-  "src/lib/letterPaths.js",
-  "src/lib/useAudio.js",
-  "src/lib/letterSounds.js",
-  "src/components/write/WriteGame.jsx",
-  "src/components/write/WriteShortA.jsx",
-  "src/components/write/LetterTracer.jsx",
-  "src/components/AppShell.jsx",
-];
 
 async function getFileSha(token, path, branch) {
   const res = await fetch(
@@ -63,20 +51,35 @@ Deno.serve(async (req) => {
       return Response.json({ error: "Forbidden: Admin access required" }, { status: 403 });
     }
 
-    const { payload } = await req.json().catch(() => ({ payload: {} }));
-    const filesToSync = (payload && payload.files) ? payload.files : FILES_TO_SYNC;
+    const body = await req.json().catch(() => ({}));
+    const files = body?.files;
+
+    if (!files || typeof files !== "object" || Array.isArray(files)) {
+      return Response.json(
+        { error: "Missing payload. Expected: { files: { 'path': 'content', ... } }" },
+        { status: 400 }
+      );
+    }
 
     const { accessToken } = await base44.asServiceRole.connectors.getConnection("github");
 
     const results = [];
-    for (const [path, content] of Object.entries(filesToSync)) {
-      if (typeof content === "string") {
-        await upsertFileText(accessToken, path, content, TARGET_BRANCH);
-        results.push({ path, status: "synced" });
+    const errors = [];
+
+    for (const [ghPath, content] of Object.entries(files)) {
+      if (typeof content !== "string") {
+        errors.push({ path: ghPath, error: "content is not a string" });
+        continue;
+      }
+      try {
+        await upsertFileText(accessToken, ghPath, content, TARGET_BRANCH);
+        results.push({ path: ghPath, status: "synced" });
+      } catch (err) {
+        errors.push({ path: ghPath, error: err.message });
       }
     }
 
-    return Response.json({ success: true, branch: TARGET_BRANCH, files: results });
+    return Response.json({ success: true, branch: TARGET_BRANCH, files: results, errors });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
