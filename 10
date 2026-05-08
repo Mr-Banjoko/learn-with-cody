@@ -1,1 +1,1 @@
-src/components/write/LetterTracer.jsx
+src/lib/tracingRecognition.js
