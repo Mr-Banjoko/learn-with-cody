@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      // Force Safari to never serve a cached index.html by redirecting to a versioned URL.
+      // Bump BUILD_V with every deploy.
+      var BUILD_V = '20260508-e';
+      var url = new URL(window.location.href);
+      if (url.searchParams.get('v') !== BUILD_V) {
+        url.searchParams.set('v', BUILD_V);
+        window.location.replace(url.toString());
+      }
+    </script>
     <meta name="theme-color" content="#A8D0E6" />
     <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
     <title>Learn with Cody</title>
