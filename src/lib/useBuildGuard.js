@@ -19,7 +19,7 @@
 import { useEffect } from "react";
 
 // ── BUMP THIS ON EVERY DEPLOY ─────────────────────────────────────────────────
-export const BUILD_ID = "20260508-f";
+export const BUILD_ID = "20260508-g";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY = "app_build_id";
