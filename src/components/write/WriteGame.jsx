@@ -2,7 +2,7 @@
  * WriteGame — Short A tracing game
  * - Auto-plays word audio when a new round starts
  * - Tapping the picture replays word audio
- * - On word completion: letter bounce + letter sounds → word audio → advance
+ * - On word completion: letter bounce + letter sounds → word blend → advance
  */
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,28 +21,37 @@ function getScale(screenW) {
 }
 
 export default function WriteGame({ onBack, lang = "en" }) {
-  const [wordIndex, setWordIndex]       = useState(0);
+  const [wordIndex, setWordIndex]             = useState(0);
   const [activeLetterIdx, setActiveLetterIdx] = useState(0);
-  const [wordKey, setWordKey]           = useState(0);
-  const [blocked, setBlocked]           = useState(false);
-  // Which letter index is currently bouncing (-1 = none)
-  const [bouncingIdx, setBouncingIdx]   = useState(-1);
+  const [wordKey, setWordKey]                 = useState(0);
+  const [blocked, setBlocked]                 = useState(false);
+  const [bouncingIdx, setBouncingIdx]         = useState(-1);
 
-  const cancelSeqRef = useRef(null);
+  const cancelSeqRef  = useRef(null);
+  const wordIndexRef  = useRef(0); // always in sync with wordIndex for closures
   const screenW = typeof window !== "undefined" ? window.innerWidth : 390;
   const scale = getScale(screenW);
 
   const card    = WORDS[wordIndex];
   const letters = card.word.split("");
 
-  // Play word audio whenever wordKey changes (new round)
-  useEffect(() => {
-    if (card.audio) {
-      playAudio(card.audio);
-    }
-  }, [wordKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Keep ref in sync
+  wordIndexRef.current = wordIndex;
 
-  // Cleanup on unmount
+  // Auto-play word audio whenever wordKey changes (covers every round including first)
+  // We store the audio URL in a ref so the effect always sees the current value
+  const audioUrlRef = useRef(card.audio);
+  audioUrlRef.current = card.audio;
+
+  useEffect(() => {
+    // Small delay so the card transition animation starts first
+    const t = setTimeout(() => {
+      if (audioUrlRef.current) playAudio(audioUrlRef.current);
+    }, 150);
+    return () => clearTimeout(t);
+  }, [wordKey]);
+
+  // Cleanup sequence on unmount
   useEffect(() => {
     return () => { cancelSeqRef.current?.(); };
   }, []);
@@ -52,58 +61,63 @@ export default function WriteGame({ onBack, lang = "en" }) {
   }, [card.audio]);
 
   /**
-   * Called when the last letter of the word is successfully traced.
-   * Runs the completion sequence:
-   *   1. Block UI
-   *   2. Bounce letter 0 + play its sound → letter 1 → letter 2
-   *   3. Play full word audio
-   *   4. Advance to next word
+   * Completion sequence after all 3 letters are traced:
+   *  1. Block UI
+   *  2. Play each letter sound (bounce matching letter while playing)
+   *  3. Play blended word audio as the FINAL step in the same sequence
+   *  4. Advance to next word
    */
-  const runCompletionSequence = useCallback(() => {
+  const runCompletionSequence = useCallback((currentLetters, currentCard, currentWordIndex) => {
     setBlocked(true);
 
-    // Build the audio steps: letter0 sound, letter1 sound, letter2 sound, word audio
-    const audioSteps = letters.map((ch, i) => ({
-      url: getLetterSoundUrl(ch),
-      gain: getLetterGain(ch),
-      onStart: (stepIdx) => {
-        // Bounce the letter whose sound is playing
-        setBouncingIdx(stepIdx);
-        // After 600ms stop bounce, prepare for next
-        setTimeout(() => setBouncingIdx(-1), 600);
+    // Build all steps including word audio as the last step in the sequence
+    // This guarantees word audio always plays — it's not a separate call that can race
+    const steps = [
+      ...currentLetters.map((ch, i) => ({
+        url: getLetterSoundUrl(ch),
+        gain: getLetterGain(ch),
+        onStart: () => {
+          setBouncingIdx(i);
+          setTimeout(() => setBouncingIdx(-1), 600);
+        },
+      })),
+      // Word blend as final sequence step
+      {
+        url: currentCard.audio,
+        gain: 1,
+        onStart: () => {
+          // no bounce during word blend
+          setBouncingIdx(-1);
+        },
       },
-    }));
+    ];
 
-    // After all letter sounds, play the word
-    const cancel = playAudioSequence(audioSteps, () => {
-      // Word blend
-      if (card.audio) {
-        playAudio(card.audio);
-      }
-      // Advance after a short pause (word audio duration ~800ms)
-      setTimeout(() => {
+    const cancel = playAudioSequence(steps, () => {
+      // All audio done — advance
+      const next = currentWordIndex + 1;
+      if (next >= WORDS.length) {
+        onBack && onBack();
+      } else {
         setBlocked(false);
         setBouncingIdx(-1);
-        const next = wordIndex + 1;
-        if (next >= WORDS.length) {
-          onBack && onBack();
-        } else {
-          setWordIndex(next);
-          setActiveLetterIdx(0);
-          setWordKey((k) => k + 1);
-        }
-      }, 900);
+        setWordIndex(next);
+        setActiveLetterIdx(0);
+        setWordKey((k) => k + 1);
+      }
     });
 
     cancelSeqRef.current = cancel;
-  }, [letters, card, wordIndex, onBack]);
+  }, [onBack]);
 
   const handleLetterComplete = useCallback((letterIdx) => {
     if (letterIdx < letters.length - 1) {
       setTimeout(() => setActiveLetterIdx(letterIdx + 1), 350);
     } else {
-      // Last letter done — run completion sequence
-      setTimeout(() => runCompletionSequence(), 200);
+      // Capture current values at the moment of completion — avoids stale closure
+      const currentLetters = WORDS[wordIndexRef.current].word.split("");
+      const currentCard    = WORDS[wordIndexRef.current];
+      const currentIdx     = wordIndexRef.current;
+      setTimeout(() => runCompletionSequence(currentLetters, currentCard, currentIdx), 200);
     }
   }, [letters.length, runCompletionSequence]);
 
@@ -212,7 +226,6 @@ export default function WriteGame({ onBack, lang = "en" }) {
                 gap: 8,
                 width: "100%",
                 maxWidth: 380,
-                // Block pointer events during completion sequence
                 pointerEvents: blocked ? "none" : "auto",
               }}
             >

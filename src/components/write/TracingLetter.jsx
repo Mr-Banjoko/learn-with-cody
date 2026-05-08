@@ -2,19 +2,18 @@
  * TracingLetter
  *
  * Renders a single letter as a guided tracing exercise.
- * Uses pointer events (works on touch, mouse, stylus, tablet).
- * Validation via checkpoint + corridor model from tracingRecognition.js.
+ * Pointer-event driven, validated via tracingRecognition.js.
  *
  * Props:
- *   letter       {string}   — lowercase letter
- *   isActive     {boolean}  — whether this letter accepts input
- *   onComplete   {()=>void} — called when all strokes are done
- *   scale        {number}   — scale applied to 60×100 cell
- *   config       {object}   — optional override for recognition config
- *   bouncing     {boolean}  — external bounce trigger (for completion sequence)
+ *   letter    {string}   — lowercase letter
+ *   isActive  {boolean}  — whether this letter accepts input
+ *   onComplete {()=>void} — called when all strokes are done
+ *   scale     {number}   — scale applied to 60×100 cell
+ *   config    {object}   — optional override for recognition config
+ *   bouncing  {boolean}  — external bounce trigger (completion sequence)
  */
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { LETTER_DEFS, LETTER_CELL } from "../../lib/letterPaths";
 import {
@@ -27,7 +26,6 @@ import {
   DEFAULT_CONFIG,
 } from "../../lib/tracingRecognition";
 
-// ── Constants ──────────────────────────────────────────────────────────────────
 const CELL_W    = LETTER_CELL.w;
 const CELL_H    = LETTER_CELL.h;
 const MIDLINE   = LETTER_CELL.midline;
@@ -42,91 +40,77 @@ const DOT_DASH       = "5 6";
 
 const SHOW_CHECKPOINTS = false;
 
-// ── Directional arrow config per letter per stroke ─────────────────────────────
-// angle in degrees: 0=right, 90=down, 180=left, 270=up
-// -45=up-right(↗), 45=down-right(↘), 135=down-left(↙), -135=up-left(↖)
-const ARROW_ANGLES = {
-  a:  [225, 90],   // Stroke1: ↙ (c-arc starts upper-right going left-down), Stroke2: ↓
-  b:  [90,  135],  // ↓, ↘
-  c:  [225],       // ↙
-  d:  [225, 90],   // ↙, ↓
-  e:  [0],         // → (starts going right across midline)
-  f:  [90,  0],    // ↓, →
-  g:  [225],       // ↙
-  h:  [90,  90],   // ↓, ↓
-  i:  [90,  90],   // ↓, ↓ (dot tap)
-  j:  [90,  90],   // ↓, ↓ (dot tap)
-  k:  [90,  135],  // ↓, ↘
-  l:  [90],        // ↓
-  m:  [270, 270],  // ↑, ↑
-  n:  [270, 270],  // ↑, ↑
-  o:  [225],       // ↙
-  p:  [90,  135],  // ↓, ↘
-  q:  [225, 90],   // ↙, ↓
-  r:  [90,  0],    // ↓, →
-  s:  [225],       // ↙
-  t:  [90,  0],    // ↓, →
-  u:  [90,  270],  // ↓, ↑
-  v:  [135],       // ↘
-  w:  [135],       // ↘
-  x:  [135, 225],  // ↘, ↙
-  y:  [135],       // ↘
-  z:  [0],         // →
-};
+// ── Direction hint helpers ────────────────────────────────────────────────────
+/**
+ * Sample a few points from the start of a path d string,
+ * return the first 2 evenly-spaced points for the direction cue.
+ */
+function getStartPoints(d, count = 8) {
+  if (!d) return [];
+  return samplePathD(d, count);
+}
 
 /**
- * Renders a directional arrow SVG group at (cx, cy) with given angle (degrees).
- * Size matches the old pulsing start circle (~r=7 area).
+ * Draw the first-2-dot direction hint directly on the dotted path:
+ *  - Highlights the first segment of the dotted guide in THEME_COLOR
+ *  - Adds a small arrowhead at the second point pointing in the travel direction
  */
-function DirectionalArrow({ cx, cy, angleDeg, color, hint }) {
-  const rad = (angleDeg * Math.PI) / 180;
-  const arrowLen = 9;
-  const headSize = 5;
+function StrokeDirectionHint({ d, hint }) {
+  const pts = useMemo(() => getStartPoints(d, 10), [d]);
+  if (pts.length < 2) return null;
 
-  // Arrow tip
-  const tx = cx + Math.cos(rad) * arrowLen;
-  const ty = cy + Math.sin(rad) * arrowLen;
-  // Arrow tail
-  const bx = cx - Math.cos(rad) * arrowLen;
-  const by = cy - Math.sin(rad) * arrowLen;
+  const p0 = pts[0];
+  const p1 = pts[2] || pts[1]; // use a slightly further point for better direction
+  const color = hint ? HINT_COLOR : THEME_COLOR;
 
-  // Arrowhead wings (perpendicular to direction)
-  const perp = rad + Math.PI / 2;
-  const w1x = tx - Math.cos(rad) * headSize + Math.cos(perp) * (headSize * 0.5);
-  const w1y = ty - Math.sin(rad) * headSize + Math.sin(perp) * (headSize * 0.5);
-  const w2x = tx - Math.cos(rad) * headSize - Math.cos(perp) * (headSize * 0.5);
-  const w2y = ty - Math.sin(rad) * headSize - Math.sin(perp) * (headSize * 0.5);
+  // Direction vector
+  const dx = p1[0] - p0[0];
+  const dy = p1[1] - p0[1];
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
 
-  const arrowColor = hint ? HINT_COLOR : color;
+  // Arrowhead at p1: tip + two wing points
+  const headLen = 6;
+  const headW   = 3.5;
+  const perpX = -uy;
+  const perpY =  ux;
+
+  const tip = p1;
+  const w1  = [tip[0] - ux * headLen + perpX * headW, tip[1] - uy * headLen + perpY * headW];
+  const w2  = [tip[0] - ux * headLen - perpX * headW, tip[1] - uy * headLen - perpY * headW];
 
   return (
     <g>
-      {/* Glow background circle (same pulse as old dot) */}
-      <circle cx={cx} cy={cy} r={9} fill={arrowColor} opacity={0.25}>
-        <animate attributeName="r"       values="7;11;7"     dur="1.4s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0.25;0.08;0.25" dur="1.4s" repeatCount="indefinite" />
-      </circle>
-      {/* Shaft */}
+      {/* Highlighted first segment — replaces the first dashes with solid color */}
       <line
-        x1={bx} y1={by} x2={tx} y2={ty}
-        stroke={arrowColor}
-        strokeWidth={2.5}
+        x1={p0[0]} y1={p0[1]}
+        x2={p1[0]} y2={p1[1]}
+        stroke={color}
+        strokeWidth={5}
         strokeLinecap="round"
-        opacity={0.95}
+        opacity={0.9}
       >
-        <animate attributeName="opacity" values="0.95;0.5;0.95" dur="1.4s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.9;0.45;0.9" dur="1.4s" repeatCount="indefinite" />
       </line>
-      {/* Head */}
+
+      {/* Pulsing glow dot at start point */}
+      <circle cx={p0[0]} cy={p0[1]} r={5} fill={color} opacity={0.9}>
+        <animate attributeName="r"       values="4;7;4"       dur="1.4s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.4s" repeatCount="indefinite" />
+      </circle>
+
+      {/* Arrowhead */}
       <polyline
-        points={`${w1x},${w1y} ${tx},${ty} ${w2x},${w2y}`}
+        points={`${w1[0]},${w1[1]} ${tip[0]},${tip[1]} ${w2[0]},${w2[1]}`}
         fill="none"
-        stroke={arrowColor}
+        stroke={color}
         strokeWidth={2.5}
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity={0.95}
+        opacity={0.9}
       >
-        <animate attributeName="opacity" values="0.95;0.5;0.95" dur="1.4s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0.9;0.45;0.9" dur="1.4s" repeatCount="indefinite" />
       </polyline>
     </g>
   );
@@ -144,20 +128,19 @@ export default function TracingLetter({
   const numStrokes = def?.strokes?.length ?? 1;
   const mergedConfig = { ...DEFAULT_CONFIG, ...config };
 
-  const [completedStrokes, setCompletedStrokes]   = useState([]);
-  const [activeStrokeIdx, setActiveStrokeIdx]     = useState(0);
-  const [failCounts, setFailCounts]               = useState({});
-  const [letterDone, setLetterDone]               = useState(false);
-  const [internalBouncing, setInternalBouncing]   = useState(false);
-  const [currentTrace, setCurrentTrace]           = useState(null);
-  const [checkpointIndex, setCheckpointIndex]     = useState(0);
+  const [completedStrokes, setCompletedStrokes] = useState([]);
+  const [activeStrokeIdx, setActiveStrokeIdx]   = useState(0);
+  const [failCounts, setFailCounts]             = useState({});
+  const [letterDone, setLetterDone]             = useState(false);
+  const [internalBouncing, setInternalBouncing] = useState(false);
+  const [currentTrace, setCurrentTrace]         = useState(null);
+  const [checkpointIndex, setCheckpointIndex]   = useState(0);
 
   const svgRef        = useRef(null);
   const sessionRef    = useRef(null);
   const guideCache    = useRef({});
   const checkptsCache = useRef({});
 
-  // External bounce (from WriteGame completion sequence) takes priority
   const isBouncing = externalBouncing || internalBouncing;
 
   const getGuidePoints = useCallback((strokeIdx) => {
@@ -267,11 +250,7 @@ export default function TracingLetter({
       return;
     }
 
-    if (session.tooFarFromStart) {
-      recordFail(strokeIdx);
-      return;
-    }
-
+    if (session.tooFarFromStart) { recordFail(strokeIdx); return; }
     if (!session.started) return;
     const result = finalizeStrokeSession(session);
     if (result.valid) markStrokeComplete(strokeIdx);
@@ -285,8 +264,6 @@ export default function TracingLetter({
   const tracePolyline = currentTrace && currentTrace.length > 1
     ? currentTrace.map(([x, y]) => `${x},${y}`).join(" ")
     : null;
-
-  const arrowAngles = ARROW_ANGLES[letter] || [];
 
   return (
     <motion.div
@@ -317,7 +294,6 @@ export default function TracingLetter({
         <line x1={2} y1={BASELINE}  x2={CELL_W-2} y2={BASELINE}  stroke="#CBD5E1" strokeWidth={1} />
         <line x1={2} y1={DESCENDER} x2={CELL_W-2} y2={DESCENDER} stroke="#E2E8F0" strokeWidth={0.8} strokeDasharray="2 4" />
 
-        {/* Strokes */}
         {def.strokes.map((stroke, idx) => {
           const isCompleted     = completedStrokes.includes(idx);
           const isLocked        = idx > activeStrokeIdx && !isCompleted;
@@ -335,22 +311,18 @@ export default function TracingLetter({
                 fill={isCompleted ? COMPLETE_COLOR : hint ? HINT_COLOR : DOT_COLOR}
                 opacity={isLocked ? 0.3 : 1}
               >
-                {hint && (
-                  <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />
+                {isCurrentStroke && isActive && (
+                  <animate attributeName="opacity" values="1;0.4;1" dur="1.4s" repeatCount="indefinite" />
                 )}
               </circle>
             );
           }
 
-          const checkpoints = SHOW_CHECKPOINTS && isCurrentStroke
-            ? getCheckpoints(idx)
-            : [];
-
-          const angleDeg = arrowAngles[idx] ?? 90;
+          const checkpoints = SHOW_CHECKPOINTS && isCurrentStroke ? getCheckpoints(idx) : [];
 
           return (
             <g key={idx}>
-              {/* Hint glow path */}
+              {/* Hint glow over full path (on ≥2 fails) */}
               {hint && (
                 <path
                   d={stroke.d}
@@ -359,9 +331,9 @@ export default function TracingLetter({
                   strokeWidth={20}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  opacity={0.45}
+                  opacity={0.35}
                 >
-                  <animate attributeName="opacity" values="0.45;0.12;0.45" dur="1.2s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.35;0.1;0.35" dur="1.2s" repeatCount="indefinite" />
                 </path>
               )}
 
@@ -377,23 +349,16 @@ export default function TracingLetter({
                 opacity={isCompleted ? 0.9 : isLocked ? 0.25 : isActive ? 1 : 0.5}
               />
 
-              {/* Directional arrow at start position (replaces glowing dot) */}
+              {/* First-2-dot direction hint with arrowhead — only on active stroke */}
               {isCurrentStroke && isActive && (
-                <DirectionalArrow
-                  cx={stroke.start[0]}
-                  cy={stroke.start[1]}
-                  angleDeg={angleDeg}
-                  color={THEME_COLOR}
-                  hint={hint}
-                />
+                <StrokeDirectionHint d={stroke.d} hint={hint} />
               )}
 
               {/* Checkpoint debug dots */}
               {SHOW_CHECKPOINTS && checkpoints.map((cp, ci) => (
                 <circle
                   key={ci}
-                  cx={cp[0]}
-                  cy={cp[1]}
+                  cx={cp[0]} cy={cp[1]}
                   r={ci === checkpointIndex ? 4 : 2}
                   fill={ci < checkpointIndex ? "#4ECDC4" : ci === checkpointIndex ? "#FFD93D" : "#94A3B8"}
                   opacity={ci < checkpointIndex ? 0.6 : 0.9}
