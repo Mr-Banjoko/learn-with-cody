@@ -323,8 +323,8 @@ function drawSolidStroke(ctx, pts, w, h, color = "#ffffff", lineWidth = 10) {
   ctx.restore();
 }
 
-function drawArrow(ctx, pt, direction, w, h, pulse) {
-  const x = pt.x * w, y = pt.y * h, r = 18 + pulse * 4;
+function drawArrow(ctx, pt, direction, w, h) {
+  const x = pt.x * w, y = pt.y * h, r = 18;
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -337,6 +337,35 @@ function drawArrow(ctx, pt, direction, w, h, pulse) {
   const arrows = { right: "→", left: "←", down: "↓", up: "↑", "down-right": "↘", "down-left": "↙" };
   ctx.fillText(arrows[direction] || "→", x, y);
   ctx.restore();
+}
+
+function drawHintDots(ctx, pts, w, h) {
+  // Draw the first 3 evenly-spaced hint dots along the stroke in pink
+  if (pts.length < 2) return;
+  const resampled = [];
+  const totalLen = pts.reduce((acc, p, i) => (i === 0 ? 0 : acc + Math.hypot(pts[i-1].x - p.x, pts[i-1].y - p.y)), 0);
+  const step = totalLen / 4; // 3 dots at 1/4, 2/4, 3/4 along the path
+  let dist = 0, pi = 1, prev = pts[0];
+  for (let d = 1; d <= 3; d++) {
+    const target = step * d;
+    while (pi < pts.length && dist + Math.hypot(prev.x - pts[pi].x, prev.y - pts[pi].y) < target) {
+      dist += Math.hypot(prev.x - pts[pi].x, prev.y - pts[pi].y);
+      prev = pts[pi]; pi++;
+    }
+    if (pi >= pts.length) { resampled.push(pts[pts.length - 1]); continue; }
+    const rem = target - dist;
+    const seg = Math.hypot(prev.x - pts[pi].x, prev.y - pts[pi].y);
+    const t = seg === 0 ? 0 : rem / seg;
+    resampled.push({ x: prev.x + (pts[pi].x - prev.x) * t, y: prev.y + (pts[pi].y - prev.y) * t });
+  }
+  resampled.forEach(pt => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(pt.x * w, pt.y * h, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#f472b6";
+    ctx.fill();
+    ctx.restore();
+  });
 }
 
 function drawDot(ctx, pt, w, h) {
@@ -361,8 +390,6 @@ function getStrokeDirection(pts) {
 
 export default function LetterTrace({ letter = "a", onComplete }) {
   const canvasRef = useRef(null);
-  const pulseRef = useRef(0);
-  const pulseDir = useRef(1);
 
   const [currentStroke, setCurrentStroke] = useState(0);
   const [completedStrokes, setCompletedStrokes] = useState([]);
@@ -413,7 +440,10 @@ export default function LetterTrace({ letter = "a", onComplete }) {
     if (isDrawing && userPoints.length > 1) drawSolidStroke(ctx, userPoints, W, H, "#38bdf8", 10);
     if (!done && currentStroke < strokes.length) {
       const stroke = strokes[currentStroke];
-      if (!stroke.isDot) drawArrow(ctx, stroke.points[0], getStrokeDirection(stroke.points), W, H, pulseRef.current);
+      if (!stroke.isDot) {
+        drawHintDots(ctx, stroke.points, W, H);
+        drawArrow(ctx, stroke.points[0], getStrokeDirection(stroke.points), W, H);
+      }
     }
     if (feedback === "correct") {
       ctx.save(); ctx.fillStyle = "rgba(34,197,94,0.18)"; ctx.fillRect(0, 0, W, H); ctx.restore();
@@ -424,13 +454,7 @@ export default function LetterTrace({ letter = "a", onComplete }) {
 
   useEffect(() => {
     let frame;
-    const loop = () => {
-      pulseRef.current += 0.05 * pulseDir.current;
-      if (pulseRef.current > 1) pulseDir.current = -1;
-      if (pulseRef.current < 0) pulseDir.current = 1;
-      render();
-      frame = requestAnimationFrame(loop);
-    };
+    const loop = () => { render(); frame = requestAnimationFrame(loop); };
     frame = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frame);
   }, [render]);
