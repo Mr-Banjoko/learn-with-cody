@@ -344,42 +344,39 @@ function drawActiveStroke(ctx, pts, w, h) {
   ctx.restore();
 }
 
-function drawStartTip(ctx, pt, w, h) {
-  const x = pt.x * w, y = pt.y * h, r = 14;
+function getAngle(from, to, w, h) {
+  return Math.atan2((to.y - from.y) * h, (to.x - from.x) * w);
+}
+
+function drawArrowhead(ctx, x, y, angle, size, color) {
   ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
   ctx.beginPath();
-  ctx.arc(x, y, r + 6, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(34, 197, 94, 0.2)";
+  ctx.moveTo(size, 0);
+  ctx.lineTo(-size, -size * 0.6);
+  ctx.lineTo(-size, size * 0.6);
+  ctx.closePath();
+  ctx.fillStyle = color;
   ctx.fill();
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = "#22c55e";
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 2;
   ctx.stroke();
   ctx.restore();
 }
 
-function drawEndTip(ctx, pt, w, h) {
-  const x = pt.x * w, y = pt.y * h, r = 10;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(x, y, r + 5, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = "#ef4444";
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-  ctx.restore();
+function drawStartArrowhead(ctx, pts, w, h) {
+  if (pts.length < 2) return;
+  const angle = getAngle(pts[0], pts[1], w, h);
+  drawArrowhead(ctx, pts[0].x * w, pts[0].y * h, angle, 14, "#22c55e");
+}
+
+function drawEndArrowhead(ctx, pts, w, h) {
+  if (pts.length < 2) return;
+  const last = pts[pts.length - 1];
+  const prev = pts[pts.length - 2];
+  const angle = getAngle(prev, last, w, h);
+  drawArrowhead(ctx, last.x * w, last.y * h, angle, 11, "#ef4444");
 }
 
 function drawDot(ctx, pt, w, h) {
@@ -437,8 +434,8 @@ export default function LetterTrace({ letter = "a", onComplete }) {
       if (stroke.isDot) { drawDot(ctx, stroke.points[0], W, H); return; }
       if (idx === currentStroke) {
         drawActiveStroke(ctx, stroke.points, W, H);
-        drawStartTip(ctx, stroke.points[0], W, H);
-        drawEndTip(ctx, stroke.points[stroke.points.length - 1], W, H);
+        drawStartArrowhead(ctx, stroke.points, W, H);
+        drawEndArrowhead(ctx, stroke.points, W, H);
       } else {
         drawDottedStroke(ctx, stroke.points, W, H, 0.3);
       }
