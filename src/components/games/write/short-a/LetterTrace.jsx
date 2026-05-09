@@ -634,14 +634,6 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
         />
       </div>
 
-      <div style={{ height: 24, fontSize: 16, fontWeight: 700, fontFamily: "Fredoka, sans-serif" }}>
-        {done
-          ? <span style={{ color: "#22c55e" }}>✓ Great job!</span>
-          : feedback === "wrong"
-          ? <span style={{ color: "#ef4444" }}>Try again! 💪</span>
-          : null}
-      </div>
-
       <style>{`@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}`}</style>
     </div>
   );
