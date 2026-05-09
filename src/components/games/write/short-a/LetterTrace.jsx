@@ -299,7 +299,7 @@ function drawDottedStroke(ctx, pts, w, h, alpha = 1) {
   if (pts.length < 2) return;
   ctx.save();
   ctx.globalAlpha = alpha;
-  ctx.strokeStyle = "#aaaaaa";
+  ctx.strokeStyle = "#7BACC8";
   ctx.lineWidth = 3;
   ctx.setLineDash([6, 8]);
   ctx.lineCap = "round";
@@ -383,7 +383,7 @@ function drawDot(ctx, pt, w, h) {
   ctx.save();
   ctx.beginPath();
   ctx.arc(pt.x * w, pt.y * h, 8, 0, Math.PI * 2);
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = "#1E3A5F";
   ctx.fill();
   ctx.restore();
 }
@@ -399,7 +399,7 @@ function getStrokeDirection(pts) {
   return "right";
 }
 
-export default function LetterTrace({ letter = "a", onComplete }) {
+export default function LetterTrace({ letter = "a", onComplete, locked = false }) {
   const canvasRef = useRef(null);
 
   const [currentStroke, setCurrentStroke] = useState(0);
@@ -419,10 +419,12 @@ export default function LetterTrace({ letter = "a", onComplete }) {
     const ctx = canvas.getContext("2d");
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = "#0f172a";
+    // Light, app-consistent background
+    ctx.fillStyle = "#f0f8ff";
     ctx.fillRect(0, 0, W, H);
+    // Subtle guide lines
     ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.strokeStyle = "rgba(74,144,196,0.12)";
     ctx.lineWidth = 1;
     ctx.setLineDash([6, 6]);
     ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
@@ -447,21 +449,21 @@ export default function LetterTrace({ letter = "a", onComplete }) {
         ctx.save();
         ctx.beginPath();
         ctx.arc(stroke.points[0].x * W, stroke.points[0].y * H, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = "#1E3A5F";
         ctx.fill();
         ctx.restore();
         return;
       }
-      drawSolidStroke(ctx, stroke.points, W, H, "#ffffff", 10);
+      drawSolidStroke(ctx, stroke.points, W, H, "#1E3A5F", 10);
     });
-    if (isDrawing && userPoints.length > 1) drawSolidStroke(ctx, userPoints, W, H, "#38bdf8", 10);
+    if (isDrawing && userPoints.length > 1) drawSolidStroke(ctx, userPoints, W, H, "#4A90C4", 10);
 
     if (feedback === "correct") {
       ctx.save(); ctx.fillStyle = "rgba(34,197,94,0.18)"; ctx.fillRect(0, 0, W, H); ctx.restore();
     } else if (feedback === "wrong") {
       ctx.save(); ctx.fillStyle = "rgba(239,68,68,0.18)"; ctx.fillRect(0, 0, W, H); ctx.restore();
     }
-  }, [strokes, currentStroke, completedStrokes, isDrawing, userPoints, feedback, done]);
+  }, [strokes, currentStroke, completedStrokes, isDrawing, userPoints, feedback, done, locked]);
 
   useEffect(() => {
     let frame;
@@ -481,7 +483,7 @@ export default function LetterTrace({ letter = "a", onComplete }) {
 
   const handleStart = (e) => {
     e.preventDefault();
-    if (done) return;
+    if (done || locked) return;
     const pos = getPos(e, canvasRef.current);
     setIsDrawing(true);
     setUserPoints([pos]);
@@ -533,21 +535,32 @@ export default function LetterTrace({ letter = "a", onComplete }) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, userSelect: "none" }}>
-      <div style={{ fontSize: 48, fontFamily: "'Noto Serif', serif", color: "#ffffff", letterSpacing: 2 }}>
-        {letter.toLowerCase()}
-      </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        {strokes.map((_, i) => (
-          <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: completedStrokes.includes(i) ? "#22c55e" : i === currentStroke ? "#38bdf8" : "#334155", transition: "background 0.3s" }} />
-        ))}
-      </div>
-      <div style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.5)", transform: shake ? "translateX(-6px)" : "translateX(0)", transition: "transform 0.1s", animation: shake ? "shake 0.4s" : "none" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, userSelect: "none" }}>
+      {/* Stroke progress dots */}
+      {strokes.length > 1 && (
+        <div style={{ display: "flex", gap: 8 }}>
+          {strokes.map((_, i) => (
+            <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: completedStrokes.includes(i) ? "#22c55e" : i === currentStroke ? "#4A90C4" : "rgba(74,144,196,0.25)", transition: "background 0.3s" }} />
+          ))}
+        </div>
+      )}
+
+      {/* Canvas */}
+      <div style={{
+        borderRadius: 24, overflow: "hidden",
+        boxShadow: "0 6px 28px rgba(30,58,95,0.14)",
+        border: "2.5px solid rgba(168,208,230,0.6)",
+        transform: shake ? "translateX(-6px)" : "translateX(0)",
+        transition: "transform 0.1s",
+        animation: shake ? "shake 0.4s" : "none",
+        opacity: locked ? 0.7 : 1,
+        pointerEvents: locked ? "none" : "auto",
+      }}>
         <canvas
           ref={canvasRef}
           width={SIZE}
           height={SIZE}
-          style={{ display: "block", touchAction: "none", cursor: "crosshair", width: SIZE, height: SIZE }}
+          style={{ display: "block", touchAction: "none", cursor: locked ? "default" : "crosshair", width: SIZE, height: SIZE }}
           onMouseDown={handleStart}
           onMouseMove={handleMove}
           onMouseUp={handleEnd}
@@ -557,10 +570,16 @@ export default function LetterTrace({ letter = "a", onComplete }) {
           onTouchEnd={handleEnd}
         />
       </div>
-      <div style={{ height: 32, fontSize: 20, fontWeight: "bold" }}>
-        {done ? <span style={{ color: "#22c55e" }}>✓ Excellent!</span> : feedback === "wrong" ? <span style={{ color: "#ef4444" }}>Try again!</span> : null}
+
+      {/* Feedback */}
+      <div style={{ height: 28, fontSize: 18, fontWeight: 700, fontFamily: "Fredoka, sans-serif" }}>
+        {done
+          ? <span style={{ color: "#22c55e" }}>✓ Great job!</span>
+          : feedback === "wrong"
+          ? <span style={{ color: "#ef4444" }}>Try again! 💪</span>
+          : null}
       </div>
-      {!done && <div style={{ color: "#94a3b8", fontSize: 14 }}>Stroke {currentStroke + 1} of {strokes.length}</div>}
+
       <style>{`@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}`}</style>
     </div>
   );
