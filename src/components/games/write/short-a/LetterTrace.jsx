@@ -1,238 +1,259 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 
+// ─── Layout constants (normalised 0-1) ───────────────────────────────────────
+// TOP  = 0.05  solid line  — top of writing zone / where ascenders start
+// MID  = 0.38  dashed line — x-height (top of short-letter body)
+// BASE = 0.65  solid line  — baseline
+// DESC = 0.95  implicit    — bottom of descender zone
+//
+// Short letters:  body between MID(0.38) and BASE(0.65)
+// Ascenders:      stem starts at TOP(0.05), body top at MID(0.38)
+// Descenders:     body in MID–BASE zone, tail reaches down to ~0.90–0.95
+// ─────────────────────────────────────────────────────────────────────────────
+
+const T = 0.05;   // top line
+const M = 0.38;   // middle dashed line
+const B = 0.65;   // baseline
+
 const LETTER_STROKES = {
+  // ── SHORT LETTERS (body between M and B) ───────────────────────────────────
   a: [
-    // stroke 1: C shape (open on the right)
-    {
-      points: [
-        { x: 0.62, y: 0.34 }, { x: 0.52, y: 0.28 }, { x: 0.40, y: 0.28 },
-        { x: 0.28, y: 0.34 }, { x: 0.22, y: 0.46 }, { x: 0.22, y: 0.58 },
-        { x: 0.28, y: 0.68 }, { x: 0.40, y: 0.72 }, { x: 0.52, y: 0.72 },
-        { x: 0.62, y: 0.66 },
-      ],
-    },
-    // stroke 2: straight vertical line on the right
-    {
-      points: [
-        { x: 0.62, y: 0.28 }, { x: 0.62, y: 0.72 },
-      ],
-    },
+    // oval: starts at mid-right, goes CCW
+    { points: [
+      { x: 0.62, y: 0.44 }, { x: 0.52, y: M+0.01 }, { x: 0.40, y: M+0.01 },
+      { x: 0.28, y: 0.44 }, { x: 0.24, y: 0.52 }, { x: 0.28, y: 0.59 },
+      { x: 0.40, y: B },    { x: 0.52, y: B },    { x: 0.62, y: 0.59 },
+    ]},
+    // right stem: top to base
+    { points: [{ x: 0.62, y: M+0.01 }, { x: 0.62, y: B }] },
   ],
+
   b: [
-    { points: [{ x: 0.30, y: 0.15 }, { x: 0.30, y: 0.72 }] },
-    {
-      points: [
-        { x: 0.30, y: 0.38 }, { x: 0.42, y: 0.30 }, { x: 0.58, y: 0.32 },
-        { x: 0.65, y: 0.44 }, { x: 0.65, y: 0.58 }, { x: 0.58, y: 0.68 },
-        { x: 0.42, y: 0.72 }, { x: 0.30, y: 0.72 },
-      ],
-    },
+    // tall stem: top line down to base
+    { points: [{ x: 0.30, y: T }, { x: 0.30, y: B }] },
+    // bump: from mid down
+    { points: [
+      { x: 0.30, y: M+0.05 }, { x: 0.42, y: M+0.01 }, { x: 0.58, y: M+0.04 },
+      { x: 0.66, y: 0.48 },   { x: 0.66, y: 0.57 },   { x: 0.58, y: B-0.01 },
+      { x: 0.42, y: B },      { x: 0.30, y: B },
+    ]},
   ],
+
   c: [
-    {
-      points: [
-        { x: 0.65, y: 0.34 }, { x: 0.55, y: 0.28 }, { x: 0.42, y: 0.28 },
-        { x: 0.30, y: 0.34 }, { x: 0.24, y: 0.46 }, { x: 0.24, y: 0.58 },
-        { x: 0.30, y: 0.68 }, { x: 0.42, y: 0.72 }, { x: 0.55, y: 0.72 },
-        { x: 0.65, y: 0.66 },
-      ],
-    },
+    { points: [
+      { x: 0.66, y: 0.44 }, { x: 0.55, y: M+0.01 }, { x: 0.42, y: M+0.01 },
+      { x: 0.30, y: 0.44 }, { x: 0.24, y: 0.52 }, { x: 0.30, y: 0.59 },
+      { x: 0.42, y: B },    { x: 0.55, y: B },    { x: 0.66, y: 0.59 },
+    ]},
   ],
+
   d: [
-    {
-      points: [
-        { x: 0.58, y: 0.38 }, { x: 0.48, y: 0.30 }, { x: 0.36, y: 0.30 },
-        { x: 0.26, y: 0.38 }, { x: 0.22, y: 0.50 }, { x: 0.26, y: 0.62 },
-        { x: 0.36, y: 0.70 }, { x: 0.48, y: 0.72 }, { x: 0.58, y: 0.68 },
-      ],
-    },
-    { points: [{ x: 0.62, y: 0.15 }, { x: 0.62, y: 0.72 }] },
+    // oval in x-height zone
+    { points: [
+      { x: 0.58, y: 0.45 }, { x: 0.48, y: M+0.01 }, { x: 0.36, y: M+0.01 },
+      { x: 0.26, y: 0.45 }, { x: 0.22, y: 0.52 }, { x: 0.26, y: 0.59 },
+      { x: 0.36, y: B },    { x: 0.48, y: B },    { x: 0.58, y: 0.59 },
+    ]},
+    // tall stem: top line down to base
+    { points: [{ x: 0.62, y: T }, { x: 0.62, y: B }] },
   ],
+
   e: [
-    {
-      points: [
-        { x: 0.28, y: 0.50 }, { x: 0.40, y: 0.44 }, { x: 0.55, y: 0.44 },
-        { x: 0.65, y: 0.50 }, { x: 0.65, y: 0.60 }, { x: 0.55, y: 0.70 },
-        { x: 0.40, y: 0.72 }, { x: 0.28, y: 0.66 }, { x: 0.24, y: 0.54 },
-        { x: 0.28, y: 0.42 }, { x: 0.38, y: 0.30 }, { x: 0.55, y: 0.28 },
-        { x: 0.65, y: 0.34 },
-      ],
-    },
+    { points: [
+      { x: 0.26, y: 0.52 }, { x: 0.40, y: 0.45 }, { x: 0.56, y: 0.45 },
+      { x: 0.66, y: 0.52 }, { x: 0.66, y: 0.59 }, { x: 0.56, y: B-0.01 },
+      { x: 0.40, y: B },    { x: 0.26, y: 0.59 }, { x: 0.24, y: 0.52 },
+      { x: 0.26, y: 0.44 }, { x: 0.38, y: M+0.01 }, { x: 0.56, y: M+0.01 },
+      { x: 0.66, y: 0.44 },
+    ]},
   ],
+
   f: [
-    {
-      points: [
-        { x: 0.62, y: 0.20 }, { x: 0.52, y: 0.14 }, { x: 0.42, y: 0.14 },
-        { x: 0.36, y: 0.20 }, { x: 0.36, y: 0.72 },
-      ],
-    },
-    { points: [{ x: 0.22, y: 0.38 }, { x: 0.58, y: 0.38 }] },
+    // curved stem: starts at top, curves right at top, descends past base
+    { points: [
+      { x: 0.62, y: T+0.04 }, { x: 0.52, y: T },    { x: 0.42, y: T+0.02 },
+      { x: 0.36, y: T+0.08 }, { x: 0.36, y: B },     { x: 0.36, y: 0.90 },
+    ]},
+    // crossbar at middle line
+    { points: [{ x: 0.18, y: M }, { x: 0.58, y: M }] },
   ],
+
   g: [
-    {
-      points: [
-        { x: 0.65, y: 0.36 }, { x: 0.55, y: 0.28 }, { x: 0.42, y: 0.28 },
-        { x: 0.30, y: 0.34 }, { x: 0.24, y: 0.46 }, { x: 0.24, y: 0.58 },
-        { x: 0.30, y: 0.68 }, { x: 0.42, y: 0.72 }, { x: 0.55, y: 0.68 },
-        { x: 0.65, y: 0.58 }, { x: 0.65, y: 0.28 },
-        { x: 0.65, y: 0.80 }, { x: 0.60, y: 0.88 }, { x: 0.48, y: 0.90 },
-        { x: 0.36, y: 0.86 },
-      ],
-    },
+    // oval in x-height zone + descender tail
+    { points: [
+      { x: 0.65, y: 0.45 }, { x: 0.54, y: M+0.01 }, { x: 0.42, y: M+0.01 },
+      { x: 0.30, y: 0.45 }, { x: 0.24, y: 0.52 }, { x: 0.30, y: 0.59 },
+      { x: 0.42, y: B },    { x: 0.54, y: B-0.01 }, { x: 0.65, y: 0.58 },
+      { x: 0.65, y: M+0.01 },
+      { x: 0.65, y: 0.78 }, { x: 0.60, y: 0.88 }, { x: 0.48, y: 0.92 },
+      { x: 0.36, y: 0.88 },
+    ]},
   ],
+
   h: [
-    { points: [{ x: 0.28, y: 0.15 }, { x: 0.28, y: 0.72 }] },
-    {
-      points: [
-        { x: 0.28, y: 0.44 }, { x: 0.38, y: 0.32 }, { x: 0.52, y: 0.28 },
-        { x: 0.64, y: 0.32 }, { x: 0.68, y: 0.44 }, { x: 0.68, y: 0.72 },
-      ],
-    },
+    // tall stem
+    { points: [{ x: 0.28, y: T }, { x: 0.28, y: B }] },
+    // arch and right leg — arch rises to middle line
+    { points: [
+      { x: 0.28, y: M+0.08 }, { x: 0.38, y: M+0.01 }, { x: 0.52, y: M+0.01 },
+      { x: 0.64, y: M+0.07 }, { x: 0.68, y: M+0.16 }, { x: 0.68, y: B },
+    ]},
   ],
+
   i: [
-    { points: [{ x: 0.44, y: 0.38 }, { x: 0.44, y: 0.72 }] },
-    { points: [{ x: 0.44, y: 0.24 }, { x: 0.44, y: 0.26 }], isDot: true },
+    // body: mid to base
+    { points: [{ x: 0.44, y: M+0.04 }, { x: 0.44, y: B }] },
+    // dot: just above mid line
+    { points: [{ x: 0.44, y: M-0.05 }, { x: 0.44, y: M-0.04 }], isDot: true },
   ],
+
   j: [
-    {
-      points: [
-        { x: 0.52, y: 0.38 }, { x: 0.52, y: 0.78 },
-        { x: 0.46, y: 0.86 }, { x: 0.36, y: 0.88 }, { x: 0.28, y: 0.84 },
-      ],
-    },
-    { points: [{ x: 0.52, y: 0.24 }, { x: 0.52, y: 0.26 }], isDot: true },
+    // body: mid, curves below base as descender
+    { points: [
+      { x: 0.52, y: M+0.04 }, { x: 0.52, y: 0.80 },
+      { x: 0.46, y: 0.88 },   { x: 0.36, y: 0.90 }, { x: 0.28, y: 0.86 },
+    ]},
+    // dot: just above mid line
+    { points: [{ x: 0.52, y: M-0.05 }, { x: 0.52, y: M-0.04 }], isDot: true },
   ],
+
   k: [
-    { points: [{ x: 0.30, y: 0.15 }, { x: 0.30, y: 0.72 }] },
-    { points: [{ x: 0.68, y: 0.28 }, { x: 0.30, y: 0.50 }, { x: 0.68, y: 0.72 }] },
+    // tall stem
+    { points: [{ x: 0.30, y: T }, { x: 0.30, y: B }] },
+    // upper diagonal: from mid area down to centre
+    { points: [{ x: 0.68, y: M+0.01 }, { x: 0.30, y: 0.52 }] },
+    // lower diagonal: from centre down to base
+    { points: [{ x: 0.30, y: 0.52 }, { x: 0.68, y: B }] },
   ],
+
   l: [
-    {
-      points: [
-        { x: 0.40, y: 0.15 }, { x: 0.40, y: 0.68 },
-        { x: 0.46, y: 0.72 }, { x: 0.54, y: 0.72 },
-      ],
-    },
+    { points: [
+      { x: 0.40, y: T }, { x: 0.40, y: B-0.02 },
+      { x: 0.46, y: B }, { x: 0.54, y: B },
+    ]},
   ],
+
   m: [
-    { points: [{ x: 0.18, y: 0.38 }, { x: 0.18, y: 0.72 }] },
-    {
-      points: [
-        { x: 0.18, y: 0.44 }, { x: 0.26, y: 0.32 }, { x: 0.38, y: 0.28 },
-        { x: 0.48, y: 0.32 }, { x: 0.52, y: 0.44 }, { x: 0.52, y: 0.72 },
-      ],
-    },
-    {
-      points: [
-        { x: 0.52, y: 0.44 }, { x: 0.60, y: 0.32 }, { x: 0.72, y: 0.28 },
-        { x: 0.80, y: 0.32 }, { x: 0.82, y: 0.44 }, { x: 0.82, y: 0.72 },
-      ],
-    },
+    // left leg
+    { points: [{ x: 0.12, y: M+0.04 }, { x: 0.12, y: B }] },
+    // first arch
+    { points: [
+      { x: 0.12, y: M+0.10 }, { x: 0.22, y: M+0.01 }, { x: 0.36, y: M+0.01 },
+      { x: 0.46, y: M+0.07 }, { x: 0.50, y: M+0.16 }, { x: 0.50, y: B },
+    ]},
+    // second arch
+    { points: [
+      { x: 0.50, y: M+0.10 }, { x: 0.60, y: M+0.01 }, { x: 0.72, y: M+0.01 },
+      { x: 0.80, y: M+0.07 }, { x: 0.84, y: M+0.16 }, { x: 0.84, y: B },
+    ]},
   ],
+
   n: [
-    { points: [{ x: 0.22, y: 0.38 }, { x: 0.22, y: 0.72 }] },
-    {
-      points: [
-        { x: 0.22, y: 0.44 }, { x: 0.32, y: 0.30 }, { x: 0.46, y: 0.28 },
-        { x: 0.58, y: 0.32 }, { x: 0.62, y: 0.44 }, { x: 0.62, y: 0.72 },
-      ],
-    },
+    // left leg
+    { points: [{ x: 0.22, y: M+0.04 }, { x: 0.22, y: B }] },
+    // arch and right leg
+    { points: [
+      { x: 0.22, y: M+0.10 }, { x: 0.32, y: M+0.01 }, { x: 0.46, y: M+0.01 },
+      { x: 0.58, y: M+0.07 }, { x: 0.62, y: M+0.16 }, { x: 0.62, y: B },
+    ]},
   ],
+
   o: [
-    {
-      points: [
-        { x: 0.50, y: 0.28 }, { x: 0.38, y: 0.28 }, { x: 0.26, y: 0.36 },
-        { x: 0.22, y: 0.50 }, { x: 0.26, y: 0.64 }, { x: 0.38, y: 0.72 },
-        { x: 0.50, y: 0.72 }, { x: 0.62, y: 0.64 }, { x: 0.66, y: 0.50 },
-        { x: 0.62, y: 0.36 }, { x: 0.50, y: 0.28 },
-      ],
-    },
+    { points: [
+      { x: 0.50, y: M+0.01 }, { x: 0.38, y: M+0.01 }, { x: 0.26, y: 0.45 },
+      { x: 0.22, y: 0.52 },   { x: 0.26, y: 0.59 },   { x: 0.38, y: B },
+      { x: 0.50, y: B },      { x: 0.62, y: 0.59 },   { x: 0.66, y: 0.52 },
+      { x: 0.62, y: 0.45 },   { x: 0.50, y: M+0.01 },
+    ]},
   ],
+
   p: [
-    { points: [{ x: 0.30, y: 0.28 }, { x: 0.30, y: 0.88 }] },
-    {
-      points: [
-        { x: 0.30, y: 0.28 }, { x: 0.44, y: 0.24 }, { x: 0.58, y: 0.28 },
-        { x: 0.64, y: 0.38 }, { x: 0.64, y: 0.52 }, { x: 0.58, y: 0.62 },
-        { x: 0.44, y: 0.66 }, { x: 0.30, y: 0.62 },
-      ],
-    },
+    // stem: from mid, descends below base
+    { points: [{ x: 0.30, y: M+0.04 }, { x: 0.30, y: 0.90 }] },
+    // bump: oval in x-height zone
+    { points: [
+      { x: 0.30, y: M+0.04 }, { x: 0.44, y: M+0.01 }, { x: 0.58, y: M+0.06 },
+      { x: 0.64, y: 0.47 },   { x: 0.64, y: 0.57 },   { x: 0.58, y: B-0.01 },
+      { x: 0.44, y: B },      { x: 0.30, y: B-0.03 },
+    ]},
   ],
+
   q: [
-    {
-      points: [
-        { x: 0.62, y: 0.38 }, { x: 0.50, y: 0.28 }, { x: 0.38, y: 0.28 },
-        { x: 0.26, y: 0.36 }, { x: 0.22, y: 0.50 }, { x: 0.26, y: 0.64 },
-        { x: 0.38, y: 0.72 }, { x: 0.50, y: 0.72 }, { x: 0.62, y: 0.64 },
-        { x: 0.62, y: 0.28 },
-      ],
-    },
-    { points: [{ x: 0.62, y: 0.72 }, { x: 0.62, y: 0.88 }] },
+    // oval + right stem descending
+    { points: [
+      { x: 0.62, y: 0.45 }, { x: 0.50, y: M+0.01 }, { x: 0.38, y: M+0.01 },
+      { x: 0.26, y: 0.45 }, { x: 0.22, y: 0.52 }, { x: 0.26, y: 0.59 },
+      { x: 0.38, y: B },    { x: 0.50, y: B },    { x: 0.62, y: 0.59 },
+      { x: 0.62, y: M+0.01 },
+    ]},
+    // tail: base down to descender
+    { points: [{ x: 0.62, y: B }, { x: 0.62, y: 0.90 }] },
   ],
+
   r: [
-    { points: [{ x: 0.26, y: 0.38 }, { x: 0.26, y: 0.72 }] },
-    {
-      points: [
-        { x: 0.26, y: 0.44 }, { x: 0.36, y: 0.32 }, { x: 0.50, y: 0.28 },
-        { x: 0.60, y: 0.32 },
-      ],
-    },
+    { points: [{ x: 0.26, y: M+0.04 }, { x: 0.26, y: B }] },
+    { points: [
+      { x: 0.26, y: M+0.10 }, { x: 0.36, y: M+0.01 }, { x: 0.52, y: M+0.01 },
+      { x: 0.62, y: M+0.07 },
+    ]},
   ],
+
   s: [
-    {
-      points: [
-        { x: 0.64, y: 0.34 }, { x: 0.54, y: 0.28 }, { x: 0.40, y: 0.28 },
-        { x: 0.28, y: 0.34 }, { x: 0.28, y: 0.44 }, { x: 0.38, y: 0.50 },
-        { x: 0.52, y: 0.54 }, { x: 0.64, y: 0.60 }, { x: 0.64, y: 0.68 },
-        { x: 0.52, y: 0.72 }, { x: 0.38, y: 0.72 }, { x: 0.28, y: 0.68 },
-      ],
-    },
+    { points: [
+      { x: 0.65, y: 0.43 }, { x: 0.54, y: M+0.01 }, { x: 0.40, y: M+0.01 },
+      { x: 0.28, y: 0.43 }, { x: 0.28, y: 0.50 }, { x: 0.40, y: 0.52 },
+      { x: 0.52, y: 0.54 }, { x: 0.66, y: 0.58 }, { x: 0.66, y: B-0.03 },
+      { x: 0.54, y: B },    { x: 0.40, y: B },    { x: 0.28, y: B-0.04 },
+    ]},
   ],
+
   t: [
-    { points: [{ x: 0.44, y: 0.18 }, { x: 0.44, y: 0.72 }] },
-    { points: [{ x: 0.24, y: 0.38 }, { x: 0.66, y: 0.38 }] },
+    // stem: from top line (not quite the very top) down to base
+    { points: [{ x: 0.44, y: T+0.02 }, { x: 0.44, y: B }] },
+    // crossbar at middle line
+    { points: [{ x: 0.22, y: M }, { x: 0.68, y: M }] },
   ],
+
   u: [
-    {
-      points: [
-        { x: 0.28, y: 0.28 }, { x: 0.28, y: 0.60 },
-        { x: 0.34, y: 0.70 }, { x: 0.44, y: 0.72 }, { x: 0.56, y: 0.70 },
-        { x: 0.62, y: 0.60 }, { x: 0.62, y: 0.28 },
-      ],
-    },
-    { points: [{ x: 0.62, y: 0.28 }, { x: 0.62, y: 0.72 }] },
+    { points: [
+      { x: 0.28, y: M+0.01 }, { x: 0.28, y: B-0.08 },
+      { x: 0.34, y: B-0.02 }, { x: 0.44, y: B }, { x: 0.56, y: B-0.02 },
+      { x: 0.62, y: B-0.08 }, { x: 0.62, y: M+0.01 },
+    ]},
+    { points: [{ x: 0.62, y: M+0.01 }, { x: 0.62, y: B }] },
   ],
+
   v: [
-    { points: [{ x: 0.24, y: 0.28 }, { x: 0.44, y: 0.72 }, { x: 0.66, y: 0.28 }] },
+    { points: [{ x: 0.24, y: M+0.01 }, { x: 0.44, y: B }, { x: 0.66, y: M+0.01 }] },
   ],
+
   w: [
-    {
-      points: [
-        { x: 0.14, y: 0.28 }, { x: 0.28, y: 0.72 }, { x: 0.44, y: 0.44 },
-        { x: 0.60, y: 0.72 }, { x: 0.74, y: 0.28 },
-      ],
-    },
+    { points: [
+      { x: 0.12, y: M+0.01 }, { x: 0.26, y: B }, { x: 0.44, y: 0.50 },
+      { x: 0.62, y: B },      { x: 0.78, y: M+0.01 },
+    ]},
   ],
+
   x: [
-    { points: [{ x: 0.24, y: 0.28 }, { x: 0.66, y: 0.72 }] },
-    { points: [{ x: 0.66, y: 0.28 }, { x: 0.24, y: 0.72 }] },
+    { points: [{ x: 0.24, y: M+0.01 }, { x: 0.66, y: B }] },
+    { points: [{ x: 0.66, y: M+0.01 }, { x: 0.24, y: B }] },
   ],
+
   y: [
-    { points: [{ x: 0.26, y: 0.28 }, { x: 0.46, y: 0.60 }] },
-    {
-      points: [
-        { x: 0.66, y: 0.28 }, { x: 0.46, y: 0.60 },
-        { x: 0.36, y: 0.80 }, { x: 0.28, y: 0.88 },
-      ],
-    },
+    // left stroke: mid to mid-low
+    { points: [{ x: 0.26, y: M+0.01 }, { x: 0.46, y: 0.55 }] },
+    // right stroke: mid to mid-low, then curves into descender
+    { points: [
+      { x: 0.66, y: M+0.01 }, { x: 0.46, y: 0.55 },
+      { x: 0.36, y: 0.78 },   { x: 0.28, y: 0.88 },
+    ]},
   ],
+
   z: [
-    {
-      points: [
-        { x: 0.24, y: 0.28 }, { x: 0.66, y: 0.28 },
-        { x: 0.24, y: 0.72 }, { x: 0.66, y: 0.72 },
-      ],
-    },
+    { points: [
+      { x: 0.24, y: M+0.01 }, { x: 0.66, y: M+0.01 },
+      { x: 0.24, y: B },      { x: 0.66, y: B },
+    ]},
   ],
 };
 
@@ -360,15 +381,16 @@ function drawArrowhead(ctx, x, y, angle, size, color) {
   ctx.fillStyle = color;
   ctx.fill();
   ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1.5;
   ctx.stroke();
   ctx.restore();
 }
 
+// Both arrowheads: pink, 50% smaller (7 and 5.5 instead of 14 and 11)
 function drawStartArrowhead(ctx, pts, w, h) {
   if (pts.length < 2) return;
   const angle = getAngle(pts[0], pts[1], w, h);
-  drawArrowhead(ctx, pts[0].x * w, pts[0].y * h, angle, 14, "#22c55e");
+  drawArrowhead(ctx, pts[0].x * w, pts[0].y * h, angle, 7, "#ff50b4");
 }
 
 function drawEndArrowhead(ctx, pts, w, h) {
@@ -376,7 +398,7 @@ function drawEndArrowhead(ctx, pts, w, h) {
   const last = pts[pts.length - 1];
   const prev = pts[pts.length - 2];
   const angle = getAngle(prev, last, w, h);
-  drawArrowhead(ctx, last.x * w, last.y * h, angle, 11, "#ef4444");
+  drawArrowhead(ctx, last.x * w, last.y * h, angle, 5.5, "#ff50b4");
 }
 
 function drawDot(ctx, pt, w, h) {
@@ -387,21 +409,6 @@ function drawDot(ctx, pt, w, h) {
   ctx.fill();
   ctx.restore();
 }
-
-function getStrokeDirection(pts) {
-  if (pts.length < 2) return "right";
-  const dx = pts[pts.length - 1].x - pts[0].x;
-  const dy = pts[pts.length - 1].y - pts[0].y;
-  if (Math.abs(dx) > Math.abs(dy) * 1.5) return dx > 0 ? "right" : "left";
-  if (Math.abs(dy) > Math.abs(dx) * 1.5) return dy > 0 ? "down" : "up";
-  if (dx > 0 && dy > 0) return "down-right";
-  if (dx < 0 && dy > 0) return "down-left";
-  return "right";
-}
-
-// Letters whose canvas needs extra vertical space (ascenders or descenders)
-const ASCENDERS = new Set(["b","d","f","h","k","l","t"]);
-const DESCENDERS = new Set(["f","g","j","p","q","y"]);
 
 export default function LetterTrace({ letter = "a", onComplete, locked = false, size = 320 }) {
   const canvasRef = useRef(null);
@@ -415,12 +422,8 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
   const [shake, setShake] = useState(false);
 
   const strokes = LETTER_STROKES[letter.toLowerCase()] || [];
+  // Uniform canvas — same width and height for every letter
   const SIZE = size;
-  const lc = letter.toLowerCase();
-  const hasAscender = ASCENDERS.has(lc);
-  const hasDescender = DESCENDERS.has(lc);
-  // Taller canvas for letters that go above/below the body zone
-  const CANVAS_HEIGHT = (hasAscender || hasDescender) ? Math.round(SIZE * 1.4) : SIZE;
 
   const render = useCallback(() => {
     const canvas = canvasRef.current;
@@ -428,62 +431,34 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
     const ctx = canvas.getContext("2d");
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
-    // Light, app-consistent background
+    // Background
     ctx.fillStyle = "#f0f8ff";
     ctx.fillRect(0, 0, W, H);
 
-    // 3-line ruled guide system
-
-    // Define 3 horizontal lines based on letter type
-    // topLine: solid — where ascenders reach
-    // midLine: dashed — top of lowercase body
-    // baseLine: solid — base of letter body
-    // descLine: solid — bottom for descenders
-    let topLine, midLine, baseLine, descLine;
-    if (hasAscender && hasDescender) {
-      // f: full span
-      topLine   = H * 0.08;
-      midLine   = H * 0.35;
-      baseLine  = H * 0.65;
-      descLine  = H * 0.92;
-    } else if (hasAscender) {
-      topLine   = H * 0.10;
-      midLine   = H * 0.42;
-      baseLine  = H * 0.72;
-      descLine  = null;
-    } else if (hasDescender) {
-      topLine   = null;
-      midLine   = H * 0.18;
-      baseLine  = H * 0.55;
-      descLine  = H * 0.88;
-    } else {
-      // short letters: midLine is top of body, baseLine is bottom
-      topLine   = null;
-      midLine   = H * 0.22;
-      baseLine  = H * 0.72;
-      descLine  = null;
-    }
+    // ── 3 horizontal guide lines (black, clearly visible) ──────────────────
+    const topY  = H * T;   // 0.05 — solid top line
+    const midY  = H * M;   // 0.38 — dashed middle line
+    const baseY = H * B;   // 0.65 — solid base line
 
     ctx.save();
     ctx.lineWidth = 1.5;
 
-    // Solid lines (topLine, baseLine, descLine)
-    ctx.strokeStyle = "rgba(74,144,196,0.30)";
+    // Top solid line
+    ctx.strokeStyle = "rgba(0,0,0,0.55)";
     ctx.setLineDash([]);
-    if (topLine !== null) {
-      ctx.beginPath(); ctx.moveTo(0, topLine); ctx.lineTo(W, topLine); ctx.stroke();
-    }
-    ctx.beginPath(); ctx.moveTo(0, baseLine); ctx.lineTo(W, baseLine); ctx.stroke();
-    if (descLine !== null) {
-      ctx.beginPath(); ctx.moveTo(0, descLine); ctx.lineTo(W, descLine); ctx.stroke();
-    }
+    ctx.beginPath(); ctx.moveTo(0, topY); ctx.lineTo(W, topY); ctx.stroke();
 
-    // Dashed middle line
-    ctx.strokeStyle = "rgba(74,144,196,0.25)";
+    // Base solid line
+    ctx.beginPath(); ctx.moveTo(0, baseY); ctx.lineTo(W, baseY); ctx.stroke();
+
+    // Middle dashed line
+    ctx.strokeStyle = "rgba(0,0,0,0.40)";
     ctx.setLineDash([5, 5]);
-    ctx.beginPath(); ctx.moveTo(0, midLine); ctx.lineTo(W, midLine); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(W, midY); ctx.stroke();
     ctx.setLineDash([]);
     ctx.restore();
+    // ────────────────────────────────────────────────────────────────────────
+
     strokes.forEach((stroke, idx) => {
       if (completedStrokes.includes(idx)) return;
       if (stroke.isDot) { drawDot(ctx, stroke.points[0], W, H); return; }
@@ -588,19 +563,10 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, userSelect: "none" }}>
-      {/* Stroke progress dots */}
-      {strokes.length > 1 && (
-        <div style={{ display: "flex", gap: 8 }}>
-          {strokes.map((_, i) => (
-            <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: completedStrokes.includes(i) ? "#22c55e" : i === currentStroke ? "#4A90C4" : "rgba(74,144,196,0.25)", transition: "background 0.3s" }} />
-          ))}
-        </div>
-      )}
-
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, userSelect: "none" }}>
       {/* Canvas */}
       <div style={{
-        borderRadius: 24, overflow: "hidden",
+        borderRadius: 16, overflow: "hidden",
         boxShadow: "0 6px 28px rgba(30,58,95,0.14)",
         border: "2.5px solid rgba(168,208,230,0.6)",
         transform: shake ? "translateX(-6px)" : "translateX(0)",
@@ -612,8 +578,8 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
         <canvas
           ref={canvasRef}
           width={SIZE}
-          height={CANVAS_HEIGHT}
-          style={{ display: "block", touchAction: "none", cursor: locked ? "default" : "crosshair", width: SIZE, height: CANVAS_HEIGHT }}
+          height={SIZE}
+          style={{ display: "block", touchAction: "none", cursor: locked ? "default" : "crosshair", width: SIZE, height: SIZE }}
           onMouseDown={handleStart}
           onMouseMove={handleMove}
           onMouseUp={handleEnd}
@@ -625,7 +591,7 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
       </div>
 
       {/* Feedback */}
-      <div style={{ height: 28, fontSize: 18, fontWeight: 700, fontFamily: "Fredoka, sans-serif" }}>
+      <div style={{ height: 24, fontSize: 16, fontWeight: 700, fontFamily: "Fredoka, sans-serif" }}>
         {done
           ? <span style={{ color: "#22c55e" }}>✓ Great job!</span>
           : feedback === "wrong"

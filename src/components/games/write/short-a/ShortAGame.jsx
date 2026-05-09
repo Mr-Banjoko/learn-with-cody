@@ -185,10 +185,12 @@ export default function ShortAGame({ onBack }) {
           );
         })()}
 
-        {/* Instruction */}
-        <div style={{ fontSize: 15, color: "#7BACC8", textAlign: "center", fontFamily: "Fredoka, sans-serif" }}>
-          {locked ? "🔊 Listen first..." : `Trace the letter "${word[letterIdx]}"`}
-        </div>
+        {/* Listen indicator */}
+        {locked && (
+          <div style={{ fontSize: 15, color: "#7BACC8", textAlign: "center", fontFamily: "Fredoka, sans-serif" }}>
+            🔊 Listen first...
+          </div>
+        )}
       </div>
     </div>
   );
