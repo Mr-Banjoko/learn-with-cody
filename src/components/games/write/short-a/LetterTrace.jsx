@@ -133,19 +133,19 @@ const LETTER_STROKES = {
     ] },
   ],
 
-  // ── i : short stem + dot ──────────────────────────────────────────────────
+  // ── i : short stem + dot outline ──────────────────────────────────────────
   i: [
     { points: [{ x: 0.45, y: 0.30 }, { x: 0.45, y: 0.68 }] },
-    { points: [{ x: 0.45, y: DOT }, { x: 0.45, y: DOT + 0.005 }], isDot: true },
+    { points: [{ x: 0.45, y: DOT }], isDot: true, isDotOutline: true },
   ],
 
-  // ── j : short stem curling into descender + dot ───────────────────────────
+  // ── j : short stem curling into descender + dot outline ────────────────────
   j: [
     { points: [
       { x: 0.52, y: 0.30 }, { x: 0.52, y: 0.72 },
       { x: 0.49, y: 0.82 }, { x: 0.40, y: 0.88 }, { x: 0.30, y: 0.85 },
     ] },
-    { points: [{ x: 0.52, y: DOT }, { x: 0.52, y: DOT + 0.005 }], isDot: true },
+    { points: [{ x: 0.52, y: DOT }], isDot: true, isDotOutline: true },
   ],
 
   // ── k : tall stem, upper arm in, lower arm out ───────────────────────────
@@ -451,6 +451,26 @@ function drawDot(ctx, pt, w, h) {
   ctx.restore();
 }
 
+function drawDotOutline(ctx, pt, w, h, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.beginPath();
+  ctx.arc(pt.x * w, pt.y * h, 8, 0, Math.PI * 2);
+  ctx.strokeStyle = "#7BACC8";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawFilledDotOutline(ctx, pt, w, h) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(pt.x * w, pt.y * h, 6, 0, Math.PI * 2);
+  ctx.fillStyle = "#1E3A5F";
+  ctx.fill();
+  ctx.restore();
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function LetterTrace({ letter = "a", onComplete, locked = false, size = 320 }) {
@@ -504,7 +524,14 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
 
     strokes.forEach((stroke, idx) => {
       if (completedStrokes.includes(idx)) return;
-      if (stroke.isDot) { drawDot(ctx, stroke.points[0], canvas.width, canvas.height); return; }
+      if (stroke.isDot) {
+        if (stroke.isDotOutline) {
+          drawDotOutline(ctx, stroke.points[0], canvas.width, canvas.height, 0.4);
+        } else {
+          drawDot(ctx, stroke.points[0], canvas.width, canvas.height);
+        }
+        return;
+      }
       if (idx === currentStroke) {
         drawActiveStroke(ctx, stroke.points, canvas.width, canvas.height);
         drawStartArrowhead(ctx, stroke.points, canvas.width, canvas.height);
@@ -518,12 +545,7 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
       const stroke = strokes[idx];
       if (!stroke) return;
       if (stroke.isDot) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(stroke.points[0].x * canvas.width, stroke.points[0].y * canvas.height, 6, 0, Math.PI * 2);
-        ctx.fillStyle = "#1E3A5F";
-        ctx.fill();
-        ctx.restore();
+        drawFilledDotOutline(ctx, stroke.points[0], canvas.width, canvas.height);
         return;
       }
       drawSolidStroke(ctx, stroke.points, canvas.width, canvas.height, "#1E3A5F", 7);
