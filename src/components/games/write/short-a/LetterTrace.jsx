@@ -399,6 +399,10 @@ function getStrokeDirection(pts) {
   return "right";
 }
 
+// Letters whose canvas needs extra vertical space (ascenders or descenders)
+const ASCENDERS = new Set(["b","d","f","h","k","l","t"]);
+const DESCENDERS = new Set(["f","g","j","p","q","y"]);
+
 export default function LetterTrace({ letter = "a", onComplete, locked = false, size = 320 }) {
   const canvasRef = useRef(null);
 
@@ -412,6 +416,11 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
 
   const strokes = LETTER_STROKES[letter.toLowerCase()] || [];
   const SIZE = size;
+  const lc = letter.toLowerCase();
+  const hasAscender = ASCENDERS.has(lc);
+  const hasDescender = DESCENDERS.has(lc);
+  // Taller canvas for letters that go above/below the body zone
+  const CANVAS_HEIGHT = (hasAscender || hasDescender) ? Math.round(SIZE * 1.4) : SIZE;
 
   const render = useCallback(() => {
     const canvas = canvasRef.current;
@@ -422,13 +431,57 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
     // Light, app-consistent background
     ctx.fillStyle = "#f0f8ff";
     ctx.fillRect(0, 0, W, H);
-    // Subtle guide lines
+
+    // 3-line ruled guide system
+
+    // Define 3 horizontal lines based on letter type
+    // topLine: solid — where ascenders reach
+    // midLine: dashed — top of lowercase body
+    // baseLine: solid — base of letter body
+    // descLine: solid — bottom for descenders
+    let topLine, midLine, baseLine, descLine;
+    if (hasAscender && hasDescender) {
+      // f: full span
+      topLine   = H * 0.08;
+      midLine   = H * 0.35;
+      baseLine  = H * 0.65;
+      descLine  = H * 0.92;
+    } else if (hasAscender) {
+      topLine   = H * 0.10;
+      midLine   = H * 0.42;
+      baseLine  = H * 0.72;
+      descLine  = null;
+    } else if (hasDescender) {
+      topLine   = null;
+      midLine   = H * 0.18;
+      baseLine  = H * 0.55;
+      descLine  = H * 0.88;
+    } else {
+      // short letters: midLine is top of body, baseLine is bottom
+      topLine   = null;
+      midLine   = H * 0.22;
+      baseLine  = H * 0.72;
+      descLine  = null;
+    }
+
     ctx.save();
-    ctx.strokeStyle = "rgba(74,144,196,0.12)";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([6, 6]);
-    ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0, H * 0.65); ctx.lineTo(W, H * 0.65); ctx.stroke();
+    ctx.lineWidth = 1.5;
+
+    // Solid lines (topLine, baseLine, descLine)
+    ctx.strokeStyle = "rgba(74,144,196,0.30)";
+    ctx.setLineDash([]);
+    if (topLine !== null) {
+      ctx.beginPath(); ctx.moveTo(0, topLine); ctx.lineTo(W, topLine); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.moveTo(0, baseLine); ctx.lineTo(W, baseLine); ctx.stroke();
+    if (descLine !== null) {
+      ctx.beginPath(); ctx.moveTo(0, descLine); ctx.lineTo(W, descLine); ctx.stroke();
+    }
+
+    // Dashed middle line
+    ctx.strokeStyle = "rgba(74,144,196,0.25)";
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath(); ctx.moveTo(0, midLine); ctx.lineTo(W, midLine); ctx.stroke();
     ctx.setLineDash([]);
     ctx.restore();
     strokes.forEach((stroke, idx) => {
@@ -559,8 +612,8 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
         <canvas
           ref={canvasRef}
           width={SIZE}
-          height={SIZE}
-          style={{ display: "block", touchAction: "none", cursor: locked ? "default" : "crosshair", width: SIZE, height: SIZE }}
+          height={CANVAS_HEIGHT}
+          style={{ display: "block", touchAction: "none", cursor: locked ? "default" : "crosshair", width: SIZE, height: CANVAS_HEIGHT }}
           onMouseDown={handleStart}
           onMouseMove={handleMove}
           onMouseUp={handleEnd}
