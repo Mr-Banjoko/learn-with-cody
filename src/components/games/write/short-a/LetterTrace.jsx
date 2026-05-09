@@ -4,35 +4,34 @@ import { useRef, useState, useEffect, useCallback } from "react";
 // Canvas: 320 × 420 px (fixed for every letter)
 //
 // Line positions (normalised = px / 420):
-//   TOP   = 80/420  ≈ 0.190  — solid,  top of writing zone / ascender start
-//   MID   = 200/420 ≈ 0.476  — dashed, x-height line (midpoint of writing zone)
-//   BASE  = 320/420 ≈ 0.762  — solid,  baseline
+//   TOP   = 0/420   = 0.000  — solid,  top of canvas (no padding above)
+//   MID   = 120/420 ≈ 0.286  — dashed, x-height line
+//   BASE  = 288/420 ≈ 0.686  — solid,  baseline  (x-height zone = 168px, +40% vs 120px)
 //
 // Zones (normalised):
-//   TOP padding  0.000 – 0.190   (empty)
-//   Tall/ascender zone  0.190 – 0.476
-//   X-height zone       0.476 – 0.762
-//   Descender zone      0.762 – 0.952  (≈ 400/420; only f g j p q y)
+//   Tall/ascender zone  0.000 – 0.286   (120px)
+//   X-height zone       0.286 – 0.686   (168px)
+//   Descender zone      0.686 – 1.000   (132px; only f g j p q y)
 //
-// Dot for i / j:  y = 160/420 ≈ 0.381  (clearly above MID)
+// Dot for i / j:  y = 60/420 ≈ 0.143  (halfway up ascender zone)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CANVAS_W = 320;
 const CANVAS_H = 420;
 
-const T   = 80  / 420; // 0.190 — top solid line
-const M   = 200 / 420; // 0.476 — middle dashed line
-const B   = 320 / 420; // 0.762 — base solid line
-const DOT = 160 / 420; // 0.381 — dot for i/j
-const D   = 380 / 420; // 0.905 — descender bottom
+const T   = 0   / 420; // 0.000 — top solid line (very top of canvas)
+const M   = 120 / 420; // 0.286 — middle dashed line
+const B   = 288 / 420; // 0.686 — base solid line
+const DOT = 60  / 420; // 0.143 — dot for i/j
+const D   = 390 / 420; // 0.929 — descender bottom
 
 const LETTER_STROKES = {
-  // ── X-HEIGHT LETTERS (body between M and B) ──────────────────────────────
+  // ── X-HEIGHT LETTERS (body between M=0.286 and B=0.686) ──────────────────
   a: [
     { points: [
       { x: 0.62, y: M+0.03 }, { x: 0.50, y: M },      { x: 0.38, y: M },
-      { x: 0.26, y: M+0.06 }, { x: 0.22, y: M+0.14 }, { x: 0.22, y: M+0.22 },
-      { x: 0.28, y: B-0.04 }, { x: 0.40, y: B },      { x: 0.52, y: B },
+      { x: 0.26, y: M+0.07 }, { x: 0.22, y: M+0.20 }, { x: 0.22, y: M+0.33 },
+      { x: 0.28, y: B-0.05 }, { x: 0.40, y: B },      { x: 0.52, y: B },
       { x: 0.62, y: B-0.05 },
     ]},
     { points: [{ x: 0.62, y: M }, { x: 0.62, y: B }] },
@@ -41,45 +40,45 @@ const LETTER_STROKES = {
   b: [
     { points: [{ x: 0.30, y: T }, { x: 0.30, y: B }] },
     { points: [
-      { x: 0.30, y: M+0.04 }, { x: 0.42, y: M },      { x: 0.56, y: M+0.02 },
-      { x: 0.66, y: M+0.10 }, { x: 0.68, y: M+0.20 }, { x: 0.66, y: B-0.06 },
+      { x: 0.30, y: M+0.05 }, { x: 0.42, y: M },      { x: 0.56, y: M+0.03 },
+      { x: 0.66, y: M+0.13 }, { x: 0.68, y: M+0.27 }, { x: 0.66, y: B-0.07 },
       { x: 0.56, y: B },      { x: 0.42, y: B },      { x: 0.30, y: B },
     ]},
   ],
 
   c: [
     { points: [
-      { x: 0.68, y: M+0.06 }, { x: 0.56, y: M },      { x: 0.42, y: M },
-      { x: 0.28, y: M+0.06 }, { x: 0.22, y: M+0.14 }, { x: 0.22, y: M+0.22 },
-      { x: 0.28, y: B-0.04 }, { x: 0.42, y: B },      { x: 0.56, y: B },
-      { x: 0.68, y: B-0.06 },
+      { x: 0.68, y: M+0.07 }, { x: 0.56, y: M },      { x: 0.42, y: M },
+      { x: 0.28, y: M+0.07 }, { x: 0.22, y: M+0.20 }, { x: 0.22, y: M+0.33 },
+      { x: 0.28, y: B-0.05 }, { x: 0.42, y: B },      { x: 0.56, y: B },
+      { x: 0.68, y: B-0.07 },
     ]},
   ],
 
   d: [
     { points: [
-      { x: 0.60, y: M+0.06 }, { x: 0.48, y: M },      { x: 0.36, y: M },
-      { x: 0.24, y: M+0.06 }, { x: 0.20, y: M+0.14 }, { x: 0.20, y: M+0.22 },
-      { x: 0.26, y: B-0.04 }, { x: 0.38, y: B },      { x: 0.50, y: B },
-      { x: 0.60, y: B-0.05 },
+      { x: 0.60, y: M+0.07 }, { x: 0.48, y: M },      { x: 0.36, y: M },
+      { x: 0.24, y: M+0.07 }, { x: 0.20, y: M+0.20 }, { x: 0.20, y: M+0.33 },
+      { x: 0.26, y: B-0.05 }, { x: 0.38, y: B },      { x: 0.50, y: B },
+      { x: 0.60, y: B-0.06 },
     ]},
     { points: [{ x: 0.64, y: T }, { x: 0.64, y: B }] },
   ],
 
   e: [
     { points: [
-      { x: 0.24, y: M+0.15 }, { x: 0.38, y: M+0.07 }, { x: 0.56, y: M+0.07 },
-      { x: 0.68, y: M+0.15 }, { x: 0.68, y: M+0.24 }, { x: 0.56, y: B-0.02 },
-      { x: 0.40, y: B },      { x: 0.24, y: B-0.06 }, { x: 0.22, y: M+0.15 },
-      { x: 0.24, y: M+0.04 }, { x: 0.38, y: M },      { x: 0.56, y: M },
-      { x: 0.68, y: M+0.04 },
+      { x: 0.24, y: M+0.20 }, { x: 0.38, y: M+0.09 }, { x: 0.56, y: M+0.09 },
+      { x: 0.68, y: M+0.20 }, { x: 0.68, y: M+0.33 }, { x: 0.56, y: B-0.03 },
+      { x: 0.40, y: B },      { x: 0.24, y: B-0.08 }, { x: 0.22, y: M+0.20 },
+      { x: 0.24, y: M+0.05 }, { x: 0.38, y: M },      { x: 0.56, y: M },
+      { x: 0.68, y: M+0.05 },
     ]},
   ],
 
   f: [
     { points: [
-      { x: 0.64, y: T+0.03 }, { x: 0.54, y: T },      { x: 0.44, y: T+0.02 },
-      { x: 0.38, y: T+0.08 }, { x: 0.36, y: M-0.02 }, { x: 0.36, y: B },
+      { x: 0.64, y: T+0.02 }, { x: 0.54, y: T },      { x: 0.44, y: T+0.02 },
+      { x: 0.38, y: T+0.06 }, { x: 0.36, y: M },      { x: 0.36, y: B },
       { x: 0.36, y: D },
     ]},
     { points: [{ x: 0.18, y: M }, { x: 0.60, y: M }] },
@@ -87,20 +86,20 @@ const LETTER_STROKES = {
 
   g: [
     { points: [
-      { x: 0.66, y: M+0.06 }, { x: 0.54, y: M },      { x: 0.42, y: M },
-      { x: 0.28, y: M+0.06 }, { x: 0.22, y: M+0.14 }, { x: 0.22, y: M+0.22 },
-      { x: 0.28, y: B-0.04 }, { x: 0.42, y: B },      { x: 0.54, y: B-0.02 },
-      { x: 0.66, y: B-0.08 }, { x: 0.66, y: M },
-      { x: 0.66, y: B+0.06 }, { x: 0.62, y: D-0.04 }, { x: 0.50, y: D },
-      { x: 0.38, y: D-0.04 },
+      { x: 0.66, y: M+0.07 }, { x: 0.54, y: M },      { x: 0.42, y: M },
+      { x: 0.28, y: M+0.07 }, { x: 0.22, y: M+0.20 }, { x: 0.22, y: M+0.33 },
+      { x: 0.28, y: B-0.05 }, { x: 0.42, y: B },      { x: 0.54, y: B-0.02 },
+      { x: 0.66, y: B-0.10 }, { x: 0.66, y: M },
+      { x: 0.66, y: B+0.08 }, { x: 0.62, y: D-0.05 }, { x: 0.50, y: D },
+      { x: 0.38, y: D-0.05 },
     ]},
   ],
 
   h: [
     { points: [{ x: 0.28, y: T }, { x: 0.28, y: B }] },
     { points: [
-      { x: 0.28, y: M+0.06 }, { x: 0.38, y: M },      { x: 0.52, y: M },
-      { x: 0.64, y: M+0.06 }, { x: 0.68, y: M+0.14 }, { x: 0.68, y: B },
+      { x: 0.28, y: M+0.08 }, { x: 0.38, y: M },      { x: 0.52, y: M },
+      { x: 0.64, y: M+0.08 }, { x: 0.68, y: M+0.20 }, { x: 0.68, y: B },
     ]},
   ],
 
@@ -111,16 +110,16 @@ const LETTER_STROKES = {
 
   j: [
     { points: [
-      { x: 0.52, y: M+0.02 }, { x: 0.52, y: B+0.04 },
-      { x: 0.46, y: D-0.04 }, { x: 0.36, y: D },      { x: 0.28, y: D-0.04 },
+      { x: 0.52, y: M+0.02 }, { x: 0.52, y: B+0.06 },
+      { x: 0.46, y: D-0.05 }, { x: 0.36, y: D },      { x: 0.28, y: D-0.05 },
     ]},
     { points: [{ x: 0.52, y: DOT }, { x: 0.52, y: DOT+0.01 }], isDot: true },
   ],
 
   k: [
     { points: [{ x: 0.30, y: T }, { x: 0.30, y: B }] },
-    { points: [{ x: 0.68, y: M },  { x: 0.30, y: M+0.14 }] },
-    { points: [{ x: 0.30, y: M+0.14 }, { x: 0.68, y: B }] },
+    { points: [{ x: 0.68, y: M }, { x: 0.30, y: M+0.20 }] },
+    { points: [{ x: 0.30, y: M+0.20 }, { x: 0.68, y: B }] },
   ],
 
   l: [
@@ -133,29 +132,29 @@ const LETTER_STROKES = {
   m: [
     { points: [{ x: 0.10, y: M+0.02 }, { x: 0.10, y: B }] },
     { points: [
-      { x: 0.10, y: M+0.08 }, { x: 0.20, y: M },      { x: 0.34, y: M },
-      { x: 0.44, y: M+0.06 }, { x: 0.48, y: M+0.14 }, { x: 0.48, y: B },
+      { x: 0.10, y: M+0.10 }, { x: 0.20, y: M },      { x: 0.34, y: M },
+      { x: 0.44, y: M+0.08 }, { x: 0.48, y: M+0.20 }, { x: 0.48, y: B },
     ]},
     { points: [
-      { x: 0.48, y: M+0.08 }, { x: 0.58, y: M },      { x: 0.72, y: M },
-      { x: 0.80, y: M+0.06 }, { x: 0.84, y: M+0.14 }, { x: 0.84, y: B },
+      { x: 0.48, y: M+0.10 }, { x: 0.58, y: M },      { x: 0.72, y: M },
+      { x: 0.80, y: M+0.08 }, { x: 0.84, y: M+0.20 }, { x: 0.84, y: B },
     ]},
   ],
 
   n: [
     { points: [{ x: 0.22, y: M+0.02 }, { x: 0.22, y: B }] },
     { points: [
-      { x: 0.22, y: M+0.08 }, { x: 0.32, y: M },      { x: 0.48, y: M },
-      { x: 0.60, y: M+0.06 }, { x: 0.64, y: M+0.14 }, { x: 0.64, y: B },
+      { x: 0.22, y: M+0.10 }, { x: 0.32, y: M },      { x: 0.48, y: M },
+      { x: 0.60, y: M+0.08 }, { x: 0.64, y: M+0.20 }, { x: 0.64, y: B },
     ]},
   ],
 
   o: [
     { points: [
-      { x: 0.52, y: M },      { x: 0.38, y: M },      { x: 0.24, y: M+0.08 },
-      { x: 0.20, y: M+0.16 }, { x: 0.20, y: M+0.24 }, { x: 0.26, y: B-0.04 },
-      { x: 0.38, y: B },      { x: 0.52, y: B },      { x: 0.64, y: B-0.04 },
-      { x: 0.70, y: M+0.24 }, { x: 0.70, y: M+0.16 }, { x: 0.64, y: M+0.08 },
+      { x: 0.52, y: M },      { x: 0.38, y: M },      { x: 0.24, y: M+0.10 },
+      { x: 0.20, y: M+0.20 }, { x: 0.20, y: M+0.33 }, { x: 0.26, y: B-0.05 },
+      { x: 0.38, y: B },      { x: 0.52, y: B },      { x: 0.64, y: B-0.05 },
+      { x: 0.70, y: M+0.33 }, { x: 0.70, y: M+0.20 }, { x: 0.64, y: M+0.10 },
       { x: 0.52, y: M },
     ]},
   ],
@@ -163,18 +162,18 @@ const LETTER_STROKES = {
   p: [
     { points: [{ x: 0.30, y: M+0.02 }, { x: 0.30, y: D }] },
     { points: [
-      { x: 0.30, y: M+0.02 }, { x: 0.44, y: M },      { x: 0.58, y: M+0.04 },
-      { x: 0.66, y: M+0.12 }, { x: 0.68, y: M+0.22 }, { x: 0.64, y: B-0.06 },
-      { x: 0.54, y: B },      { x: 0.42, y: B },      { x: 0.30, y: B-0.04 },
+      { x: 0.30, y: M+0.02 }, { x: 0.44, y: M },      { x: 0.58, y: M+0.05 },
+      { x: 0.66, y: M+0.15 }, { x: 0.68, y: M+0.27 }, { x: 0.64, y: B-0.07 },
+      { x: 0.54, y: B },      { x: 0.42, y: B },      { x: 0.30, y: B-0.05 },
     ]},
   ],
 
   q: [
     { points: [
-      { x: 0.64, y: M+0.06 }, { x: 0.52, y: M },      { x: 0.38, y: M },
-      { x: 0.26, y: M+0.06 }, { x: 0.20, y: M+0.14 }, { x: 0.20, y: M+0.22 },
-      { x: 0.26, y: B-0.04 }, { x: 0.38, y: B },      { x: 0.52, y: B },
-      { x: 0.64, y: B-0.05 }, { x: 0.64, y: M },
+      { x: 0.64, y: M+0.07 }, { x: 0.52, y: M },      { x: 0.38, y: M },
+      { x: 0.26, y: M+0.07 }, { x: 0.20, y: M+0.20 }, { x: 0.20, y: M+0.33 },
+      { x: 0.26, y: B-0.05 }, { x: 0.38, y: B },      { x: 0.52, y: B },
+      { x: 0.64, y: B-0.06 }, { x: 0.64, y: M },
     ]},
     { points: [{ x: 0.64, y: B }, { x: 0.64, y: D }] },
   ],
@@ -182,30 +181,30 @@ const LETTER_STROKES = {
   r: [
     { points: [{ x: 0.26, y: M+0.02 }, { x: 0.26, y: B }] },
     { points: [
-      { x: 0.26, y: M+0.08 }, { x: 0.36, y: M },      { x: 0.52, y: M },
-      { x: 0.62, y: M+0.06 },
+      { x: 0.26, y: M+0.10 }, { x: 0.36, y: M },      { x: 0.52, y: M },
+      { x: 0.62, y: M+0.08 },
     ]},
   ],
 
   s: [
     { points: [
-      { x: 0.66, y: M+0.06 }, { x: 0.54, y: M },      { x: 0.40, y: M },
-      { x: 0.28, y: M+0.06 }, { x: 0.26, y: M+0.14 }, { x: 0.38, y: M+0.20 },
-      { x: 0.52, y: M+0.24 }, { x: 0.66, y: M+0.30 }, { x: 0.66, y: B-0.06 },
-      { x: 0.54, y: B },      { x: 0.40, y: B },      { x: 0.28, y: B-0.06 },
+      { x: 0.66, y: M+0.07 }, { x: 0.54, y: M },      { x: 0.40, y: M },
+      { x: 0.28, y: M+0.07 }, { x: 0.26, y: M+0.18 }, { x: 0.38, y: M+0.26 },
+      { x: 0.52, y: M+0.32 }, { x: 0.66, y: M+0.40 }, { x: 0.66, y: B-0.07 },
+      { x: 0.54, y: B },      { x: 0.40, y: B },      { x: 0.28, y: B-0.07 },
     ]},
   ],
 
   t: [
-    { points: [{ x: 0.44, y: T+0.04 }, { x: 0.44, y: B }] },
+    { points: [{ x: 0.44, y: T+0.03 }, { x: 0.44, y: B }] },
     { points: [{ x: 0.20, y: M }, { x: 0.68, y: M }] },
   ],
 
   u: [
     { points: [
-      { x: 0.28, y: M },      { x: 0.28, y: B-0.08 },
-      { x: 0.34, y: B-0.02 }, { x: 0.44, y: B },      { x: 0.56, y: B-0.02 },
-      { x: 0.62, y: B-0.08 }, { x: 0.62, y: M },
+      { x: 0.28, y: M },      { x: 0.28, y: B-0.10 },
+      { x: 0.34, y: B-0.03 }, { x: 0.44, y: B },      { x: 0.56, y: B-0.03 },
+      { x: 0.62, y: B-0.10 }, { x: 0.62, y: M },
     ]},
     { points: [{ x: 0.62, y: M }, { x: 0.62, y: B }] },
   ],
@@ -216,7 +215,7 @@ const LETTER_STROKES = {
 
   w: [
     { points: [
-      { x: 0.12, y: M },      { x: 0.26, y: B }, { x: 0.44, y: M+0.16 },
+      { x: 0.12, y: M },      { x: 0.26, y: B }, { x: 0.44, y: M+0.22 },
       { x: 0.62, y: B },      { x: 0.78, y: M },
     ]},
   ],
@@ -227,10 +226,10 @@ const LETTER_STROKES = {
   ],
 
   y: [
-    { points: [{ x: 0.26, y: M }, { x: 0.46, y: M+0.18 }] },
+    { points: [{ x: 0.26, y: M }, { x: 0.46, y: M+0.24 }] },
     { points: [
-      { x: 0.66, y: M },      { x: 0.46, y: M+0.18 },
-      { x: 0.36, y: B+0.06 }, { x: 0.28, y: D-0.02 },
+      { x: 0.66, y: M },      { x: 0.46, y: M+0.24 },
+      { x: 0.36, y: B+0.08 }, { x: 0.28, y: D-0.03 },
     ]},
   ],
 
@@ -430,11 +429,11 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
 
     ctx.save();
 
-    // Top solid line
+    // Top solid line (at y=0, drawn at lineWidth/2 = 1px so it's fully visible)
     ctx.strokeStyle = "#1e293b";
     ctx.lineWidth = 2;
     ctx.setLineDash([]);
-    ctx.beginPath(); ctx.moveTo(0, topY); ctx.lineTo(canvas.width, topY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 1); ctx.lineTo(canvas.width, 1); ctx.stroke();
 
     // Base solid line
     ctx.beginPath(); ctx.moveTo(0, baseY); ctx.lineTo(canvas.width, baseY); ctx.stroke();
