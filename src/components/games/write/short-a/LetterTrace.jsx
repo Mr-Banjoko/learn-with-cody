@@ -475,7 +475,7 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#f0f8ff";
+    ctx.fillStyle = "#E8FFFE";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // ── Guide lines ─────────────────────────────────────────────────────────
