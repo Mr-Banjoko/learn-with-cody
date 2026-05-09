@@ -260,9 +260,11 @@ function resample(pts, n) {
 }
 
 function scoreStroke(userPts, refPts, canvasW, canvasH) {
+  if (!userPts || userPts.length < 2 || !refPts || refPts.length < 2) return false;
   const N = 30;
   const uR = resample(userPts, N);
   const rR = resample(refPts, N);
+  if (uR.length < N || rR.length < N) return false;
   const pixelDiag = Math.hypot(canvasW, canvasH);
   const threshold = pixelDiag * 0.18;
   let totalErr = 0;
@@ -472,6 +474,7 @@ export default function LetterTrace({ letter = "a", onComplete }) {
       if (dist < canvas.width * 0.12) advanceStroke(); else triggerWrong();
       return;
     }
+    if (userPoints.length < 3) { triggerWrong(); setUserPoints([]); return; }
     const ok = scoreStroke(userPoints, stroke.points, canvas.width, canvas.height);
     if (ok) advanceStroke(); else triggerWrong();
     setUserPoints([]);
