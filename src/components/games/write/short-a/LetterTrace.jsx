@@ -270,6 +270,24 @@ function scoreStroke(userPts, refPts, canvasW, canvasH) {
   return (totalErr / N) < threshold;
 }
 
+function smoothPathCatmull(ctx, pts, w, h) {
+  if (pts.length < 2) return;
+  const p = pts.map(pt => ({ x: pt.x * w, y: pt.y * h }));
+  ctx.moveTo(p[0].x, p[0].y);
+  if (p.length === 2) { ctx.lineTo(p[1].x, p[1].y); return; }
+  for (let i = 0; i < p.length - 1; i++) {
+    const p0 = p[Math.max(i - 1, 0)];
+    const p1 = p[i];
+    const p2 = p[i + 1];
+    const p3 = p[Math.min(i + 2, p.length - 1)];
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+  }
+}
+
 function drawDottedStroke(ctx, pts, w, h, alpha = 1) {
   if (pts.length < 2) return;
   ctx.save();
@@ -279,8 +297,7 @@ function drawDottedStroke(ctx, pts, w, h, alpha = 1) {
   ctx.setLineDash([6, 8]);
   ctx.lineCap = "round";
   ctx.beginPath();
-  ctx.moveTo(pts[0].x * w, pts[0].y * h);
-  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x * w, pts[i].y * h);
+  smoothPathCatmull(ctx, pts, w, h);
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();
@@ -294,8 +311,7 @@ function drawSolidStroke(ctx, pts, w, h, color = "#ffffff", lineWidth = 10) {
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.beginPath();
-  ctx.moveTo(pts[0].x * w, pts[0].y * h);
-  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x * w, pts[i].y * h);
+  smoothPathCatmull(ctx, pts, w, h);
   ctx.stroke();
   ctx.restore();
 }
