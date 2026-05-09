@@ -396,7 +396,7 @@ function drawSolidStroke(ctx, pts, w, h, color = "#ffffff", lineWidth = 7) {
 function drawActiveStroke(ctx, pts, w, h) {
   if (pts.length < 2) return;
   ctx.save();
-  ctx.strokeStyle = "#ff50b4";
+  ctx.strokeStyle = "#1a1a1a";
   ctx.lineWidth = 4;
   ctx.lineCap = "round";
   ctx.setLineDash([10, 10]);
@@ -431,7 +431,7 @@ function drawArrowhead(ctx, x, y, angle, size, color) {
 function drawStartArrowhead(ctx, pts, w, h) {
   if (pts.length < 2) return;
   const angle = getAngle(pts[0], pts[1], w, h);
-  drawArrowhead(ctx, pts[0].x * w, pts[0].y * h, angle, 7, "#ff50b4");
+  drawArrowhead(ctx, pts[0].x * w, pts[0].y * h, angle, 7, "#1a1a1a");
 }
 
 function drawEndArrowhead(ctx, pts, w, h) {
@@ -439,7 +439,7 @@ function drawEndArrowhead(ctx, pts, w, h) {
   const last = pts[pts.length - 1];
   const prev = pts[pts.length - 2];
   const angle = getAngle(prev, last, w, h);
-  drawArrowhead(ctx, last.x * w, last.y * h, angle, 5.5, "#ff50b4");
+  drawArrowhead(ctx, last.x * w, last.y * h, angle, 5.5, "#1a1a1a");
 }
 
 function drawDot(ctx, pt, w, h) {
