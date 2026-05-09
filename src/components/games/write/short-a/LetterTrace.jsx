@@ -1,38 +1,39 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 
 // ─── Canvas & line layout ─────────────────────────────────────────────────────
-// Canvas: 320 × 420 px (fixed)
+// Canvas: 320 × 420 px (fixed for every letter)
 //
-// Normalised line positions (y / 420):
-//   T = 0.000  — top solid line   (NO top padding — starts at canvas edge)
-//   M = 0.400  — middle dashed    (x-height line)
-//   B = 0.708  — base solid line  (= M + 0.22*1.4, 40% wider zone than before)
+// Line positions (normalised = px / 420):
+//   TOP   = 80/420  ≈ 0.190  — solid,  top of writing zone / ascender start
+//   MID   = 200/420 ≈ 0.476  — dashed, x-height line (midpoint of writing zone)
+//   BASE  = 320/420 ≈ 0.762  — solid,  baseline
 //
-// Zones:
-//   Tall/ascender zone  : T(0.000) → M(0.400)   — 168px
-//   X-height zone       : M(0.400) → B(0.708)   — 129px  (+40% vs prev 92px)
-//   Descender zone      : B(0.708) → 0.940       — rest of canvas
+// Zones (normalised):
+//   TOP padding  0.000 – 0.190   (empty)
+//   Tall/ascender zone  0.190 – 0.476
+//   X-height zone       0.476 – 0.762
+//   Descender zone      0.762 – 0.952  (≈ 400/420; only f g j p q y)
 //
-// Dot for i/j: DOT = 0.250  (clearly above middle line)
+// Dot for i / j:  y = 160/420 ≈ 0.381  (clearly above MID)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CANVAS_W = 320;
 const CANVAS_H = 420;
 
-const T   = 0.000;  // top solid line — very top edge
-const M   = 0.400;  // middle dashed line
-const B   = 0.708;  // base solid line (M + 0.22*1.4 = 0.708)
-const DOT = 0.250;  // dot for i/j — above M
-const D   = 0.920;  // descender bottom
+const T   = 80  / 420; // 0.190 — top solid line
+const M   = 200 / 420; // 0.476 — middle dashed line
+const B   = 320 / 420; // 0.762 — base solid line
+const DOT = 160 / 420; // 0.381 — dot for i/j
+const D   = 380 / 420; // 0.905 — descender bottom
 
 const LETTER_STROKES = {
-  // ── X-HEIGHT LETTERS — top at M, bottom at B ────────────────────────────
+  // ── X-HEIGHT LETTERS (body between M and B) ──────────────────────────────
   a: [
     { points: [
       { x: 0.62, y: M+0.03 }, { x: 0.50, y: M },      { x: 0.38, y: M },
-      { x: 0.26, y: M+0.06 }, { x: 0.22, y: M+0.15 }, { x: 0.22, y: M+0.24 },
+      { x: 0.26, y: M+0.06 }, { x: 0.22, y: M+0.14 }, { x: 0.22, y: M+0.22 },
       { x: 0.28, y: B-0.04 }, { x: 0.40, y: B },      { x: 0.52, y: B },
-      { x: 0.62, y: B-0.04 },
+      { x: 0.62, y: B-0.05 },
     ]},
     { points: [{ x: 0.62, y: M }, { x: 0.62, y: B }] },
   ],
@@ -49,7 +50,7 @@ const LETTER_STROKES = {
   c: [
     { points: [
       { x: 0.68, y: M+0.06 }, { x: 0.56, y: M },      { x: 0.42, y: M },
-      { x: 0.28, y: M+0.06 }, { x: 0.22, y: M+0.15 }, { x: 0.22, y: M+0.24 },
+      { x: 0.28, y: M+0.06 }, { x: 0.22, y: M+0.14 }, { x: 0.22, y: M+0.22 },
       { x: 0.28, y: B-0.04 }, { x: 0.42, y: B },      { x: 0.56, y: B },
       { x: 0.68, y: B-0.06 },
     ]},
@@ -58,7 +59,7 @@ const LETTER_STROKES = {
   d: [
     { points: [
       { x: 0.60, y: M+0.06 }, { x: 0.48, y: M },      { x: 0.36, y: M },
-      { x: 0.24, y: M+0.06 }, { x: 0.20, y: M+0.15 }, { x: 0.20, y: M+0.24 },
+      { x: 0.24, y: M+0.06 }, { x: 0.20, y: M+0.14 }, { x: 0.20, y: M+0.22 },
       { x: 0.26, y: B-0.04 }, { x: 0.38, y: B },      { x: 0.50, y: B },
       { x: 0.60, y: B-0.05 },
     ]},
@@ -79,7 +80,7 @@ const LETTER_STROKES = {
     { points: [
       { x: 0.64, y: T+0.03 }, { x: 0.54, y: T },      { x: 0.44, y: T+0.02 },
       { x: 0.38, y: T+0.08 }, { x: 0.36, y: M-0.02 }, { x: 0.36, y: B },
-      { x: 0.36, y: D-0.02 },
+      { x: 0.36, y: D },
     ]},
     { points: [{ x: 0.18, y: M }, { x: 0.60, y: M }] },
   ],
@@ -87,10 +88,10 @@ const LETTER_STROKES = {
   g: [
     { points: [
       { x: 0.66, y: M+0.06 }, { x: 0.54, y: M },      { x: 0.42, y: M },
-      { x: 0.28, y: M+0.06 }, { x: 0.22, y: M+0.15 }, { x: 0.22, y: M+0.24 },
+      { x: 0.28, y: M+0.06 }, { x: 0.22, y: M+0.14 }, { x: 0.22, y: M+0.22 },
       { x: 0.28, y: B-0.04 }, { x: 0.42, y: B },      { x: 0.54, y: B-0.02 },
       { x: 0.66, y: B-0.08 }, { x: 0.66, y: M },
-      { x: 0.66, y: B+0.05 }, { x: 0.62, y: D-0.04 }, { x: 0.50, y: D },
+      { x: 0.66, y: B+0.06 }, { x: 0.62, y: D-0.04 }, { x: 0.50, y: D },
       { x: 0.38, y: D-0.04 },
     ]},
   ],
@@ -99,7 +100,7 @@ const LETTER_STROKES = {
     { points: [{ x: 0.28, y: T }, { x: 0.28, y: B }] },
     { points: [
       { x: 0.28, y: M+0.06 }, { x: 0.38, y: M },      { x: 0.52, y: M },
-      { x: 0.64, y: M+0.06 }, { x: 0.68, y: M+0.15 }, { x: 0.68, y: B },
+      { x: 0.64, y: M+0.06 }, { x: 0.68, y: M+0.14 }, { x: 0.68, y: B },
     ]},
   ],
 
@@ -118,8 +119,8 @@ const LETTER_STROKES = {
 
   k: [
     { points: [{ x: 0.30, y: T }, { x: 0.30, y: B }] },
-    { points: [{ x: 0.68, y: M },  { x: 0.30, y: M+0.15 }] },
-    { points: [{ x: 0.30, y: M+0.15 }, { x: 0.68, y: B }] },
+    { points: [{ x: 0.68, y: M },  { x: 0.30, y: M+0.14 }] },
+    { points: [{ x: 0.30, y: M+0.14 }, { x: 0.68, y: B }] },
   ],
 
   l: [
@@ -133,11 +134,11 @@ const LETTER_STROKES = {
     { points: [{ x: 0.10, y: M+0.02 }, { x: 0.10, y: B }] },
     { points: [
       { x: 0.10, y: M+0.08 }, { x: 0.20, y: M },      { x: 0.34, y: M },
-      { x: 0.44, y: M+0.06 }, { x: 0.48, y: M+0.15 }, { x: 0.48, y: B },
+      { x: 0.44, y: M+0.06 }, { x: 0.48, y: M+0.14 }, { x: 0.48, y: B },
     ]},
     { points: [
       { x: 0.48, y: M+0.08 }, { x: 0.58, y: M },      { x: 0.72, y: M },
-      { x: 0.80, y: M+0.06 }, { x: 0.84, y: M+0.15 }, { x: 0.84, y: B },
+      { x: 0.80, y: M+0.06 }, { x: 0.84, y: M+0.14 }, { x: 0.84, y: B },
     ]},
   ],
 
@@ -145,16 +146,16 @@ const LETTER_STROKES = {
     { points: [{ x: 0.22, y: M+0.02 }, { x: 0.22, y: B }] },
     { points: [
       { x: 0.22, y: M+0.08 }, { x: 0.32, y: M },      { x: 0.48, y: M },
-      { x: 0.60, y: M+0.06 }, { x: 0.64, y: M+0.15 }, { x: 0.64, y: B },
+      { x: 0.60, y: M+0.06 }, { x: 0.64, y: M+0.14 }, { x: 0.64, y: B },
     ]},
   ],
 
   o: [
     { points: [
       { x: 0.52, y: M },      { x: 0.38, y: M },      { x: 0.24, y: M+0.08 },
-      { x: 0.20, y: M+0.17 }, { x: 0.20, y: M+0.26 }, { x: 0.26, y: B-0.04 },
+      { x: 0.20, y: M+0.16 }, { x: 0.20, y: M+0.24 }, { x: 0.26, y: B-0.04 },
       { x: 0.38, y: B },      { x: 0.52, y: B },      { x: 0.64, y: B-0.04 },
-      { x: 0.70, y: M+0.26 }, { x: 0.70, y: M+0.17 }, { x: 0.64, y: M+0.08 },
+      { x: 0.70, y: M+0.24 }, { x: 0.70, y: M+0.16 }, { x: 0.64, y: M+0.08 },
       { x: 0.52, y: M },
     ]},
   ],
@@ -163,7 +164,7 @@ const LETTER_STROKES = {
     { points: [{ x: 0.30, y: M+0.02 }, { x: 0.30, y: D }] },
     { points: [
       { x: 0.30, y: M+0.02 }, { x: 0.44, y: M },      { x: 0.58, y: M+0.04 },
-      { x: 0.66, y: M+0.13 }, { x: 0.68, y: M+0.24 }, { x: 0.64, y: B-0.06 },
+      { x: 0.66, y: M+0.12 }, { x: 0.68, y: M+0.22 }, { x: 0.64, y: B-0.06 },
       { x: 0.54, y: B },      { x: 0.42, y: B },      { x: 0.30, y: B-0.04 },
     ]},
   ],
@@ -171,7 +172,7 @@ const LETTER_STROKES = {
   q: [
     { points: [
       { x: 0.64, y: M+0.06 }, { x: 0.52, y: M },      { x: 0.38, y: M },
-      { x: 0.26, y: M+0.06 }, { x: 0.20, y: M+0.15 }, { x: 0.20, y: M+0.24 },
+      { x: 0.26, y: M+0.06 }, { x: 0.20, y: M+0.14 }, { x: 0.20, y: M+0.22 },
       { x: 0.26, y: B-0.04 }, { x: 0.38, y: B },      { x: 0.52, y: B },
       { x: 0.64, y: B-0.05 }, { x: 0.64, y: M },
     ]},
@@ -189,8 +190,8 @@ const LETTER_STROKES = {
   s: [
     { points: [
       { x: 0.66, y: M+0.06 }, { x: 0.54, y: M },      { x: 0.40, y: M },
-      { x: 0.28, y: M+0.06 }, { x: 0.26, y: M+0.15 }, { x: 0.38, y: M+0.21 },
-      { x: 0.52, y: M+0.26 }, { x: 0.66, y: M+0.32 }, { x: 0.66, y: B-0.06 },
+      { x: 0.28, y: M+0.06 }, { x: 0.26, y: M+0.14 }, { x: 0.38, y: M+0.20 },
+      { x: 0.52, y: M+0.24 }, { x: 0.66, y: M+0.30 }, { x: 0.66, y: B-0.06 },
       { x: 0.54, y: B },      { x: 0.40, y: B },      { x: 0.28, y: B-0.06 },
     ]},
   ],
@@ -215,7 +216,7 @@ const LETTER_STROKES = {
 
   w: [
     { points: [
-      { x: 0.12, y: M },      { x: 0.26, y: B }, { x: 0.44, y: M+0.18 },
+      { x: 0.12, y: M },      { x: 0.26, y: B }, { x: 0.44, y: M+0.16 },
       { x: 0.62, y: B },      { x: 0.78, y: M },
     ]},
   ],
@@ -226,9 +227,9 @@ const LETTER_STROKES = {
   ],
 
   y: [
-    { points: [{ x: 0.26, y: M }, { x: 0.46, y: M+0.20 }] },
+    { points: [{ x: 0.26, y: M }, { x: 0.46, y: M+0.18 }] },
     { points: [
-      { x: 0.66, y: M },      { x: 0.46, y: M+0.20 },
+      { x: 0.66, y: M },      { x: 0.46, y: M+0.18 },
       { x: 0.36, y: B+0.06 }, { x: 0.28, y: D-0.02 },
     ]},
   ],
@@ -395,25 +396,6 @@ function drawDot(ctx, pt, w, h) {
   ctx.restore();
 }
 
-function drawGuideLines(ctx, w, h) {
-  ctx.save();
-  // Top solid line — at very top edge
-  ctx.strokeStyle = "#1e293b";
-  ctx.lineWidth = 2;
-  ctx.setLineDash([]);
-  ctx.beginPath(); ctx.moveTo(0, h * T); ctx.lineTo(w, h * T); ctx.stroke();
-  // Middle dashed line
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([8, 6]);
-  ctx.beginPath(); ctx.moveTo(0, h * M); ctx.lineTo(w, h * M); ctx.stroke();
-  // Base solid line
-  ctx.strokeStyle = "#1e293b";
-  ctx.lineWidth = 2;
-  ctx.setLineDash([]);
-  ctx.beginPath(); ctx.moveTo(0, h * B); ctx.lineTo(w, h * B); ctx.stroke();
-  ctx.restore();
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function LetterTrace({ letter = "a", onComplete, locked = false, size = 320 }) {
@@ -429,6 +411,7 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
 
   const strokes = LETTER_STROKES[letter.toLowerCase()] || [];
 
+  // Canvas is always 320 wide; height scales proportionally from 320×420 base
   const W = size;
   const H = Math.round(size * (CANVAS_H / CANVAS_W)); // 420 when size=320
 
@@ -440,7 +423,29 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
     ctx.fillStyle = "#f0f8ff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    drawGuideLines(ctx, canvas.width, canvas.height);
+    // ── Guide lines ─────────────────────────────────────────────────────────
+    const topY  = canvas.height * T;
+    const midY  = canvas.height * M;
+    const baseY = canvas.height * B;
+
+    ctx.save();
+
+    // Top solid line
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(0, topY); ctx.lineTo(canvas.width, topY); ctx.stroke();
+
+    // Base solid line
+    ctx.beginPath(); ctx.moveTo(0, baseY); ctx.lineTo(canvas.width, baseY); ctx.stroke();
+
+    // Middle dashed line
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(canvas.width, midY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    // ────────────────────────────────────────────────────────────────────────
 
     strokes.forEach((stroke, idx) => {
       if (completedStrokes.includes(idx)) return;
