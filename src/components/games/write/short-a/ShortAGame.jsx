@@ -7,9 +7,20 @@ import { getLetterSoundUrl, getLetterGain } from "../../../../lib/letterSounds";
 import { playAudio, playAudioSequence, preloadAudio, warmupAudio } from "../../../../lib/useAudio";
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
-
-// Only words that exist in shortAWords
 const WORD_LIST = shortAWords.slice(0, 10);
+
+// Collect every audio URL needed for the game
+function getAllAudioUrls() {
+  const urls = [];
+  WORD_LIST.forEach(w => {
+    if (w.audio) urls.push(w.audio);
+    w.word.split("").forEach(l => {
+      const u = getLetterSoundUrl(l);
+      if (u) urls.push(u);
+    });
+  });
+  return [...new Set(urls)];
+}
 
 function ProgressBar({ value, max }) {
   return (
@@ -19,87 +30,108 @@ function ProgressBar({ value, max }) {
   );
 }
 
-
-
 export default function ShortAGame({ onBack }) {
   const [wordIdx, setWordIdx] = useState(0);
   const [letterIdx, setLetterIdx] = useState(0);
   const [completedLetters, setCompletedLetters] = useState([]);
   const [locked, setLocked] = useState(true);
   const [wordKey, setWordKey] = useState(0);
+  const [audioReady, setAudioReady] = useState(false);
 
+  // Refs — always hold the latest state values so callbacks never go stale
+  const wordIdxRef = useRef(0);
+  const letterIdxRef = useRef(0);
+  const completedLettersRef = useRef([]);
+  const lockedRef = useRef(true);
   const cancelAudioRef = useRef(null);
 
-  // Refs to always hold the latest values — avoids stale closures in callbacks
-  const wordIdxRef = useRef(wordIdx);
-  const completedLettersRef = useRef(completedLetters);
-  const lockedRef = useRef(locked);
-
+  // Keep refs in sync with state
   useEffect(() => { wordIdxRef.current = wordIdx; }, [wordIdx]);
+  useEffect(() => { letterIdxRef.current = letterIdx; }, [letterIdx]);
   useEffect(() => { completedLettersRef.current = completedLetters; }, [completedLetters]);
   useEffect(() => { lockedRef.current = locked; }, [locked]);
 
-  const wordData = WORD_LIST[wordIdx];
-  const word = wordData.word;
-
-  // Preload audio on mount
+  // ── Step 1: Warm up ALL audio before any gameplay ──────────────────────────
   useEffect(() => {
-    const audioUrls = WORD_LIST.map(w => w.audio).filter(Boolean);
-    if (audioUrls.length) preloadAudio(audioUrls);
-    const letters = [...new Set(WORD_LIST.flatMap(w => w.word.split("")))];
-    warmupAudio(letters.map(getLetterSoundUrl).filter(Boolean));
+    let cancelled = false;
+    const urls = getAllAudioUrls();
+    // Preload into Cache API, then resolve all blobs
+    preloadAudio(urls).then(() => warmupAudio(urls)).then(() => {
+      if (!cancelled) setAudioReady(true);
+    });
+    return () => { cancelled = true; };
   }, []);
 
   const cancelAudio = useCallback(() => {
-    if (cancelAudioRef.current) { cancelAudioRef.current(); cancelAudioRef.current = null; }
+    if (cancelAudioRef.current) {
+      cancelAudioRef.current();
+      cancelAudioRef.current = null;
+    }
   }, []);
 
-  // On each new word: lock UI, play word audio, then unlock
+  // ── Step 2: When audio is ready (or word changes), play word intro then unlock
   useEffect(() => {
+    if (!audioReady) return;
+
     setLocked(true);
     cancelAudio();
 
-    const currentWordData = WORD_LIST[wordIdx];
+    const wData = WORD_LIST[wordIdxRef.current];
     const cancel = playAudioSequence(
-      [{ url: currentWordData.audio, gain: 1 }],
-      () => { setLocked(false); cancelAudioRef.current = null; }
+      [{ url: wData.audio, gain: 1 }],
+      () => {
+        cancelAudioRef.current = null;
+        setLocked(false);
+      }
     );
     cancelAudioRef.current = cancel;
 
     return () => cancelAudio();
-  }, [wordIdx]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioReady, wordIdx]);
 
-  // Advance to next word — uses ref so never stale
+  // ── Advance to next word ───────────────────────────────────────────────────
   const goNextWord = useCallback(() => {
     cancelAudio();
     const next = (wordIdxRef.current + 1) % WORD_LIST.length;
+    // Reset state synchronously via functional updaters to avoid batching issues
     setWordIdx(next);
     setLetterIdx(0);
     setCompletedLetters([]);
     setWordKey(k => k + 1);
   }, [cancelAudio]);
 
-  // When a letter is successfully traced — fired synchronously from touchend (iOS safe)
+  // ── Letter traced successfully ─────────────────────────────────────────────
+  // This is called synchronously from touchend in LetterTrace (iOS gesture-safe).
+  // We read ALL current values from refs — zero stale closure risk.
   const handleLetterComplete = useCallback((completedIdx) => {
-    // Read latest values from refs to avoid stale closure issues
+    // Guard: if already locked from a previous call, ignore duplicate fires
+    if (lockedRef.current) return;
+
     const currentWord = WORD_LIST[wordIdxRef.current].word;
     const currentWordData = WORD_LIST[wordIdxRef.current];
     const currentCompleted = completedLettersRef.current;
+
+    // Lock immediately to prevent any re-entry
+    setLocked(true);
+    lockedRef.current = true;
+    cancelAudio();
 
     const letter = currentWord[completedIdx];
     const url = getLetterSoundUrl(letter);
     const gain = getLetterGain(letter);
 
-    setLocked(true);
-    cancelAudio();
-
     const afterLetterSound = () => {
       cancelAudioRef.current = null;
+
       const newCompleted = [...currentCompleted, completedIdx];
       setCompletedLetters(newCompleted);
+      completedLettersRef.current = newCompleted;
 
-      if (completedIdx + 1 >= currentWord.length) {
-        // All letters done — play letter sounds then full word, then advance
+      const allDone = completedIdx + 1 >= currentWord.length;
+
+      if (allDone) {
+        // Build full sequence: each letter sound then the whole word
         const steps = currentWord.split("").map(l => {
           const lUrl = getLetterSoundUrl(l);
           return lUrl ? { url: lUrl, gain: getLetterGain(l) } : null;
@@ -112,8 +144,11 @@ export default function ShortAGame({ onBack }) {
         });
         cancelAudioRef.current = cancel;
       } else {
-        setLetterIdx(completedIdx + 1);
+        const next = completedIdx + 1;
+        setLetterIdx(next);
+        letterIdxRef.current = next;
         setLocked(false);
+        lockedRef.current = false;
       }
     };
 
@@ -125,11 +160,15 @@ export default function ShortAGame({ onBack }) {
     }
   }, [cancelAudio, goNextWord]);
 
-  const handlePictureTap = () => {
-    if (locked) return;
-    if (cancelAudioRef.current) { cancelAudioRef.current(); cancelAudioRef.current = null; }
-    playAudio(wordData.audio);
-  };
+  const handlePictureTap = useCallback(() => {
+    if (lockedRef.current) return;
+    cancelAudio();
+    const wData = WORD_LIST[wordIdxRef.current];
+    playAudio(wData.audio);
+  }, [cancelAudio]);
+
+  const wordData = WORD_LIST[wordIdx];
+  const word = wordData.word;
 
   return (
     <div style={{ minHeight: "100%", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", display: "flex", flexDirection: "column" }}>
@@ -145,9 +184,18 @@ export default function ShortAGame({ onBack }) {
         </div>
       </div>
 
+      {/* Loading overlay while audio warms up */}
+      {!audioReady && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
+          <div style={{ width: 40, height: 40, border: "4px solid #A8D0E6", borderTopColor: "#4A90C4", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <p style={{ color: "#4A90C4", fontWeight: 600, fontSize: 16 }}>Getting ready…</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+
       {/* Body */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 20px 32px", gap: 20, overflowY: "auto" }}>
-        {/* Lock overlay */}
+        {/* Interaction lock overlay */}
         {locked && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
         {/* Word picture */}
@@ -176,11 +224,9 @@ export default function ShortAGame({ onBack }) {
           </motion.div>
         </AnimatePresence>
 
-        {/* All letters shown at once — only current one is interactive */}
+        {/* Letter tiles */}
         {(() => {
-          // Fit all letters side-by-side: max canvas size per letter based on word length
           const letterCount = word.length;
-          // Available width ~360px, gap 8px between letters
           const maxSize = Math.min(160, Math.floor((360 - (letterCount - 1) * 8) / letterCount));
           const tileSize = Math.max(80, maxSize);
           return (
@@ -203,8 +249,6 @@ export default function ShortAGame({ onBack }) {
             </div>
           );
         })()}
-
-
       </div>
     </div>
   );
