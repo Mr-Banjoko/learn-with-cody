@@ -399,7 +399,7 @@ function getStrokeDirection(pts) {
   return "right";
 }
 
-export default function LetterTrace({ letter = "a", onComplete, locked = false }) {
+export default function LetterTrace({ letter = "a", onComplete, locked = false, size = 320 }) {
   const canvasRef = useRef(null);
 
   const [currentStroke, setCurrentStroke] = useState(0);
@@ -411,7 +411,7 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false }
   const [shake, setShake] = useState(false);
 
   const strokes = LETTER_STROKES[letter.toLowerCase()] || [];
-  const SIZE = 320;
+  const SIZE = size;
 
   const render = useCallback(() => {
     const canvas = canvasRef.current;
