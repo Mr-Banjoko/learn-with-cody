@@ -533,11 +533,7 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
       drawSolidStroke(ctx, userPoints, canvas.width, canvas.height, "#4A90C4", 7);
     }
 
-    if (feedback === "correct") {
-      ctx.save(); ctx.fillStyle = "rgba(34,197,94,0.18)"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore();
-    } else if (feedback === "wrong") {
-      ctx.save(); ctx.fillStyle = "rgba(239,68,68,0.18)"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore();
-    }
+
   }, [strokes, currentStroke, completedStrokes, isDrawing, userPoints, feedback, done, locked]);
 
   useEffect(() => {
@@ -603,9 +599,8 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
   };
 
   const triggerWrong = () => {
-    setFeedback("wrong");
-    setShake(true);
-    setTimeout(() => { setFeedback(null); setShake(false); }, 600);
+    // No visual feedback for wrong strokes — silently reset
+    setUserPoints([]);
   };
 
   return (
@@ -614,9 +609,7 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
         borderRadius: 16, overflow: "hidden",
         boxShadow: "0 6px 28px rgba(30,58,95,0.14)",
         border: "2.5px solid rgba(168,208,230,0.6)",
-        transform: shake ? "translateX(-6px)" : "translateX(0)",
-        transition: "transform 0.1s",
-        animation: shake ? "shake 0.4s" : "none",
+        transform: "translateX(0)",
         opacity: locked ? 0.7 : 1,
         pointerEvents: locked ? "none" : "auto",
       }}>
@@ -635,7 +628,7 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
         />
       </div>
 
-      <style>{`@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}`}</style>
+
     </div>
   );
 }
