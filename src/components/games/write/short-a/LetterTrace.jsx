@@ -591,14 +591,15 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
   };
 
   const advanceStroke = () => {
-    setFeedback("correct");
     const next = currentStroke + 1;
     setCompletedStrokes((prev) => [...prev, currentStroke]);
-    setTimeout(() => {
-      setFeedback(null);
-      if (next >= strokes.length) { setDone(true); onComplete && onComplete(letter); }
-      else setCurrentStroke(next);
-    }, 400);
+    if (next >= strokes.length) {
+      setDone(true);
+      // Call onComplete synchronously — must stay in the touch gesture call stack for iOS Safari
+      onComplete && onComplete(letter);
+    } else {
+      setCurrentStroke(next);
+    }
   };
 
   const triggerWrong = () => {

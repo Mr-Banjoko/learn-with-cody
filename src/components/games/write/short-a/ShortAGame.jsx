@@ -26,9 +26,18 @@ export default function ShortAGame({ onBack }) {
   const [letterIdx, setLetterIdx] = useState(0);
   const [completedLetters, setCompletedLetters] = useState([]);
   const [locked, setLocked] = useState(true);
-  const [wordKey, setWordKey] = useState(0); // forces all LetterTrace remount on new word
+  const [wordKey, setWordKey] = useState(0);
 
   const cancelAudioRef = useRef(null);
+
+  // Refs to always hold the latest values — avoids stale closures in callbacks
+  const wordIdxRef = useRef(wordIdx);
+  const completedLettersRef = useRef(completedLetters);
+  const lockedRef = useRef(locked);
+
+  useEffect(() => { wordIdxRef.current = wordIdx; }, [wordIdx]);
+  useEffect(() => { completedLettersRef.current = completedLetters; }, [completedLetters]);
+  useEffect(() => { lockedRef.current = locked; }, [locked]);
 
   const wordData = WORD_LIST[wordIdx];
   const word = wordData.word;
@@ -41,51 +50,61 @@ export default function ShortAGame({ onBack }) {
     warmupAudio(letters.map(getLetterSoundUrl).filter(Boolean));
   }, []);
 
+  const cancelAudio = useCallback(() => {
+    if (cancelAudioRef.current) { cancelAudioRef.current(); cancelAudioRef.current = null; }
+  }, []);
+
   // On each new word: lock UI, play word audio, then unlock
   useEffect(() => {
     setLocked(true);
-    if (cancelAudioRef.current) { cancelAudioRef.current(); cancelAudioRef.current = null; }
+    cancelAudio();
 
+    const currentWordData = WORD_LIST[wordIdx];
     const cancel = playAudioSequence(
-      [{ url: wordData.audio, gain: 1 }],
+      [{ url: currentWordData.audio, gain: 1 }],
       () => { setLocked(false); cancelAudioRef.current = null; }
     );
     cancelAudioRef.current = cancel;
 
-    return () => { if (cancelAudioRef.current) { cancelAudioRef.current(); cancelAudioRef.current = null; } };
+    return () => cancelAudio();
   }, [wordIdx]);
 
-  // Advance to next word automatically
+  // Advance to next word — uses ref so never stale
   const goNextWord = useCallback(() => {
-    if (cancelAudioRef.current) { cancelAudioRef.current(); cancelAudioRef.current = null; }
-    const next = (wordIdx + 1) % WORD_LIST.length;
+    cancelAudio();
+    const next = (wordIdxRef.current + 1) % WORD_LIST.length;
     setWordIdx(next);
     setLetterIdx(0);
     setCompletedLetters([]);
     setWordKey(k => k + 1);
-  }, [wordIdx]);
+  }, [cancelAudio]);
 
-  // When a letter is successfully traced: lock, play letter sound, then advance or finish
+  // When a letter is successfully traced — fired synchronously from touchend (iOS safe)
   const handleLetterComplete = useCallback((completedIdx) => {
-    const letter = word[completedIdx];
+    // Read latest values from refs to avoid stale closure issues
+    const currentWord = WORD_LIST[wordIdxRef.current].word;
+    const currentWordData = WORD_LIST[wordIdxRef.current];
+    const currentCompleted = completedLettersRef.current;
+
+    const letter = currentWord[completedIdx];
     const url = getLetterSoundUrl(letter);
     const gain = getLetterGain(letter);
 
     setLocked(true);
-    if (cancelAudioRef.current) { cancelAudioRef.current(); cancelAudioRef.current = null; }
+    cancelAudio();
 
     const afterLetterSound = () => {
       cancelAudioRef.current = null;
-      const newCompleted = [...completedLetters, completedIdx];
+      const newCompleted = [...currentCompleted, completedIdx];
       setCompletedLetters(newCompleted);
 
-      if (completedIdx + 1 >= word.length) {
-        // All letters done — play full sequence: c-a-t then "cat", then auto-advance
-        const steps = word.split("").map(l => {
+      if (completedIdx + 1 >= currentWord.length) {
+        // All letters done — play letter sounds then full word, then advance
+        const steps = currentWord.split("").map(l => {
           const lUrl = getLetterSoundUrl(l);
           return lUrl ? { url: lUrl, gain: getLetterGain(l) } : null;
         }).filter(Boolean);
-        if (wordData.audio) steps.push({ url: wordData.audio, gain: 1 });
+        if (currentWordData.audio) steps.push({ url: currentWordData.audio, gain: 1 });
 
         const cancel = playAudioSequence(steps, () => {
           cancelAudioRef.current = null;
@@ -104,7 +123,7 @@ export default function ShortAGame({ onBack }) {
     } else {
       afterLetterSound();
     }
-  }, [word, completedLetters, wordData, goNextWord]);
+  }, [cancelAudio, goNextWord]);
 
   const handlePictureTap = () => {
     if (locked) return;
