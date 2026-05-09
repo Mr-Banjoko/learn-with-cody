@@ -468,7 +468,7 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
 
   // Canvas is always 320 wide; height scales proportionally from 320×420 base
   const W = size;
-  const H = Math.round(size * (CANVAS_H / CANVAS_W)); // 420 when size=320
+  const H = Math.round(size * (CANVAS_H / CANVAS_W) * 1.4);
 
   const render = useCallback(() => {
     const canvas = canvasRef.current;
