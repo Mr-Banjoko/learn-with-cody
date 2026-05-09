@@ -2,15 +2,20 @@ import { useRef, useState, useEffect, useCallback } from "react";
 
 const LETTER_STROKES = {
   a: [
+    // stroke 1: C shape (open on the right)
     {
       points: [
-        { x: 0.62, y: 0.38 }, { x: 0.55, y: 0.30 }, { x: 0.42, y: 0.28 },
-        { x: 0.30, y: 0.34 }, { x: 0.24, y: 0.46 }, { x: 0.24, y: 0.58 },
-        { x: 0.30, y: 0.68 }, { x: 0.42, y: 0.72 }, { x: 0.55, y: 0.68 },
-        { x: 0.62, y: 0.58 }, { x: 0.62, y: 0.38 },
-        { x: 0.62, y: 0.72 },
+        { x: 0.62, y: 0.34 }, { x: 0.52, y: 0.28 }, { x: 0.40, y: 0.28 },
+        { x: 0.28, y: 0.34 }, { x: 0.22, y: 0.46 }, { x: 0.22, y: 0.58 },
+        { x: 0.28, y: 0.68 }, { x: 0.40, y: 0.72 }, { x: 0.52, y: 0.72 },
+        { x: 0.62, y: 0.66 },
       ],
-      direction: "counterclockwise",
+    },
+    // stroke 2: straight vertical line on the right
+    {
+      points: [
+        { x: 0.62, y: 0.28 }, { x: 0.62, y: 0.72 },
+      ],
     },
   ],
   b: [
