@@ -179,7 +179,7 @@ export default function ShortAGame({ onBack }) {
             <div style={{ position: "absolute", bottom: -16, left: -8, width: 110, height: 110, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
             <div
               onPointerDown={(e) => { e.preventDefault(); if (!lockedRef.current) { cancelAudio(); const cancel = playAudioSequence([{ url: wordData.audio, gain: 1 }], () => { cancelAudioRef.current = null; }); cancelAudioRef.current = cancel; } }}
-              style={{ position: "relative", zIndex: 1, background: "#f0f8ff", borderRadius: 28, padding: 12, boxShadow: "0 12px 40px rgba(30,58,95,0.15)", cursor: "pointer" }}
+              style={{ position: "relative", zIndex: 1, background: "#A8D8EA", borderRadius: 28, padding: 12, boxShadow: "0 12px 40px rgba(30,58,95,0.15)", cursor: "pointer" }}
             >
               <img src={wordData.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
             </div>
