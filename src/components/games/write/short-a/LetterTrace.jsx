@@ -344,39 +344,41 @@ function drawActiveStroke(ctx, pts, w, h) {
   ctx.restore();
 }
 
-function drawStartArrow(ctx, pt, direction, w, h) {
-  const x = pt.x * w, y = pt.y * h, r = 20;
+function drawStartTip(ctx, pt, w, h) {
+  const x = pt.x * w, y = pt.y * h, r = 14;
   ctx.save();
   ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = "#38bdf8";
+  ctx.arc(x, y, r + 6, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(34, 197, 94, 0.2)";
   ctx.fill();
-  ctx.fillStyle = "#ffffff";
-  ctx.font = `bold ${r}px sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const arrowChar = { right: "→", left: "←", down: "↓", up: "↑", "down-right": "↘", "down-left": "↙" };
-  ctx.fillText(arrowChar[direction] || "→", x, y);
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = "#22c55e";
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
   ctx.restore();
 }
 
-function drawEndArrow(ctx, pts, w, h) {
-  if (pts.length < 2) return;
-  const last = pts[pts.length - 1];
-  const prev = pts[pts.length - 2];
-  const x = last.x * w, y = last.y * h;
-  const angle = Math.atan2((last.y - prev.y) * h, (last.x - prev.x) * w);
-  const size = 12;
+function drawEndTip(ctx, pt, w, h) {
+  const x = pt.x * w, y = pt.y * h, r = 10;
   ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(angle);
   ctx.beginPath();
-  ctx.moveTo(size, 0);
-  ctx.lineTo(-size * 0.6, -size * 0.5);
-  ctx.lineTo(-size * 0.6, size * 0.5);
-  ctx.closePath();
-  ctx.fillStyle = "#38bdf8";
+  ctx.arc(x, y, r + 5, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
   ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = "#ef4444";
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -435,9 +437,8 @@ export default function LetterTrace({ letter = "a", onComplete }) {
       if (stroke.isDot) { drawDot(ctx, stroke.points[0], W, H); return; }
       if (idx === currentStroke) {
         drawActiveStroke(ctx, stroke.points, W, H);
-        const dir = getStrokeDirection(stroke.points);
-        drawStartArrow(ctx, stroke.points[0], dir, W, H);
-        drawEndArrow(ctx, stroke.points, W, H);
+        drawStartTip(ctx, stroke.points[0], W, H);
+        drawEndTip(ctx, stroke.points[stroke.points.length - 1], W, H);
       } else {
         drawDottedStroke(ctx, stroke.points, W, H, 0.3);
       }
