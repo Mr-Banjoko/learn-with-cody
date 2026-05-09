@@ -333,14 +333,6 @@ function drawSolidStroke(ctx, pts, w, h, color = "#ffffff", lineWidth = 10) {
 function drawActiveStroke(ctx, pts, w, h) {
   if (pts.length < 2) return;
   ctx.save();
-  ctx.strokeStyle = "rgba(255, 80, 180, 0.25)";
-  ctx.lineWidth = 18;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.setLineDash([]);
-  ctx.beginPath();
-  smoothPathCatmull(ctx, pts, w, h);
-  ctx.stroke();
   ctx.strokeStyle = "#ff50b4";
   ctx.lineWidth = 5;
   ctx.setLineDash([10, 10]);
