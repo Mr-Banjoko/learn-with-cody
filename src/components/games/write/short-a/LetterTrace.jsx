@@ -323,8 +323,29 @@ function drawSolidStroke(ctx, pts, w, h, color = "#ffffff", lineWidth = 10) {
   ctx.restore();
 }
 
-function drawArrow(ctx, pt, direction, w, h) {
-  const x = pt.x * w, y = pt.y * h, r = 18;
+function drawActiveStroke(ctx, pts, w, h) {
+  if (pts.length < 2) return;
+  ctx.save();
+  ctx.strokeStyle = "rgba(255, 80, 180, 0.25)";
+  ctx.lineWidth = 18;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  smoothPathCatmull(ctx, pts, w, h);
+  ctx.stroke();
+  ctx.strokeStyle = "#ff50b4";
+  ctx.lineWidth = 5;
+  ctx.setLineDash([10, 10]);
+  ctx.beginPath();
+  smoothPathCatmull(ctx, pts, w, h);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function drawStartArrow(ctx, pt, direction, w, h) {
+  const x = pt.x * w, y = pt.y * h, r = 20;
   ctx.save();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -334,38 +355,29 @@ function drawArrow(ctx, pt, direction, w, h) {
   ctx.font = `bold ${r}px sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const arrows = { right: "→", left: "←", down: "↓", up: "↑", "down-right": "↘", "down-left": "↙" };
-  ctx.fillText(arrows[direction] || "→", x, y);
+  const arrowChar = { right: "→", left: "←", down: "↓", up: "↑", "down-right": "↘", "down-left": "↙" };
+  ctx.fillText(arrowChar[direction] || "→", x, y);
   ctx.restore();
 }
 
-function drawHintDots(ctx, pts, w, h) {
-  // Draw the first 3 evenly-spaced hint dots along the stroke in pink
+function drawEndArrow(ctx, pts, w, h) {
   if (pts.length < 2) return;
-  const resampled = [];
-  const totalLen = pts.reduce((acc, p, i) => (i === 0 ? 0 : acc + Math.hypot(pts[i-1].x - p.x, pts[i-1].y - p.y)), 0);
-  const step = totalLen / 4; // 3 dots at 1/4, 2/4, 3/4 along the path
-  let dist = 0, pi = 1, prev = pts[0];
-  for (let d = 1; d <= 3; d++) {
-    const target = step * d;
-    while (pi < pts.length && dist + Math.hypot(prev.x - pts[pi].x, prev.y - pts[pi].y) < target) {
-      dist += Math.hypot(prev.x - pts[pi].x, prev.y - pts[pi].y);
-      prev = pts[pi]; pi++;
-    }
-    if (pi >= pts.length) { resampled.push(pts[pts.length - 1]); continue; }
-    const rem = target - dist;
-    const seg = Math.hypot(prev.x - pts[pi].x, prev.y - pts[pi].y);
-    const t = seg === 0 ? 0 : rem / seg;
-    resampled.push({ x: prev.x + (pts[pi].x - prev.x) * t, y: prev.y + (pts[pi].y - prev.y) * t });
-  }
-  resampled.forEach(pt => {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(pt.x * w, pt.y * h, 5, 0, Math.PI * 2);
-    ctx.fillStyle = "#f472b6";
-    ctx.fill();
-    ctx.restore();
-  });
+  const last = pts[pts.length - 1];
+  const prev = pts[pts.length - 2];
+  const x = last.x * w, y = last.y * h;
+  const angle = Math.atan2((last.y - prev.y) * h, (last.x - prev.x) * w);
+  const size = 12;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(size, 0);
+  ctx.lineTo(-size * 0.6, -size * 0.5);
+  ctx.lineTo(-size * 0.6, size * 0.5);
+  ctx.closePath();
+  ctx.fillStyle = "#38bdf8";
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawDot(ctx, pt, w, h) {
@@ -421,7 +433,14 @@ export default function LetterTrace({ letter = "a", onComplete }) {
     strokes.forEach((stroke, idx) => {
       if (completedStrokes.includes(idx)) return;
       if (stroke.isDot) { drawDot(ctx, stroke.points[0], W, H); return; }
-      drawDottedStroke(ctx, stroke.points, W, H, idx === currentStroke ? 1 : 0.4);
+      if (idx === currentStroke) {
+        drawActiveStroke(ctx, stroke.points, W, H);
+        const dir = getStrokeDirection(stroke.points);
+        drawStartArrow(ctx, stroke.points[0], dir, W, H);
+        drawEndArrow(ctx, stroke.points, W, H);
+      } else {
+        drawDottedStroke(ctx, stroke.points, W, H, 0.3);
+      }
     });
     completedStrokes.forEach((idx) => {
       const stroke = strokes[idx];
@@ -438,13 +457,7 @@ export default function LetterTrace({ letter = "a", onComplete }) {
       drawSolidStroke(ctx, stroke.points, W, H, "#ffffff", 10);
     });
     if (isDrawing && userPoints.length > 1) drawSolidStroke(ctx, userPoints, W, H, "#38bdf8", 10);
-    if (!done && currentStroke < strokes.length) {
-      const stroke = strokes[currentStroke];
-      if (!stroke.isDot) {
-        drawHintDots(ctx, stroke.points, W, H);
-        drawArrow(ctx, stroke.points[0], getStrokeDirection(stroke.points), W, H);
-      }
-    }
+
     if (feedback === "correct") {
       ctx.save(); ctx.fillStyle = "rgba(34,197,94,0.18)"; ctx.fillRect(0, 0, W, H); ctx.restore();
     } else if (feedback === "wrong") {
