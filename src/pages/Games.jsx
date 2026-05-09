@@ -18,6 +18,10 @@ const gameLabels = {
 };
 import { Lock, ChevronDown, ChevronUp } from "lucide-react";
 import ShortAGame from "../components/games/write/short-a/ShortAGame";
+import ShortEGame from "../components/games/write/short-e/ShortEGame";
+import ShortIGame from "../components/games/write/short-i/ShortIGame";
+import ShortOGame from "../components/games/write/short-o/ShortOGame";
+import ShortUGame from "../components/games/write/short-u/ShortUGame";
 import PicSliceGame from "./PicSliceGame";
 import WordMatch from "../components/games/WordMatch";
 import DragTheLetters from "../components/games/DragTheLetters";
@@ -85,9 +89,11 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   if (activeGame === "test") {
     return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;
   }
-  if (activeGame === "write-short-a") {
-    return <ShortAGame onBack={exitGame} />;
-  }
+  if (activeGame === "write-short-a") return <ShortAGame onBack={exitGame} />;
+  if (activeGame === "write-short-e") return <ShortEGame onBack={exitGame} />;
+  if (activeGame === "write-short-i") return <ShortIGame onBack={exitGame} />;
+  if (activeGame === "write-short-o") return <ShortOGame onBack={exitGame} />;
+  if (activeGame === "write-short-u") return <ShortUGame onBack={exitGame} />;
   return (
     <div
       className="min-h-full pb-32 pt-4"
@@ -172,7 +178,7 @@ export default function Games({ onDeepScreen, lang = "en" }) {
               <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>Write</h3>
               <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>Trace letters and write words with your finger</p>
               <div className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "#C77DFF18", color: "#C77DFF" }}>
-                Coming Soon ✨
+                Play Now! 🎮
               </div>
             </div>
             <div style={{ color: "#C77DFF", flexShrink: 0 }}>
@@ -181,25 +187,18 @@ export default function Games({ onDeepScreen, lang = "en" }) {
           </div>
           {writeExpanded && (
             <div className="mt-4 flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-              {WRITE_SUBFOLDERS.map((sub) => {
-                const isShortA = sub.id === "short-a";
-                return (
+              {WRITE_SUBFOLDERS.map((sub) => (
                   <div
                     key={sub.id}
                     className="flex items-center gap-3 px-3 py-3 rounded-2xl"
-                    style={{ background: "rgba(199,125,255,0.08)", border: "1.5px solid rgba(199,125,255,0.2)", cursor: isShortA ? "pointer" : "default" }}
-                    onClick={isShortA ? () => enterGame("write-short-a") : undefined}
+                    style={{ background: "rgba(199,125,255,0.08)", border: "1.5px solid rgba(199,125,255,0.2)", cursor: "pointer" }}
+                    onClick={() => enterGame(`write-${sub.id}`)}
                   >
                     <span style={{ fontSize: 22 }}>{sub.emoji}</span>
                     <span className="text-base font-semibold" style={{ color: "#1E293B", flex: 1 }}>{sub.label}</span>
-                    {isShortA ? (
-                      <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: "#C77DFF22", color: "#C77DFF" }}>Play ▶</span>
-                    ) : (
-                      <Lock size={16} style={{ color: "#C77DFF", opacity: 0.5 }} />
-                    )}
+                    <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: "#C77DFF22", color: "#C77DFF" }}>Play ▶</span>
                   </div>
-                );
-              })}
+              ))}
             </div>
           )}
         </motion.div>
