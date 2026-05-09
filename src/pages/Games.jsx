@@ -17,6 +17,7 @@ const gameLabels = {
   "letter-sound-connection": { labelZh: "字母音连线", descZh: "画线连接字母和对应的图片" },
 };
 import { Lock, ChevronDown, ChevronUp } from "lucide-react";
+import ShortAGame from "../components/games/write/short-a/ShortAGame";
 import PicSliceGame from "./PicSliceGame";
 import WordMatch from "../components/games/WordMatch";
 import DragTheLetters from "../components/games/DragTheLetters";
@@ -83,6 +84,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "test") {
     return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;
+  }
+  if (activeGame === "write-short-a") {
+    return <ShortAGame onBack={exitGame} />;
   }
   return (
     <div
@@ -177,13 +181,25 @@ export default function Games({ onDeepScreen, lang = "en" }) {
           </div>
           {writeExpanded && (
             <div className="mt-4 flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-              {WRITE_SUBFOLDERS.map((sub) => (
-                <div key={sub.id} className="flex items-center gap-3 px-3 py-3 rounded-2xl" style={{ background: "rgba(199,125,255,0.08)", border: "1.5px solid rgba(199,125,255,0.2)" }}>
-                  <span style={{ fontSize: 22 }}>{sub.emoji}</span>
-                  <span className="text-base font-semibold" style={{ color: "#1E293B", flex: 1 }}>{sub.label}</span>
-                  <Lock size={16} style={{ color: "#C77DFF", opacity: 0.5 }} />
-                </div>
-              ))}
+              {WRITE_SUBFOLDERS.map((sub) => {
+                const isShortA = sub.id === "short-a";
+                return (
+                  <div
+                    key={sub.id}
+                    className="flex items-center gap-3 px-3 py-3 rounded-2xl"
+                    style={{ background: "rgba(199,125,255,0.08)", border: "1.5px solid rgba(199,125,255,0.2)", cursor: isShortA ? "pointer" : "default" }}
+                    onClick={isShortA ? () => enterGame("write-short-a") : undefined}
+                  >
+                    <span style={{ fontSize: 22 }}>{sub.emoji}</span>
+                    <span className="text-base font-semibold" style={{ color: "#1E293B", flex: 1 }}>{sub.label}</span>
+                    {isShortA ? (
+                      <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: "#C77DFF22", color: "#C77DFF" }}>Play ▶</span>
+                    ) : (
+                      <Lock size={16} style={{ color: "#C77DFF", opacity: 0.5 }} />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </motion.div>
