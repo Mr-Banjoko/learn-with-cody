@@ -25,363 +25,243 @@ const B   = 288 / 420; // 0.686 — base solid line
 const DOT = 60  / 420; // 0.143 — dot for i/j
 const D   = 390 / 420; // 0.929 — descender bottom
 
-// Manuscript-style letter strokes — KG Primary Penmanship / Zaner-Bloser style
-// All coords normalised 0–1. T=top line, M=midline, B=baseline, D=descender bottom.
-// Letters sit in x-height zone (M→B). Ascenders reach T. Descenders reach D.
-// Cx = horizontal centre ≈ 0.44
+// ── arc helper: generates points along an elliptical arc ─────────────────────
+// cx,cy = centre (normalised), rx,ry = radii (normalised), startAngle/endAngle in radians
+// CCW = counterclockwise
+function arc(cx, cy, rx, ry, startAngle, endAngle, steps = 14, ccw = false) {
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = ccw
+      ? startAngle - (startAngle - endAngle) * (i / steps)
+      : startAngle + (endAngle - startAngle) * (i / steps);
+    pts.push({ x: cx + rx * Math.cos(t), y: cy + ry * Math.sin(t) });
+  }
+  return pts;
+}
+
+// x-height zone centre and radii
+const CX  = 0.44;                   // horizontal centre
+const MBH = (B - M) / 2;           // half x-height  ≈ 0.200
+const CY  = M + MBH;                // vertical centre of x-height zone ≈ 0.486
+const RX  = 0.22;                   // horizontal radius of x-height oval
+const RY  = MBH * 0.92;            // vertical radius (slightly compressed)
+
+// π shorthands
+const PI  = Math.PI;
+const Q   = PI / 2;
+
+// Manuscript-style letter strokes — KG Primary Penmanship / Zaner-Bloser style.
+// Arc points are generated mathematically for perfectly smooth circles/ovals.
 
 const LETTER_STROKES = {
 
-  // ── a: single-storey — circle (CCW from top) then stem down right side ────
+  // ── a: single-storey — oval CCW from 1 o'clock, then right stem ──────────
   a: [
     { points: [
-      { x: 0.60, y: M+0.05 },
-      { x: 0.50, y: M      },
-      { x: 0.36, y: M      },
-      { x: 0.24, y: M+0.09 },
-      { x: 0.20, y: M+0.20 },
-      { x: 0.20, y: M+0.32 },
-      { x: 0.24, y: B-0.07 },
-      { x: 0.36, y: B      },
-      { x: 0.50, y: B      },
-      { x: 0.60, y: B-0.07 },
-      { x: 0.64, y: M+0.20 },
+      ...arc(CX - 0.02, CY, RX * 0.88, RY, -Q * 0.7, -Q * 0.7 + PI * 2 * 0.92, 16, false),
     ]},
-    { points: [{ x: 0.64, y: M+0.05 }, { x: 0.64, y: B }] },
+    { points: [
+      { x: CX + RX * 0.88 - 0.02, y: M + 0.04 },
+      { x: CX + RX * 0.88 - 0.02, y: B },
+    ]},
   ],
 
-  // ── b: tall stem down, then bump to the right ─────────────────────────────
+  // ── b: tall stem, then oval bumping right ────────────────────────────────
   b: [
     { points: [{ x: 0.28, y: T }, { x: 0.28, y: B }] },
     { points: [
-      { x: 0.28, y: M+0.02 },
-      { x: 0.40, y: M      },
-      { x: 0.54, y: M+0.04 },
-      { x: 0.64, y: M+0.14 },
-      { x: 0.68, y: M+0.25 },
-      { x: 0.64, y: B-0.08 },
-      { x: 0.54, y: B      },
-      { x: 0.40, y: B      },
-      { x: 0.28, y: B-0.02 },
+      { x: 0.28, y: M + 0.04 },
+      ...arc(0.44, CY, 0.18, RY, PI, -Q * 0.3, 14, true),
     ]},
   ],
 
-  // ── c: open arc from top-right to bottom-right ────────────────────────────
+  // ── c: open arc, 1 o'clock CW to 5 o'clock ───────────────────────────────
   c: [
-    { points: [
-      { x: 0.66, y: M+0.08 },
-      { x: 0.56, y: M      },
-      { x: 0.42, y: M      },
-      { x: 0.28, y: M+0.08 },
-      { x: 0.22, y: M+0.20 },
-      { x: 0.22, y: M+0.32 },
-      { x: 0.28, y: B-0.06 },
-      { x: 0.42, y: B      },
-      { x: 0.56, y: B      },
-      { x: 0.66, y: B-0.08 },
-    ]},
+    { points: arc(CX, CY, RX, RY, -Q * 0.55, Q * 1.55, 16, false) },
   ],
 
-  // ── d: circle (like a) then tall stem up the right ────────────────────────
+  // ── d: oval CCW + tall right stem ────────────────────────────────────────
   d: [
     { points: [
-      { x: 0.60, y: M+0.05 },
-      { x: 0.50, y: M      },
-      { x: 0.36, y: M      },
-      { x: 0.24, y: M+0.09 },
-      { x: 0.20, y: M+0.20 },
-      { x: 0.20, y: M+0.32 },
-      { x: 0.24, y: B-0.07 },
-      { x: 0.36, y: B      },
-      { x: 0.50, y: B      },
-      { x: 0.62, y: B-0.06 },
+      ...arc(CX - 0.04, CY, RX * 0.88, RY, -Q * 0.7, -Q * 0.7 + PI * 2 * 0.92, 16, false),
     ]},
-    { points: [{ x: 0.64, y: T }, { x: 0.64, y: B }] },
+    { points: [{ x: 0.66, y: T }, { x: 0.66, y: B }] },
   ],
 
-  // ── e: cross-bar then arc around ─────────────────────────────────────────
+  // ── e: horizontal bar then arc ────────────────────────────────────────────
   e: [
     { points: [
-      { x: 0.22, y: M+0.18 },
-      { x: 0.36, y: M+0.10 },
-      { x: 0.52, y: M+0.10 },
-      { x: 0.66, y: M+0.18 },
-      { x: 0.68, y: M+0.28 },
-      { x: 0.64, y: B-0.06 },
-      { x: 0.50, y: B      },
-      { x: 0.34, y: B      },
-      { x: 0.22, y: B-0.08 },
-      { x: 0.20, y: M+0.28 },
-      { x: 0.22, y: M+0.08 },
-      { x: 0.36, y: M      },
-      { x: 0.52, y: M      },
-      { x: 0.66, y: M+0.06 },
+      { x: 0.22, y: CY },
+      { x: 0.66, y: CY },
+      ...arc(CX, CY, RX, RY, 0, PI * 2 * 0.82, 14, false).slice(1),
     ]},
   ],
 
-  // ── f: curved top then stem; crossbar at midline ──────────────────────────
+  // ── f: top hook, vertical stem, crossbar ─────────────────────────────────
   f: [
     { points: [
-      { x: 0.62, y: T+0.03 },
-      { x: 0.54, y: T      },
-      { x: 0.46, y: T+0.02 },
-      { x: 0.40, y: T+0.07 },
-      { x: 0.38, y: M-0.04 },
-      { x: 0.38, y: M      },
-      { x: 0.38, y: B      },
+      ...arc(0.52, T + 0.06, 0.12, 0.08, -Q, Q * 0.2, 6, true),
+      { x: 0.40, y: M },
+      { x: 0.40, y: B },
     ]},
-    { points: [{ x: 0.20, y: M }, { x: 0.58, y: M }] },
+    { points: [{ x: 0.22, y: M }, { x: 0.60, y: M }] },
   ],
 
-  // ── g: circle then stem with curl down into descender ────────────────────
+  // ── g: oval + right stem curling into descender ──────────────────────────
   g: [
     { points: [
-      { x: 0.62, y: M+0.08 },
-      { x: 0.52, y: M      },
-      { x: 0.38, y: M      },
-      { x: 0.26, y: M+0.09 },
-      { x: 0.22, y: M+0.20 },
-      { x: 0.22, y: M+0.32 },
-      { x: 0.26, y: B-0.07 },
-      { x: 0.38, y: B      },
-      { x: 0.52, y: B      },
-      { x: 0.62, y: B-0.08 },
-      { x: 0.64, y: M+0.08 },
+      ...arc(CX - 0.02, CY, RX * 0.88, RY, -Q * 0.7, -Q * 0.7 + PI * 2 * 0.92, 16, false),
     ]},
     { points: [
-      { x: 0.64, y: M+0.02 },
-      { x: 0.64, y: B+0.06 },
-      { x: 0.60, y: D-0.08 },
-      { x: 0.50, y: D      },
-      { x: 0.38, y: D      },
-      { x: 0.28, y: D-0.06 },
+      { x: CX + RX * 0.86 - 0.02, y: M + 0.04 },
+      { x: CX + RX * 0.86 - 0.02, y: B + 0.06 },
+      ...arc(0.50, D - 0.02, 0.12, 0.06, 0, PI, 8, false),
     ]},
   ],
 
-  // ── h: tall stem then arch to the right ───────────────────────────────────
+  // ── h: tall stem, arch right ──────────────────────────────────────────────
   h: [
     { points: [{ x: 0.28, y: T }, { x: 0.28, y: B }] },
     { points: [
-      { x: 0.28, y: M+0.05 },
-      { x: 0.38, y: M      },
-      { x: 0.52, y: M      },
-      { x: 0.62, y: M+0.08 },
-      { x: 0.66, y: M+0.20 },
-      { x: 0.66, y: B      },
+      { x: 0.28, y: M + 0.06 },
+      ...arc(0.47, M + 0.13, 0.18, 0.14, PI, 0, 8, true),
+      { x: 0.66, y: B },
     ]},
   ],
 
-  // ── i: short vertical stroke + dot ────────────────────────────────────────
+  // ── i: short stem + dot ───────────────────────────────────────────────────
   i: [
-    { points: [{ x: 0.44, y: M+0.02 }, { x: 0.44, y: B }] },
-    { points: [{ x: 0.44, y: DOT }, { x: 0.44, y: DOT+0.01 }], isDot: true },
+    { points: [{ x: 0.44, y: M + 0.02 }, { x: 0.44, y: B }] },
+    { points: [{ x: 0.44, y: DOT }, { x: 0.44, y: DOT + 0.01 }], isDot: true },
   ],
 
-  // ── j: short stroke curves into descender + dot ───────────────────────────
+  // ── j: short stem into descender curl + dot ───────────────────────────────
   j: [
     { points: [
-      { x: 0.50, y: M+0.02 },
-      { x: 0.50, y: B+0.08 },
-      { x: 0.46, y: D-0.06 },
-      { x: 0.38, y: D      },
-      { x: 0.28, y: D-0.04 },
+      { x: 0.50, y: M + 0.02 },
+      { x: 0.50, y: B + 0.06 },
+      ...arc(0.38, D - 0.01, 0.12, 0.06, 0, PI, 8, false),
     ]},
-    { points: [{ x: 0.50, y: DOT }, { x: 0.50, y: DOT+0.01 }], isDot: true },
+    { points: [{ x: 0.50, y: DOT }, { x: 0.50, y: DOT + 0.01 }], isDot: true },
   ],
 
-  // ── k: tall stem, in-stroke then out-stroke ───────────────────────────────
+  // ── k: tall stem, in-diagonal, out-diagonal ──────────────────────────────
   k: [
     { points: [{ x: 0.28, y: T }, { x: 0.28, y: B }] },
-    { points: [
-      { x: 0.66, y: M      },
-      { x: 0.52, y: M+0.12 },
-      { x: 0.42, y: M+0.18 },
-      { x: 0.28, y: M+0.20 },
-    ]},
-    { points: [
-      { x: 0.28, y: M+0.20 },
-      { x: 0.44, y: M+0.28 },
-      { x: 0.54, y: B-0.10 },
-      { x: 0.66, y: B      },
-    ]},
+    { points: [{ x: 0.66, y: M }, { x: 0.28, y: CY }] },
+    { points: [{ x: 0.28, y: CY }, { x: 0.66, y: B }] },
   ],
 
-  // ── l: tall stroke with slight foot ──────────────────────────────────────
+  // ── l: tall stroke with small foot ───────────────────────────────────────
   l: [
     { points: [
-      { x: 0.44, y: T      },
-      { x: 0.44, y: B-0.02 },
-      { x: 0.48, y: B      },
-      { x: 0.54, y: B      },
+      { x: 0.44, y: T },
+      { x: 0.44, y: B - 0.02 },
+      { x: 0.50, y: B },
+      { x: 0.56, y: B },
     ]},
   ],
 
-  // ── m: down stroke + two arches ──────────────────────────────────────────
+  // ── m: stem + two humps ───────────────────────────────────────────────────
   m: [
     { points: [{ x: 0.12, y: M }, { x: 0.12, y: B }] },
     { points: [
-      { x: 0.12, y: M+0.06 },
-      { x: 0.22, y: M      },
-      { x: 0.36, y: M      },
-      { x: 0.46, y: M+0.08 },
-      { x: 0.50, y: M+0.18 },
-      { x: 0.50, y: B      },
+      { x: 0.12, y: M + 0.06 },
+      ...arc(0.30, M + 0.13, 0.17, 0.14, PI, 0, 7, true),
+      { x: 0.48, y: B },
     ]},
     { points: [
-      { x: 0.50, y: M+0.06 },
-      { x: 0.60, y: M      },
-      { x: 0.72, y: M      },
-      { x: 0.80, y: M+0.08 },
-      { x: 0.84, y: M+0.18 },
-      { x: 0.84, y: B      },
+      { x: 0.48, y: M + 0.06 },
+      ...arc(0.64, M + 0.13, 0.16, 0.14, PI, 0, 7, true),
+      { x: 0.80, y: B },
     ]},
   ],
 
-  // ── n: down stroke + single arch ─────────────────────────────────────────
+  // ── n: stem + one hump ───────────────────────────────────────────────────
   n: [
-    { points: [{ x: 0.22, y: M }, { x: 0.22, y: B }] },
+    { points: [{ x: 0.24, y: M }, { x: 0.24, y: B }] },
     { points: [
-      { x: 0.22, y: M+0.06 },
-      { x: 0.32, y: M      },
-      { x: 0.48, y: M      },
-      { x: 0.58, y: M+0.08 },
-      { x: 0.64, y: M+0.18 },
-      { x: 0.64, y: B      },
+      { x: 0.24, y: M + 0.06 },
+      ...arc(0.44, M + 0.13, 0.20, 0.14, PI, 0, 9, true),
+      { x: 0.64, y: B },
     ]},
   ],
 
-  // ── o: full circle CCW from top ───────────────────────────────────────────
+  // ── o: full oval CCW ─────────────────────────────────────────────────────
   o: [
-    { points: [
-      { x: 0.52, y: M      },
-      { x: 0.40, y: M      },
-      { x: 0.26, y: M+0.08 },
-      { x: 0.20, y: M+0.20 },
-      { x: 0.20, y: M+0.32 },
-      { x: 0.26, y: B-0.06 },
-      { x: 0.40, y: B      },
-      { x: 0.54, y: B      },
-      { x: 0.66, y: B-0.06 },
-      { x: 0.70, y: M+0.32 },
-      { x: 0.70, y: M+0.20 },
-      { x: 0.64, y: M+0.08 },
-      { x: 0.52, y: M      },
-    ]},
+    { points: arc(CX, CY, RX, RY, -Q, -Q + PI * 2, 20, false) },
   ],
 
-  // ── p: stem into descender, bump to right ────────────────────────────────
+  // ── p: stem into descender, oval to right ────────────────────────────────
   p: [
     { points: [{ x: 0.28, y: M }, { x: 0.28, y: D }] },
     { points: [
-      { x: 0.28, y: M+0.02 },
-      { x: 0.40, y: M      },
-      { x: 0.54, y: M+0.04 },
-      { x: 0.64, y: M+0.14 },
-      { x: 0.68, y: M+0.24 },
-      { x: 0.64, y: B-0.08 },
-      { x: 0.54, y: B      },
-      { x: 0.40, y: B      },
-      { x: 0.28, y: B-0.04 },
+      { x: 0.28, y: M + 0.04 },
+      ...arc(0.46, CY, 0.20, RY, PI, -Q * 0.3, 14, true),
     ]},
   ],
 
-  // ── q: circle then stem into descender ───────────────────────────────────
+  // ── q: oval + right stem into descender ──────────────────────────────────
   q: [
     { points: [
-      { x: 0.62, y: M+0.05 },
-      { x: 0.52, y: M      },
-      { x: 0.38, y: M      },
-      { x: 0.26, y: M+0.09 },
-      { x: 0.22, y: M+0.20 },
-      { x: 0.22, y: M+0.32 },
-      { x: 0.26, y: B-0.07 },
-      { x: 0.38, y: B      },
-      { x: 0.52, y: B      },
-      { x: 0.64, y: B-0.06 },
-      { x: 0.66, y: M+0.20 },
+      ...arc(CX - 0.04, CY, RX * 0.88, RY, -Q * 0.7, -Q * 0.7 + PI * 2 * 0.92, 16, false),
     ]},
-    { points: [{ x: 0.66, y: M }, { x: 0.66, y: D }] },
+    { points: [{ x: 0.66, y: M + 0.02 }, { x: 0.66, y: D }] },
   ],
 
-  // ── r: down stroke + small shoulder ──────────────────────────────────────
+  // ── r: stem + small shoulder ─────────────────────────────────────────────
   r: [
-    { points: [{ x: 0.26, y: M }, { x: 0.26, y: B }] },
+    { points: [{ x: 0.28, y: M }, { x: 0.28, y: B }] },
     { points: [
-      { x: 0.26, y: M+0.06 },
-      { x: 0.36, y: M      },
-      { x: 0.50, y: M      },
-      { x: 0.62, y: M+0.10 },
+      { x: 0.28, y: M + 0.06 },
+      ...arc(0.44, M + 0.10, 0.18, 0.12, PI, PI * 0.1, 7, true),
     ]},
   ],
 
   // ── s: double reverse curve ───────────────────────────────────────────────
   s: [
     { points: [
-      { x: 0.64, y: M+0.08 },
-      { x: 0.54, y: M      },
-      { x: 0.40, y: M      },
-      { x: 0.28, y: M+0.08 },
-      { x: 0.26, y: M+0.18 },
-      { x: 0.34, y: M+0.25 },
-      { x: 0.46, y: M+0.30 },
-      { x: 0.58, y: M+0.38 },
-      { x: 0.64, y: B-0.08 },
-      { x: 0.54, y: B      },
-      { x: 0.40, y: B      },
-      { x: 0.28, y: B-0.06 },
+      ...arc(0.46, M + 0.10, 0.18, 0.10, PI * 0.1, PI + Q, 8, true),
+      ...arc(0.42, B - 0.10, 0.18, 0.10, -Q, PI * 0.1, 8, false).slice(1),
     ]},
   ],
 
-  // ── t: tall stroke (shorter than b/d) + crossbar ─────────────────────────
+  // ── t: tall stroke + crossbar ─────────────────────────────────────────────
   t: [
     { points: [
-      { x: 0.44, y: T+0.06 },
-      { x: 0.44, y: B-0.02 },
-      { x: 0.48, y: B      },
+      { x: 0.44, y: T + 0.08 },
+      { x: 0.44, y: B - 0.02 },
+      { x: 0.48, y: B },
     ]},
-    { points: [{ x: 0.20, y: M }, { x: 0.68, y: M }] },
+    { points: [{ x: 0.22, y: M }, { x: 0.66, y: M }] },
   ],
 
-  // ── u: two bumps; second bump has a stem down ────────────────────────────
+  // ── u: U bowl + right stem ────────────────────────────────────────────────
   u: [
     { points: [
-      { x: 0.26, y: M      },
-      { x: 0.26, y: B-0.12 },
-      { x: 0.30, y: B-0.04 },
-      { x: 0.44, y: B      },
-      { x: 0.58, y: B-0.04 },
-      { x: 0.64, y: B-0.12 },
-      { x: 0.64, y: M      },
+      { x: 0.26, y: M },
+      ...arc(0.45, B - 0.06, 0.20, 0.10, PI, 0, 10, false),
+      { x: 0.64, y: M },
     ]},
     { points: [{ x: 0.64, y: M }, { x: 0.64, y: B }] },
   ],
 
-  // ── v: two diagonal strokes ───────────────────────────────────────────────
+  // ── v: two diagonals ──────────────────────────────────────────────────────
   v: [
-    { points: [
-      { x: 0.24, y: M      },
-      { x: 0.34, y: M+0.20 },
-      { x: 0.44, y: B      },
-    ]},
-    { points: [
-      { x: 0.44, y: B      },
-      { x: 0.56, y: M+0.20 },
-      { x: 0.66, y: M      },
-    ]},
+    { points: [{ x: 0.26, y: M }, { x: 0.44, y: B }] },
+    { points: [{ x: 0.44, y: B }, { x: 0.64, y: M }] },
   ],
 
-  // ── w: four strokes (two v shapes) ───────────────────────────────────────
+  // ── w: zigzag with rounded bottom points ─────────────────────────────────
   w: [
     { points: [
-      { x: 0.12, y: M      },
-      { x: 0.22, y: B-0.08 },
-      { x: 0.28, y: B      },
-      { x: 0.36, y: M+0.22 },
-      { x: 0.44, y: B      },
-      { x: 0.52, y: M+0.22 },
-      { x: 0.60, y: B      },
-      { x: 0.68, y: B-0.08 },
-      { x: 0.78, y: M      },
+      { x: 0.12, y: M },
+      { x: 0.26, y: B },
+      { x: 0.38, y: M + 0.22 },
+      { x: 0.50, y: B },
+      { x: 0.62, y: M + 0.22 },
+      { x: 0.76, y: B },
+      { x: 0.88, y: M },
     ]},
   ],
 
@@ -391,30 +271,22 @@ const LETTER_STROKES = {
     { points: [{ x: 0.66, y: M }, { x: 0.24, y: B }] },
   ],
 
-  // ── y: two strokes; second dips into descender ───────────────────────────
+  // ── y: two strokes; second into descender ────────────────────────────────
   y: [
+    { points: [{ x: 0.26, y: M }, { x: 0.45, y: CY - 0.02 }] },
     { points: [
-      { x: 0.26, y: M      },
-      { x: 0.36, y: M+0.16 },
-      { x: 0.44, y: M+0.26 },
-    ]},
-    { points: [
-      { x: 0.64, y: M      },
-      { x: 0.52, y: M+0.16 },
-      { x: 0.44, y: M+0.26 },
-      { x: 0.36, y: B+0.06 },
-      { x: 0.28, y: D-0.04 },
-      { x: 0.24, y: D      },
+      { x: 0.64, y: M },
+      { x: 0.45, y: CY - 0.02 },
+      { x: 0.36, y: B + 0.06 },
+      ...arc(0.38, D - 0.02, 0.10, 0.05, PI, 0, 5, false),
     ]},
   ],
 
-  // ── z: top stroke, diagonal, bottom stroke ────────────────────────────────
+  // ── z: top bar, diagonal, bottom bar ──────────────────────────────────────
   z: [
     { points: [
-      { x: 0.24, y: M      },
-      { x: 0.66, y: M      },
-      { x: 0.24, y: B      },
-      { x: 0.66, y: B      },
+      { x: 0.24, y: M }, { x: 0.66, y: M },
+      { x: 0.24, y: B }, { x: 0.66, y: B },
     ]},
   ],
 };
@@ -467,15 +339,17 @@ function smoothPathCatmull(ctx, pts, w, h) {
   const p = pts.map(pt => ({ x: pt.x * w, y: pt.y * h }));
   ctx.moveTo(p[0].x, p[0].y);
   if (p.length === 2) { ctx.lineTo(p[1].x, p[1].y); return; }
+  // tension = 0.5 (alpha=0.5 centripetal Catmull-Rom) — tighter curves, no shortcuts
+  const tension = 0.5;
   for (let i = 0; i < p.length - 1; i++) {
     const p0 = p[Math.max(i - 1, 0)];
     const p1 = p[i];
     const p2 = p[i + 1];
     const p3 = p[Math.min(i + 2, p.length - 1)];
-    const cp1x = p1.x + (p2.x - p0.x) / 6;
-    const cp1y = p1.y + (p2.y - p0.y) / 6;
-    const cp2x = p2.x - (p3.x - p1.x) / 6;
-    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    const cp1x = p1.x + (p2.x - p0.x) * tension / 3;
+    const cp1y = p1.y + (p2.y - p0.y) * tension / 3;
+    const cp2x = p2.x - (p3.x - p1.x) * tension / 3;
+    const cp2y = p2.y - (p3.y - p1.y) * tension / 3;
     ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
   }
 }
@@ -485,8 +359,8 @@ function drawDottedStroke(ctx, pts, w, h, alpha = 1) {
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.strokeStyle = "#7BACC8";
-  ctx.lineWidth = 3;
-  ctx.setLineDash([6, 8]);
+  ctx.lineWidth = 5;
+  ctx.setLineDash([7, 9]);
   ctx.lineCap = "round";
   ctx.beginPath();
   smoothPathCatmull(ctx, pts, w, h);
@@ -512,7 +386,7 @@ function drawActiveStroke(ctx, pts, w, h) {
   if (pts.length < 2) return;
   ctx.save();
   ctx.strokeStyle = "#ff50b4";
-  ctx.lineWidth = 5;
+  ctx.lineWidth = 7;
   ctx.setLineDash([10, 10]);
   ctx.beginPath();
   smoothPathCatmull(ctx, pts, w, h);
