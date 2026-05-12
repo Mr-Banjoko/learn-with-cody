@@ -165,4 +165,11 @@ export const games = [
     description: "Connect each letter to its picture slice by drawing a line",
     available: true,
   },
+  {
+    id: "write-v2",
+    label: "Write V2",
+    emoji: "✏️",
+    description: "Trace the 3 correct letters from 6 choices to spell the word",
+    available: true,
+  },
 ];

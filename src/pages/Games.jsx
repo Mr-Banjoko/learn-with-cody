@@ -17,6 +17,7 @@ const gameLabels = {
   "letter-sound-connection": { labelZh: "字母音连线", descZh: "画线连接字母和对应的图片" },
 };
 import { Lock, ChevronDown, ChevronUp } from "lucide-react";
+import WriteV2Hub from "../components/games/writev2/WriteV2Hub";
 import ShortAGame from "../components/games/write/short-a/ShortAGame";
 import ShortEGame from "../components/games/write/short-e/ShortEGame";
 import ShortIGame from "../components/games/write/short-i/ShortIGame";
@@ -85,6 +86,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "letter-sound-connection") {
     return <LetterSoundConnection onBack={exitGame} lang={lang} />;
+  }
+  if (activeGame === "write-v2") {
+    return <WriteV2Hub onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "test") {
     return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;
