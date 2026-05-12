@@ -465,12 +465,12 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
         <motion.div
           style={{
             position: "absolute", bottom: 4,
-            left: `calc(${LANE_X_PCT[codyLane]}% - 60px)`,
+            left: `calc(${LANE_X_PCT[codyLane]}% - 51px)`,
             transition: "left 0.16s ease-out",
-            width: 120, height: 120,
+            width: 102, height: 102,
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 20, pointerEvents: "none",
-            fontSize: 96,
+            fontSize: 82,
             lineHeight: 1,
             filter: "drop-shadow(0 4px 8px rgba(30,58,95,0.20))",
           }}
