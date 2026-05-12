@@ -5,8 +5,7 @@ import BackArrow from "../BackArrow";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 
-const CODY_IMG =
-  "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
+
 
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
@@ -501,32 +500,28 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
             );
           })}
 
-        {/* Cody */}
-        <div
+        {/* Cupped hands */}
+        <motion.div
           style={{
             position: "absolute", bottom: 4,
             left: `${LANE_X_PCT[codyLane]}%`,
             transform: "translateX(-50%)",
             transition: "left 0.16s ease-out",
-            display: "flex", flexDirection: "column", alignItems: "center",
+            display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 20, pointerEvents: "none",
+            fontSize: 96,
+            lineHeight: 1,
+            filter: "drop-shadow(0 4px 8px rgba(30,58,95,0.20))",
           }}
+          animate={phase === "caught" ? { scale: [1, 1.25, 1], y: [0, -14, 0] } : { y: [0, -5, 0] }}
+          transition={
+            phase === "caught"
+              ? { duration: 0.55, ease: "easeOut" }
+              : { duration: 1.7, repeat: Infinity, ease: "easeInOut" }
+          }
         >
-          <motion.img
-            src={CODY_IMG}
-            alt="Cody"
-            animate={phase === "caught" ? { scale: [1, 1.25, 1], y: [0, -14, 0] } : { y: [0, -5, 0] }}
-            transition={
-              phase === "caught"
-                ? { duration: 0.55, ease: "easeOut" }
-                : { duration: 1.7, repeat: Infinity, ease: "easeInOut" }
-            }
-            style={{
-              width: 80, height: 88, objectFit: "contain",
-              filter: "drop-shadow(0 4px 8px rgba(30,58,95,0.20))",
-            }}
-          />
-        </div>
+          🤲
+        </motion.div>
 
         {/* Catch line */}
         <div
@@ -558,7 +553,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
             textAlign: "center", margin: 0, flex: 1,
           }}
         >
-          {lang === "zh" ? "移动可迪！" : "Move Cody!"}
+          {lang === "zh" ? "移动手！" : "Move the hands!"}
         </p>
         <CandyArrow direction="right" onPress={moveRight} />
       </div>
@@ -613,14 +608,14 @@ export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAU
         >
           {lang === "zh" ? "你接住了所有字母！" : "You caught all the letters!"}
         </motion.p>
-        <motion.img
-          src={CODY_IMG}
-          alt="Cody"
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          style={{ width: 100, height: 110, objectFit: "contain" }}
-        />
+          style={{ fontSize: 100, lineHeight: 1 }}
+        >
+          🤲
+        </motion.div>
         <motion.button
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
