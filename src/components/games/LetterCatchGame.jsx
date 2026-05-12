@@ -446,7 +446,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
                   width: 136, height: 136, borderRadius: 32,
                   background: tile.color,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 68, fontWeight: 700, color: "white",
+                  fontSize: 102, fontWeight: 700, color: "white",
                   fontFamily: "Fredoka, sans-serif",
                   boxShadow: isWrong
                     ? "0 0 0 6px rgba(255,80,80,0.55), 0 0 24px rgba(255,80,80,0.40)"
