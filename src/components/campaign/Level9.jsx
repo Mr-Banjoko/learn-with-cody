@@ -1,27 +1,58 @@
 /**
- * Level 9 — 5-round Identifying game (Word → Picture)
- * Words: can → pan → jam → map → mat (fixed order)
+ * Level 9 — 10-round sequence
+ * Odd rounds (1,3,5,7,9): Identifying game (Word → Picture) — unchanged original content
+ * Even rounds (2,4,6,8,10): Letter Catch difficult mode
+ *
+ * Round 1 — Identifying: can
+ * Round 2 — Letter Catch: can, missing: c
+ * Round 3 — Identifying: pan
+ * Round 4 — Letter Catch: pan, missing: p
+ * Round 5 — Identifying: jam
+ * Round 6 — Letter Catch: jam, missing: m
+ * Round 7 — Identifying: map
+ * Round 8 — Letter Catch: map, missing: m
+ * Round 9 — Identifying: mat
+ * Round 10 — Letter Catch: mat, missing: a
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-const LEVEL_NUM = 9;
-const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import IdentifyingRound from "../games/IdentifyingRound";
+import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 
-const TARGET_WORDS = ["can", "pan", "jam", "map", "mat"];
-const TOTAL_ROUNDS = TARGET_WORDS.length;
+const LEVEL_NUM = 9;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 
-function buildRound(targetWord) {
+const ROUND_SEQUENCE = [
+  { type: "identifying", word: "can" },
+  { type: "catch",       word: "can",  missingLetter: "c" },
+  { type: "identifying", word: "pan" },
+  { type: "catch",       word: "pan",  missingLetter: "p" },
+  { type: "identifying", word: "jam" },
+  { type: "catch",       word: "jam",  missingLetter: "m" },
+  { type: "identifying", word: "map" },
+  { type: "catch",       word: "map",  missingLetter: "m" },
+  { type: "identifying", word: "mat" },
+  { type: "catch",       word: "mat",  missingLetter: "a" },
+];
+
+const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
+
+function findWord(name) {
+  return shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" };
+}
+
+function buildIdentifyingRound(targetWord) {
   const target = shortAWords.find((w) => w.word === targetWord);
   const distractorPool = ALL_WORDS.filter((w) => w.word !== targetWord);
   const shuffled = [...distractorPool].sort(() => Math.random() - 0.5);
@@ -60,7 +91,17 @@ export default function Level9({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
-  const round = useMemo(() => buildRound(TARGET_WORDS[roundIndex]), [roundIndex]);
+  const roundDef = ROUND_SEQUENCE[roundIndex];
+
+  const identifyingRound = useMemo(() => {
+    if (!roundDef || roundDef.type !== "identifying") return null;
+    return buildIdentifyingRound(roundDef.word);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const catchWordData = useMemo(() => {
+    if (!roundDef || roundDef.type !== "catch") return null;
+    return findWord(roundDef.word);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
@@ -87,7 +128,20 @@ export default function Level9({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <IdentifyingRound key={roundIndex} round={round} onComplete={advance} lang={lang} onMistake={() => setMistakes((m) => m + 1)} />
+            {roundDef.type === "identifying" && identifyingRound ? (
+              <IdentifyingRound key={roundIndex} round={identifyingRound} onComplete={advance} lang={lang} onMistake={() => setMistakes((m) => m + 1)} />
+            ) : roundDef.type === "catch" && catchWordData ? (
+              <CampaignLetterCatchRound
+                key={`catch-${roundIndex}`}
+                word={roundDef.word}
+                missingLetter={roundDef.missingLetter}
+                image={catchWordData.image}
+                audio={catchWordData.audio}
+                onComplete={advance}
+                onMistake={() => setMistakes((m) => m + 1)}
+                lang={lang}
+              />
+            ) : null}
           </motion.div>
         )}
       </AnimatePresence>

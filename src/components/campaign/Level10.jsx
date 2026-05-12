@@ -1,11 +1,11 @@
 /**
  * Level 10 — same structure as Level 5 (Review)
  *
- * Fixed 9-round sequence (mapping: cat→can, dad→pan, rat→jam, hat→map, bat→mat):
+ * Fixed 9-round sequence:
  *   R1: Rearrange the Pictures → map
  *   R2: Identifying            → pan
  *   R3: Drag the Letters       → mat
- *   R4: Identifying            → can
+ *   R4: Letter Catch (difficult) → can, missing: a
  *   R5: Rearrange the Pictures → mat
  *   R6: Drag the Letters       → jam
  *   R7: Drag the Letters       → can
@@ -18,11 +18,10 @@ import BackArrow from "../BackArrow";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-const LEVEL_NUM = 10;
-const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import Level1DragV2 from "./Level1DragV2";
 import IdentifyingRound from "../games/IdentifyingRound";
+import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
@@ -30,11 +29,14 @@ import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 
+const LEVEL_NUM = 10;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+
 const ROUND_SEQUENCE = [
   { type: "rearrange",   word: "map" },
   { type: "identifying", word: "pan" },
   { type: "drag",        word: "mat" },
-  { type: "identifying", word: "can" },
+  { type: "catch",       word: "can",  missingLetter: "a" },
   { type: "rearrange",   word: "mat" },
   { type: "drag",        word: "jam" },
   { type: "drag",        word: "can" },
@@ -106,6 +108,11 @@ export default function Level10({ onBack, lang = "en" }) {
     return buildIdentifyingRound(roundDef.word);
   }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const catchWordData = useMemo(() => {
+    if (!roundDef || roundDef.type !== "catch") return null;
+    return findWord(roundDef.word);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4, padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)" }}>
@@ -137,6 +144,17 @@ export default function Level10({ onBack, lang = "en" }) {
               <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "identifying" && identifyingRound ? (
               <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
+            ) : roundDef.type === "catch" && catchWordData ? (
+              <CampaignLetterCatchRound
+                key={`catch-${roundIndex}`}
+                word={roundDef.word}
+                missingLetter={roundDef.missingLetter}
+                image={catchWordData.image}
+                audio={catchWordData.audio}
+                onComplete={advance}
+                onMistake={onMistake}
+                lang={lang}
+              />
             ) : null}
           </motion.div>
         )}

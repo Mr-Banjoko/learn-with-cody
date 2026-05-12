@@ -1,22 +1,22 @@
 /**
  * Level 6 — 10-round fixed sequence:
- * For each of 5 words: Learn Phonics → Drag the Letters
+ * For each of 5 words: Learn Phonics → Drag-to-Rearrange-Pictures (easy mode)
  * Words: can, pan, jam, map, mat (in this exact order)
- * No spotlight overlay. No audio guide.
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level6Phonics from "./Level6Phonics";
-import Level1DragV2 from "./Level1DragV2";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
+import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
+import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+
 const LEVEL_NUM = 6;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 
-// Fixed word set: can, pan, jam, map, mat — exactly in this order
 const WORD_NAMES = ["can", "pan", "jam", "map", "mat"];
 const WORDS = WORD_NAMES.map((name) => shortAWords.find((w) => w.word === name));
 const TOTAL_ROUNDS = WORDS.length * 2; // 10
@@ -24,8 +24,8 @@ const TOTAL_ROUNDS = WORDS.length * 2; // 10
 function buildRounds() {
   const rounds = [];
   WORDS.forEach((card) => {
-    rounds.push({ type: "phonics", card });
-    rounds.push({ type: "drag",    card });
+    rounds.push({ type: "phonics",   card });
+    rounds.push({ type: "rearrange", card });
   });
   return rounds;
 }
@@ -64,6 +64,11 @@ export default function Level6({ onBack, lang = "en" }) {
 
   const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
+
+  const rearrangeWordPair = useMemo(() => {
+    if (!round || round.type !== "rearrange") return null;
+    return [buildWordData(round.card.word)];
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div
@@ -134,7 +139,13 @@ export default function Level6({ onBack, lang = "en" }) {
             {round.type === "phonics" ? (
               <Level6Phonics card={round.card} onNext={advance} lang={lang} />
             ) : (
-              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} />
+              <PicSliceBoardEasy
+                key={`rearrange-${roundIndex}`}
+                wordPair={rearrangeWordPair}
+                onRoundComplete={advance}
+                lang={lang}
+                onMistake={onMistake}
+              />
             )}
           </motion.div>
         )}

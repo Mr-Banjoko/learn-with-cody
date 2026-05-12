@@ -1,23 +1,33 @@
 /**
- * Level 7 — same structure as Level 2
- * 5-round Rearrange the Pictures (easy mode)
+ * Level 7 — 5-round Letter Catch (difficult mode)
  * Words: can → pan → jam → map → mat
+ * Missing letters: c, n, a, m, a
  */
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
-import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
-import { buildWordData } from "../../lib/picSliceGameData";
+import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+
 const LEVEL_NUM = 7;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 
-const WORD_NAMES = ["can", "pan", "jam", "map", "mat"];
-const WORDS = WORD_NAMES.map((name) => shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" });
-const TOTAL_ROUNDS = WORDS.length;
+const ROUND_DEFS = [
+  { word: "can", missingLetter: "c" },
+  { word: "pan", missingLetter: "n" },
+  { word: "jam", missingLetter: "a" },
+  { word: "map", missingLetter: "m" },
+  { word: "mat", missingLetter: "a" },
+];
+
+const TOTAL_ROUNDS = ROUND_DEFS.length;
+
+function findWord(name) {
+  return shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" };
+}
 
 function markLevel7Complete() {
   try {
@@ -35,14 +45,9 @@ export default function Level7({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  const wordPair = useMemo(() => {
-    const word = WORDS[roundIndex];
-    return [buildWordData(word.word)];
-  }, [roundIndex]);
-
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  const handleRoundComplete = () => {
+  const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel7Complete();
@@ -53,7 +58,10 @@ export default function Level7({ onBack, lang = "en" }) {
     } else {
       setRoundIndex(next);
     }
-  };
+  }, [roundIndex, mistakes]);
+
+  const roundDef = ROUND_DEFS[roundIndex];
+  const wordData = findWord(roundDef.word);
 
   return (
     <div style={{
@@ -108,12 +116,15 @@ export default function Level7({ onBack, lang = "en" }) {
             transition={{ duration: 0.22 }}
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
-            <PicSliceBoardEasy
-              key={`round-${roundIndex}`}
-              wordPair={wordPair}
-              onRoundComplete={handleRoundComplete}
-              lang={lang}
+            <CampaignLetterCatchRound
+              key={`catch-${roundIndex}`}
+              word={roundDef.word}
+              missingLetter={roundDef.missingLetter}
+              image={wordData.image}
+              audio={wordData.audio}
+              onComplete={advance}
               onMistake={onMistake}
+              lang={lang}
             />
           </motion.div>
         )}
