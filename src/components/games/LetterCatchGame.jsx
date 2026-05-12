@@ -5,8 +5,6 @@ import BackArrow from "../BackArrow";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 
-
-
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
 const TICK_MS = 40;
@@ -44,15 +42,14 @@ function pickLane(activeTiles) {
 }
 
 // ── Candy Arrow Button ────────────────────────────────────────────────────────
-// Left: sky-blue + red/yellow stripes  |  Right: lime-green + pink swirls
 
 function CandyArrow({ direction, onPress }) {
   const isLeft = direction === "left";
 
-  const bodyColor = isLeft ? "#4EC8F0" : "#7ED957";
-  const accentColor = isLeft ? "#FF5E5E" : "#FF85C2";
-  const stripeColor = isLeft ? "#FFD93D" : "#FF6FD8";
-  const shadowColor = isLeft ? "rgba(78,200,240,0.45)" : "rgba(126,217,87,0.45)";
+  const bodyColor = isLeft ? "#FF85C2" : "#7ED957";
+  const accentColor = isLeft ? "#C2185B" : "#FF85C2";
+  const stripeColor = isLeft ? "#FF6FD8" : "#FF6FD8";
+  const shadowColor = isLeft ? "rgba(255,133,194,0.45)" : "rgba(126,217,87,0.45)";
 
   return (
     <button
@@ -82,7 +79,6 @@ function CandyArrow({ direction, onPress }) {
           filter: `drop-shadow(0 6px 12px ${shadowColor})`,
         }}
       >
-        {/* SVG arrow shape */}
         <svg
           viewBox="0 0 104 72"
           width="104"
@@ -99,16 +95,13 @@ function CandyArrow({ direction, onPress }) {
             </clipPath>
           </defs>
 
-          {/* Arrow body */}
           <g clipPath={`url(#arrowClip-${direction})`}>
-            {/* Base color */}
             {isLeft ? (
               <path d="M36,4 L4,36 L36,68 L36,52 L100,52 Q104,52 104,48 L104,24 Q104,20 100,20 L36,20 Z" fill={bodyColor} />
             ) : (
               <path d="M68,4 L100,36 L68,68 L68,52 L4,52 Q0,52 0,48 L0,24 Q0,20 4,20 L68,20 Z" fill={bodyColor} />
             )}
 
-            {/* Diagonal stripes */}
             {isLeft ? (
               <>
                 <rect x="38" y="-10" width="14" height="100" fill={accentColor} opacity="0.70" transform="rotate(-15 60 36)" />
@@ -123,7 +116,6 @@ function CandyArrow({ direction, onPress }) {
               </>
             )}
 
-            {/* Polka dots */}
             {isLeft ? (
               <>
                 <circle cx="76" cy="28" r="4" fill="white" opacity="0.55" />
@@ -138,7 +130,6 @@ function CandyArrow({ direction, onPress }) {
               </>
             )}
 
-            {/* Cute eyes */}
             {isLeft ? (
               <>
                 <circle cx="50" cy="31" r="5.5" fill="white" />
@@ -147,9 +138,7 @@ function CandyArrow({ direction, onPress }) {
                 <circle cx="63" cy="32" r="3" fill="#2D2D2D" />
                 <circle cx="52" cy="31" r="1.2" fill="white" />
                 <circle cx="64" cy="31" r="1.2" fill="white" />
-                {/* Smile */}
                 <path d="M49,40 Q56,46 65,40" fill="none" stroke="#2D2D2D" strokeWidth="2" strokeLinecap="round" />
-                {/* Cheeks */}
                 <circle cx="47" cy="38" r="4" fill="#FF8FAB" opacity="0.5" />
                 <circle cx="67" cy="38" r="4" fill="#FF8FAB" opacity="0.5" />
               </>
@@ -161,17 +150,13 @@ function CandyArrow({ direction, onPress }) {
                 <circle cx="55" cy="32" r="3" fill="#2D2D2D" />
                 <circle cx="44" cy="31" r="1.2" fill="white" />
                 <circle cx="56" cy="31" r="1.2" fill="white" />
-                {/* Wink */}
                 <path d="M40,40 Q47,46 56,40" fill="none" stroke="#2D2D2D" strokeWidth="2" strokeLinecap="round" />
-                {/* Wink line over left eye */}
                 <path d="M40,30 Q43,27 46,30" fill="none" stroke="#2D2D2D" strokeWidth="2" strokeLinecap="round" />
-                {/* Cheeks */}
                 <circle cx="38" cy="38" r="4" fill="#FF8FAB" opacity="0.5" />
                 <circle cx="58" cy="38" r="4" fill="#FF8FAB" opacity="0.5" />
               </>
             )}
 
-            {/* Outline */}
             {isLeft ? (
               <path d="M36,4 L4,36 L36,68 L36,52 L100,52 Q104,52 104,48 L104,24 Q104,20 100,20 L36,20 Z" fill="none" stroke="white" strokeWidth="2.5" opacity="0.5" />
             ) : (
@@ -194,9 +179,9 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
 
   const [tiles, setTiles] = useState([]);
   const [codyLane, setCodyLane] = useState(1);
-  const [phase, setPhase] = useState("playing"); // playing | caught
+  const [phase, setPhase] = useState("playing");
   const [caughtVisible, setCaughtVisible] = useState(false);
-  const [redGlowId, setRedGlowId] = useState(null); // id of wrong tile currently glowing
+  const [redGlowId, setRedGlowId] = useState(null);
 
   const tilesRef = useRef([]);
   const codyLaneRef = useRef(1);
@@ -204,23 +189,20 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
   const tickRef = useRef(null);
   const gameAreaRef = useRef(null);
   const gameHeightRef = useRef(460);
-  const cancelRef = useRef(null); // not used for sequence but kept for cleanup
+  const cancelRef = useRef(null);
   const distractors = useRef(pickDistractors(missingLetter)).current;
   const queue = useRef(buildQueue(missingLetter, distractors)).current;
   const queueIdx = useRef(0);
   const nextSpawnAt = useRef(Date.now() + FIRST_SPAWN_MS);
   const tileCounter = useRef(0);
 
-  // Keep ref in sync
   useEffect(() => { codyLaneRef.current = codyLane; }, [codyLane]);
 
-  // Auto-play word on mount
   useEffect(() => {
     const t = setTimeout(() => playAudio(audio), 300);
     return () => clearTimeout(t);
   }, [audio]);
 
-  // Measure game area
   useEffect(() => {
     const measure = () => {
       if (gameAreaRef.current)
@@ -236,18 +218,15 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
       if (phaseRef.current !== "playing") return;
 
       if (tile.letter === missingLetter) {
-        // ── Correct ──
         phaseRef.current = "caught";
         setPhase("caught");
         clearInterval(tickRef.current);
         tilesRef.current = [];
         setTiles([]);
         setCaughtVisible(true);
-        // Just play the full word once, then advance
         playAudio(audio);
         setTimeout(() => onSuccess(), 1200);
       } else {
-        // ── Wrong — soft red glow, then remove tile ──
         tilesRef.current = tilesRef.current.map((t) =>
           t.id === tile.id ? { ...t, status: "wrong" } : t
         );
@@ -265,7 +244,6 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
   const handleCatchRef = useRef(handleCatch);
   useEffect(() => { handleCatchRef.current = handleCatch; }, [handleCatch]);
 
-  // Game tick
   useEffect(() => {
     if (phase !== "playing") return;
     tickRef.current = setInterval(() => {
@@ -341,7 +319,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
     <div
       style={{
         display: "flex", flexDirection: "column", height: "100%",
-        background: "linear-gradient(180deg, #D6EEFF 0%, #E8F7FF 100%)",
+        background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
         fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative",
       }}
     >
@@ -353,11 +331,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
         }}
       >
         <BackArrow onPress={onExit} />
-        <div style={{ flex: 1 }}>
-          <p style={{ fontSize: 12, color: "#3A6080", margin: 0 }}>
-            {lang === "zh" ? `第 ${roundNum} 局，共 ${totalRounds} 局` : `Round ${roundNum} of ${totalRounds}`}
-          </p>
-        </div>
+        <div style={{ flex: 1 }} />
         <div style={{ display: "flex", gap: 5 }}>
           {Array.from({ length: totalRounds }).map((_, i) => (
             <div
@@ -372,7 +346,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
         </div>
       </div>
 
-      {/* ── Word Card (30% bigger) ── */}
+      {/* ── Word Card ── */}
       <div style={{ padding: "8px 12px 4px", flexShrink: 0 }}>
         <div
           style={{
@@ -404,7 +378,7 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
             </div>
           </button>
 
-          {/* CVC letter boxes — 30% bigger */}
+          {/* CVC letter boxes */}
           <div style={{ display: "flex", gap: 8, flex: 1, justifyContent: "center" }}>
             {letters.map((letter, i) => {
               const isMissing = i === missingPos;
@@ -436,18 +410,6 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
             })}
           </div>
         </div>
-
-        <p
-          style={{
-            textAlign: "center", fontSize: 13,
-            color: phase === "caught" ? "#27AE60" : "#4A90C4",
-            marginTop: 5, fontWeight: 600, transition: "color 0.3s",
-          }}
-        >
-          {phase === "caught"
-            ? (lang === "zh" ? "🌟 接住了！" : "🌟 Amazing catch!")
-            : (lang === "zh" ? `接住字母 “${missingLetter.toUpperCase()}”` : `Catch the letter  "${missingLetter.toUpperCase()}"`)}
-        </p>
       </div>
 
       {/* ── Game Field ── */}
@@ -482,10 +444,10 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
                   left: `${LANE_X_PCT[tile.lane]}%`,
                   top: tile.y,
                   transform: "translateX(-50%)",
-                  width: 68, height: 68, borderRadius: 20,
+                  width: 136, height: 136, borderRadius: 32,
                   background: tile.color,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 34, fontWeight: 700, color: "white",
+                  fontSize: 68, fontWeight: 700, color: "white",
                   fontFamily: "Fredoka, sans-serif",
                   boxShadow: isWrong
                     ? "0 0 0 6px rgba(255,80,80,0.55), 0 0 24px rgba(255,80,80,0.40)"
@@ -531,11 +493,9 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
             pointerEvents: "none",
           }}
         />
-
-
       </div>
 
-      {/* ── Arrow controls — only LEFT and RIGHT ── */}
+      {/* ── Arrow controls ── */}
       <div
         style={{
           display: "flex",
@@ -547,14 +507,6 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
         }}
       >
         <CandyArrow direction="left" onPress={moveLeft} />
-        <p
-          style={{
-            fontSize: 13, color: "#4A90C4", fontWeight: 600,
-            textAlign: "center", margin: 0, flex: 1,
-          }}
-        >
-          {lang === "zh" ? "移动手！" : "Move the hands!"}
-        </p>
         <CandyArrow direction="right" onPress={moveRight} />
       </div>
     </div>
@@ -579,7 +531,7 @@ export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAU
       <div
         style={{
           display: "flex", flexDirection: "column", height: "100%",
-          background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 100%)",
+          background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
           fontFamily: "Fredoka, sans-serif",
           alignItems: "center", justifyContent: "center", gap: 12, padding: 24,
         }}
@@ -599,14 +551,6 @@ export default function LetterCatchGame({ words, title, color, fallSpeed = DEFAU
           style={{ fontSize: 34, fontWeight: 700, color: "#1E3A5F", margin: 0 }}
         >
           {lang === "zh" ? "太厉害了！" : "Amazing!"}
-        </motion.p>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          style={{ fontSize: 18, color: "#4A90C4", margin: 0, textAlign: "center" }}
-        >
-          {lang === "zh" ? "你接住了所有字母！" : "You caught all the letters!"}
         </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
