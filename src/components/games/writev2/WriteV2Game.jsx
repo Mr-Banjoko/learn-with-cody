@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RotateCcw } from "lucide-react";
 import LetterTrace from "../write/short-a/LetterTrace";
 import BackArrow from "../../BackArrow";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
@@ -89,6 +90,7 @@ export default function WriteV2Game({ wordList, title, onBack }) {
   // For success animation: which card index is bouncing, and ordered correct cards to show
   const [bouncingCardIdx, setBouncingCardIdx] = useState(null);
   const [successCards, setSuccessCards] = useState(null); // ordered correct cards after success
+  const [submitError, setSubmitError] = useState(false); // triggers shake+glow on submit button
 
   const wordIdxRef = useRef(0);
   const lockedRef = useRef(true);
@@ -145,7 +147,16 @@ export default function WriteV2Game({ wordList, title, onBack }) {
     setPhase("tracing");
     setBouncingCardIdx(null);
     setSuccessCards(null);
+    setSubmitError(false);
   }, [cancelAudio, roundKey, WORD_LIST]);
+
+  const handleRefresh = useCallback(() => {
+    if (locked || phase !== "tracing") return;
+    // Re-mount all canvases by bumping roundKey, keep same word/round data
+    setTracedCardIds(new Set());
+    setRoundKey((k) => k + 1);
+    setSubmitError(false);
+  }, [locked, phase]);
 
   const handleCardComplete = useCallback((cardId) => {
     if (lockedRef.current || phase !== "tracing") return;
@@ -165,12 +176,13 @@ export default function WriteV2Game({ wordList, title, onBack }) {
       tracedCards.every((c) => c.isCorrect);
 
     if (!isCorrect) {
-      // Wrong — flash wrong feedback, reset traced, let retry
-      setPhase("wrong");
+      // Wrong — shake + red glow on submit button, then reset traced
+      setSubmitError(true);
       setTimeout(() => {
+        setSubmitError(false);
         setTracedCardIds(new Set());
-        setPhase("tracing");
-      }, 900);
+        setRoundKey((k) => k + 1); // re-mount canvases
+      }, 700);
       return;
     }
 
@@ -202,9 +214,11 @@ export default function WriteV2Game({ wordList, title, onBack }) {
   }, [phase, round, tracedCardIds, cancelAudio, goNextWord, WORD_LIST]);
 
   const wordData = WORD_LIST[wordIdx];
+  const tracedCount = tracedCardIds.size;
   const allCorrectTraced = round.correctCards.every((c) => tracedCardIds.has(c.id));
   const noDistractorTraced = round.distractorCards.every((c) => !tracedCardIds.has(c.id));
-  const canSubmit = allCorrectTraced && noDistractorTraced && phase === "tracing" && !locked;
+  // Submit glows when at least 3 letters traced (correct or not); works even if 4-5 traced
+  const canSubmit = tracedCount >= 3 && phase === "tracing" && !locked && !submitError;
 
   // Cards to display: during success show ordered correct cards; otherwise show shuffled
   const displayCards = phase === "success" && successCards ? successCards : round.shuffledCards;
@@ -235,19 +249,7 @@ export default function WriteV2Game({ wordList, title, onBack }) {
         {/* Interaction lock overlay */}
         {locked && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
-        {/* Wrong feedback overlay */}
-        {phase === "wrong" && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <motion.div
-              initial={{ scale: 0.6, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{ fontSize: 64, filter: "drop-shadow(0 4px 12px rgba(255,80,80,0.4))" }}
-            >
-              ❌
-            </motion.div>
-          </div>
-        )}
+        {/* no fullscreen overlay — wrong feedback is on the submit button */}
 
         {/* Word picture */}
         <AnimatePresence mode="wait">
@@ -350,31 +352,66 @@ export default function WriteV2Game({ wordList, title, onBack }) {
           </motion.div>
         </AnimatePresence>
 
-        {/* Submit button */}
-        <motion.button
-          onPointerDown={(e) => { e.preventDefault(); if (canSubmit) handleSubmit(); }}
-          animate={canSubmit ? { scale: [1, 1.04, 1] } : {}}
-          transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-          style={{
-            marginTop: 4,
-            padding: "14px 52px",
-            borderRadius: 999,
-            border: "none",
-            fontSize: 22,
-            fontWeight: 700,
-            fontFamily: "Fredoka, sans-serif",
-            cursor: canSubmit ? "pointer" : "default",
-            background: canSubmit
-              ? "linear-gradient(135deg, #4A90C4, #22c55e)"
-              : "#C5DCF0",
-            color: canSubmit ? "white" : "#9CB8CC",
-            boxShadow: canSubmit ? "0 6px 24px rgba(74,144,196,0.45)" : "none",
-            transition: "background 0.3s, color 0.3s, box-shadow 0.3s",
-            touchAction: "manipulation",
-          }}
-        >
-          ✓
-        </motion.button>
+        {/* Refresh + Submit buttons */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
+          {/* Refresh button */}
+          <button
+            onPointerDown={(e) => { e.preventDefault(); handleRefresh(); }}
+            style={{
+              width: 48, height: 48, borderRadius: 24,
+              background: "white",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.14)",
+              border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0, touchAction: "manipulation",
+              opacity: tracedCount > 0 && !locked && phase === "tracing" ? 1 : 0.35,
+            }}
+            aria-label="Reset traced letters"
+          >
+            <RotateCcw size={22} color="#A8D0E6" strokeWidth={2.2} />
+          </button>
+
+          {/* Submit button */}
+          <motion.button
+            onPointerDown={(e) => { e.preventDefault(); if (canSubmit) handleSubmit(); }}
+            animate={
+              submitError
+                ? { x: [0, -10, 10, -8, 8, -4, 4, 0] }
+                : canSubmit
+                ? { scale: [1, 1.04, 1] }
+                : {}
+            }
+            transition={
+              submitError
+                ? { duration: 0.5 }
+                : { repeat: Infinity, duration: 1.6, ease: "easeInOut" }
+            }
+            style={{
+              padding: "14px 52px",
+              borderRadius: 999,
+              border: "none",
+              fontSize: 22,
+              fontWeight: 700,
+              fontFamily: "Fredoka, sans-serif",
+              cursor: canSubmit ? "pointer" : "default",
+              background: submitError
+                ? "linear-gradient(135deg, #FF6B6B, #ff4444)"
+                : canSubmit
+                ? "linear-gradient(135deg, #4A90C4, #22c55e)"
+                : "#C5DCF0",
+              color: canSubmit || submitError ? "white" : "#9CB8CC",
+              boxShadow: submitError
+                ? "0 6px 24px rgba(255,80,80,0.55)"
+                : canSubmit
+                ? "0 6px 24px rgba(74,144,196,0.45)"
+                : "none",
+              transition: "background 0.3s, color 0.3s, box-shadow 0.3s",
+              touchAction: "manipulation",
+            }}
+          >
+            ✓
+          </motion.button>
+        </div>
       </div>
     </div>
   );
