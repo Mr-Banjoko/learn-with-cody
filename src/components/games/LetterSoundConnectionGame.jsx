@@ -15,7 +15,19 @@ import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { shortASlices } from "../../lib/shortASlices";
+import { shortESlices } from "../../lib/shortESlices";
+import { shortISlices } from "../../lib/shortISlices";
+import { shortOSlices } from "../../lib/shortOSlices";
+import { shortUSlices } from "../../lib/shortUSlices";
 import { buildWordData } from "../../lib/picSliceGameData";
+
+const SLICES_MAP = {
+  "short-a": shortASlices,
+  "short-e": shortESlices,
+  "short-i": shortISlices,
+  "short-o": shortOSlices,
+  "short-u": shortUSlices,
+};
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import RainbowLetterBlock from "../RainbowLetterBlock";
@@ -349,7 +361,8 @@ function ConnectionRound({ card, onComplete }) {
 
 // ── Level shell ───────────────────────────────────────────────────────────────
 export default function LetterSoundConnectionGame({ group, onBack, lang = "en" }) {
-  const words = shortASlices.map((s) => buildWordData(s.word));
+  const slices = SLICES_MAP[group.id] || shortASlices;
+  const words = slices.map((s) => buildWordData(s.word));
   const [wordIndex, setWordIndex] = useState(0);
   const [showWin, setShowWin] = useState(false);
   const [roundKey, setRoundKey] = useState(0);
@@ -389,7 +402,7 @@ export default function LetterSoundConnectionGame({ group, onBack, lang = "en" }
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
-            {lang === "zh" ? "字母音连线 · Short a" : "Letter to Sound · Short a"}
+            {lang === "zh" ? `字母音连线 · ${group.label}` : `Letter to Sound · ${group.label}`}
           </p>
         </div>
         <span style={{ fontSize: 15, fontWeight: 600, color: "#94A3B8" }}>{wordIndex + 1}/{words.length}</span>

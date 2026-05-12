@@ -10,10 +10,10 @@ import LetterSoundConnectionGame from "./LetterSoundConnectionGame";
 
 const VOWEL_GROUPS = [
   { id: "short-a", label: "Short a", emoji: "🍎", color: "#FF6B6B", available: true },
-  { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", available: false },
-  { id: "short-i", label: "Short i", emoji: "🐛", color: "#6BCB77", available: false },
-  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", available: false },
-  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", available: false },
+  { id: "short-e", label: "Short e", emoji: "🥚", color: "#FFD93D", available: true },
+  { id: "short-i", label: "Short i", emoji: "🐛", color: "#6BCB77", available: true },
+  { id: "short-o", label: "Short o", emoji: "🐙", color: "#4D96FF", available: true },
+  { id: "short-u", label: "Short u", emoji: "☂️", color: "#C77DFF", available: true },
 ];
 
 export default function LetterSoundConnection({ onBack, lang = "en" }) {
