@@ -6,7 +6,9 @@ import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
 import { playAudioSequence, preloadAudio, warmupAudio } from "../../../lib/useAudio";
 
 const WORD_LIST_SIZE = 10;
-const TILE_SIZE = 100;
+// Tile size: 3 cols fit in ~360px screen with 16px side padding and 8px gaps
+// Available width ≈ 360 - 32 = 328px; (328 - 2*8) / 3 ≈ 104 → use 88 for breathing room
+const TILE_SIZE = 88;
 
 function shuffleArray(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
@@ -275,7 +277,7 @@ export default function WriteV2Game({ wordList, title, onBack }) {
           </motion.div>
         </AnimatePresence>
 
-        {/* 6-card grid (2 cols × 3 rows) or 3-card row during success */}
+        {/* 6-card grid (3 cols × 2 rows) or 3-card row during success */}
         <AnimatePresence mode="wait">
           <motion.div
             key={`${roundKey}-${phase === "success" ? "success" : "tracing"}`}
@@ -284,7 +286,9 @@ export default function WriteV2Game({ wordList, title, onBack }) {
             transition={{ duration: 0.25 }}
             style={{
               display: "grid",
-              gridTemplateColumns: phase === "success" ? `repeat(${displayCards.length}, ${TILE_SIZE}px)` : `repeat(2, ${TILE_SIZE}px)`,
+              gridTemplateColumns: phase === "success"
+                ? `repeat(${displayCards.length}, ${TILE_SIZE}px)`
+                : `repeat(3, ${TILE_SIZE}px)`,
               gap: 8,
               justifyContent: "center",
               width: "100%",
@@ -295,22 +299,49 @@ export default function WriteV2Game({ wordList, title, onBack }) {
               const isBouncing = phase === "success" && bouncingCardIdx === i;
               const isSuccess = phase === "success";
 
+              // During success phase, show a solid "traced" tile instead of the canvas
+              if (isSuccess) {
+                return (
+                  <motion.div
+                    key={card.id}
+                    animate={isBouncing ? { y: [0, -18, 0, -10, 0] } : { y: 0 }}
+                    transition={isBouncing ? { duration: 0.5, ease: "easeInOut" } : {}}
+                    style={{
+                      width: TILE_SIZE,
+                      height: Math.round(TILE_SIZE * (420 / 320) * 1.4),
+                      borderRadius: 16,
+                      background: "#E8FFFE",
+                      border: "2.5px solid rgba(168,208,230,0.6)",
+                      boxShadow: "0 6px 28px rgba(30,58,95,0.14)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: Math.round(TILE_SIZE * 0.55),
+                      fontWeight: 700,
+                      color: "#1E3A5F",
+                      fontFamily: "Fredoka, sans-serif",
+                    }}
+                  >
+                    {card.letter}
+                  </motion.div>
+                );
+              }
+
               return (
                 <motion.div
                   key={card.id}
-                  animate={isBouncing ? { y: [0, -18, 0, -10, 0] } : { y: 0 }}
-                  transition={isBouncing ? { duration: 0.5, ease: "easeInOut" } : {}}
+                  animate={{ y: 0 }}
                   style={{
                     opacity: isTraced ? 1 : 0.65,
                     transition: "opacity 0.3s",
-                    outline: isTraced && !isSuccess ? "3px solid #22c55e" : "none",
+                    outline: isTraced ? "3px solid #22c55e" : "none",
                     borderRadius: 18,
                   }}
                 >
                   <LetterTrace
                     letter={card.letter}
                     size={TILE_SIZE}
-                    locked={locked || isTraced || phase !== "tracing"}
+                    locked={locked || isTraced}
                     onComplete={() => handleCardComplete(card.id)}
                   />
                 </motion.div>
