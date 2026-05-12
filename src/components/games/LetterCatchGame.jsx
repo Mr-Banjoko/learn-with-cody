@@ -441,9 +441,8 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
                 key={tile.id}
                 style={{
                   position: "absolute",
-                  left: `${LANE_X_PCT[tile.lane]}%`,
+                  left: `calc(${LANE_X_PCT[tile.lane]}% - 68px)`,
                   top: tile.y,
-                  transform: "translateX(-50%)",
                   width: 136, height: 136, borderRadius: 32,
                   background: tile.color,
                   display: "flex", alignItems: "center", justifyContent: "center",
@@ -466,9 +465,9 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
         <motion.div
           style={{
             position: "absolute", bottom: 4,
-            left: `${LANE_X_PCT[codyLane]}%`,
-            transform: "translateX(-50%)",
+            left: `calc(${LANE_X_PCT[codyLane]}% - 60px)`,
             transition: "left 0.16s ease-out",
+            width: 120, height: 120,
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 20, pointerEvents: "none",
             fontSize: 96,
