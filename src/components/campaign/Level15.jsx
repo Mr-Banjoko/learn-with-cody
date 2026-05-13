@@ -1,16 +1,16 @@
 /**
  * Level 15 — 9-round Mixed Review
  *
- * Round order:
- *  1. Drag the Letters V2     → pat
- *  2. Rearrange Pictures Easy → sat
- *  3. Missing Letter          → ham
- *  4. Identifying             → mad
- *  5. Draw a Line             → pat, ham, dad
- *  6. Missing Letter          → sad
- *  7. Rearrange Pictures Easy → ham
- *  8. Draw a Line             → sad, can, map
- *  9. Drag the Letters V2     → sat
+ * Round order (updated):
+ *  1. Drag the Letters V2     → dad        (was pat)
+ *  2. Letter Catch difficult  → sat, missing: s
+ *  3. Missing Letter          → map        (was ham), missing letter: p
+ *  4. Identifying             → mad        (UNCHANGED)
+ *  5. Letter-to-Sound Connection → dad
+ *  6. Letter Catch difficult  → sad, missing: a
+ *  7. Rearrange Pictures Easy → ham        (UNCHANGED)
+ *  8. Letter-to-Sound Connection → pan
+ *  9. Drag the Letters V2     → mad        (was sat)
  */
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,10 +19,12 @@ import BackArrow from "../BackArrow";
 import Level1DragV2 from "./Level1DragV2";
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import IdentifyingRound from "../games/IdentifyingRound";
-import DrawLineBoard from "../games/drawline/DrawLineBoard";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
+import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
+import CampaignConnectionRound from "./CampaignConnectionRound";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+
 const LEVEL_NUM = 15;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { buildWordData } from "../../lib/picSliceGameData";
@@ -56,40 +58,7 @@ function shuffleArr(arr) {
   return a;
 }
 
-function buildFixedDrawLineRound(wordNames) {
-  const words = wordNames.map(findWord);
-  const topCards = words.map((w, i) => ({
-    ...w,
-    targetLetter: w.word[0],
-    id: `card-${i}-${w.word}`,
-  }));
-  const letters = topCards.map((c) => ({ letter: c.targetLetter, topCardId: c.id }));
-  let shuffledLetters = shuffleArr(letters);
-  let tries = 0;
-  while (tries < 20 && shuffledLetters.some((l, i) => l.topCardId === topCards[i].id)) {
-    shuffledLetters = shuffleArr(letters);
-    tries++;
-  }
-  return { topCards, bottomLetters: shuffledLetters };
-}
-
-// ── Round definitions ────────────────────────────────────────────────────────
-// type: "drag" | "rearrange" | "missing" | "identifying" | "drawline"
-const ROUND_SEQUENCE = [
-  { type: "drag",        word: "pat"                    }, // R1
-  { type: "rearrange",   word: "sat"                    }, // R2
-  { type: "missing",     word: "ham"                    }, // R3
-  { type: "identifying", word: "mad"                    }, // R4
-  { type: "drawline",    words: ["pat", "ham", "dad"]   }, // R5
-  { type: "missing",     word: "sad"                    }, // R6
-  { type: "rearrange",   word: "ham"                    }, // R7
-  { type: "drawline",    words: ["sad", "can", "map"]   }, // R8
-  { type: "drag",        word: "sat"                    }, // R9
-];
-
-const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
-
-// ── Missing letter sub-component (inline, single-word, no header/back) ───────
+// ── Missing letter sub-component (inline, for R3) ───────────────────────────
 const TOP_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 
 function getDistractors(word) {
@@ -99,9 +68,9 @@ function getDistractors(word) {
   return pool.slice(0, 2);
 }
 
-function buildMissingRound(card) {
+function buildMissingRound(card, forcedMissingPos) {
   const letters = card.word.split("");
-  const missingPos = Math.floor(Math.random() * 3);
+  const missingPos = forcedMissingPos !== undefined ? forcedMissingPos : Math.floor(Math.random() * 3);
   const distractors = getDistractors(card.word);
   const ts = Date.now();
   const options = shuffleArr([
@@ -112,8 +81,8 @@ function buildMissingRound(card) {
   return { card, letters, missingPos, options };
 }
 
-function MissingLetterRound({ card, onComplete, lang = "en", onMistake }) {
-  const [round] = useState(() => buildMissingRound(card));
+function MissingLetterRound({ card, forcedMissingPos, onComplete, lang = "en", onMistake }) {
+  const [round] = useState(() => buildMissingRound(card, forcedMissingPos));
   const [placedOption, setPlacedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [bouncingIndex, setBouncingIndex] = useState(null);
@@ -210,10 +179,7 @@ function MissingLetterRound({ card, onComplete, lang = "en", onMistake }) {
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0, touchAction: "none", userSelect: "none", position: "relative" }} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
-      {isCompleting && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />
-      )}
-      {/* Top letter boxes */}
+      {isCompleting && (<div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />)}
       <div style={{ background: "rgba(255,255,255,0.55)", borderRadius: 32, padding: "18px 22px", boxShadow: "0 8px 32px rgba(30,58,95,0.10)", border: "2px solid rgba(255,255,255,0.85)", display: "flex", gap: "min(20px, 4vw)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         {round.letters.map((letter, i) => {
           const isMissing = i === round.missingPos;
@@ -238,13 +204,9 @@ function MissingLetterRound({ card, onComplete, lang = "en", onMistake }) {
           );
         })}
       </div>
-
-      {/* Play word button */}
       <motion.button whileTap={{ scale: 0.88 }} onPointerDown={(e) => { e.preventDefault(); if (!isCompleting) { round.card.audio && playAudio(round.card.audio); } }} style={{ width: "min(64px, 16vw)", height: "min(64px, 16vw)", borderRadius: "50%", background: accentColor, border: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 24px ${accentColor}55`, cursor: "pointer", touchAction: "manipulation", flexShrink: 0 }}>
         <Play size={26} color="white" fill="white" />
       </motion.button>
-
-      {/* Answer tiles */}
       <div style={{ display: "flex", gap: "min(16px, 4vw)", justifyContent: "center", flexShrink: 0 }}>
         {round.options.map((option) => {
           const isPlaced = placedOption?.id === option.id;
@@ -257,11 +219,7 @@ function MissingLetterRound({ card, onComplete, lang = "en", onMistake }) {
           );
         })}
       </div>
-
-      {/* Submit */}
       <motion.button whileTap={canSubmit ? { scale: 0.95 } : {}} onClick={handleSubmit} style={{ padding: "14px 52px", borderRadius: 99, border: "none", background: canSubmit ? accentColor : "rgba(168,208,230,0.35)", color: canSubmit ? "white" : "rgba(74,144,196,0.4)", fontSize: 20, fontWeight: 700, boxShadow: canSubmit ? `0 6px 24px ${accentColor}50` : "none", cursor: canSubmit ? "pointer" : "not-allowed", transition: "all 0.25s", flexShrink: 0, touchAction: "manipulation" }}>✓</motion.button>
-
-      {/* Drag ghost */}
       <AnimatePresence>
         {dragState && isActiveDrag && (
           <div style={{ position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%, -50%)", zIndex: 9999, pointerEvents: "none", width: "min(78px, 20vw)", height: "min(78px, 20vw)", borderRadius: 20, background: "white", border: "2.5px solid rgba(168,208,230,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 14px 40px rgba(30,58,95,0.22)" }}>
@@ -273,7 +231,23 @@ function MissingLetterRound({ card, onComplete, lang = "en", onMistake }) {
   );
 }
 
+// ── Round definitions ────────────────────────────────────────────────────────
+const ROUND_SEQUENCE = [
+  { type: "drag",        word: "dad"                    }, // R1 (was pat)
+  { type: "catch",       word: "sat", missingLetter: "s" }, // R2 (new)
+  { type: "missing",     word: "map", missingPos: 2      }, // R3 (was ham, missing = p at pos 2)
+  { type: "identifying", word: "mad"                    }, // R4 (UNCHANGED)
+  { type: "connection",  word: "dad"                    }, // R5 (new)
+  { type: "catch",       word: "sad", missingLetter: "a" }, // R6 (new)
+  { type: "rearrange",   word: "ham"                    }, // R7 (UNCHANGED)
+  { type: "connection",  word: "pan"                    }, // R8 (new)
+  { type: "drag",        word: "mad"                    }, // R9 (was sat)
+];
+
+const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
+
 // ── Level 15 shell ────────────────────────────────────────────────────────────
+// (LEVEL_NUM and SCORED_ROUNDS defined near imports above)
 function markLevel15Complete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
@@ -306,31 +280,35 @@ export default function Level15({ onBack, lang = "en" }) {
   const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  // Build stable data per round
   const dragCard = useMemo(() => {
     if (!roundDef || roundDef.type !== "drag") return null;
     return findWord(roundDef.word);
-  }, [roundIndex]);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const rearrangeWordPair = useMemo(() => {
     if (!roundDef || roundDef.type !== "rearrange") return null;
     return [buildWordData(roundDef.word)];
-  }, [roundIndex]);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const identifyingRound = useMemo(() => {
     if (!roundDef || roundDef.type !== "identifying") return null;
     return buildIdentifyingRound(roundDef.word);
-  }, [roundIndex]);
-
-  const drawLineRound = useMemo(() => {
-    if (!roundDef || roundDef.type !== "drawline") return null;
-    return buildFixedDrawLineRound(roundDef.words);
-  }, [roundIndex]);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const missingCard = useMemo(() => {
     if (!roundDef || roundDef.type !== "missing") return null;
     return findWord(roundDef.word);
-  }, [roundIndex]);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const catchWordData = useMemo(() => {
+    if (!roundDef || roundDef.type !== "catch") return null;
+    return findWord(roundDef.word);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const connectionCard = useMemo(() => {
+    if (!roundDef || roundDef.type !== "connection") return null;
+    return buildWordData(roundDef.word);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
@@ -367,13 +345,31 @@ export default function Level15({ onBack, lang = "en" }) {
               <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "missing" && missingCard && (
-              <MissingLetterRound key={`missing-${roundIndex}`} card={missingCard} onComplete={advance} lang={lang} onMistake={onMistake} />
+              <MissingLetterRound key={`missing-${roundIndex}`} card={missingCard} forcedMissingPos={roundDef.missingPos} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "identifying" && identifyingRound && (
               <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
-            {roundDef.type === "drawline" && drawLineRound && (
-              <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
+            {roundDef.type === "catch" && catchWordData && (
+              <CampaignLetterCatchRound
+                key={`catch-${roundIndex}`}
+                word={roundDef.word}
+                missingLetter={roundDef.missingLetter}
+                image={catchWordData.image}
+                audio={catchWordData.audio}
+                onComplete={advance}
+                onMistake={onMistake}
+                lang={lang}
+              />
+            )}
+            {roundDef.type === "connection" && connectionCard && (
+              <CampaignConnectionRound
+                key={`connection-${roundIndex}`}
+                card={connectionCard}
+                onComplete={advance}
+                onMistake={onMistake}
+                lang={lang}
+              />
             )}
           </motion.div>
         )}

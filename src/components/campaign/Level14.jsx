@@ -1,32 +1,37 @@
 /**
- * Level 14 — 5-round Identifying Game
+ * Level 14 — 6-round sequence
  *
  * Round order:
- *  1. sad
- *  2. sat
- *  3. pat
- *  4. mad
- *  5. ham
+ *  1. Identifying        → sad   (unchanged)
+ *  2. Rearrange Pictures → sat   (NEW)
+ *  3. Identifying        → pat   (unchanged)
+ *  4. Rearrange Pictures → mad   (NEW)
+ *  5. Identifying        → ham   (unchanged)  ← was round 3 → now round 5 position shift
+ *  6. Rearrange Pictures → sad   (NEW)
  *
- * Reuses IdentifyingRound (same component used in Level4, Level5, Level9, Level10).
+ * Note: original 5 rounds were sad, sat, pat, mad, ham (all Identifying).
+ * New 6-round interleaved layout inserts rearrange after each original odd-indexed word.
+ * Round 1 = sad Identifying, Round 3 = pat Identifying, Round 5 = ham Identifying
+ * (unchanged positions 1,3,5 as specified).
  */
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import IdentifyingRound from "../games/IdentifyingRound";
+import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-const LEVEL_NUM = 14;
-const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 
-const WORD_ORDER = ["sad", "sat", "pat", "mad", "ham"];
-const TOTAL_ROUNDS = WORD_ORDER.length;
+const LEVEL_NUM = 14;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 
 function buildIdentifyingRound(targetWord) {
@@ -37,6 +42,17 @@ function buildIdentifyingRound(targetWord) {
   const choices = [target, ...distractors].sort(() => Math.random() - 0.5);
   return { target, choices };
 }
+
+const ROUND_SEQUENCE = [
+  { type: "identifying", word: "sad" }, // R1 — unchanged
+  { type: "rearrange",   word: "sat" }, // R2 — new
+  { type: "identifying", word: "pat" }, // R3 — unchanged
+  { type: "rearrange",   word: "mad" }, // R4 — new
+  { type: "identifying", word: "ham" }, // R5 — unchanged
+  { type: "rearrange",   word: "sad" }, // R6 — new
+];
+
+const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 
 function markLevel14Complete() {
   try {
@@ -52,6 +68,7 @@ export default function Level14({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -66,12 +83,18 @@ export default function Level14({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
-  const identifyingRound = useMemo(
-    () => buildIdentifyingRound(WORD_ORDER[roundIndex]),
-    [roundIndex]
-  );
-
+  const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
+
+  const identifyingRound = useMemo(() => {
+    if (!roundDef || roundDef.type !== "identifying") return null;
+    return buildIdentifyingRound(roundDef.word);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const rearrangeWordPair = useMemo(() => {
+    if (!roundDef || roundDef.type !== "rearrange") return null;
+    return [buildWordData(roundDef.word)];
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
@@ -101,13 +124,23 @@ export default function Level14({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <IdentifyingRound
-              key={`identifying-${roundIndex}`}
-              round={identifyingRound}
-              onComplete={advance}
-              lang={lang}
-              onMistake={(m) => setMistakes(prev => prev + m)}
-            />
+            {roundDef.type === "identifying" && identifyingRound ? (
+              <IdentifyingRound
+                key={`identifying-${roundIndex}`}
+                round={identifyingRound}
+                onComplete={advance}
+                lang={lang}
+                onMistake={(m) => setMistakes((prev) => prev + (typeof m === "number" ? m : 1))}
+              />
+            ) : roundDef.type === "rearrange" && rearrangeWordPair ? (
+              <PicSliceBoardEasy
+                key={`rearrange-${roundIndex}`}
+                wordPair={rearrangeWordPair}
+                onRoundComplete={advance}
+                lang={lang}
+                onMistake={onMistake}
+              />
+            ) : null}
           </motion.div>
         )}
       </AnimatePresence>

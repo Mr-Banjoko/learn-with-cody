@@ -1,72 +1,32 @@
 /**
- * Level 13 — 4-round Draw a Line Game
+ * Level 13 — 5-round Letter-to-Sound Connection game
  *
- * Fixed round order:
- *  Round 1: sad, can, map
- *  Round 2: sat, ham, pan
- *  Round 3: pat, ham, dad
- *  Round 4: mad, jam, dad
+ * Round order:
+ *  1. ham
+ *  2. sat
+ *  3. mad
+ *  4. sad
+ *  5. pat
  *
- * Each round uses the first letter of each word as the target letter.
- * Letters are guaranteed to be unambiguous for the chosen word sets.
+ * Uses CampaignConnectionRound (inlines ConnectionRound + WinScreen from
+ * LetterSoundConnectionGame). Picture slices come from shortASlices via
+ * buildWordData(). Wrong connections deduct 1 life via onMistake.
+ * Audio auto-plays at start of each round.
  */
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import DrawLineBoard from "../games/drawline/DrawLineBoard";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
+import CampaignConnectionRound from "./CampaignConnectionRound";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { buildWordData } from "../../lib/picSliceGameData";
+
 const LEVEL_NUM = 13;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-import { shortAWords } from "../../lib/shortAWords";
 
-const findWord = (w) => shortAWords.find((x) => x.word === w);
-
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-/**
- * Build a fixed Draw-a-Line round from 3 word strings.
- * Uses first letter of each word as the target letter.
- * bottomLetters are shuffled so they don't align with top cards.
- */
-function buildFixedRound(wordNames) {
-  const words = wordNames.map(findWord);
-  const topCards = words.map((w, i) => ({
-    ...w,
-    targetLetter: w.word[0],
-    id: `card-${i}-${w.word}`,
-  }));
-
-  const letters = topCards.map((c) => ({ letter: c.targetLetter, topCardId: c.id }));
-  let shuffledLetters = shuffle(letters);
-  let tries = 0;
-  while (tries < 20 && shuffledLetters.some((l, i) => l.topCardId === topCards[i].id)) {
-    shuffledLetters = shuffle(letters);
-    tries++;
-  }
-
-  return { topCards, bottomLetters: shuffledLetters };
-}
-
-// Pre-build all 4 fixed rounds
-function buildAllRounds() {
-  return [
-    buildFixedRound(["sad", "can", "map"]),
-    buildFixedRound(["sat", "ham", "pan"]),
-    buildFixedRound(["pat", "ham", "dad"]),
-    buildFixedRound(["mad", "jam", "dad"]),
-  ];
-}
-
-const TOTAL_ROUNDS = 4;
+const WORD_ORDER = ["ham", "sat", "mad", "sad", "pat"];
+const TOTAL_ROUNDS = WORD_ORDER.length;
 
 function markLevel13Complete() {
   try {
@@ -78,15 +38,13 @@ function markLevel13Complete() {
 }
 
 export default function Level13({ onBack, lang = "en" }) {
-  const [rounds] = useState(() => buildAllRounds());
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  const onMistake = () => setMistakes((m) => m + 1);
-
-  const advance = () => {
+  const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel13Complete();
@@ -97,9 +55,14 @@ export default function Level13({ onBack, lang = "en" }) {
     } else {
       setRoundIndex(next);
     }
-  };
+  }, [roundIndex, mistakes]);
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
+
+  const card = useMemo(
+    () => buildWordData(WORD_ORDER[roundIndex]),
+    [roundIndex]
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
@@ -129,12 +92,12 @@ export default function Level13({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <DrawLineBoard
-              key={`drawline-${roundIndex}`}
-              round={rounds[roundIndex]}
-              onRoundComplete={advance}
-              lang={lang}
+            <CampaignConnectionRound
+              key={`connection-${roundIndex}`}
+              card={card}
+              onComplete={advance}
               onMistake={onMistake}
+              lang={lang}
             />
           </motion.div>
         )}

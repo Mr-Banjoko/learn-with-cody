@@ -1,22 +1,21 @@
 /**
- * Level 11 — 10-round sequence (mirrors Level 1 structure):
- * For each of the 5 words, in order:
- *   1. Learn Phonics  (Level1Phonics, no tutorial)
- *   2. Rearrange the Pictures → Easy  (PicSliceBoardEasy)
+ * Level 11 — 10-round sequence:
+ *  Odd rounds  (1,3,5,7,9): Learn Phonics (Level1Phonics)
+ *  Even rounds (2,4,6,8,10): drag-the-missing-sound 0.1 (CampaignMissingSound01Round)
  *
- * Words (exact order): sad, sat, pat, mad, ham
+ * Words (order): sad, sat, pat, mad, ham
  *
  * Round map:
- *  1. sad  — phonics
- *  2. sad  — rearrange (easy)
- *  3. sat  — phonics
- *  4. sat  — rearrange (easy)
- *  5. pat  — phonics
- *  6. pat  — rearrange (easy)
- *  7. mad  — phonics
- *  8. mad  — rearrange (easy)
- *  9. ham  — phonics
- * 10. ham  — rearrange (easy)  → marks level complete
+ *  1. sad — phonics
+ *  2. sad — missing sound 0.1
+ *  3. sat — phonics
+ *  4. sat — missing sound 0.1
+ *  5. pat — phonics
+ *  6. pat — missing sound 0.1
+ *  7. mad — phonics
+ *  8. mad — missing sound 0.1
+ *  9. ham — phonics
+ * 10. ham — missing sound 0.1 → marks level complete
  */
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,33 +23,26 @@ import BackArrow from "../BackArrow";
 import Level1Phonics from "./Level1Phonics";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
+import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-const LEVEL_NUM = 11;
-const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
-import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 
-// ── Word cards (exact order) ────────────────────────────────────────────────
-const findWord = (w) => shortAWords.find((x) => x.word === w);
-const sadCard = findWord("sad");
-const satCard = findWord("sat");
-const patCard = findWord("pat");
-const madCard = findWord("mad");
-const hamCard = findWord("ham");
+const LEVEL_NUM = 11;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 
-// ── Flat round sequence ─────────────────────────────────────────────────────
+const findWord = (w) => shortAWords.find((x) => x.word === w);
+
 const ROUNDS = [
-  { type: "phonics",   card: sadCard },  // Round 1:  sad phonics
-  { type: "rearrange", card: sadCard },  // Round 2:  sad rearrange
-  { type: "phonics",   card: satCard },  // Round 3:  sat phonics
-  { type: "rearrange", card: satCard },  // Round 4:  sat rearrange
-  { type: "phonics",   card: patCard },  // Round 5:  pat phonics
-  { type: "rearrange", card: patCard },  // Round 6:  pat rearrange
-  { type: "phonics",   card: madCard },  // Round 7:  mad phonics
-  { type: "rearrange", card: madCard },  // Round 8:  mad rearrange
-  { type: "phonics",   card: hamCard },  // Round 9:  ham phonics
-  { type: "rearrange", card: hamCard },  // Round 10: ham rearrange → complete
+  { type: "phonics",  card: findWord("sad") }, // 1
+  { type: "missing",  card: findWord("sad") }, // 2
+  { type: "phonics",  card: findWord("sat") }, // 3
+  { type: "missing",  card: findWord("sat") }, // 4
+  { type: "phonics",  card: findWord("pat") }, // 5
+  { type: "missing",  card: findWord("pat") }, // 6
+  { type: "phonics",  card: findWord("mad") }, // 7
+  { type: "missing",  card: findWord("mad") }, // 8
+  { type: "phonics",  card: findWord("ham") }, // 9
+  { type: "missing",  card: findWord("ham") }, // 10
 ];
 
 const TOTAL_ROUNDS = ROUNDS.length;
@@ -89,37 +81,17 @@ export default function Level11({ onBack, lang = "en" }) {
   const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  // Build wordPair for PicSliceBoardEasy — memoized so the array reference is
-  // stable across re-renders, preventing spurious game resets in the child.
-  const wordPair = useMemo(
-    () => (round && round.type === "rearrange" ? [buildWordData(round.card.word)] : null),
-    [roundIndex] // eslint-disable-line react-hooks/exhaustive-deps
-  );
-
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
+        display: "flex", flexDirection: "column", height: "100%",
         fontFamily: "Fredoka, sans-serif",
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
         overflow: "hidden",
       }}
     >
       {/* Header */}
-      <div
-        style={{
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px",
-          borderBottom: "1.5px solid rgba(0,0,0,0.06)",
-          background: "rgba(255,255,255,0.75)",
-          backdropFilter: "blur(10px)",
-        }}
-      >
+      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4, padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)" }}>
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
@@ -132,49 +104,27 @@ export default function Level11({ onBack, lang = "en" }) {
       {/* Progress bar */}
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
-          <motion.div
-            animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.4 }}
-            style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }}
-          />
+          <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
 
-      {/* Content — animated transitions between rounds */}
+      {/* Content */}
       <AnimatePresence mode="wait">
         {done ? (
-          <motion.div
-            key="complete"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
-          >
+          <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
-          <motion.div
-            key={`round-${roundIndex}`}
-            initial={{ opacity: 0, x: direction * 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction * -40 }}
-            transition={{ duration: 0.22 }}
-            style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
-          >
+          <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: direction * 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: direction * -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "phonics" ? (
-              <Level1Phonics
-                card={round.card}
-                onNext={advance}
-                lang={lang}
-                isFirstCard={false}
-              />
+              <Level1Phonics card={round.card} onNext={advance} lang={lang} isFirstCard={false} />
             ) : (
-              <PicSliceBoardEasy
-                wordPair={wordPair}
-                onRoundComplete={advance}
-                lang={lang}
+              <CampaignMissingSound01Round
+                key={`missing-${roundIndex}`}
+                card={round.card}
+                onComplete={advance}
                 onMistake={onMistake}
+                lang={lang}
               />
             )}
           </motion.div>
