@@ -263,9 +263,9 @@ export default function DictationShortAGame({ onBack, onMistake, lang = "en" }) 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "8px 16px 12px", minHeight: 0, gap: 0 }}>
 
         {/* ROW 1 — Speaker icon */}
-        <motion.button
+        <motion.div
           whileTap={{ scale: 0.88 }}
-          onPointerDown={(e) => { e.preventDefault(); handleSpeaker(); }}
+          onClick={handleSpeaker}
           style={{
             width: "min(72px, 18vw)", height: "min(72px, 18vw)",
             borderRadius: "50%",
@@ -274,11 +274,14 @@ export default function DictationShortAGame({ onBack, onMistake, lang = "en" }) 
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: "0 6px 20px rgba(74,144,196,0.22)",
             cursor: "pointer", touchAction: "manipulation", flexShrink: 0,
+            pointerEvents: "auto",
           }}
           aria-label="Play word audio"
         >
-          <Volume2 size={32} color="#4A90C4" strokeWidth={2} />
-        </motion.button>
+          <div style={{ pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Volume2 size={32} color="#4A90C4" strokeWidth={2} />
+          </div>
+        </motion.div>
 
         {/* ROW 2 — 3 Drop boxes */}
         <div style={{ display: "flex", gap: "min(14px, 3vw)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
