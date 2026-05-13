@@ -1,48 +1,62 @@
 /**
- * Level 18 — 5-round mixed
+ * Level 18 — 5-round mixed: Draw a Line + Drag the Letters V2
  *
  * Round order:
- *  1. Rearrange → Easy → jar
- *  2. Identifying       → gas
- *  3. Rearrange → Easy → tap
- *  4. Identifying       → tag
- *  5. Identifying       → bag
+ *  1. Draw a Line — gas (g), jar (j), tag (t)
+ *  2. Draw a Line — sat (s), pat (p), mat (m)
+ *  3. Drag the Letters V2 — tag
+ *  4. Draw a Line — tap (t), bag (b), hat (h)
+ *  5. Drag the Letters V2 — jar
+ *
+ * Missing letters are the first letter of each word.
  */
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
-import IdentifyingRound from "../games/IdentifyingRound";
+import DrawLineBoard from "../games/drawline/DrawLineBoard";
+import Level1DragV2 from "./Level1DragV2";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { shortAWords } from "../../lib/shortAWords";
+
 const LEVEL_NUM = 18;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-import { buildWordData } from "../../lib/picSliceGameData";
-import { shortAWords } from "../../lib/shortAWords";
-import { shortEWords } from "../../lib/shortEWords";
-import { shortIWords } from "../../lib/shortIWords";
-import { shortOWords } from "../../lib/shortOWords";
-import { shortUWords } from "../../lib/shortUWords";
 
 const findWord = (w) => shortAWords.find((x) => x.word === w);
-const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 
-function buildIdentifyingRound(targetWord) {
-  const target = shortAWords.find((w) => w.word === targetWord);
-  const pool = ALL_WORDS.filter((w) => w.word !== targetWord);
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  const choices = [target, ...shuffled.slice(0, 2)].sort(() => Math.random() - 0.5);
-  return { target, choices };
+function shuffleArr(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
-// type: "rearrange" | "identifying"
+function buildFixedDrawLineRound(wordNames) {
+  const words = wordNames.map(findWord);
+  const topCards = words.map((w, i) => ({
+    ...w,
+    targetLetter: w.word[0],
+    id: `card-${i}-${w.word}`,
+  }));
+  const letters = topCards.map((c) => ({ letter: c.targetLetter, topCardId: c.id }));
+  let shuffledLetters = shuffleArr(letters);
+  let tries = 0;
+  while (tries < 20 && shuffledLetters.some((l, i) => l.topCardId === topCards[i].id)) {
+    shuffledLetters = shuffleArr(letters);
+    tries++;
+  }
+  return { topCards, bottomLetters: shuffledLetters };
+}
+
 const ROUND_SEQUENCE = [
-  { type: "rearrange",   word: "jar" }, // R1
-  { type: "identifying", word: "gas" }, // R2
-  { type: "rearrange",   word: "tap" }, // R3
-  { type: "identifying", word: "tag" }, // R4
-  { type: "identifying", word: "bag" }, // R5
+  { type: "drawline", words: ["gas", "jar", "tag"] }, // R1
+  { type: "drawline", words: ["sat", "pat", "mat"] }, // R2
+  { type: "drag",     word:  "tag"                 }, // R3
+  { type: "drawline", words: ["tap", "bag", "hat"] }, // R4
+  { type: "drag",     word:  "jar"                 }, // R5
 ];
 
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
@@ -61,7 +75,6 @@ export default function Level18({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
-
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const advance = useCallback(() => {
@@ -80,18 +93,19 @@ export default function Level18({ onBack, lang = "en" }) {
   const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  const rearrangeWordPair = useMemo(() => {
-    if (!roundDef || roundDef.type !== "rearrange") return null;
-    return [buildWordData(roundDef.word)];
-  }, [roundIndex]);
+  const drawLineRound = useMemo(() => {
+    if (!roundDef || roundDef.type !== "drawline") return null;
+    return buildFixedDrawLineRound(roundDef.words);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const identifyingRound = useMemo(() => {
-    if (!roundDef || roundDef.type !== "identifying") return null;
-    return buildIdentifyingRound(roundDef.word);
-  }, [roundIndex]);
+  const dragCard = useMemo(() => {
+    if (!roundDef || roundDef.type !== "drag") return null;
+    return findWord(roundDef.word);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
+      {/* Header */}
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4, padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)" }}>
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }}>
@@ -102,12 +116,14 @@ export default function Level18({ onBack, lang = "en" }) {
         <HeartDisplay mistakes={mistakes} size={54} />
       </div>
 
+      {/* Progress bar */}
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
 
+      {/* Content */}
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -115,11 +131,11 @@ export default function Level18({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {roundDef.type === "rearrange" && rearrangeWordPair && (
-              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
+            {roundDef.type === "drawline" && drawLineRound && (
+              <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
-            {roundDef.type === "identifying" && identifyingRound && (
-              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
+            {roundDef.type === "drag" && dragCard && (
+              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
           </motion.div>
         )}

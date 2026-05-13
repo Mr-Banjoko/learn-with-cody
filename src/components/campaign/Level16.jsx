@@ -1,53 +1,49 @@
 /**
- * Level 16 — 10-round sequence (mirrors Level 11 structure):
- * For each of the 5 words, in order:
- *   1. Learn Phonics  (Level1Phonics, no tutorial)
- *   2. Rearrange the Pictures → Easy  (PicSliceBoardEasy)
+ * Level 16 — 10-round sequence:
+ * Odd rounds  (1,3,5,7,9):  Learn Phonics  (Level1Phonics)
+ * Even rounds (2,4,6,8,10): Letter-to-Sound Connection (CampaignConnectionRound)
  *
  * Words (exact order): gas, jar, tag, tap, bag
  *
  * Round map:
  *  1. gas  — phonics
- *  2. gas  — drag (V2)
+ *  2. gas  — connection
  *  3. jar  — phonics
- *  4. jar  — drag (V2)
+ *  4. jar  — connection
  *  5. tag  — phonics
- *  6. tag  — drag (V2)
+ *  6. tag  — connection
  *  7. tap  — phonics
- *  8. tap  — drag (V2)
+ *  8. tap  — connection
  *  9. bag  — phonics
- * 10. bag  — drag (V2)  → marks level complete
+ * 10. bag  — connection → marks level complete
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import Level1Phonics from "./Level1Phonics";
-import Level1DragV2 from "./Level1DragV2";
+import CampaignConnectionRound from "./CampaignConnectionRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-const LEVEL_NUM = 16;
-const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 
+const LEVEL_NUM = 16;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+
 const findWord = (w) => shortAWords.find((x) => x.word === w);
-const gasCard = findWord("gas");
-const jarCard = findWord("jar");
-const tagCard = findWord("tag");
-const tapCard = findWord("tap");
-const bagCard = findWord("bag");
 
 const ROUNDS = [
-  { type: "phonics", card: gasCard }, // Round 1:  gas phonics
-  { type: "drag",    card: gasCard }, // Round 2:  gas drag
-  { type: "phonics", card: jarCard }, // Round 3:  jar phonics
-  { type: "drag",    card: jarCard }, // Round 4:  jar drag
-  { type: "phonics", card: tagCard }, // Round 5:  tag phonics
-  { type: "drag",    card: tagCard }, // Round 6:  tag drag
-  { type: "phonics", card: tapCard }, // Round 7:  tap phonics
-  { type: "drag",    card: tapCard }, // Round 8:  tap drag
-  { type: "phonics", card: bagCard }, // Round 9:  bag phonics
-  { type: "drag",    card: bagCard }, // Round 10: bag drag → complete
+  { type: "phonics",    word: "gas" }, // Round 1
+  { type: "connection", word: "gas" }, // Round 2
+  { type: "phonics",    word: "jar" }, // Round 3
+  { type: "connection", word: "jar" }, // Round 4
+  { type: "phonics",    word: "tag" }, // Round 5
+  { type: "connection", word: "tag" }, // Round 6
+  { type: "phonics",    word: "tap" }, // Round 7
+  { type: "connection", word: "tap" }, // Round 8
+  { type: "phonics",    word: "bag" }, // Round 9
+  { type: "connection", word: "bag" }, // Round 10
 ];
 
 const TOTAL_ROUNDS = ROUNDS.length;
@@ -69,7 +65,7 @@ export default function Level16({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  const advance = () => {
+  const advance = useCallback(() => {
     setDirection(1);
     const nextIndex = roundIndex + 1;
     if (nextIndex >= TOTAL_ROUNDS) {
@@ -81,35 +77,25 @@ export default function Level16({ onBack, lang = "en" }) {
     } else {
       setRoundIndex(nextIndex);
     }
-  };
+  }, [roundIndex, mistakes]);
 
   const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
+  const phonicsCard = useMemo(() => {
+    if (!round || round.type !== "phonics") return null;
+    return findWord(round.word);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const connectionCard = useMemo(() => {
+    if (!round || round.type !== "connection") return null;
+    return buildWordData(round.word);
+  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        fontFamily: "Fredoka, sans-serif",
-        background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
-        overflow: "hidden",
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
       {/* Header */}
-      <div
-        style={{
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px",
-          borderBottom: "1.5px solid rgba(0,0,0,0.06)",
-          background: "rgba(255,255,255,0.75)",
-          backdropFilter: "blur(10px)",
-        }}
-      >
+      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4, padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)" }}>
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
@@ -122,50 +108,28 @@ export default function Level16({ onBack, lang = "en" }) {
       {/* Progress bar */}
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
-          <motion.div
-            animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.4 }}
-            style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }}
-          />
+          <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
 
       {/* Content */}
       <AnimatePresence mode="wait">
         {done ? (
-          <motion.div
-            key="complete"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
-          >
+          <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
-          <motion.div
-            key={`round-${roundIndex}`}
-            initial={{ opacity: 0, x: direction * 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction * -40 }}
-            transition={{ duration: 0.22 }}
-            style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
-          >
-            {round.type === "phonics" ? (
-              <Level1Phonics
-                card={round.card}
-                onNext={advance}
-                lang={lang}
-                isFirstCard={false}
-              />
-            ) : (
-              <Level1DragV2
-                key={`drag-${roundIndex}`}
-                card={round.card}
+          <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: direction * 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: direction * -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            {round.type === "phonics" && phonicsCard && (
+              <Level1Phonics card={phonicsCard} onNext={advance} lang={lang} isFirstCard={false} />
+            )}
+            {round.type === "connection" && connectionCard && (
+              <CampaignConnectionRound
+                key={`connection-${roundIndex}`}
+                card={connectionCard}
                 onComplete={advance}
-                lang={lang}
                 onMistake={onMistake}
+                lang={lang}
               />
             )}
           </motion.div>
