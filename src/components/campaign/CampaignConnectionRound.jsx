@@ -193,18 +193,20 @@ function ConnectionRound({ card, onComplete, onMistake }) {
     if (selected === null) { setSelected(`top-${topIdx}`); return; }
     if (selected.startsWith("top-")) { setSelected(`top-${topIdx}`); return; }
     const botIdx = parseInt(selected.replace("bot-", ""), 10);
-    const correctLetterIdx = shuffledOrder[botIdx];
-    if (correctLetterIdx === topIdx) { triggerMatch(topIdx, botIdx); } else { triggerWrong(topIdx, botIdx); }
-  }, [locked, selected, matchedTopIdxs, shuffledOrder, triggerMatch, triggerWrong]);
+    // Compare letter CHARACTER, not index — so repeated letters (e.g. "dad") are interchangeable
+    const expectedLetter = letters[shuffledOrder[botIdx]];
+    if (letters[topIdx] === expectedLetter) { triggerMatch(topIdx, botIdx); } else { triggerWrong(topIdx, botIdx); }
+  }, [locked, selected, matchedTopIdxs, shuffledOrder, letters, triggerMatch, triggerWrong]);
 
   const handleBotDot = useCallback((botIdx) => {
     if (locked || matchedBotIdxs.has(botIdx)) return;
     if (selected === null) { setSelected(`bot-${botIdx}`); return; }
     if (selected.startsWith("bot-")) { setSelected(`bot-${botIdx}`); return; }
     const topIdx = parseInt(selected.replace("top-", ""), 10);
-    const correctLetterIdx = shuffledOrder[botIdx];
-    if (correctLetterIdx === topIdx) { triggerMatch(topIdx, botIdx); } else { triggerWrong(topIdx, botIdx); }
-  }, [locked, selected, matchedBotIdxs, shuffledOrder, triggerMatch, triggerWrong]);
+    // Compare letter CHARACTER, not index — so repeated letters (e.g. "dad") are interchangeable
+    const expectedLetter = letters[shuffledOrder[botIdx]];
+    if (letters[topIdx] === expectedLetter) { triggerMatch(topIdx, botIdx); } else { triggerWrong(topIdx, botIdx); }
+  }, [locked, selected, matchedBotIdxs, shuffledOrder, letters, triggerMatch, triggerWrong]);
 
   const handleSliceTap = useCallback((botIdx) => {
     const letterIdx = shuffledOrder[botIdx];
