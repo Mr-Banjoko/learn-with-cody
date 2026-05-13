@@ -32,6 +32,7 @@ import MissingSound01 from "../components/games/MissingSound01";
 import LetterCatch from "../components/games/LetterCatch";
 import DrawLineGame from "../components/games/DrawLineGame";
 import LetterSoundConnection from "../components/games/LetterSoundConnection";
+import DictationHub from "../components/games/dictation/DictationHub";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 
@@ -86,6 +87,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "letter-sound-connection") {
     return <LetterSoundConnection onBack={exitGame} lang={lang} />;
+  }
+  if (activeGame === "dictation") {
+    return <DictationHub onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "write-v2") {
     return <WriteV2Hub onBack={exitGame} lang={lang} />;
@@ -205,6 +209,31 @@ export default function Games({ onDeepScreen, lang = "en" }) {
               ))}
             </div>
           )}
+        </motion.div>
+      </div>
+
+      {/* Dictation folder card */}
+      <div className="px-4 mt-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: games.length * 0.1 + 0.07 }}
+          onClick={() => enterGame("dictation")}
+          className="relative rounded-3xl overflow-hidden p-5"
+          style={{ background: "#FFF0F5", border: "2px solid #FF6B6B25", boxShadow: "0 8px 32px #FF6B6B15", cursor: "pointer" }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="rounded-2xl text-3xl flex items-center justify-center" style={{ width: 64, height: 64, background: "white", boxShadow: "0 4px 16px #FF6B6B25", flexShrink: 0 }}>
+              🎙️
+            </div>
+            <div style={{ flex: 1 }}>
+              <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>{lang === "zh" ? "听写" : "Dictation"}</h3>
+              <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>{lang === "zh" ? "听单词，把字母拖到正确的格子里" : "Listen and spell the word by dragging letters"}</p>
+              <div className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "#FF6B6B18", color: "#FF6B6B" }}>
+                {lang === "zh" ? "立即游玩 🎮" : "Play Now! 🎮"}
+              </div>
+            </div>
+          </div>
         </motion.div>
       </div>
 
