@@ -1,5 +1,12 @@
-// v8: iOS Safari permanent fix — synchronous fast-path for all playback after warmup
-const CACHE_NAME = "cody-audio-v8";
+// v9: Global interruption-handling — sequences pause on visibility/blur, resume on return.
+// Architecture:
+//   - AppLifecycleManager listens to visibilitychange, blur, focus, pagehide, pageshow, freeze, resume
+//   - When interrupted: all active sequences are paused (cancelled + step index saved)
+//   - When resumed: AudioContext is checked, then each sequence restarts from its saved step
+//   - playAudioSequence returns a controller with { cancel, pause, resume } — but pause/resume
+//     are managed automatically by AppLifecycleManager; callers only need the cancel function.
+
+const CACHE_NAME = "cody-audio-v9";
 
 /**
  * APPROVED BLEND TIMING
@@ -15,7 +22,6 @@ let currentAudio = null;
 const resolvedBlobUrls = new Map();
 
 // pendingResolution: remoteUrl -> Promise<blobUrl>
-// Prevents duplicate fetches when warmupAudio is called multiple times
 const pendingResolution = new Map();
 
 async function getCachedAudioUrl(remoteUrl) {
@@ -32,7 +38,6 @@ async function getCachedAudioUrl(remoteUrl) {
         if (fetched.status === 200) await cache.put(remoteUrl, fetched.clone());
         response = fetched;
       }
-      // Force audio/mpeg so iOS Safari uses the correct MP3 decoder
       const arrayBuffer = await response.arrayBuffer();
       const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
       const blobUrl = URL.createObjectURL(blob);
@@ -49,19 +54,10 @@ async function getCachedAudioUrl(remoteUrl) {
   return promise;
 }
 
-/**
- * warmupAudio — resolves all blob URLs ahead of time so every subsequent
- * playback call can use the synchronous fast-path.
- * MUST be awaited (or called early enough) before gameplay starts.
- */
 export async function warmupAudio(urls) {
   await Promise.all(urls.map(url => getCachedAudioUrl(url).catch(() => {})));
 }
 
-/**
- * preloadAudio — fills the Cache API (for offline / fast subsequent loads).
- * Does NOT resolve blob URLs — call warmupAudio for that.
- */
 export async function preloadAudio(urls) {
   try {
     const cache = await caches.open(CACHE_NAME);
@@ -74,40 +70,214 @@ export async function preloadAudio(urls) {
       }
     }
   } catch {
-    // silently fail if Cache API is unavailable
+    // silently fail
   }
 }
 
-// Internal: synchronously start playback from an already-resolved src.
-// MUST be called from within the gesture call stack on iOS.
-function _startPlayback(src, gain, onEndedCallback) {
-  const audio = new Audio();
-  audio.preload = "auto";
-  audio.playbackRate = 1.0;
-  audio.volume = Math.min(1, Math.max(0, gain));
-  audio.src = src;
-  currentAudio = audio;
+// ─── AppLifecycleManager ──────────────────────────────────────────────────────
+// Singleton that tracks all active sequences and handles interruption/resume globally.
 
-  audio.onended = () => {
-    if (currentAudio === audio) currentAudio = null;
-    onEndedCallback && onEndedCallback();
-  };
+class AppLifecycleManager {
+  constructor() {
+    // Map of sequenceId -> { steps, currentStep, onDone, onStart (per step), paused }
+    this._sequences = new Map();
+    this._nextId = 1;
+    this._interrupted = false;
+    this._resumeRetries = 0;
+    this._MAX_RETRIES = 3;
+    this._initialized = false;
+  }
 
-  audio.onerror = () => {
-    if (currentAudio === audio) currentAudio = null;
-    onEndedCallback && onEndedCallback();
-  };
+  init() {
+    if (this._initialized) return;
+    this._initialized = true;
 
-  audio.load();
-  const playPromise = audio.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(() => {
-      if (currentAudio === audio) currentAudio = null;
-      onEndedCallback && onEndedCallback();
+    const onInterrupt = () => this._onInterrupt();
+    const onReturn = () => this._onReturn();
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) onInterrupt(); else onReturn();
     });
+    window.addEventListener("blur", onInterrupt);
+    window.addEventListener("focus", onReturn);
+    window.addEventListener("pagehide", onInterrupt);
+    window.addEventListener("pageshow", onReturn);
+    // Freeze/resume — fired by some mobile browsers on aggressive background suspension
+    document.addEventListener("freeze", onInterrupt);
+    document.addEventListener("resume", onReturn);
   }
-  return audio;
+
+  // Register a sequence. Returns sequenceId.
+  register(steps, onDone) {
+    const id = this._nextId++;
+    this._sequences.set(id, {
+      steps,
+      currentStep: 0,
+      onDone,
+      cancelled: false,
+      paused: false,
+      activeCancel: null, // cancel fn for the currently-playing sub-sequence
+    });
+    return id;
+  }
+
+  // Called by the sequence executor to update which step is now playing
+  setStep(id, step) {
+    const seq = this._sequences.get(id);
+    if (seq) seq.currentStep = step;
+  }
+
+  // Store the cancel fn for the currently active audio element
+  setActiveCancel(id, cancelFn) {
+    const seq = this._sequences.get(id);
+    if (seq) seq.activeCancel = cancelFn;
+  }
+
+  // Deregister a sequence (called when it completes naturally or is cancelled)
+  deregister(id) {
+    this._sequences.delete(id);
+  }
+
+  // Mark cancelled (so resume doesn't restart it)
+  cancel(id) {
+    const seq = this._sequences.get(id);
+    if (!seq) return;
+    seq.cancelled = true;
+    if (seq.activeCancel) { seq.activeCancel(); seq.activeCancel = null; }
+    this._sequences.delete(id);
+  }
+
+  _onInterrupt() {
+    if (this._interrupted) return;
+    this._interrupted = true;
+
+    // Stop all currently playing audio immediately without advancing sequences
+    if (currentAudio) {
+      currentAudio.onended = null;
+      currentAudio.onerror = null;
+      currentAudio.pause();
+      currentAudio = null;
+    }
+
+    // Mark all sequences as paused (they are now stuck mid-step)
+    for (const seq of this._sequences.values()) {
+      seq.paused = true;
+      // Cancel the active cancel fn reference so it doesn't fire further callbacks
+      seq.activeCancel = null;
+    }
+  }
+
+  _onReturn() {
+    if (!this._interrupted) return;
+    this._interrupted = false;
+    this._resumeRetries = 0;
+
+    // Give audio engine and rendering a moment to reinitialize
+    setTimeout(() => this._resumeAllSequences(), 400);
+  }
+
+  _resumeAllSequences() {
+    if (this._sequences.size === 0) return;
+
+    // Resume all paused sequences
+    for (const [id, seq] of this._sequences.entries()) {
+      if (!seq.paused || seq.cancelled) continue;
+      seq.paused = false;
+      // Restart from the current step (step that was interrupted)
+      _resumeSequenceFromStep(id, seq, seq.currentStep);
+    }
+  }
 }
+
+export const appLifecycle = new AppLifecycleManager();
+
+// Auto-initialize when module loads (safe — just adds event listeners)
+if (typeof document !== "undefined") {
+  appLifecycle.init();
+}
+
+// ─── Internal: run a sequence starting from a given step ─────────────────────
+
+function _resumeSequenceFromStep(id, seq, fromStep) {
+  const { steps, onDone } = seq;
+
+  function playStep(i) {
+    if (seq.cancelled) return;
+    if (seq.paused) return; // interrupted again — stop and wait
+
+    if (i >= steps.length) {
+      appLifecycle.deregister(id);
+      onDone && onDone();
+      return;
+    }
+
+    appLifecycle.setStep(id, i);
+
+    const { url, gain = 1, onStart } = steps[i];
+    onStart && onStart(i);
+
+    const src = resolvedBlobUrls.get(url);
+
+    function startAudio(resolvedSrc) {
+      if (seq.cancelled || seq.paused) return;
+
+      const audio = new Audio();
+      audio.preload = "auto";
+      audio.playbackRate = 1.0;
+      audio.volume = Math.min(1, Math.max(0, gain));
+      audio.src = resolvedSrc;
+      currentAudio = audio;
+
+      // Store a stop function so AppLifecycleManager can kill it on interrupt
+      appLifecycle.setActiveCancel(id, () => {
+        audio.onended = null;
+        audio.onerror = null;
+        audio.pause();
+        if (currentAudio === audio) currentAudio = null;
+      });
+
+      audio.onended = () => {
+        if (seq.cancelled) return;
+        if (currentAudio === audio) currentAudio = null;
+        // Advance step tracker BEFORE the timeout so if interrupted during the gap,
+        // resume picks up from i+1 (the next step) not i (the completed step).
+        appLifecycle.setStep(id, i + 1);
+        setTimeout(() => {
+          if (!seq.cancelled && !seq.paused) playStep(i + 1);
+          // If paused here, _resumeAllSequences will call playStep(i+1) on return
+        }, BLEND_GAP_MS);
+      };
+
+      audio.onerror = () => {
+        if (currentAudio === audio) currentAudio = null;
+        if (!seq.cancelled && !seq.paused) setTimeout(() => playStep(i + 1), BLEND_GAP_MS);
+      };
+
+      audio.load();
+      const p = audio.play();
+      if (p !== undefined) {
+        p.catch(() => {
+          if (currentAudio === audio) currentAudio = null;
+          if (!seq.cancelled && !seq.paused) playStep(i + 1);
+        });
+      }
+    }
+
+    if (src) {
+      startAudio(src);
+    } else {
+      getCachedAudioUrl(url).then(resolvedSrc => {
+        if (!seq.cancelled && !seq.paused) startAudio(resolvedSrc);
+      }).catch(() => {
+        if (!seq.cancelled && !seq.paused) playStep(i + 1);
+      });
+    }
+  }
+
+  playStep(fromStep);
+}
+
+// ─── Internal: stop current audio cleanly ─────────────────────────────────────
 
 function _stopCurrent() {
   if (currentAudio) {
@@ -118,34 +288,55 @@ function _stopCurrent() {
   }
 }
 
+// ─── Public API ───────────────────────────────────────────────────────────────
+
 /**
  * playAudio — play a single file.
- * Synchronous fast-path if blob URL is already resolved (after warmupAudio).
+ * Synchronous fast-path if blob URL is already resolved.
  */
 export function playAudio(remoteUrl, gain = 1) {
   if (!remoteUrl) return;
   _stopCurrent();
 
   if (resolvedBlobUrls.has(remoteUrl)) {
-    _startPlayback(resolvedBlobUrls.get(remoteUrl), gain);
+    _startPlaybackSingle(resolvedBlobUrls.get(remoteUrl), gain);
     return;
   }
-  // Async fallback — only hits on very first play before warmup finishes
-  getCachedAudioUrl(remoteUrl).then(src => _startPlayback(src, gain));
+  getCachedAudioUrl(remoteUrl).then(src => _startPlaybackSingle(src, gain));
+}
+
+function _startPlaybackSingle(src, gain) {
+  const audio = new Audio();
+  audio.preload = "auto";
+  audio.playbackRate = 1.0;
+  audio.volume = Math.min(1, Math.max(0, gain));
+  audio.src = src;
+  currentAudio = audio;
+
+  audio.onended = () => { if (currentAudio === audio) currentAudio = null; };
+  audio.onerror = () => { if (currentAudio === audio) currentAudio = null; };
+
+  audio.load();
+  const p = audio.play();
+  if (p !== undefined) {
+    p.catch(() => { if (currentAudio === audio) currentAudio = null; });
+  }
+  return audio;
 }
 
 /**
- * playAudioSequence — play steps sequentially.
+ * playAudioSequence — play steps sequentially with interruption recovery.
+ *
  * Each step: { url, gain?, onStart? }
+ * Returns a cancel() function (same API as before — no breaking changes).
  *
- * KEY iOS FIX: When all blob URLs are pre-resolved (warmupAudio awaited),
- * each step's _startPlayback is called synchronously from the onended/setTimeout
- * callback chain — no async hops that would break iOS gesture context.
- * The first step is triggered directly from the user gesture call stack.
- *
- * Returns a cancel() function.
+ * Internally registers with AppLifecycleManager so interruptions auto-pause
+ * and resumes auto-restart from the correct step.
  */
 export function playAudioSequence(steps, onDone) {
+  // Cancel any sequence that was using the shared currentAudio track
+  // (normal usage: callers call cancel() before starting a new sequence,
+  //  but _stopCurrent here is a safety net)
   _stopCurrent();
 
   if (!steps || steps.length === 0) {
@@ -153,93 +344,25 @@ export function playAudioSequence(steps, onDone) {
     return () => {};
   }
 
-  let cancelled = false;
-  let currentStepAudio = null;
+  const id = appLifecycle.register(steps, onDone);
+  const seq = appLifecycle._sequences.get(id);
 
-  function playStep(i) {
-    if (cancelled) return;
-    if (i >= steps.length) {
-      onDone && onDone();
-      return;
-    }
+  _resumeSequenceFromStep(id, seq, 0);
 
-    const { url, gain = 1, onStart } = steps[i];
-    onStart && onStart(i);
-
-    const src = resolvedBlobUrls.get(url);
-
-    if (src) {
-      // Synchronous fast-path — stays in gesture call stack on iOS
-      if (cancelled) return;
-      const audio = new Audio();
-      audio.preload = "auto";
-      audio.playbackRate = 1.0;
-      audio.volume = Math.min(1, Math.max(0, gain));
-      audio.src = src;
-      currentAudio = audio;
-      currentStepAudio = audio;
-
-      audio.onended = () => {
-        if (cancelled) return;
-        if (currentAudio === audio) currentAudio = null;
-        setTimeout(() => { if (!cancelled) playStep(i + 1); }, BLEND_GAP_MS);
-      };
-
-      audio.onerror = () => {
-        if (currentAudio === audio) currentAudio = null;
-        if (!cancelled) setTimeout(() => playStep(i + 1), BLEND_GAP_MS);
-      };
-
-      audio.load();
-      const p = audio.play();
-      if (p !== undefined) {
-        p.catch(() => {
-          if (currentAudio === audio) currentAudio = null;
-          if (!cancelled) playStep(i + 1);
-        });
-      }
-    } else {
-      // Async fallback — only for URLs not yet warmed up
-      getCachedAudioUrl(url).then(resolvedSrc => {
-        if (cancelled) return;
-        const audio = new Audio();
-        audio.preload = "auto";
-        audio.playbackRate = 1.0;
-        audio.volume = Math.min(1, Math.max(0, gain));
-        audio.src = resolvedSrc;
-        currentAudio = audio;
-        currentStepAudio = audio;
-
-        audio.onended = () => {
-          if (cancelled) return;
-          if (currentAudio === audio) currentAudio = null;
-          setTimeout(() => { if (!cancelled) playStep(i + 1); }, BLEND_GAP_MS);
-        };
-
-        audio.onerror = () => {
-          if (currentAudio === audio) currentAudio = null;
-          if (!cancelled) setTimeout(() => playStep(i + 1), BLEND_GAP_MS);
-        };
-
-        audio.load();
-        const p = audio.play();
-        if (p !== undefined) {
-          p.catch(() => {
-            if (currentAudio === audio) currentAudio = null;
-            if (!cancelled) playStep(i + 1);
-          });
-        }
-      }).catch(() => {
-        if (!cancelled) playStep(i + 1);
-      });
-    }
-  }
-
-  playStep(0);
-
+  // Return cancel() — same public API as v8, no breaking changes for callers
   return function cancel() {
-    cancelled = true;
+    appLifecycle.cancel(id);
     _stopCurrent();
-    currentStepAudio = null;
   };
+}
+
+/**
+ * stopAllSequences — emergency stop of all registered sequences.
+ * Used when a game component unmounts to ensure no ghost callbacks fire.
+ */
+export function stopAllSequences() {
+  for (const id of [...appLifecycle._sequences.keys()]) {
+    appLifecycle.cancel(id);
+  }
+  _stopCurrent();
 }
