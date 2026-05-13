@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { getBestStars } from "../../lib/campaignPerformance";
@@ -114,6 +114,8 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   const NODE_SPACING = 100;
   const TOP_OFFSET = 36;
 
+  const scrollRef = useRef(null);
+
   // Load all best-stars — re-reads localStorage every time this screen mounts
   // (covers the case where user completes a level and comes back)
   const [starMap, setStarMap] = useState(() => {
@@ -130,6 +132,31 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
       map[i] = getBestStars("short-a", i);
     }
     setStarMap(map);
+
+    // Auto-focus: find the active level (last completed + 1, clamped to [1, TOTAL_LEVELS])
+    const lastCompleted = Object.keys(map)
+      .map(Number)
+      .filter((lvl) => map[lvl] > 0)
+      .reduce((max, lvl) => Math.max(max, lvl), 0);
+
+    const activeLevel = Math.min(lastCompleted + 1, TOTAL_LEVELS);
+    const focusLevel = Math.max(activeLevel, 1); // new users default to 1
+
+    // The node's top position is deterministic — same formula as layout below
+    const activeIdx = focusLevel - 1;
+    const nodeTopPx = TOP_OFFSET + activeIdx * NODE_SPACING;
+
+    // Scroll so the node is vertically centred in the viewport
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    const viewportHeight = scrollContainer.clientHeight;
+    const targetScrollTop = nodeTopPx - viewportHeight / 2 + NODE_SPACING / 2;
+
+    // Use rAF to ensure the DOM has fully painted before scrolling
+    requestAnimationFrame(() => {
+      scrollContainer.scrollTo({ top: Math.max(0, targetScrollTop), behavior: "smooth" });
+    });
   }, []);
 
   return (
@@ -187,6 +214,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
 
       {/* Scrollable level map */}
       <div
+        ref={scrollRef}
         style={{
           flex: 1,
           overflowY: "auto",
