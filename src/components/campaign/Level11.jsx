@@ -33,16 +33,16 @@ const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
 const ROUNDS = [
-  { type: "phonics",  card: findWord("sad") }, // 1
-  { type: "missing",  card: findWord("sad") }, // 2
-  { type: "phonics",  card: findWord("sat") }, // 3
-  { type: "missing",  card: findWord("sat") }, // 4
-  { type: "phonics",  card: findWord("pat") }, // 5
-  { type: "missing",  card: findWord("pat") }, // 6
-  { type: "phonics",  card: findWord("mad") }, // 7
-  { type: "missing",  card: findWord("mad") }, // 8
-  { type: "phonics",  card: findWord("ham") }, // 9
-  { type: "missing",  card: findWord("ham") }, // 10
+  { type: "phonics",  card: findWord("sad")                    }, // 1
+  { type: "missing",  card: findWord("sad"), missingPos: 0     }, // 2  — missing: s (pos 0)
+  { type: "phonics",  card: findWord("sat")                    }, // 3
+  { type: "missing",  card: findWord("sat"), missingPos: 1     }, // 4  — missing: a (pos 1)
+  { type: "phonics",  card: findWord("pat")                    }, // 5
+  { type: "missing",  card: findWord("pat"), missingPos: 2     }, // 6  — missing: t (pos 2)
+  { type: "phonics",  card: findWord("mad")                    }, // 7
+  { type: "missing",  card: findWord("mad"), missingPos: 2     }, // 8  — missing: d (pos 2)
+  { type: "phonics",  card: findWord("ham")                    }, // 9
+  { type: "missing",  card: findWord("ham"), missingPos: 0     }, // 10 — missing: h (pos 0)
 ];
 
 const TOTAL_ROUNDS = ROUNDS.length;
@@ -122,6 +122,7 @@ export default function Level11({ onBack, lang = "en" }) {
               <CampaignMissingSound01Round
                 key={`missing-${roundIndex}`}
                 card={round.card}
+                forcedMissingPos={round.missingPos}
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
