@@ -19,7 +19,7 @@ import Level1DragV2 from "./Level1DragV2";
 import CampaignConnectionRound from "./CampaignConnectionRound";
 import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
 import DrawLineBoard from "../games/drawline/DrawLineBoard";
-import IdentifyingRound from "../games/IdentifyingRound";
+import CampaignWordMatchRound from "./CampaignWordMatchRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
@@ -44,12 +44,6 @@ function shuffleArr(arr) {
   return a;
 }
 
-function buildIdentifyingRound(targetWord) {
-  const target = findShortA(targetWord);
-  const pool = ALL_WORDS.filter((w) => w.word !== targetWord);
-  const choices = [target, ...shuffleArr(pool).slice(0, 2)].sort(() => Math.random() - 0.5);
-  return { target, choices };
-}
 
 /**
  * Draw-a-line round for R6: jar(j), ban(n), jam(a)
@@ -128,7 +122,7 @@ export default function Level35({ onBack, lang = "en" }) {
   const connectionCard = useMemo(() => roundDef.type === "connection" ? buildShortASliceData(roundDef.word) : null, [roundIndex]); // eslint-disable-line
   const catchCard = useMemo(() => roundDef.type === "catch" ? findShortA(roundDef.word) : null, [roundIndex]); // eslint-disable-line
   const drawLineRound = useMemo(() => roundDef.type === "drawline" ? buildR6DrawLineRound() : null, [roundIndex]); // eslint-disable-line
-  const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const wordMatchCard = useMemo(() => roundDef.type === "identifying" ? findShortA(roundDef.word) : null, [roundIndex]); // eslint-disable-line
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
@@ -166,8 +160,8 @@ export default function Level35({ onBack, lang = "en" }) {
             {roundDef.type === "drawline" && drawLineRound && (
               <DrawLineBoard key={`dl-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
-            {roundDef.type === "identifying" && identifyingRound && (
-              <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
+            {roundDef.type === "identifying" && wordMatchCard && (
+              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={wordMatchCard} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
           </motion.div>
         )}
