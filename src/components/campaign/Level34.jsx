@@ -1,39 +1,27 @@
 /**
- * Level 34 — 5-round Identifying game
+ * Level 34 — 5-round Write V2 (WriteV2CampaignRound)
  *
  * Round order:
- *  1. jab
- *  2. fan
+ *  1. man
+ *  2. jab
  *  3. dab
- *  4. man
- *  5. nab
+ *  4. nab
+ *  5. fan
  */
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import IdentifyingRound from "../games/IdentifyingRound";
+import WriteV2CampaignRound from "./WriteV2CampaignRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { shortAWords } from "../../lib/shortAWords";
+
 const LEVEL_NUM = 34;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-import { shortAWords } from "../../lib/shortAWords";
-import { shortEWords } from "../../lib/shortEWords";
-import { shortIWords } from "../../lib/shortIWords";
-import { shortOWords } from "../../lib/shortOWords";
-import { shortUWords } from "../../lib/shortUWords";
 
-const WORD_ORDER = ["jab", "fan", "dab", "man", "nab"];
+const WORD_ORDER = ["man", "jab", "dab", "nab", "fan"];
 const TOTAL_ROUNDS = WORD_ORDER.length;
-const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
-
-function buildIdentifyingRound(targetWord) {
-  const target = shortAWords.find((w) => w.word === targetWord);
-  const pool = ALL_WORDS.filter((w) => w.word !== targetWord);
-  const shuffled = [...pool].sort(() => Math.random() - 0.5);
-  const choices = [target, ...shuffled.slice(0, 2)].sort(() => Math.random() - 0.5);
-  return { target, choices };
-}
 
 function markLevel34Complete() {
   try {
@@ -64,8 +52,8 @@ export default function Level34({ onBack, lang = "en" }) {
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  const identifyingRound = useMemo(
-    () => buildIdentifyingRound(WORD_ORDER[roundIndex]),
+  const currentCard = useMemo(
+    () => shortAWords.find((w) => w.word === WORD_ORDER[roundIndex]),
     [roundIndex]
   );
 
@@ -92,7 +80,7 @@ export default function Level34({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
+            <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={currentCard} onComplete={advance} onMistake={onMistake} lang={lang} />
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,33 +1,40 @@
 /**
- * Level 32 — 5-round Rearrange the Pictures → Difficult mode
+ * Level 32 — 5-round Word Match (IdentifyingRound)
  *
- * Round order (each round shows 2 words side-by-side):
- *  1. dab, mad
- *  2. fan, ham
- *  3. jab, tan
- *  4. man, pal
- *  5. nab, gas
+ * Round order:
+ *  1. fan
+ *  2. dab
+ *  3. man
+ *  4. nab
+ *  5. jab
  */
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
-import PicSliceBoard from "../games/PicSliceBoard";
+import IdentifyingRound from "../games/IdentifyingRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { shortAWords } from "../../lib/shortAWords";
+import { shortEWords } from "../../lib/shortEWords";
+import { shortIWords } from "../../lib/shortIWords";
+import { shortOWords } from "../../lib/shortOWords";
+import { shortUWords } from "../../lib/shortUWords";
+
 const LEVEL_NUM = 32;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-import { buildWordData } from "../../lib/picSliceGameData";
 
-const ROUND_PAIRS = [
-  ["dab", "mad"],
-  ["fan", "ham"],
-  ["jab", "tan"],
-  ["man", "pal"],
-  ["nab", "gas"],
-];
+const WORD_ORDER = ["fan", "dab", "man", "nab", "jab"];
+const TOTAL_ROUNDS = WORD_ORDER.length;
+const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 
-const TOTAL_ROUNDS = ROUND_PAIRS.length;
+function buildIdentifyingRound(targetWord) {
+  const target = shortAWords.find((w) => w.word === targetWord);
+  const pool = ALL_WORDS.filter((w) => w.word !== targetWord);
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const choices = [target, ...shuffled.slice(0, 2)].sort(() => Math.random() - 0.5);
+  return { target, choices };
+}
 
 function markLevel32Complete() {
   try {
@@ -58,8 +65,8 @@ export default function Level32({ onBack, lang = "en" }) {
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  const wordPair = useMemo(
-    () => ROUND_PAIRS[roundIndex].map((w) => buildWordData(w)),
+  const identifyingRound = useMemo(
+    () => buildIdentifyingRound(WORD_ORDER[roundIndex]),
     [roundIndex]
   );
 
@@ -86,7 +93,7 @@ export default function Level32({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <PicSliceBoard key={`diff-${roundIndex}`} wordPair={wordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
+            <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
           </motion.div>
         )}
       </AnimatePresence>
