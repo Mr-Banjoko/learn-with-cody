@@ -72,6 +72,8 @@ export default function DictationShortAGame({ onBack, onMistake, lang = "en" }) 
   const [completing, setCompleting] = useState(false);
   const [bouncingIndex, setBouncingIndex] = useState(null);
   const [dragState, setDragState] = useState(null);
+  // Pulsating hint: set of correct tile ids pulsating after wrong submit
+  const [pulsatingIds, setPulsatingIds] = useState(new Set());
 
   // UI locked during auto-play at round start
   const [audioLocked, setAudioLocked] = useState(true);
@@ -92,6 +94,7 @@ export default function DictationShortAGame({ onBack, onMistake, lang = "en" }) 
     setCompleting(false);
     setBouncingIndex(null);
     setDragState(null);
+    setPulsatingIds(new Set());
     isDragging.current = false;
     if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
 
@@ -129,16 +132,22 @@ export default function DictationShortAGame({ onBack, onMistake, lang = "en" }) 
   }, [words]);
 
   // ── Touch drag (reused from DragTheLettersGameV2) ──────────────────────────
+  // Stop pulsating when user starts interacting
+  const stopPulsating = useCallback(() => {
+    if (pulsatingIds.size > 0) setPulsatingIds(new Set());
+  }, [pulsatingIds]);
+
   const handleTouchStart = useCallback((e, tile) => {
     if (placed.includes(tile.id)) return;
     if (completing || audioLocked) return;
+    stopPulsating();
     isDragging.current = false;
     const touch = e.touches[0];
     const rect = e.currentTarget.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     setDragState({ id: tile.id, letter: tile.letter, x: cx, y: cy, startX: touch.clientX, startY: touch.clientY, originX: cx, originY: cy });
-  }, [placed, completing, audioLocked]);
+  }, [placed, completing, audioLocked, stopPulsating]);
 
   const handleTouchMove = useCallback((e) => {
     if (!dragState) return;
@@ -202,23 +211,29 @@ export default function DictationShortAGame({ onBack, onMistake, lang = "en" }) 
     });
 
     if (allCorrect) {
+      setPulsatingIds(new Set());
       playCompletion(round.card, round.letters);
     } else {
       onMistake && onMistake();
       setSubmitError(true);
+      // Start pulsating the correct letter tiles as hint
+      const correctIds = new Set(round.tiles.filter((t) => t.id.startsWith("correct-")).map((t) => t.id));
+      setPulsatingIds(correctIds);
       setTimeout(() => {
         setSubmitError(false);
         setPlaced([null, null, null]);
         setPlacedColors({});
+        // Keep pulsating — stops when user interacts
       }, 600);
     }
   }, [completing, audioLocked, placed, round, playCompletion, onMistake]);
 
   const handleReset = useCallback(() => {
     if (completing) return;
+    stopPulsating();
     setPlaced([null, null, null]);
     setPlacedColors({});
-  }, [completing]);
+  }, [completing, stopPulsating]);
 
   const handleSpeaker = useCallback(() => {
     if (audioLocked) return;
@@ -338,6 +353,8 @@ export default function DictationShortAGame({ onBack, onMistake, lang = "en" }) 
                 const isDraggingThis = dragState?.id === tile.id;
                 const bgColor = LETTER_COLORS[globalIdx % LETTER_COLORS.length];
 
+                const isPulsating = pulsatingIds.has(tile.id) && !isPlaced;
+
                 if (isPlaced) {
                   return (
                     <div key={tile.id} style={{ width: "min(72px, 18vw)", height: "min(72px, 18vw)", visibility: "hidden", flexShrink: 0 }} />
@@ -347,7 +364,18 @@ export default function DictationShortAGame({ onBack, onMistake, lang = "en" }) 
                 return (
                   <motion.div
                     key={tile.id}
-                    animate={isDraggingThis ? { scale: 1.08 } : { scale: 1, opacity: 1 }}
+                    animate={
+                      isDraggingThis
+                        ? { scale: 1.08 }
+                        : isPulsating
+                        ? { scale: [1, 1.12, 1] }
+                        : { scale: 1, opacity: 1 }
+                    }
+                    transition={
+                      isPulsating
+                        ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" }
+                        : {}
+                    }
                     onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, tile); }}
                     style={{
                       width: "min(72px, 18vw)", height: "min(72px, 18vw)",
@@ -355,12 +383,15 @@ export default function DictationShortAGame({ onBack, onMistake, lang = "en" }) 
                       background: bgColor,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: "min(38px, 9.5vw)", fontWeight: 700, color: "#1E3A5F",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-                      border: "3px solid rgba(255,255,255,0.75)",
+                      boxShadow: isPulsating
+                        ? `0 0 0 3px #22c55e, 0 4px 16px rgba(34,197,94,0.45)`
+                        : "0 4px 12px rgba(0,0,0,0.10)",
+                      border: isPulsating ? "3px solid #22c55e" : "3px solid rgba(255,255,255,0.75)",
                       cursor: "grab", touchAction: "none", userSelect: "none",
                       pointerEvents: isDraggingThis ? "none" : "auto",
                       opacity: isDraggingThis ? 0.3 : 1,
                       flexShrink: 0,
+                      transition: "box-shadow 0.2s, border 0.2s",
                     }}
                   >
                     {tile.letter}
