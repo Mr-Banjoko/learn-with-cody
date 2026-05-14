@@ -1,11 +1,5 @@
 /**
  * Level 37 — 6-round Word-to-Audio Match
- * R1: rag, tag, bag
- * R2: ram, ham, jam
- * R3: ran, man, can
- * R4: sap, map, tap
- * R5: fat, mat, bat
- * R6: nap, tap, pan
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
