@@ -172,10 +172,8 @@ export const SHORT_A_SCORED_ROUNDS = {
   34: 8,
   // Level 35: 10-round review = 10 scored
   35: 10,
-  // Levels 36–50: placeholder (will be filled as levels are built)
-  36: 5, 37: 5, 38: 5, 39: 5, 40: 8,
-  41: 5, 42: 5, 43: 5, 44: 5, 45: 8,
-  46: 5, 47: 5, 48: 5, 49: 5, 50: 10,
+  // Levels 36–40 (final block of Short A campaign)
+  36: 6, 37: 6, 38: 6, 39: 6, 40: 8,
 };
 
 /**
