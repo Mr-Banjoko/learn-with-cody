@@ -25,6 +25,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { buildWordData } from "../../lib/picSliceGameData";
+import { buildShortASliceData } from "../../lib/buildShortASliceData";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -121,7 +122,7 @@ export default function Level30({ onBack, lang = "en" }) {
   const connectionCard = useMemo(() => roundDef.type === "connection" ? buildWordData(roundDef.word) : null, [roundIndex]); // eslint-disable-line
   const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
   const drawLineRound = useMemo(() => roundDef.type === "drawline" ? buildLastLetterDrawLineRound(roundDef.words) : null, [roundIndex]); // eslint-disable-line
-  const rearrangeWordPair = useMemo(() => roundDef.type === "rearrange" ? roundDef.words.map(buildWordData) : null, [roundIndex]); // eslint-disable-line
+  const rearrangeWordPair = useMemo(() => roundDef.type === "rearrange" ? roundDef.words.map(buildShortASliceData) : null, [roundIndex]); // eslint-disable-line
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>

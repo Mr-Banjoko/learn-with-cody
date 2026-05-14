@@ -14,7 +14,7 @@ import PicSliceBoard from "../games/PicSliceBoard";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-import { buildWordData } from "../../lib/picSliceGameData";
+import { buildShortASliceData } from "../../lib/buildShortASliceData";
 
 const LEVEL_NUM = 27;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
@@ -60,7 +60,7 @@ export default function Level27({ onBack, lang = "en" }) {
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   const wordPair = useMemo(
-    () => ROUND_WORDS[roundIndex].map(buildWordData),
+    () => ROUND_WORDS[roundIndex].map(buildShortASliceData),
     [roundIndex] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
