@@ -1,11 +1,5 @@
 /**
  * Level 39 — 6-round alternating Identifying / Word Match
- * R1: Identifying — fat
- * R2: Word Match  — rag  (distractors: bag, tag)
- * R3: Identifying — ram
- * R4: Word Match  — sap  (distractors: map, tap)
- * R5: Identifying — ran
- * R6: Word Match  — nap  (distractors: tap, pan)
  */
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,12 +20,7 @@ const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 
-// Visually similar distractors per target
-const WORD_MATCH_DISTRACTORS = {
-  rag: ["bag", "tag"],
-  sap: ["map", "tap"],
-  nap: ["tap", "pan"],
-};
+const WORD_MATCH_DISTRACTORS = { rag: ["bag", "tag"], sap: ["map", "tap"], nap: ["tap", "pan"] };
 
 const ROUND_SEQUENCE = [
   { type: "identifying", word: "fat" },
@@ -50,7 +39,6 @@ function buildIdentifyingRound(targetWord) {
   return { target, choices };
 }
 
-// Build word-match card with visually similar distractors
 function buildWordMatchCard(targetWord) {
   const target = findWord(targetWord);
   const distractorWords = WORD_MATCH_DISTRACTORS[targetWord] || [];
@@ -83,14 +71,11 @@ export default function Level39({ onBack, lang = "en" }) {
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
       setDone(true);
-    } else {
-      setRoundIndex(next);
-    }
+    } else setRoundIndex(next);
   }, [roundIndex, mistakes]);
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-
   const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
   const wordMatchData = useMemo(() => roundDef.type === "wordmatch" ? buildWordMatchCard(roundDef.word) : null, [roundIndex]); // eslint-disable-line
 
@@ -113,12 +98,8 @@ export default function Level39({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {roundDef.type === "identifying" && identifyingRound && (
-              <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
-            )}
-            {roundDef.type === "wordmatch" && wordMatchData && (
-              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={wordMatchData.target} overrideChoices={wordMatchData.overrideChoices} onComplete={advance} onMistake={onMistake} lang={lang} />
-            )}
+            {roundDef.type === "identifying" && identifyingRound && <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "wordmatch" && wordMatchData && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={wordMatchData.target} overrideChoices={wordMatchData.overrideChoices} onComplete={advance} onMistake={onMistake} lang={lang} />}
           </motion.div>
         )}
       </AnimatePresence>
