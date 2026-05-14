@@ -15,7 +15,8 @@ import { shortUWords } from "../../lib/shortUWords";
 
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 
-function buildRound(card) {
+function buildRound(card, overrideChoices) {
+  if (overrideChoices) return { card, choices: overrideChoices };
   const distractors = ALL_WORDS.filter((w) => w.word !== card.word)
     .sort(() => Math.random() - 0.5)
     .slice(0, 3);
@@ -23,8 +24,8 @@ function buildRound(card) {
   return { card, choices };
 }
 
-export default function CampaignWordMatchRound({ card, onComplete, onMistake, lang = "en" }) {
-  const [round] = useState(() => buildRound(card));
+export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en" }) {
+  const [round] = useState(() => buildRound(card, overrideChoices));
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [audioLocked, setAudioLocked] = useState(true);

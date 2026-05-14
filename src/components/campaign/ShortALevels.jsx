@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { getBestStars } from "../../lib/campaignPerformance";
 
-const TOTAL_LEVELS = 50;
+const TOTAL_LEVELS = 40;
 // Winding path: 5 columns across the screen, offset left%
 // Values chosen so nothing goes off-screen on a 375px phone
 // Smooth S-curve: sweeps fully left → right → left across the screen
@@ -39,8 +39,8 @@ function StarStrip({ stars }) {
   );
 }
 
-function LevelNode({ num, color, onTap, isMilestone, stars }) {
-  const size = isMilestone ? 76 : 68;
+function LevelNode({ num, color, onTap, isMilestone, stars, isFinal, lang = "en" }) {
+  const size = isFinal ? 82 : isMilestone ? 76 : 68;
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <motion.div
@@ -50,66 +50,50 @@ function LevelNode({ num, color, onTap, isMilestone, stars }) {
           width: size,
           height: size,
           borderRadius: "50%",
-          background: `linear-gradient(145deg, ${color} 0%, ${color}CC 100%)`,
-          border: "3px solid white",
+          background: isFinal
+            ? "linear-gradient(145deg, #FFD700, #FFA500)"
+            : `linear-gradient(145deg, ${color} 0%, ${color}CC 100%)`,
+          border: isFinal ? "4px solid white" : "3px solid white",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
-          boxShadow: `0 6px 0 ${color}99, 0 10px 22px ${color}44`,
+          boxShadow: isFinal
+            ? "0 7px 0 #cc8800, 0 12px 28px rgba(255,165,0,0.55)"
+            : `0 6px 0 ${color}99, 0 10px 22px ${color}44`,
           WebkitTapHighlightColor: "transparent",
           position: "relative",
           flexShrink: 0,
         }}
       >
-        {isMilestone && (
-          <span
-            style={{
-              position: "absolute",
-              top: -18,
-              fontSize: 18,
-              pointerEvents: "none",
-              filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.15))",
-            }}
-          >
-            ⭐
-          </span>
-        )}
-        <span
-          style={{
-            fontSize: num >= 10 ? 20 : 24,
-            fontWeight: 700,
-            color: "white",
-            textShadow: "0 1px 4px rgba(0,0,0,0.20)",
-            userSelect: "none",
-            lineHeight: 1,
-            pointerEvents: "none",
-          }}
-        >
-          {num}
-        </span>
-        {isMilestone && (
-          <span
-            style={{
-              fontSize: 9,
-              color: "rgba(255,255,255,0.9)",
-              pointerEvents: "none",
-              lineHeight: 1,
-              marginTop: 2,
-              letterSpacing: 0.5,
-            }}
-          >
-            BOSS
-          </span>
+        {isFinal ? (
+          <span style={{ fontSize: 36, pointerEvents: "none", lineHeight: 1 }}>🏆</span>
+        ) : (
+          <>
+            {isMilestone && (
+              <span style={{ position: "absolute", top: -18, fontSize: 18, pointerEvents: "none", filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.15))" }}>⭐</span>
+            )}
+            <span style={{ fontSize: num >= 10 ? 20 : 24, fontWeight: 700, color: "white", textShadow: "0 1px 4px rgba(0,0,0,0.20)", userSelect: "none", lineHeight: 1, pointerEvents: "none" }}>
+              {num}
+            </span>
+            {isMilestone && (
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.9)", pointerEvents: "none", lineHeight: 1, marginTop: 2, letterSpacing: 0.5 }}>BOSS</span>
+            )}
+          </>
         )}
       </motion.div>
-      <StarStrip stars={stars} />
+      {isFinal ? (
+        <span style={{ color: "#F59E0B", fontSize: 13, fontWeight: 700, marginTop: 6 }}>{lang === "zh" ? "完成！" : "Complete!"}</span>
+      ) : (
+        <StarStrip stars={stars} />
+      )}
     </div>
   );
 }
 
 export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
+  // lang is used inside LevelNode for isFinal label — capture in closure below
   const levels = Array.from({ length: TOTAL_LEVELS }, (_, i) => i + 1);
   const NODE_SPACING = 100;
   const TOP_OFFSET = 36;
@@ -190,7 +174,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
             🍎 {lang === "zh" ? "短元音 A" : "Short a"}
           </p>
           <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>
-            {lang === "zh" ? "50 关卡冒险" : "50-level adventure"}
+            {lang === "zh" ? "40 关卡冒险" : "40-level adventure"}
           </p>
         </div>
 
@@ -226,7 +210,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
           style={{
             position: "relative",
             width: "100%",
-            height: TOP_OFFSET + TOTAL_LEVELS * NODE_SPACING + 160,
+            height: TOP_OFFSET + TOTAL_LEVELS * NODE_SPACING + 80,
           }}
         >
           {levels.map((lvl, idx) => {
@@ -252,46 +236,16 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
                   num={lvl}
                   color={color}
                   isMilestone={isMilestone}
+                  isFinal={lvl === TOTAL_LEVELS}
                   onTap={onSelectLevel || (() => {})}
                   stars={starMap[lvl] ?? 0}
+                  lang={lang}
                 />
               </div>
             );
           })}
 
-          {/* Trophy finish */}
-          <div
-            style={{
-              position: "absolute",
-              top: TOP_OFFSET + TOTAL_LEVELS * NODE_SPACING + 20,
-              left: `${getLeftPct(TOTAL_LEVELS)}%`,
-              transform: "translateX(-50%)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <div
-              style={{
-                width: 76,
-                height: 76,
-                borderRadius: "50%",
-                background: "linear-gradient(145deg, #FFD700, #FFA500)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 36,
-                boxShadow: "0 7px 0 #cc8800, 0 12px 28px rgba(255,165,0,0.45)",
-                border: "3px solid white",
-              }}
-            >
-              🏆
-            </div>
-            <span style={{ color: "#64748B", fontSize: 13, fontWeight: 600 }}>
-              {lang === "zh" ? "完成！" : "Complete!"}
-            </span>
-          </div>
+
         </div>
       </div>
     </div>
