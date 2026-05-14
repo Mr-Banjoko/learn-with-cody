@@ -61,24 +61,16 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   const [selectedRight, setSelectedRight] = useState(null);
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [wrongFlash, setWrongFlash] = useState(false);
-  const [audioLocked, setAudioLocked] = useState(true);
   const wrongTimeout = useRef(null);
   const advanceTimeout = useRef(null);
 
-  // Auto-play first word audio at mount
   useEffect(() => {
-    const t = setTimeout(() => {
-      const firstAudio = cards[0]?.audio;
-      if (firstAudio) playAudio(firstAudio);
-      const u = setTimeout(() => setAudioLocked(false), 1400);
-      return () => clearTimeout(u);
-    }, 300);
-    return () => { clearTimeout(t); clearTimeout(wrongTimeout.current); clearTimeout(advanceTimeout.current); };
-  }, []); // eslint-disable-line
+    return () => { clearTimeout(wrongTimeout.current); clearTimeout(advanceTimeout.current); };
+  }, []);
 
   // Check match when both selected
   useEffect(() => {
-    if (!selectedLeft || !selectedRight || audioLocked) return;
+    if (!selectedLeft || !selectedRight) return;
     const leftWord = leftItems.find((it) => it.id === selectedLeft)?.word;
     const rightWord = rightItems.find((it) => it.id === selectedRight)?.word;
     if (leftWord && rightWord) {
@@ -106,16 +98,16 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   }, [selectedLeft, selectedRight]); // eslint-disable-line
 
   const handleLeftTap = useCallback((item) => {
-    if (matchedPairs.includes(item.word) || audioLocked) return;
+    if (matchedPairs.includes(item.word)) return;
     if (item.audio) playAudio(item.audio);
     setSelectedLeft((prev) => (prev === item.id ? null : item.id));
     setSelectedRight(null);
-  }, [matchedPairs, audioLocked]);
+  }, [matchedPairs]);
 
   const handleRightTap = useCallback((item) => {
-    if (matchedPairs.includes(item.word) || audioLocked) return;
+    if (matchedPairs.includes(item.word)) return;
     setSelectedRight(item.id);
-  }, [matchedPairs, audioLocked]);
+  }, [matchedPairs]);
 
   const getMatchColor = (word) => {
     const idx = matchedPairs.indexOf(word);
@@ -124,7 +116,6 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative" }}>
-      {audioLocked && <div style={{ position: "absolute", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
       {/* Hint */}
       <div style={{ flexShrink: 0, textAlign: "center", padding: "10px 24px 4px" }}>
