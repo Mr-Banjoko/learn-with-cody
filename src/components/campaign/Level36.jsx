@@ -36,7 +36,6 @@ export default function Level36({ onBack, lang = "en" }) {
   const lockRef = useRef(null);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // Auto-play word audio at the start of each round
   useEffect(() => {
     setAudioLocked(true);
     clearTimeout(lockRef.current);
