@@ -14,7 +14,32 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { shortAWords } from "../../lib/shortAWords";
-import { buildWordData } from "../../lib/picSliceGameData";
+
+import { getLetterSoundUrl } from "../../lib/letterSounds";
+
+const SLICE_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/a_slices";
+const AUDIO_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/audio-feature/letter_sound/words/a_words";
+
+// Build a connection card directly from shortAWords + slice URLs, bypassing SLICE_LOOKUP.
+// This ensures words like lad/lab/pal that aren't in shortASlices still get slice images.
+function buildConnectionCard(word) {
+  const wordData = shortAWords.find((x) => x.word === word);
+  return {
+    word,
+    audio: wordData?.audio || `${AUDIO_BASE}/${word}.mp3`,
+    fullImage: wordData?.image || "",
+    slices: [
+      `${SLICE_BASE}/${word}/${word}_slice_1.webp`,
+      `${SLICE_BASE}/${word}/${word}_slice_2.webp`,
+      `${SLICE_BASE}/${word}/${word}_slice_3.webp`,
+    ],
+    phonemes: word.split("").map((letter, i) => ({
+      letter,
+      audio: getLetterSoundUrl(letter),
+      sliceSrc: `${SLICE_BASE}/${word}/${word}_slice_${i + 1}.webp`,
+    })),
+  };
+}
 
 const LEVEL_NUM = 26;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
@@ -66,7 +91,7 @@ export default function Level26({ onBack, lang = "en" }) {
   const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
   const phonicsCard = round.type === "phonics" ? findWord(round.word) : null;
-  const connectionCard = round.type === "connection" ? buildWordData(round.word) : null;
+  const connectionCard = round.type === "connection" ? buildConnectionCard(round.word) : null;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
