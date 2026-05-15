@@ -339,7 +339,7 @@ export default function WriteV2Game({ wordList, title, onBack }) {
               return (
                 <motion.div
                   key={card.id}
-                  animate={isPulsating ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                  animate={isPulsating ? { scale: [1, 1.1, 1] } : { scale: 1 }}
                   transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
                   style={{
                     opacity: isTraced ? 1 : 0.65,

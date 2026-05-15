@@ -154,7 +154,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
             const isPulsating = pulsatingCardIds.has(c.id) && !isTraced;
             return (
               <motion.div key={c.id}
-                animate={isPulsating ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                animate={isPulsating ? { scale: [1, 1.1, 1] } : { scale: 1 }}
                 transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
                 style={{ opacity: isTraced ? 1 : 0.65, transition: "opacity 0.3s", outline: isPulsating ? "3px solid #22c55e" : isTraced ? "3px solid #22c55e" : "none", borderRadius: 18, boxShadow: isPulsating ? "0 0 0 3px #22c55e, 0 4px 16px rgba(34,197,94,0.45)" : "none" }}>
                 <LetterTrace letter={c.letter} size={TILE_SIZE} locked={locked || isTraced} onComplete={() => handleCardComplete(c.id)} />
