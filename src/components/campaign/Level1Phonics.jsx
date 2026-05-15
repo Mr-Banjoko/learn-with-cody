@@ -49,8 +49,7 @@ const PHASE_TEXTS = {
   },
 };
 
-// How long the hand animation shows before hiding (ms)
-const HAND_SHOW_MS = 6000;
+// Hand is always visible during tutorial — it only hides when the user completes the action
 
 export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard = false }) {
   const [customImage, setCustomImage] = useState(() => loadPhoto(card.word));
@@ -67,7 +66,6 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
-  const handTimerRef = useRef(null);
   const fileInputRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -81,29 +79,32 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
   const phaseRefs = { 1: refImage, 2: refLetterC, 3: refPlay, 4: refCamera, 5: refReset, 6: refNext };
 
-  // Show hand animation over the current phase target
+  // Show hand animation over the current phase target — loops until user acts
   useEffect(() => {
-    if (!isTutorial) return;
+    if (!isTutorial) {
+      setHandVisible(false);
+      return;
+    }
     const targetRef = phaseRefs[tutPhase];
     if (!targetRef?.current || !containerRef?.current) return;
 
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const targetRect = targetRef.current.getBoundingClientRect();
-    // Place so the index finger tip (at ~49px from left, ~58px from top of the 180px icon)
-    // lands exactly at the center of the target element
-    const fingerTipX = 49;
-    const fingerTipY = 58;
-    const left = targetRect.left - containerRect.left + targetRect.width / 2 - fingerTipX;
-    const top  = targetRect.top  - containerRect.top  + targetRect.height / 2 - fingerTipY;
+    // Small delay to let layout settle (e.g. after AnimatePresence transitions)
+    const t = setTimeout(() => {
+      if (!targetRef.current || !containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const targetRect = targetRef.current.getBoundingClientRect();
+      // Place so the index finger tip (at ~49px from left, ~58px from top of the 180px icon)
+      // lands exactly at the center of the target element
+      const fingerTipX = 49;
+      const fingerTipY = 58;
+      const left = targetRect.left - containerRect.left + targetRect.width / 2 - fingerTipX;
+      const top  = targetRect.top  - containerRect.top  + targetRect.height / 2 - fingerTipY;
+      setHandPos({ left, top });
+      setHandVisible(true);
+    }, 120);
 
-    setHandPos({ left, top });
-    setHandVisible(true);
-
-    clearTimeout(handTimerRef.current);
-    handTimerRef.current = setTimeout(() => setHandVisible(false), HAND_SHOW_MS);
-
-    return () => clearTimeout(handTimerRef.current);
-  }, [tutPhase]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => clearTimeout(t);
+  }, [tutPhase, isTutorial]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const advancePhase = useCallback(() => {
     setHandVisible(false);
@@ -420,7 +421,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
                   filter: "invert(68%) sepia(60%) saturate(400%) hue-rotate(130deg) brightness(110%)",
                 }}
               >
-                <Lottie animationData={handTapData} loop={false} autoplay={true} />
+                <Lottie animationData={handTapData} loop={true} autoplay={true} />
               </motion.div>
             )}
           </AnimatePresence>
