@@ -91,6 +91,7 @@ export default function WriteV2Game({ wordList, title, onBack }) {
   const [bouncingCardIdx, setBouncingCardIdx] = useState(null);
   const [successCards, setSuccessCards] = useState(null); // ordered correct cards after success
   const [submitError, setSubmitError] = useState(false); // triggers shake+glow on submit button
+  const [pulsatingCardIds, setPulsatingCardIds] = useState(new Set());
 
   const wordIdxRef = useRef(0);
   const lockedRef = useRef(true);
@@ -144,6 +145,7 @@ export default function WriteV2Game({ wordList, title, onBack }) {
     setRoundKey(nextKey);
     setRound(createRound(WORD_LIST[next], nextKey));
     setTracedCardIds(new Set());
+    setPulsatingCardIds(new Set());
     setPhase("tracing");
     setBouncingCardIdx(null);
     setSuccessCards(null);
@@ -154,12 +156,14 @@ export default function WriteV2Game({ wordList, title, onBack }) {
     if (locked || phase !== "tracing") return;
     // Re-mount all canvases by bumping roundKey, keep same word/round data
     setTracedCardIds(new Set());
+    setPulsatingCardIds(new Set());
     setRoundKey((k) => k + 1);
     setSubmitError(false);
   }, [locked, phase]);
 
   const handleCardComplete = useCallback((cardId) => {
     if (lockedRef.current || phase !== "tracing") return;
+    setPulsatingCardIds(new Set());
     setTracedCardIds((prev) => {
       const next = new Set(prev);
       next.add(cardId);
@@ -178,6 +182,8 @@ export default function WriteV2Game({ wordList, title, onBack }) {
     if (!isCorrect) {
       // Wrong — shake + red glow on submit button, then reset traced
       setSubmitError(true);
+      const correctIds = new Set(round.correctCards.map((c) => c.id));
+      setPulsatingCardIds(correctIds);
       setTimeout(() => {
         setSubmitError(false);
         setTracedCardIds(new Set());
@@ -329,15 +335,18 @@ export default function WriteV2Game({ wordList, title, onBack }) {
                 );
               }
 
+              const isPulsating = pulsatingCardIds.has(card.id) && !isTraced;
               return (
                 <motion.div
                   key={card.id}
-                  animate={{ y: 0 }}
+                  animate={isPulsating ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                  transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
                   style={{
                     opacity: isTraced ? 1 : 0.65,
                     transition: "opacity 0.3s",
-                    outline: isTraced ? "3px solid #22c55e" : "none",
+                    outline: isPulsating ? "3px solid #22c55e" : isTraced ? "3px solid #22c55e" : "none",
                     borderRadius: 18,
+                    boxShadow: isPulsating ? "0 0 0 3px #22c55e, 0 4px 16px rgba(34,197,94,0.45)" : "none",
                   }}
                 >
                   <LetterTrace
