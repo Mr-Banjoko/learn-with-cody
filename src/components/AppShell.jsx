@@ -9,8 +9,8 @@ import Games from "../pages/Games";
 import CampaignHome from "./campaign/CampaignHome.jsx";
 import ShortALevels from "./campaign/ShortALevels.jsx";
 import Level1 from "./campaign/Level1.jsx";
-import Level2 from "./campaign/Level2.jsx";
-import Level3 from "./campaign/Level3.jsx";
+import Level3 from "./campaign/Level2.jsx";  // file contains new Level 3 (old rearrange game)
+import Level2 from "./campaign/Level3.jsx";  // file contains new Level 2 (old missing-sound game)
 import Level4 from "./campaign/Level4.jsx";
 import Level5 from "./campaign/Level5.jsx";
 import Level6 from "./campaign/Level6.jsx";

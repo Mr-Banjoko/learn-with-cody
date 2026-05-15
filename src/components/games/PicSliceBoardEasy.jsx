@@ -19,8 +19,8 @@ function pickPalette() {
   return ROUND_PALETTES[Math.floor(Math.random() * ROUND_PALETTES.length)];
 }
 
-function buildState(wordArr) {
-  const pieces = buildRoundPieces(wordArr);
+function buildState(wordArr, orderedAudio = false) {
+  const pieces = buildRoundPieces(wordArr, orderedAudio);
   return {
     pieces,
     trayIds: pieces.map((p) => p.id),
@@ -58,12 +58,12 @@ function PadlockIcon({ size = 28 }) {
   );
 }
 
-export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake }) {
+export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake, orderedAudio = false }) {
   const wd = wordPair[0];
 
   const palette = useMemo(() => pickPalette(), [wordPair]);
 
-  const [state, setState] = useState(() => buildState(wordPair));
+  const [state, setState] = useState(() => buildState(wordPair, orderedAudio));
   const [dragState, setDragState] = useState(null);
   const [playingSequence, setPlayingSequence] = useState(false);
 
@@ -80,7 +80,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
 
   // ── RESET on new word ────────────────────────────────────────────────────
   useEffect(() => {
-    setState(buildState(wordPair));
+    setState(buildState(wordPair, orderedAudio));
     setDragState(null);
     setPlayingSequence(false);
     setListenedIds(new Set());   // ← reset locks every round

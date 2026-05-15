@@ -145,13 +145,15 @@ function shuffleArr(arr) {
 }
 
 // Build shuffled pieces for a word pair.
-// Sound assignment is RANDOMIZED within each word: visual slice index ≠ fixed phoneme.
+// Sound assignment is RANDOMIZED within each word by default: visual slice index ≠ fixed phoneme.
+// Pass orderedAudio=true to fix phoneme order left-to-right (for Level 3 rounds 1–4).
 // Each piece carries: wordIndex (strict ownership) + targetSlot (correct sound-position slot).
-export function buildRoundPieces(wordDataArr) {
+export function buildRoundPieces(wordDataArr, orderedAudio = false) {
   const pieces = [];
   wordDataArr.forEach((wd, wordIndex) => {
-    // Randomly assign which visual slice carries which phoneme
-    const phonemeOrder = shuffleArr([0, 1, 2]);
+    // orderedAudio: phoneme[0] → visual slot 0, phoneme[1] → visual slot 1, etc.
+    // random: phoneme assignment is shuffled across visual slots
+    const phonemeOrder = orderedAudio ? [0, 1, 2] : shuffleArr([0, 1, 2]);
     for (let visualIdx = 0; visualIdx < 3; visualIdx++) {
       const phonemeIdx = phonemeOrder[visualIdx];
       const ph = wd.phonemes[phonemeIdx];

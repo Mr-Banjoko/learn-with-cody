@@ -13,7 +13,7 @@ import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
-const LEVEL_NUM = 2;
+const LEVEL_NUM = 3;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 
 // Fixed word order — do NOT randomize
@@ -21,16 +21,16 @@ const WORD_NAMES = ["cat", "dad", "rat", "hat", "bat"];
 const WORDS = WORD_NAMES.map((name) => shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" });
 const TOTAL_ROUNDS = WORDS.length; // 5
 
-function markLevel2Complete() {
+function markLevel3Complete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][2] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][3] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
 
-export default function Level2({ onBack, lang = "en" }) {
+export default function Level3({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
@@ -48,7 +48,7 @@ export default function Level2({ onBack, lang = "en" }) {
   const handleRoundComplete = () => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
-      markLevel2Complete();
+      markLevel3Complete();
       const stars = calcStars(mistakes, SCORED_ROUNDS);
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
@@ -85,7 +85,7 @@ export default function Level2({ onBack, lang = "en" }) {
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
-            {lang === "zh" ? "第 2 关" : "Level 2"}
+            {lang === "zh" ? "第 3 关" : "Level 3"}
           </p>
         </div>
         <HeartDisplay mistakes={mistakes} size={54} />
@@ -134,6 +134,7 @@ export default function Level2({ onBack, lang = "en" }) {
               onRoundComplete={handleRoundComplete}
               lang={lang}
               onMistake={onMistake}
+              orderedAudio={roundIndex < 4}
             />
           </motion.div>
         )}

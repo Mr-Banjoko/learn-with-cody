@@ -16,7 +16,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import Level1DragV2 from "./Level1DragV2";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-const LEVEL_NUM = 3;
+const LEVEL_NUM = 2;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { shortAWords } from "../../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
@@ -27,11 +27,11 @@ function findWord(name) {
   return shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" };
 }
 
-function markLevel3Complete() {
+function markLevel2Complete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][3] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][2] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -337,8 +337,8 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   );
 }
 
-// ── Level3 shell ──────────────────────────────────────────────────────────────
-export default function Level3({ onBack, lang = "en" }) {
+// ── Level2 shell ──────────────────────────────────────────────────────────────
+export default function Level2({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
@@ -350,7 +350,7 @@ export default function Level3({ onBack, lang = "en" }) {
   const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
-      markLevel3Complete();
+      markLevel2Complete();
       const stars = calcStars(mistakes, SCORED_ROUNDS);
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
@@ -397,7 +397,7 @@ export default function Level3({ onBack, lang = "en" }) {
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
-            {lang === "zh" ? "第 3 关" : "Level 3"}
+            {lang === "zh" ? "第 2 关" : "Level 2"}
           </p>
         </div>
         <HeartDisplay mistakes={mistakes} size={54} />
