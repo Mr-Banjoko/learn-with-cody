@@ -20,7 +20,11 @@ const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 
-const WORD_MATCH_DISTRACTORS = { rag: ["bag", "tag"], sap: ["map", "tap"], nap: ["tap", "pan"] };
+const WORD_MATCH_DISTRACTORS = {
+  rag: ["bag", "tag", "wag"],
+  sap: ["map", "tap", "cap"],
+  nap: ["tap", "pan", "can"],
+};
 
 const ROUND_SEQUENCE = [
   { type: "identifying", word: "fat" },
