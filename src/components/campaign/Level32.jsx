@@ -39,13 +39,9 @@ export default function Level32({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
-
-  // Round 1 only: chain word audio after hint audio, then unlock
-  const isRound1 = roundIndex === 0;
-  const round1WordAudio = useMemo(() => {
-    const w = shortAWords.find((x) => x.word === WORD_ORDER[0]);
-    return w?.audio || null;
-  }, []);
+  // Round 1 only: chain word audio after hint audio before unlocking
+  const round1Card = shortAWords.find((w) => w.word === WORD_ORDER[0]);
+  const round1WordAudio = roundIndex === 0 ? (round1Card?.audio || null) : null;
   const onHintComplete = useCallback((unlock) => {
     if (!round1WordAudio) { unlock(); return; }
     const audio = new Audio(round1WordAudio);
@@ -57,7 +53,7 @@ export default function Level32({ onBack, lang = "en" }) {
   const hintUrl = getHintAudioUrl(32, roundIndex, lang);
   const { locked: hintLocked } = useRoundHintAudio({
     url: hintUrl,
-    onHintComplete: isRound1 ? onHintComplete : undefined,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
   });
 
   const advance = useCallback(() => {
@@ -101,7 +97,7 @@ export default function Level32({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <CampaignWordMatchRound key={`wm-${roundIndex}`} card={currentCard} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={isRound1} />
+            <CampaignWordMatchRound key={`wm-${roundIndex}`} card={currentCard} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={roundIndex === 0} />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}

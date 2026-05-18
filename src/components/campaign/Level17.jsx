@@ -44,10 +44,8 @@ export default function Level17({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
-
-  // Round 1 only: chain word audio after hint audio, then unlock
-  const isRound1 = roundIndex === 0;
-  const round1WordAudio = useMemo(() => findWord(WORD_ORDER[0])?.audio || null, []);
+  // Round 1 only: chain word audio after hint audio before unlocking
+  const round1WordAudio = roundIndex === 0 ? (findWord(WORD_ORDER[0])?.audio || null) : null;
   const onHintComplete = useCallback((unlock) => {
     if (!round1WordAudio) { unlock(); return; }
     const audio = new Audio(round1WordAudio);
@@ -59,7 +57,7 @@ export default function Level17({ onBack, lang = "en" }) {
   const hintUrl = getHintAudioUrl(17, roundIndex, lang);
   const { locked: hintLocked } = useRoundHintAudio({
     url: hintUrl,
-    onHintComplete: isRound1 ? onHintComplete : undefined,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
   });
 
   const advance = useCallback(() => {
@@ -112,7 +110,7 @@ export default function Level17({ onBack, lang = "en" }) {
                 card={card}
                 onComplete={advance}
                 lang={lang}
-                suppressAutoPlay={isRound1}
+                suppressAutoPlay={roundIndex === 0}
               />
             )}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
