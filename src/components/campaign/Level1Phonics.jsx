@@ -93,9 +93,9 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
   const phaseRefs = { 1: refImage, 2: refLetterC, 3: refPlay, 4: refCamera, 5: refReset, 6: refNext };
 
-  // Show hand animation over the current phase target — only after guide audio finishes
+  // Show hand animation over the current phase target — loops until user acts
   useEffect(() => {
-    if (!isTutorial || audioLocked) {
+    if (!isTutorial) {
       setHandVisible(false);
       return;
     }
@@ -118,7 +118,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     }, 120);
 
     return () => clearTimeout(t);
-  }, [tutPhase, isTutorial, audioLocked]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tutPhase, isTutorial]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Phase guide audio: auto-play on every phase entry ─────────────────────
   useEffect(() => {
@@ -230,7 +230,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     playAudio(url, getLetterGain(letter));
     activeTimerRef.current = setTimeout(() => setActiveLetterIndex(null), 900);
     if (tutPhase === 2) setTimeout(() => advancePhase(), 1000);
-  }, [cancelSequence, tutPhase, isTutorial, advancePhase]);
+  }, [cancelSequence, tutPhase, isTutorial, advancePhase, audioLocked]);
 
   // ── Phase 3: play sequence ─────────────────────────────────────────────────
   const handlePlaySequence = useCallback(() => {
@@ -251,7 +251,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       if (tutPhase === 3) advancePhase();
     });
     sequenceRef.current = cancel;
-  }, [card, cancelSequence, tutPhase, isTutorial, advancePhase]);
+  }, [card, cancelSequence, tutPhase, isTutorial, advancePhase, audioLocked]);
 
   // ── Phase 4: camera ────────────────────────────────────────────────────────
   const handleCamera = useCallback(() => {
@@ -259,7 +259,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     if (isTutorial && tutPhase !== 4) return; // locked
     fileInputRef.current.click();
     // Do NOT advance here — wait for the photo to actually be taken (handleFileChange)
-  }, [tutPhase, isTutorial]);
+  }, [tutPhase, isTutorial, audioLocked]);
 
   const tutPhaseRef = useRef(tutPhase);
   useEffect(() => { tutPhaseRef.current = tutPhase; }, [tutPhase]);
@@ -285,7 +285,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     clearPhoto(card.word);
     setCustomImage(null);
     if (tutPhase === 5) setTimeout(() => advancePhase(), 400);
-  }, [isTutorial, tutPhase, card.word, advancePhase]);
+  }, [isTutorial, tutPhase, card.word, advancePhase, audioLocked]);
 
   // ── Phase 6: next ──────────────────────────────────────────────────────────
   const handleNext = useCallback(() => {
@@ -297,7 +297,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       markTutorialDone();
     }
     onNext();
-  }, [tutPhase, isTutorial, onNext]);
+  }, [tutPhase, isTutorial, onNext, audioLocked]);
 
   const currentImage = customImage || card.image;
   const hasCustomPhoto = customImage !== null;
@@ -448,23 +448,22 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       {/* Camera file input */}
       <input ref={fileInputRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleFileChange} />
 
+      {/* ── Audio lock overlay — blocks all taps while guide audio plays ─── */}
+      {audioLocked && (
+        <div
+          style={{
+            position: "absolute", inset: 0,
+            zIndex: 500,
+            cursor: "not-allowed",
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
+
       {/* ── Tutorial overlay ──────────────────────────────────────────────── */}
       {isTutorial && (
         <>
-          {/* Full-screen input blocker while guide audio is playing */}
-          {audioLocked && (
-            <div
-              style={{
-                position: "absolute", inset: 0,
-                zIndex: 500,
-                cursor: "default",
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            />
-          )}
-
           {/* Instruction text — top banner */}
           <div
             style={{
