@@ -16,6 +16,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import Level1DragV2 from "./Level1DragV2";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 const LEVEL_NUM = 2;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { shortAWords } from "../../lib/shortAWords";
@@ -344,6 +345,8 @@ export default function Level2({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+  const hintUrl = getHintAudioUrl(2, roundIndex, lang);
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
@@ -441,6 +444,7 @@ export default function Level2({ onBack, lang = "en" }) {
             ) : roundDef.type === "drag" && dragCard ? (
               <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : null}
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>

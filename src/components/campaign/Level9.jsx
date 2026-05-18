@@ -22,6 +22,7 @@ import HeartDisplay from "./HeartDisplay";
 import IdentifyingRound from "../games/IdentifyingRound";
 import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -75,6 +76,8 @@ export default function Level9({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+  const hintUrl = getHintAudioUrl(9, roundIndex, lang);
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
@@ -142,6 +145,7 @@ export default function Level9({ onBack, lang = "en" }) {
                 lang={lang}
               />
             ) : null}
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>

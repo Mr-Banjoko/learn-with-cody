@@ -20,6 +20,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import CampaignConnectionRound from "./CampaignConnectionRound";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 import { buildWordData } from "../../lib/picSliceGameData";
 
 const LEVEL_NUM = 13;
@@ -43,6 +44,8 @@ export default function Level13({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+  const hintUrl = getHintAudioUrl(13, roundIndex, lang);
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -99,6 +102,7 @@ export default function Level13({ onBack, lang = "en" }) {
               onMistake={onMistake}
               lang={lang}
             />
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>

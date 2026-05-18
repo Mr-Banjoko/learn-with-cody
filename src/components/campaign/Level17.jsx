@@ -19,6 +19,7 @@ import CampaignWriteRound from "./CampaignWriteRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 import { shortAWords } from "../../lib/shortAWords";
 
 const LEVEL_NUM = 17;
@@ -43,6 +44,9 @@ export default function Level17({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+
+  const hintUrl = getHintAudioUrl(17, roundIndex, lang);
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -96,6 +100,7 @@ export default function Level17({ onBack, lang = "en" }) {
                 lang={lang}
               />
             )}
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>

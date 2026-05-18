@@ -12,6 +12,7 @@ import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
 const LEVEL_NUM = 3;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
@@ -36,6 +37,8 @@ export default function Level3({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+  const hintUrl = getHintAudioUrl(3, roundIndex, lang);
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   // Build wordPair for PicSliceBoardEasy — it expects an array (easy uses index 0 only)
   const wordPair = useMemo(() => {
@@ -136,6 +139,7 @@ export default function Level3({ onBack, lang = "en" }) {
               onMistake={onMistake}
               orderedAudio={roundIndex < 4}
             />
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>

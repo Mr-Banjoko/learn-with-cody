@@ -9,6 +9,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
 import DictationCampaignRound from "./DictationCampaignRound";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 import { shortAWords } from "../../lib/shortAWords";
 
 const LEVEL_NUM = 22;
@@ -32,6 +33,8 @@ export default function Level22({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+  const hintUrl = getHintAudioUrl(22, roundIndex, lang);
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -71,6 +74,7 @@ export default function Level22({ onBack, lang = "en" }) {
             {card && (
               <DictationCampaignRound key={`dictation-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>
