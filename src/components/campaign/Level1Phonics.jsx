@@ -20,6 +20,15 @@ const loadPhoto = (word) => { try { return localStorage.getItem(storageKey(word)
 const savePhoto = (word, dataUrl) => { try { localStorage.setItem(storageKey(word), dataUrl); } catch {} };
 const clearPhoto = (word) => { try { localStorage.removeItem(storageKey(word)); } catch {} };
 
+// ── Phase guide audio URLs (GitHub raw) ────────────────────────────────────────
+const GH_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main";
+function getPhaseAudioUrl(phase, lang) {
+  const folder = lang === "zh"
+    ? "level1_page1_chinese"
+    : "level1_page1_eng";
+  return `${GH_BASE}/letter_sound/campaign%20intro%20sound/${folder}/phase${phase}.mp3`;
+}
+
 // ── Tutorial helpers ───────────────────────────────────────────────────────────
 function isTutorialDone() {
   try {
@@ -62,12 +71,17 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   const [handVisible, setHandVisible] = useState(false);
   const [handPos, setHandPos] = useState({ left: 0, top: 0 });
 
+  // Guide audio lock: true while the phase intro audio is playing
+  const [audioLocked, setAudioLocked] = useState(false);
+
   const isTutorial = tutPhase >= 1 && tutPhase <= 6;
 
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
   const containerRef = useRef(null);
+  const guideAudioRef = useRef(null); // holds the current phase guide Audio instance
+  const playedPhaseRef = useRef(null); // tracks which phase audio has already been played
 
   // Target refs for each phase
   const refImage   = useRef(null); // Phase 1
@@ -79,9 +93,9 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
   const phaseRefs = { 1: refImage, 2: refLetterC, 3: refPlay, 4: refCamera, 5: refReset, 6: refNext };
 
-  // Show hand animation over the current phase target — loops until user acts
+  // Show hand animation over the current phase target — only after guide audio finishes
   useEffect(() => {
-    if (!isTutorial) {
+    if (!isTutorial || audioLocked) {
       setHandVisible(false);
       return;
     }
@@ -104,7 +118,63 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     }, 120);
 
     return () => clearTimeout(t);
-  }, [tutPhase, isTutorial]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tutPhase, isTutorial, audioLocked]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Phase guide audio: auto-play on every phase entry ─────────────────────
+  useEffect(() => {
+    if (!isTutorial) return;                         // not in tutorial
+    if (playedPhaseRef.current === tutPhase) return; // already played this phase
+    playedPhaseRef.current = tutPhase;
+
+    // Stop any previous guide audio
+    if (guideAudioRef.current) {
+      guideAudioRef.current.pause();
+      guideAudioRef.current.onended = null;
+      guideAudioRef.current.onerror = null;
+      guideAudioRef.current = null;
+    }
+
+    const url = getPhaseAudioUrl(tutPhase, lang);
+    const audio = new Audio(url);
+    guideAudioRef.current = audio;
+    setAudioLocked(true);
+
+    audio.onended = () => {
+      setAudioLocked(false);
+      guideAudioRef.current = null;
+    };
+    audio.onerror = () => {
+      console.error(`[Level1Phonics] Failed to load phase ${tutPhase} guide audio: ${url}`);
+      setAudioLocked(false);
+      guideAudioRef.current = null;
+    };
+
+    audio.play().catch((err) => {
+      console.error(`[Level1Phonics] Phase ${tutPhase} audio play() rejected:`, err);
+      setAudioLocked(false);
+      guideAudioRef.current = null;
+    });
+
+    return () => {
+      // Cleanup if phase changes before audio finishes
+      audio.pause();
+      audio.onended = null;
+      audio.onerror = null;
+    };
+  }, [tutPhase, isTutorial, lang]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset playedPhaseRef when tutorial restarts (new card)
+  useEffect(() => {
+    playedPhaseRef.current = null;
+    // Stop any in-progress guide audio on card change
+    if (guideAudioRef.current) {
+      guideAudioRef.current.pause();
+      guideAudioRef.current.onended = null;
+      guideAudioRef.current.onerror = null;
+      guideAudioRef.current = null;
+    }
+    setAudioLocked(false);
+  }, [card.word]);
 
   const advancePhase = useCallback(() => {
     setHandVisible(false);
@@ -138,6 +208,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
   // ── Phase 1: tap picture ───────────────────────────────────────────────────
   const handleImageTap = useCallback(() => {
+    if (audioLocked) return; // guide audio still playing
     if (isTutorial && tutPhase !== 1) return; // locked
     if (!card.audio) return;
     playAudio(card.audio);
@@ -145,10 +216,11 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       // Advance after audio would finish (~1s buffer)
       setTimeout(() => advancePhase(), 1200);
     }
-  }, [card.audio, tutPhase, isTutorial, advancePhase]);
+  }, [card.audio, tutPhase, isTutorial, advancePhase, audioLocked]);
 
   // ── Phase 2: tap letter ────────────────────────────────────────────────────
   const handleLetterTap = useCallback((letter, i) => {
+    if (audioLocked) return; // guide audio still playing
     if (isTutorial && tutPhase !== 2) return; // locked
     if (isTutorial && tutPhase === 2 && i !== 0) return; // only first letter ("c")
     cancelSequence();
@@ -162,6 +234,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
   // ── Phase 3: play sequence ─────────────────────────────────────────────────
   const handlePlaySequence = useCallback(() => {
+    if (audioLocked) return; // guide audio still playing
     if (isTutorial && tutPhase !== 3) return; // locked
     cancelSequence();
     setActiveLetterIndex(null);
@@ -182,6 +255,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
   // ── Phase 4: camera ────────────────────────────────────────────────────────
   const handleCamera = useCallback(() => {
+    if (audioLocked) return; // guide audio still playing
     if (isTutorial && tutPhase !== 4) return; // locked
     fileInputRef.current.click();
     // Do NOT advance here — wait for the photo to actually be taken (handleFileChange)
@@ -206,6 +280,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
   // ── Phase 5: reset ─────────────────────────────────────────────────────────
   const handleReset = useCallback(() => {
+    if (audioLocked) return; // guide audio still playing
     if (isTutorial && tutPhase !== 5) return; // locked during tutorial except phase 5
     clearPhoto(card.word);
     setCustomImage(null);
@@ -214,6 +289,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
 
   // ── Phase 6: next ──────────────────────────────────────────────────────────
   const handleNext = useCallback(() => {
+    if (audioLocked) return; // guide audio still playing
     if (isTutorial && tutPhase !== 6) return; // locked
     if (tutPhase === 6) {
       setTutPhase(0);
@@ -375,6 +451,20 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       {/* ── Tutorial overlay ──────────────────────────────────────────────── */}
       {isTutorial && (
         <>
+          {/* Full-screen input blocker while guide audio is playing */}
+          {audioLocked && (
+            <div
+              style={{
+                position: "absolute", inset: 0,
+                zIndex: 500,
+                cursor: "default",
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            />
+          )}
+
           {/* Instruction text — top banner */}
           <div
             style={{
