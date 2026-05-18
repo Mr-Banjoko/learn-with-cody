@@ -44,7 +44,6 @@ export default function Level17({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
-
   const hintUrl = getHintAudioUrl(17, roundIndex, lang);
   const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
