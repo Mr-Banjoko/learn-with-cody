@@ -58,7 +58,7 @@ function PadlockIcon({ size = 28 }) {
   );
 }
 
-export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake, orderedAudio = false }) {
+export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake, orderedAudio = false, suppressAutoPlay = false }) {
   const wd = wordPair[0];
 
   const palette = useMemo(() => pickPalette(), [wordPair]);
@@ -88,11 +88,13 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
     // Cancel any in-flight completion sequence from the previous round
     if (cancelSequenceRef.current) { cancelSequenceRef.current(); cancelSequenceRef.current = null; }
 
-    // Auto-play the word after a short settle delay
+    // Auto-play the word after a short settle delay (skip if suppressAutoPlay is true)
     clearTimeout(autoPlayRef.current);
-    autoPlayRef.current = setTimeout(() => {
-      if (wd.audio) playAudio(wd.audio);
-    }, 380);
+    if (!suppressAutoPlay) {
+      autoPlayRef.current = setTimeout(() => {
+        if (wd.audio) playAudio(wd.audio);
+      }, 380);
+    }
 
     return () => clearTimeout(autoPlayRef.current);
   }, [wordPair]); // eslint-disable-line react-hooks/exhaustive-deps

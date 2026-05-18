@@ -65,7 +65,7 @@ async function preloadAll(urls) {
  *   onComplete () => void
  *   lang       "en" | "zh"
  */
-export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake }) {
+export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake, suppressAutoPlay = false }) {
   const [selected, setSelected]     = useState(null);
   const [showNext, setShowNext]      = useState(false);
   const [wrongShake, setWrongShake]  = useState(false);
@@ -108,11 +108,12 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
   }, [round]);
 
   // Play audio only after images are ready (avoids audio before visuals)
+  // suppressAutoPlay=true skips this so the parent can chain it after hint audio
   useEffect(() => {
-    if (imagesReady && round.target.audio) {
+    if (imagesReady && round.target.audio && !suppressAutoPlay) {
       playAudio(round.target.audio);
     }
-  }, [imagesReady, round]);
+  }, [imagesReady, round]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSpeakerTap = useCallback(() => {
     if (round.target.audio) playAudio(round.target.audio);

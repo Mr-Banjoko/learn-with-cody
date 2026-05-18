@@ -76,8 +76,21 @@ export default function Level9({ onBack, lang = "en" }) {
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
+  // Round 1 only: chain word audio after hint audio before unlocking
+  const round1WordAudio = roundIndex === 0 ? (findWord(ROUND_SEQUENCE[0].word)?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!round1WordAudio) { unlock(); return; }
+    const audio = new Audio(round1WordAudio);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [round1WordAudio]);
+
   const hintUrl = getHintAudioUrl(9, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
+  });
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
@@ -132,7 +145,7 @@ export default function Level9({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {roundDef.type === "identifying" && identifyingRound ? (
-              <IdentifyingRound key={roundIndex} round={identifyingRound} onComplete={advance} lang={lang} onMistake={() => setMistakes((m) => m + 1)} />
+              <IdentifyingRound key={roundIndex} round={identifyingRound} onComplete={advance} lang={lang} onMistake={() => setMistakes((m) => m + 1)} suppressAutoPlay={roundIndex === 0} />
             ) : roundDef.type === "catch" && catchWordData ? (
               <CampaignLetterCatchRound
                 key={`catch-${roundIndex}`}
