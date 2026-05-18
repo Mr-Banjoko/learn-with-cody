@@ -137,14 +137,16 @@ export default function Level10({ onBack, lang = "en" }) {
               <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "catch" && catchWordData ? (
               <CampaignLetterCatchRound
-                key={`catch-${roundIndex}`}
-                word={roundDef.word}
-                missingLetter={roundDef.missingLetter}
-                image={catchWordData.image}
-                audio={catchWordData.audio}
-                onComplete={advance}
-                onMistake={onMistake}
-                lang={lang}
+               key={`catch-${roundIndex}`}
+               word={roundDef.word}
+               missingLetter={roundDef.missingLetter}
+               image={catchWordData.image}
+               audio={catchWordData.audio}
+               onComplete={advance}
+               onMistake={onMistake}
+               lang={lang}
+               levelNum={LEVEL_NUM}
+               roundIndex={roundIndex}
               />
             ) : null}
           </motion.div>

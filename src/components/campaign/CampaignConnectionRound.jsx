@@ -18,6 +18,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import RainbowLetterBlock from "../RainbowLetterBlock";
+import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
+import IncorrectGlow from "./IncorrectGlow";
 
 const CARD_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
@@ -166,6 +168,7 @@ function ConnectionRound({ card, onComplete, onMistake }) {
   const setRef = (key) => (el) => { connectorRefs.current[key] = el; };
 
   const triggerWrong = useCallback((topIdx, botIdx) => {
+    playIncorrectFeedback();
     onMistake && onMistake();
     setWrongFeedback({ topIdx, botIdx });
     setTimeout(() => { setWrongFeedback(null); setSelected(null); }, 700);
@@ -187,6 +190,8 @@ function ConnectionRound({ card, onComplete, onMistake }) {
       }
     }, 800);
   }, [matches, letters, onComplete]);
+  // Note: connection round's onComplete triggers win screen (WinScreen handles its own audio).
+  // Correct-answer feedback is handled at the CampaignConnectionRound wrapper level below.
 
   const handleTopDot = useCallback((topIdx) => {
     if (locked || matchedTopIdxs.has(topIdx)) return;
@@ -283,9 +288,10 @@ function ConnectionRound({ card, onComplete, onMistake }) {
   );
 }
 
-export default function CampaignConnectionRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
+export default function CampaignConnectionRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false, levelNum = 0, roundIndex = 0 }) {
   const [audioLocked, setAudioLocked] = useState(true);
   const [showWin, setShowWin] = useState(false);
+  const [glowTrigger, setGlowTrigger] = useState(0);
 
   // Warmup + auto-play word audio at mount (suppressed on Round 1 when hint audio handles sequencing)
   useEffect(() => {
@@ -312,16 +318,22 @@ export default function CampaignConnectionRound({ card, onComplete, onMistake, l
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRoundComplete = useCallback(() => {
-    setShowWin(true);
-  }, []);
+    // Play correct feedback audio, then show win screen
+    playCorrectFeedback(levelNum, roundIndex, () => {
+      setShowWin(true);
+    });
+  }, [levelNum, roundIndex]);
 
-  // Wrap onMistake to also guard against audio lock
+  // Wrap onMistake to also play incorrect feedback and show glow
   const guardedMistake = useCallback(() => {
-    if (!audioLocked) onMistake && onMistake();
+    if (audioLocked) return;
+    setGlowTrigger((n) => n + 1);
+    onMistake && onMistake();
   }, [audioLocked, onMistake]);
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
+      <IncorrectGlow trigger={glowTrigger} />
       {/* Lock overlay during initial audio */}
       {audioLocked && (
         <div style={{ position: "absolute", inset: 0, zIndex: 200, touchAction: "none", pointerEvents: "all" }} />

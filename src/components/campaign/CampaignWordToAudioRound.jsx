@@ -7,6 +7,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../lib/useAudio";
+import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
+import IncorrectGlow from "./IncorrectGlow";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -39,7 +41,7 @@ function SpeakerIcon({ color = "#4ECDC4", size = 40 }) {
   );
 }
 
-export default function CampaignWordToAudioRound({ words, onComplete, onMistake, lang = "en" }) {
+export default function CampaignWordToAudioRound({ words, onComplete, onMistake, lang = "en", levelNum = 0, roundIndex = 0 }) {
   // words = [targetWord, distractor1, distractor2]
   const cards = words.map(findCard);
 
@@ -61,6 +63,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   const [selectedRight, setSelectedRight] = useState(null);
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [wrongFlash, setWrongFlash] = useState(false);
+  const [glowTrigger, setGlowTrigger] = useState(0);
   const wrongTimeout = useRef(null);
   const advanceTimeout = useRef(null);
 
@@ -82,9 +85,13 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
         const wordObj = leftItems.find((it) => it.word === leftWord);
         if (wordObj?.audio) playAudio(wordObj.audio);
         if (newMatched.length === 3) {
-          advanceTimeout.current = setTimeout(() => onComplete(), 900);
+          playCorrectFeedback(levelNum, roundIndex, () => {
+            advanceTimeout.current = setTimeout(() => onComplete(), 200);
+          });
         }
       } else {
+        playIncorrectFeedback();
+        setGlowTrigger((n) => n + 1);
         onMistake && onMistake();
         clearTimeout(wrongTimeout.current);
         setWrongFlash(true);
@@ -116,6 +123,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative" }}>
+      <IncorrectGlow trigger={glowTrigger} />
 
       {/* Hint */}
       <div style={{ flexShrink: 0, textAlign: "center", padding: "10px 24px 4px" }}>

@@ -351,6 +351,8 @@ export default function Level15({ onBack, lang = "en" }) {
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
+                levelNum={LEVEL_NUM}
+                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "connection" && connectionCard && (
@@ -360,6 +362,8 @@ export default function Level15({ onBack, lang = "en" }) {
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
+                levelNum={LEVEL_NUM}
+                roundIndex={roundIndex}
               />
             )}
           </motion.div>

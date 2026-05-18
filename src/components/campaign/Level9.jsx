@@ -139,14 +139,16 @@ export default function Level9({ onBack, lang = "en" }) {
               <IdentifyingRound key={roundIndex} round={identifyingRound} onComplete={advance} lang={lang} onMistake={() => setMistakes((m) => m + 1)} suppressAutoPlay={roundIndex === 0} />
             ) : roundDef.type === "catch" && catchWordData ? (
               <CampaignLetterCatchRound
-                key={`catch-${roundIndex}`}
-                word={roundDef.word}
-                missingLetter={roundDef.missingLetter}
-                image={catchWordData.image}
-                audio={catchWordData.audio}
-                onComplete={advance}
-                onMistake={() => setMistakes((m) => m + 1)}
-                lang={lang}
+               key={`catch-${roundIndex}`}
+               word={roundDef.word}
+               missingLetter={roundDef.missingLetter}
+               image={catchWordData.image}
+               audio={catchWordData.audio}
+               onComplete={advance}
+               onMistake={() => setMistakes((m) => m + 1)}
+               lang={lang}
+               levelNum={LEVEL_NUM}
+               roundIndex={roundIndex}
               />
             ) : null}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}

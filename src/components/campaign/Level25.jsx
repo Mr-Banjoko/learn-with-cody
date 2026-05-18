@@ -138,13 +138,13 @@ export default function Level25({ onBack, lang = "en" }) {
               <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "catch" && catchCard && (
-              <CampaignLetterCatchRound key={`catch-${roundIndex}`} word={catchCard.word} missingLetter={roundDef.missing} image={catchCard.image} audio={catchCard.audio} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignLetterCatchRound key={`catch-${roundIndex}`} word={catchCard.word} missingLetter={roundDef.missing} image={catchCard.image} audio={catchCard.audio} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
             )}
             {roundDef.type === "identifying" && identifyingRound && (
               <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "connection" && connectionCard && (
-              <CampaignConnectionRound key={`connection-${roundIndex}`} card={connectionCard} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignConnectionRound key={`connection-${roundIndex}`} card={connectionCard} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
             )}
             {roundDef.type === "drawline1" && drawLineRound7 && (
               <DrawLineBoard key={`dl1-${roundIndex}`} round={drawLineRound7} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
@@ -153,7 +153,7 @@ export default function Level25({ onBack, lang = "en" }) {
               <DrawLineBoard key={`dl2-${roundIndex}`} round={drawLineRound8} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "missing" && missingCard && (
-              <CampaignMissingSound01Round key={`missing-${roundIndex}`} card={missingCard} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignMissingSound01Round key={`missing-${roundIndex}`} card={missingCard} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
             )}
           </motion.div>
         )}

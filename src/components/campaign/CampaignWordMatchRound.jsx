@@ -7,6 +7,8 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
+import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
+import IncorrectGlow from "./IncorrectGlow";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -24,11 +26,12 @@ function buildRound(card, overrideChoices) {
   return { card, choices };
 }
 
-export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
+export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false, levelNum = 0, roundIndex = 0 }) {
   const [round] = useState(() => buildRound(card, overrideChoices));
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [audioLocked, setAudioLocked] = useState(true);
+  const [glowTrigger, setGlowTrigger] = useState(0);
   const autoPlayedRef = useRef(false);
 
   // Auto-play on mount (suppressed on Round 1 when hint audio handles sequencing)
@@ -54,20 +57,28 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
     setFeedback(correct ? "correct" : "wrong");
     if (correct) {
       if (card.audio) playAudio(card.audio);
+      // Play feedback audio first, then trigger success sequence after it ends
+      playCorrectFeedback(levelNum, roundIndex, () => {
+        setFeedback(null);
+        setSelected(null);
+        onComplete();
+      });
     } else {
+      playIncorrectFeedback();
+      setGlowTrigger((n) => n + 1);
       onMistake && onMistake();
+      setTimeout(() => {
+        setFeedback(null);
+        setSelected(null);
+      }, 900);
     }
-    setTimeout(() => {
-      setFeedback(null);
-      setSelected(null);
-      if (correct) onComplete();
-    }, correct ? 1400 : 900);
-  }, [feedback, audioLocked, round, card, onComplete, onMistake]);
+  }, [feedback, audioLocked, round, card, onComplete, onMistake, levelNum, roundIndex]);
 
   const color = "#FF6B6B";
 
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16, fontFamily: "Fredoka, sans-serif", position: "relative" }}>
+      <IncorrectGlow trigger={glowTrigger} />
       {audioLocked && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
       {/* Picture card */}

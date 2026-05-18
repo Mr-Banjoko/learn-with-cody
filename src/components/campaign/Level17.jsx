@@ -101,6 +101,8 @@ export default function Level17({ onBack, lang = "en" }) {
                 onComplete={advance}
                 lang={lang}
                 suppressAutoPlay={roundIndex === 0}
+                levelNum={LEVEL_NUM}
+                roundIndex={roundIndex}
               />
             )}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}

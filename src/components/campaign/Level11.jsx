@@ -117,6 +117,8 @@ export default function Level11({ onBack, lang = "en" }) {
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
+                levelNum={LEVEL_NUM}
+                roundIndex={roundIndex}
               />
             )}
           </motion.div>

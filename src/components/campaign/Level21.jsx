@@ -85,7 +85,7 @@ export default function Level21({ onBack, lang = "en" }) {
               <Level1Phonics card={card} onNext={advance} lang={lang} isFirstCard={false} />
             )}
             {round.type === "write" && card && (
-              <CampaignWriteRound key={`write-${roundIndex}`} card={card} onComplete={advance} lang={lang} />
+              <CampaignWriteRound key={`write-${roundIndex}`} card={card} onComplete={advance} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
             )}
           </motion.div>
         )}
