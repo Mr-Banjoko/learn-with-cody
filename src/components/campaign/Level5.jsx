@@ -124,7 +124,7 @@ export default function Level5({ onBack, lang = "en" }) {
       background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
       overflow: "hidden",
     }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={ROUND_SEQUENCE[roundIndex]?.type} />
 
       {/* Progress bar */}
       {!done && (

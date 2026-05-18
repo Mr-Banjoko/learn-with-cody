@@ -103,7 +103,7 @@ export default function Level1({ onBack, lang = "en" }) {
         overflow: "hidden",
       }}
     >
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={round?.type} />
 
       {/* Progress bar */}
       {!done && (

@@ -2,16 +2,18 @@
  * Shared header used inside every campaign level.
  *
  * Layout:
- *   [ BackArrow ]   [ HeartDisplay ]
+ *   [ BackArrow ]   [ HeartDisplay ]  [ HintButton ]
  *   [ Label        ]
  *
- * The label sits directly below the back arrow, not beside it.
+ * Hearts sit on the right, with Hint button to their right.
+ * The label sits directly below the back arrow.
  */
 import BackArrow from "../BackArrow";
 import HeartDisplay from "./HeartDisplay";
+import HintButton from "./HintButton";
 import { getLevelLabel } from "../../lib/levelLabel";
 
-export default function LevelHeader({ levelNum, mistakes, onBack, lang = "en" }) {
+export default function LevelHeader({ levelNum, mistakes, onBack, lang = "en", gameType }) {
   const label = getLevelLabel(levelNum, lang);
 
   return (
@@ -26,10 +28,12 @@ export default function LevelHeader({ levelNum, mistakes, onBack, lang = "en" })
         backdropFilter: "blur(10px)",
       }}
     >
-      {/* Row: back arrow + heart */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      {/* Row: back arrow | spacer | hearts | hint button */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <BackArrow onPress={onBack} />
+        <div style={{ flex: 1 }} />
         <HeartDisplay mistakes={mistakes} size={54} />
+        <HintButton gameType={gameType} lang={lang} />
       </div>
 
       {/* Label directly below back arrow */}
