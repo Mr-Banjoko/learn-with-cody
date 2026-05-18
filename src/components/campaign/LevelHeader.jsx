@@ -11,8 +11,8 @@ import BackArrow from "../BackArrow";
 import HeartDisplay from "./HeartDisplay";
 import { getLevelLabel } from "../../lib/levelLabel";
 
-export default function LevelHeader({ levelNum, mistakes, onBack }) {
-  const label = getLevelLabel(levelNum);
+export default function LevelHeader({ levelNum, mistakes, onBack, lang = "en" }) {
+  const label = getLevelLabel(levelNum, lang);
 
   return (
     <div

@@ -113,7 +113,7 @@ export default function Level18({ onBack, lang = "en" }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} />
 
       {/* Progress bar */}
       {!done && (

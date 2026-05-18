@@ -86,7 +86,7 @@ export default function Level7({ onBack, lang = "en" }) {
       background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
       overflow: "hidden",
     }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} />
 
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>

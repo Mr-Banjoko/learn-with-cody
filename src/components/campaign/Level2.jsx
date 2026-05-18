@@ -85,7 +85,7 @@ export default function Level3({ onBack, lang = "en" }) {
         overflow: "hidden",
       }}
     >
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} />
 
       {/* Progress bar */}
       {!done && (
