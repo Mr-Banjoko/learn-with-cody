@@ -144,7 +144,7 @@ function CandyArrow({ direction, onPress }) {
   );
 }
 
-export default function CampaignLetterCatchRound({ word, missingLetter, image, audio, onComplete, onMistake, lang = "en" }) {
+export default function CampaignLetterCatchRound({ word, missingLetter, image, audio, onComplete, onMistake, lang = "en", paused = false, skipInitialAudio = false }) {
   const letters = word.split("");
   // Find the index of the missing letter in the word
   const missingPos = letters.indexOf(missingLetter);
@@ -169,11 +169,12 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
 
   useEffect(() => { codyLaneRef.current = codyLane; }, [codyLane]);
 
-  // Auto-play word audio at round start
+  // Auto-play word audio at round start (skip if external sequence handles it)
   useEffect(() => {
+    if (skipInitialAudio) return;
     const t = setTimeout(() => playAudio(audio), 300);
     return () => clearTimeout(t);
-  }, [audio]);
+  }, [audio, skipInitialAudio]);
 
   useEffect(() => {
     const measure = () => {
@@ -219,7 +220,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
   useEffect(() => { handleCatchRef.current = handleCatch; }, [handleCatch]);
 
   useEffect(() => {
-    if (phase !== "playing") return;
+    if (phase !== "playing" || paused) return;
     tickRef.current = setInterval(() => {
       if (phaseRef.current !== "playing") return;
       const now = Date.now();
@@ -262,7 +263,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
     }, TICK_MS);
 
     return () => clearInterval(tickRef.current);
-  }, [phase, queue]);
+  }, [phase, paused, queue]);
 
   useEffect(() => {
     return () => { clearInterval(tickRef.current); };

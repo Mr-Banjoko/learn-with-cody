@@ -17,7 +17,7 @@ import LetterTrace from "../games/write/short-a/LetterTrace";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 
-export default function CampaignWriteRound({ card, onComplete, lang = "en" }) {
+export default function CampaignWriteRound({ card, onComplete, lang = "en", suppressAutoPlay = false }) {
   const word = card.word;
   const [completedLetters, setCompletedLetters] = useState([]);
   const [locked, setLocked] = useState(true);
@@ -36,7 +36,13 @@ export default function CampaignWriteRound({ card, onComplete, lang = "en" }) {
   }, []);
 
   // Auto-play word audio at mount, then unlock tracing
+  // suppressAutoPlay: skip this when hint audio will play word audio via onHintComplete
   useEffect(() => {
+    if (suppressAutoPlay) {
+      setLocked(false);
+      lockedRef.current = false;
+      return;
+    }
     setLocked(true);
     lockedRef.current = true;
     const t = setTimeout(() => {

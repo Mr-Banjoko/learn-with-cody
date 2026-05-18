@@ -6,21 +6,37 @@
  * full-screen overlay to block all UI interaction.
  *
  * Rules:
- * - Plays immediately on mount (or when roundIndex / lang changes).
- * - Each (levelNum, roundIndex, lang) triple plays exactly once per mount.
+ * - Plays immediately on mount (or when url changes).
+ * - Each url plays exactly once per mount.
  * - If audio fails to load or play, the lock is released gracefully.
  * - No overlap: any previous audio is stopped before the next starts.
+ * - onHintComplete (optional): called when hint audio finishes. Use this
+ *   to chain additional audio before unlocking the UI.
+ *   When onHintComplete is provided, `locked` stays true after hint finishes
+ *   until the caller explicitly calls the `unlock` function passed to onHintComplete.
  *
- * Usage:
+ * Usage (simple):
  *   const { locked } = useRoundHintAudio({ url });
- *   // render: locked && <div style={LOCK_OVERLAY_STYLE} />
+ *
+ * Usage (chained word audio):
+ *   const { locked } = useRoundHintAudio({
+ *     url,
+ *     onHintComplete: (unlock) => {
+ *       const audio = new Audio(wordAudioUrl);
+ *       audio.onended = unlock;
+ *       audio.onerror = unlock;
+ *       audio.play().catch(unlock);
+ *     }
+ *   });
  */
 import { useState, useEffect, useRef } from "react";
 
-export function useRoundHintAudio({ url }) {
-  const [locked, setLocked] = useState(!!url); // start locked if we have a URL
+export function useRoundHintAudio({ url, onHintComplete }) {
+  const [locked, setLocked] = useState(!!url);
   const audioRef = useRef(null);
   const playedRef = useRef(false);
+  const onHintCompleteRef = useRef(onHintComplete);
+  useEffect(() => { onHintCompleteRef.current = onHintComplete; }, [onHintComplete]);
 
   useEffect(() => {
     // Reset on url change (new round entry)
@@ -49,15 +65,29 @@ export function useRoundHintAudio({ url }) {
       audioRef.current = null;
     };
 
-    audio.onended = unlock;
+    const onHintDone = () => {
+      audioRef.current = null;
+      const cb = onHintCompleteRef.current;
+      if (cb) {
+        // Keep locked=true; caller must call unlock() when ready
+        cb(unlock);
+      } else {
+        unlock();
+      }
+    };
+
+    audio.onended = onHintDone;
     audio.onerror = () => {
       console.error(`[RoundHintAudio] Failed to load: ${url}`);
-      unlock();
+      // On error, still try to chain or just unlock
+      const cb = onHintCompleteRef.current;
+      if (cb) { cb(unlock); } else { unlock(); }
     };
 
     audio.play().catch((err) => {
       console.error(`[RoundHintAudio] play() rejected:`, err);
-      unlock();
+      const cb = onHintCompleteRef.current;
+      if (cb) { cb(unlock); } else { unlock(); }
     });
 
     return () => {
@@ -65,7 +95,7 @@ export function useRoundHintAudio({ url }) {
       audio.onended = null;
       audio.onerror = null;
     };
-  }, [url]);
+  }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { locked };
 }
@@ -76,9 +106,6 @@ const GH = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/le
 /**
  * Returns the hint audio URL for the given level + roundIndex + lang,
  * or null if this round has no hint audio.
- *
- * English folder names that have a trailing space are encoded as %20.
- * Filenames with spaces (e.g. "hint 3.mp3") are encoded correctly.
  */
 export function getHintAudioUrl(levelNum, roundIndex, lang) {
   const zh = lang === "zh";

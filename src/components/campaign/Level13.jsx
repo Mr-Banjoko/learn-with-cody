@@ -44,8 +44,22 @@ export default function Level13({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  // Round 1 only: chain word audio after hint audio before unlocking
+  const round1WordAudio = roundIndex === 0 ? (buildWordData(WORD_ORDER[0])?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!round1WordAudio) { unlock(); return; }
+    const audio = new Audio(round1WordAudio);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [round1WordAudio]);
+
   const hintUrl = getHintAudioUrl(13, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -101,6 +115,7 @@ export default function Level13({ onBack, lang = "en" }) {
               onComplete={advance}
               onMistake={onMistake}
               lang={lang}
+              suppressAutoPlay={roundIndex === 0}
             />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>

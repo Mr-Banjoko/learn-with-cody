@@ -283,15 +283,21 @@ function ConnectionRound({ card, onComplete, onMistake }) {
   );
 }
 
-export default function CampaignConnectionRound({ card, onComplete, onMistake, lang = "en" }) {
+export default function CampaignConnectionRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [audioLocked, setAudioLocked] = useState(true);
   const [showWin, setShowWin] = useState(false);
 
-  // Warmup + auto-play word audio at mount
+  // Warmup + auto-play word audio at mount (suppressed on Round 1 when hint audio handles sequencing)
   useEffect(() => {
     const letters = card.word.split("");
     const letterUrls = letters.map(getLetterSoundUrl).filter(Boolean);
     warmupAudio([...letterUrls, card.audio].filter(Boolean));
+
+    if (suppressAutoPlay) {
+      // Unlock immediately — the level shell will play word audio via onHintComplete
+      setAudioLocked(false);
+      return;
+    }
 
     const t = setTimeout(() => {
       if (card.audio) {

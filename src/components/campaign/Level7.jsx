@@ -45,8 +45,22 @@ export default function Level7({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  // For round 0 (Round 1): chain word audio after hint audio, keep game paused until both finish
+  const wordAudioUrl = roundIndex === 0 ? (findWord(ROUND_DEFS[0].word)?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!wordAudioUrl) { unlock(); return; }
+    const audio = new Audio(wordAudioUrl);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [wordAudioUrl]);
+
   const hintUrl = getHintAudioUrl(7, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
+  });
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
@@ -128,6 +142,8 @@ export default function Level7({ onBack, lang = "en" }) {
               onComplete={advance}
               onMistake={onMistake}
               lang={lang}
+              paused={hintLocked}
+              skipInitialAudio={roundIndex === 0}
             />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>

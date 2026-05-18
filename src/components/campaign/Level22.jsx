@@ -2,7 +2,7 @@
  * Level 22 — 5-round Dictation game
  * Words: gap, wax, tan, tax, dam
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BackArrow from "../BackArrow";
 import LevelCompleteScreen from "./LevelCompleteScreen";
@@ -33,8 +33,23 @@ export default function Level22({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  // Round 1 only: chain word audio after hint audio, then unlock
+  const isRound1 = roundIndex === 0;
+  const round1WordAudio = useMemo(() => findWord(WORD_ORDER[0])?.audio || null, []);
+  const onHintComplete = useCallback((unlock) => {
+    if (!round1WordAudio) { unlock(); return; }
+    const audio = new Audio(round1WordAudio);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [round1WordAudio]);
+
   const hintUrl = getHintAudioUrl(22, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: isRound1 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -72,7 +87,7 @@ export default function Level22({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {card && (
-              <DictationCampaignRound key={`dictation-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <DictationCampaignRound key={`dictation-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={isRound1} />
             )}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>

@@ -24,15 +24,19 @@ function buildRound(card, overrideChoices) {
   return { card, choices };
 }
 
-export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en" }) {
+export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [round] = useState(() => buildRound(card, overrideChoices));
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [audioLocked, setAudioLocked] = useState(true);
   const autoPlayedRef = useRef(false);
 
-  // Auto-play on mount
+  // Auto-play on mount (suppressed on Round 1 when hint audio handles sequencing)
   useEffect(() => {
+    if (suppressAutoPlay) {
+      setAudioLocked(false);
+      return;
+    }
     if (autoPlayedRef.current) return;
     autoPlayedRef.current = true;
     const t = setTimeout(() => {

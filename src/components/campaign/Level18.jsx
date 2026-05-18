@@ -77,8 +77,23 @@ export default function Level18({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  // Round 1 only: chain first word's audio after hint audio, then unlock
+  const isRound1 = roundIndex === 0;
+  const round1WordAudio = useMemo(() => findWord(ROUND_SEQUENCE[0].words[0])?.audio || null, []);
+  const onHintComplete = useCallback((unlock) => {
+    if (!round1WordAudio) { unlock(); return; }
+    const audio = new Audio(round1WordAudio);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [round1WordAudio]);
+
   const hintUrl = getHintAudioUrl(18, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: isRound1 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;

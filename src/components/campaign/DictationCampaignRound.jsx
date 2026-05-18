@@ -37,7 +37,7 @@ function splitRows(tiles) {
   return [tiles.slice(0, 4), tiles.slice(4, 8), tiles.slice(8, 12)];
 }
 
-export default function DictationCampaignRound({ card, onComplete, onMistake, lang = "en" }) {
+export default function DictationCampaignRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [round] = useState(() => buildRound(card));
   const [placed, setPlaced] = useState([null, null, null]);
   const [placedColors, setPlacedColors] = useState({});
@@ -53,6 +53,10 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
   const isDragging = useRef(false);
 
   useEffect(() => {
+    if (suppressAutoPlay) {
+      setAudioLocked(false);
+      return;
+    }
     setAudioLocked(true);
     const t = setTimeout(() => {
       if (card.audio) {
