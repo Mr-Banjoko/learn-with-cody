@@ -146,7 +146,7 @@ export default function Level1({ onBack, lang = "en" }) {
                 isFirstCard={round.guided === true}
               />
             ) : (
-              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} />
+              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
             )}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>

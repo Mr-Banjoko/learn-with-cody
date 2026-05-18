@@ -74,7 +74,7 @@ export default function Level34({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={currentCard} onComplete={advance} onMistake={onMistake} lang={lang} />
+            <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={currentCard} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
           </motion.div>
         )}
       </AnimatePresence>

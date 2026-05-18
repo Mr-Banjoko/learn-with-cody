@@ -21,6 +21,8 @@ const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { shortAWords } from "../../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
+import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
+import IncorrectGlow from "./IncorrectGlow";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function findWord(name) {
@@ -82,7 +84,7 @@ function buildMissingRound(def) {
 }
 
 // ── MissingSoundRound (inline, campaign-aware) ────────────────────────────────
-function MissingSoundRound({ round, onComplete, lang, onMistake }) {
+function MissingSoundRound({ round, onComplete, lang, onMistake, levelNum = 0, roundIndex = 0 }) {
   const accentColor = "#4ECDC4";
 
   const [placedOption, setPlacedOption] = useState(null);
@@ -90,6 +92,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   const [bouncingIndex, setBouncingIndex] = useState(null);
   const [dragState, setDragState] = useState(null);
   const [isActiveDrag, setIsActiveDrag] = useState(false);
+  const [glowTrigger, setGlowTrigger] = useState(0);
 
   const dropZoneRef = useRef(null);
   const sequenceRef = useRef(null);
@@ -104,18 +107,20 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
 
   const playCompletion = useCallback(() => {
     setFeedback("completing");
-    const steps = round.letters.map((letter, i) => {
-      const url = getLetterSoundUrl(letter);
-      return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
-    }).filter(Boolean);
-    if (round.card.audio) steps.push({ url: round.card.audio, onStart: () => setBouncingIndex(null) });
-    const cancel = playAudioSequence(steps, () => {
-      sequenceRef.current = null;
-      setBouncingIndex(null);
-      onComplete();
+    playCorrectFeedback(levelNum, roundIndex, () => {
+      const steps = round.letters.map((letter, i) => {
+        const url = getLetterSoundUrl(letter);
+        return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
+      }).filter(Boolean);
+      if (round.card.audio) steps.push({ url: round.card.audio, onStart: () => setBouncingIndex(null) });
+      const cancel = playAudioSequence(steps, () => {
+        sequenceRef.current = null;
+        setBouncingIndex(null);
+        onComplete();
+      });
+      sequenceRef.current = cancel;
     });
-    sequenceRef.current = cancel;
-  }, [round, onComplete]);
+  }, [round, onComplete, levelNum, roundIndex]);
 
   const handleSubmit = useCallback(() => {
     const placed = placedOptionRef.current;
@@ -123,6 +128,8 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
     if (placed.isCorrect) {
       playCompletion();
     } else {
+      playIncorrectFeedback();
+      setGlowTrigger((n) => n + 1);
       setFeedback("wrong");
       onMistake && onMistake();
       setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700);
@@ -202,11 +209,12 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "space-evenly",
         padding: "10px 20px 14px", minHeight: 0,
-        touchAction: "none", userSelect: "none",
+        touchAction: "none", userSelect: "none", position: "relative",
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      <IncorrectGlow trigger={glowTrigger} />
       {/* 3 letter boxes */}
       <div style={{
         background: "rgba(255,255,255,0.55)", borderRadius: 32,
@@ -425,9 +433,9 @@ export default function Level2({ onBack, lang = "en" }) {
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {roundDef.type === "missing" && missingRound ? (
-              <MissingSoundRound key={`missing-${roundIndex}`} round={missingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
+              <MissingSoundRound key={`missing-${roundIndex}`} round={missingRound} onComplete={advance} lang={lang} onMistake={onMistake} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
             ) : roundDef.type === "drag" && dragCard ? (
-              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
+              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
             ) : null}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>

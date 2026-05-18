@@ -12,6 +12,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../lib/useAudio";
+import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
+import IncorrectGlow from "../campaign/IncorrectGlow";
 
 const CHOICE_COLORS = [
   { border: "#4ECDC4", shadow: "rgba(78,205,196,0.35)", ring: "rgba(78,205,196,0.28)" },
@@ -65,10 +67,11 @@ async function preloadAll(urls) {
  *   onComplete () => void
  *   lang       "en" | "zh"
  */
-export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake, suppressAutoPlay = false }) {
+export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake, suppressAutoPlay = false, levelNum = 0, roundIndex = 0 }) {
   const [selected, setSelected]     = useState(null);
   const [showNext, setShowNext]      = useState(false);
   const [wrongShake, setWrongShake]  = useState(false);
+  const [glowTrigger, setGlowTrigger] = useState(0);
   // Gate: choices are hidden until ALL 3 images are decoded and blob-ready
   const [imagesReady, setImagesReady] = useState(false);
   // Map of original url → local blob: url (guaranteed sync paint)
@@ -129,17 +132,22 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
     if (!selected || showNext) return;
     if (selected.word === round.target.word) {
       if (round.target.audio) playAudio(round.target.audio);
-      setShowNext(true);
+      playCorrectFeedback(levelNum, roundIndex, () => {
+        setShowNext(true);
+      });
     } else {
+      playIncorrectFeedback();
+      setGlowTrigger((n) => n + 1);
       clearTimeout(shakeTimeout.current);
       setWrongShake(true);
       shakeTimeout.current = setTimeout(() => setWrongShake(false), 600);
       onMistake && onMistake();
     }
-  }, [selected, round, showNext]);
+  }, [selected, round, showNext, levelNum, roundIndex]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative" }}>
+      <IncorrectGlow trigger={glowTrigger} />
 
       {/* Word + speaker */}
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 14, padding: "20px 24px 10px" }}>

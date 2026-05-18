@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
+import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
+import IncorrectGlow from "./IncorrectGlow";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#FFAFC5"];
@@ -37,7 +39,7 @@ function buildRound(card) {
   return { card, letters, options };
 }
 
-export default function Level1DragV2({ card, onComplete, lang = "en", onMistake }) {
+export default function Level1DragV2({ card, onComplete, lang = "en", onMistake, levelNum = 0, roundIndex = 0 }) {
   const [round] = useState(() => buildRound(card));
   const [placed, setPlaced] = useState(Array(card.word.length).fill(null));
   const [placedColors, setPlacedColors] = useState({});
@@ -45,27 +47,30 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
   const [bouncingIndex, setBouncingIndex] = useState(null);
   const [submitError, setSubmitError] = useState(false);
   const [dragState, setDragState] = useState(null);
+  const [glowTrigger, setGlowTrigger] = useState(0);
   const dropZoneRefs = useRef([]);
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
 
   const playCompletion = useCallback(() => {
     setCompleting(true);
-    const letterSteps = round.letters.map((letter, i) => {
-      const url = getLetterSoundUrl(letter);
-      return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
-    }).filter(Boolean);
-    const wordStep = round.card.audio
-      ? [{ url: round.card.audio, onStart: () => setBouncingIndex(null) }]
-      : [];
-    const steps = [...letterSteps, ...wordStep];
-    const cancel = playAudioSequence(steps, () => {
-      sequenceRef.current = null;
-      setBouncingIndex(null);
-      onComplete();
+    playCorrectFeedback(levelNum, roundIndex, () => {
+      const letterSteps = round.letters.map((letter, i) => {
+        const url = getLetterSoundUrl(letter);
+        return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
+      }).filter(Boolean);
+      const wordStep = round.card.audio
+        ? [{ url: round.card.audio, onStart: () => setBouncingIndex(null) }]
+        : [];
+      const steps = [...letterSteps, ...wordStep];
+      const cancel = playAudioSequence(steps, () => {
+        sequenceRef.current = null;
+        setBouncingIndex(null);
+        onComplete();
+      });
+      sequenceRef.current = cancel;
     });
-    sequenceRef.current = cancel;
-  }, [round, onComplete]);
+  }, [round, onComplete, levelNum, roundIndex]);
 
   const handleTouchStart = useCallback((e, option) => {
     if (placed.includes(option.id) || completing) return;
@@ -128,6 +133,8 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
     if (allCorrect) {
       playCompletion();
     } else {
+      playIncorrectFeedback();
+      setGlowTrigger((n) => n + 1);
       setSubmitError(true);
       onMistake && onMistake();
       setTimeout(() => {
@@ -142,10 +149,11 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
 
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif", touchAction: "none", userSelect: "none" }}
+      style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif", touchAction: "none", userSelect: "none", position: "relative" }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      <IncorrectGlow trigger={glowTrigger} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0 }}>
 
         {/* Picture */}

@@ -184,6 +184,8 @@ export default function Level20({ onBack, lang = "en" }) {
                 onComplete={advance}
                 lang={lang}
                 onMistake={onMistake}
+                levelNum={LEVEL_NUM}
+                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "write" && writeCard && (
@@ -228,6 +230,8 @@ export default function Level20({ onBack, lang = "en" }) {
                 onComplete={advance}
                 lang={lang}
                 onMistake={onMistake}
+                levelNum={LEVEL_NUM}
+                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "drawline" && drawLineRound && (
@@ -246,6 +250,8 @@ export default function Level20({ onBack, lang = "en" }) {
                 onRoundComplete={advance}
                 lang={lang}
                 onMistake={onMistake}
+                levelNum={LEVEL_NUM}
+                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "missing" && missingCard && (

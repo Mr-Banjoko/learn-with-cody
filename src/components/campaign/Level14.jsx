@@ -122,6 +122,8 @@ export default function Level14({ onBack, lang = "en" }) {
                 onComplete={advance}
                 lang={lang}
                 onMistake={(m) => setMistakes((prev) => prev + (typeof m === "number" ? m : 1))}
+                levelNum={LEVEL_NUM}
+                roundIndex={roundIndex}
               />
             ) : roundDef.type === "rearrange" && rearrangeWordPair ? (
               <PicSliceBoardEasy
@@ -130,6 +132,8 @@ export default function Level14({ onBack, lang = "en" }) {
                 onRoundComplete={advance}
                 lang={lang}
                 onMistake={onMistake}
+                levelNum={LEVEL_NUM}
+                roundIndex={roundIndex}
               />
             ) : null}
           </motion.div>

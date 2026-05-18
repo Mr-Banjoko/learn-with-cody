@@ -4,6 +4,8 @@ import { RotateCcw } from "lucide-react";
 import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
+import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
+import IncorrectGlow from "../campaign/IncorrectGlow";
 
 // Round color palette — one theme chosen randomly per round
 const ROUND_PALETTES = [
@@ -58,7 +60,7 @@ function PadlockIcon({ size = 28 }) {
   );
 }
 
-export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake, orderedAudio = false, suppressAutoPlay = false }) {
+export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake, orderedAudio = false, suppressAutoPlay = false, levelNum = 0, roundIndex = 0 }) {
   const wd = wordPair[0];
 
   const palette = useMemo(() => pickPalette(), [wordPair]);
@@ -66,6 +68,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
   const [state, setState] = useState(() => buildState(wordPair, orderedAudio));
   const [dragState, setDragState] = useState(null);
   const [playingSequence, setPlayingSequence] = useState(false);
+  const [glowTrigger, setGlowTrigger] = useState(0);
 
   // ── LISTEN-FIRST LOCK STATE ──────────────────────────────────────────────
   // Set of piece IDs that have been tapped (listened to). All 3 must be in
@@ -99,29 +102,30 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
     return () => clearTimeout(autoPlayRef.current);
   }, [wordPair]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── After word complete: play phoneme sequence then advance ───────────────
+  // ── After word complete: play feedback then phoneme sequence then advance ──
   useEffect(() => {
     if (!state.wordComplete || playingSequence) return;
     setPlayingSequence(true);
 
-    const orderedPhonemes = [0, 1, 2].map((slot) => {
-      const piece = state.pieces.find((p) => p.wordIndex === 0 && p.targetSlot === slot);
-      return piece ? { url: piece.letterAudio, gain: getLetterGain(piece.phoneme) } : null;
-    }).filter(Boolean);
+    playCorrectFeedback(levelNum, roundIndex, () => {
+      const orderedPhonemes = [0, 1, 2].map((slot) => {
+        const piece = state.pieces.find((p) => p.wordIndex === 0 && p.targetSlot === slot);
+        return piece ? { url: piece.letterAudio, gain: getLetterGain(piece.phoneme) } : null;
+      }).filter(Boolean);
 
-    const steps = [
-      ...orderedPhonemes.map((p) => ({ url: p.url, gain: p.gain })),
-      { url: wd.audio, gain: 1 },
-    ];
+      const steps = [
+        ...orderedPhonemes.map((p) => ({ url: p.url, gain: p.gain })),
+        { url: wd.audio, gain: 1 },
+      ];
 
-    const advanceTimer = { id: null };
-    cancelSequenceRef.current = playAudioSequence(steps, () => {
-      advanceTimer.id = setTimeout(onRoundComplete, 300);
+      const advanceTimer = { id: null };
+      cancelSequenceRef.current = playAudioSequence(steps, () => {
+        advanceTimer.id = setTimeout(onRoundComplete, 300);
+      });
     });
 
     return () => {
       if (cancelSequenceRef.current) cancelSequenceRef.current();
-      clearTimeout(advanceTimer.id);
     };
   }, [state.wordComplete]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -211,6 +215,8 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
         });
         setState((prev) => ({ ...prev, placed: newPlaced, trayIds: newTrayIds, wordComplete }));
       } else {
+        playIncorrectFeedback();
+        setGlowTrigger((n) => n + 1);
         setState((prev) => ({ ...prev, rejectedSlot: hitKey }));
         onMistake && onMistake();
         setTimeout(() => setState((prev) => ({ ...prev, rejectedSlot: null })), 500);
@@ -266,6 +272,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      <IncorrectGlow trigger={glowTrigger} />
 
       {/* ── WORD LABEL ─────────────────────────────────────────────────────── */}
       <motion.button
