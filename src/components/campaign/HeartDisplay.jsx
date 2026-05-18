@@ -40,7 +40,7 @@ function HeartSlot({ slotIndex, mistakes, size }) {
 
 export default function HeartDisplay({ mistakes = 0, size = 105 }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: Math.round(size * -0.3) }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
       {[0, 1, 2].map((i) => (
         <HeartSlot key={i} slotIndex={i} mistakes={mistakes} size={size} />
       ))}

@@ -62,8 +62,8 @@ export default function HintButton({ gameType, lang = "en" }) {
         touchAction: "manipulation",
         userSelect: "none",
         flexShrink: 0,
-        width: 48,
-        height: 48,
+        width: 72,
+        height: 72,
       }}
       aria-label="Hint"
     >
@@ -71,8 +71,8 @@ export default function HintButton({ gameType, lang = "en" }) {
         src={HINT_IMG}
         alt="Hint"
         style={{
-          width: 48,
-          height: 48,
+          width: 72,
+          height: 72,
           objectFit: "contain",
           display: "block",
           pointerEvents: "none",

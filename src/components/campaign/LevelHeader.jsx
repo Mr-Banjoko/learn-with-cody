@@ -32,7 +32,7 @@ export default function LevelHeader({ levelNum, mistakes, onBack, lang = "en", g
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }} />
-        <HeartDisplay mistakes={mistakes} size={54} />
+        <HeartDisplay mistakes={mistakes} size={76} />
         <HintButton gameType={gameType} lang={lang} />
       </div>
 
