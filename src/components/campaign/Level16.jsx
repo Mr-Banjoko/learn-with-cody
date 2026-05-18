@@ -19,7 +19,7 @@
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import BackArrow from "../BackArrow";
+import LevelHeader from "./LevelHeader";
 import Level1Phonics from "./Level1Phonics";
 import CampaignConnectionRound from "./CampaignConnectionRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
@@ -94,16 +94,7 @@ export default function Level16({ onBack, lang = "en" }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      {/* Header */}
-      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4, padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)" }}>
-        <BackArrow onPress={onBack} />
-        <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>
-            {lang === "zh" ? "第 16 关" : "Level 16"}
-          </p>
-        </div>
-        <HeartDisplay mistakes={mistakes} size={54} />
-      </div>
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} />
 
       {/* Progress bar */}
       {!done && (

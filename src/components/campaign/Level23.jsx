@@ -5,9 +5,8 @@
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import BackArrow from "../BackArrow";
+import LevelHeader from "./LevelHeader";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
 import Level1DragV2 from "./Level1DragV2";
 import WriteV2CampaignRound from "./WriteV2CampaignRound";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
@@ -62,11 +61,7 @@ export default function Level23({ onBack, lang = "en" }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4, padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)" }}>
-        <BackArrow onPress={onBack} />
-        <div style={{ flex: 1 }}><p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1E293B" }}>{lang === "zh" ? "第 23 关" : "Level 23"}</p></div>
-        <HeartDisplay mistakes={mistakes} size={54} />
-      </div>
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
