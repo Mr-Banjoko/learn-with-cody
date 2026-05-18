@@ -13,6 +13,11 @@ if ('serviceWorker' in navigator) {
     .catch(() => {});
 }
 
+// Clear ALL browser caches on every load so stale JS/CSS never survives a publish.
+if ('caches' in window) {
+  caches.keys().then((names) => names.forEach((n) => caches.delete(n))).catch(() => {});
+}
+
 ["cody_placement_result", "cody_album"].forEach((k) => localStorage.removeItem(k));
 prefetchCoreImages();
 
