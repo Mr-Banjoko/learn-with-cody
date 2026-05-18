@@ -163,8 +163,10 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     };
   }, [tutPhase, isTutorial, lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset playedPhaseRef when tutorial restarts (new card)
+  // Reset playedPhaseRef when card CHANGES (not on initial mount)
+  const isFirstMount = useRef(true);
   useEffect(() => {
+    if (isFirstMount.current) { isFirstMount.current = false; return; }
     playedPhaseRef.current = null;
     // Stop any in-progress guide audio on card change
     if (guideAudioRef.current) {
