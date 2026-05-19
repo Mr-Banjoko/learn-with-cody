@@ -59,11 +59,9 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
     if (correct) {
       playCorrect(() => {
         if (card.audio) playAudio(card.audio);
-        setTimeout(() => {
-          setFeedback(null);
-          setSelected(null);
-          onComplete();
-        }, 900);
+        setFeedback(null);
+        setSelected(null);
+        onComplete();
       });
     } else {
       playTryAgain();

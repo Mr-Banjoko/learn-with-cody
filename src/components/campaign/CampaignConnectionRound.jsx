@@ -102,7 +102,7 @@ function WinScreen({ card, onDone }) {
       seqRef.current = playAudioSequence(steps, () => {
         seqRef.current = null;
         setActiveLetterIndex(null);
-        setTimeout(onDone, 600);
+        onDone();
       });
     }, 400);
 
