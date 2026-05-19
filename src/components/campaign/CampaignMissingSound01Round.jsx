@@ -6,6 +6,7 @@
  * when correct, calls onMistake() on wrong answer.
  *
  * Audio auto-plays at mount (word audio), UI locked during playback.
+ * Correct answer: plays correct-sound.mp3 first, then 50ms later triggers success sequence.
  */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -106,9 +107,9 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
     const placed = placedOptionRef.current;
     if (!placed || feedback === "completing") return;
     if (placed.isCorrect) {
-      setFeedback("completing");
+      setFeedback("completing"); // lock UI immediately
       playCorrect(() => {
-        setTimeout(() => playCompletion(), 100);
+        setTimeout(() => playCompletion(), 50);
       });
     } else {
       setFeedback("wrong");
