@@ -101,10 +101,13 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
   // Track which choice word is wrong-shaking
   const [wrongWord, setWrongWord] = useState(null);
 
+  const [completing, setCompleting] = useState(false);
+
   const handleSubmit = useCallback(() => {
     if (!selected || correctFiredRef.current) return;
     if (selected.word === round.target.word) {
       correctFiredRef.current = true;
+      setCompleting(true);
       playCorrect(() => {
         onComplete();
       });
@@ -118,7 +121,8 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
   }, [selected, round, playCorrect, playTryAgain, onComplete, onMistake]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative" }}>
+      {completing && <div style={{ position: "absolute", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
       {/* Word + speaker */}
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 14, padding: "20px 24px 10px" }}>

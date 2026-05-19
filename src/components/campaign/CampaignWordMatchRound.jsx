@@ -58,9 +58,12 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
     setFeedback(correct ? "correct" : "wrong");
     if (correct) {
       playCorrect(() => {
-        setFeedback(null);
-        setSelected(null);
-        onComplete();
+        if (card.audio) playAudio(card.audio);
+        setTimeout(() => {
+          setFeedback(null);
+          setSelected(null);
+          onComplete();
+        }, 900);
       });
     } else {
       playTryAgain();
@@ -76,7 +79,7 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
 
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16, fontFamily: "Fredoka, sans-serif", position: "relative" }}>
-      {audioLocked && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
+      {(audioLocked || feedback === "correct") && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
       {/* Picture card */}
       <AnimatePresence mode="wait">

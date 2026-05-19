@@ -96,6 +96,7 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
   }, [feedback, playCompletion, syncSetPlaced, playCorrect]);
 
   const handleTouchStart = useCallback((e, option) => {
+    if (isCompleting) return;
     if (placedOptionRef.current?.id === option.id) return;
     e.stopPropagation();
     isDragging.current = false;
@@ -110,7 +111,7 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
     };
     dragStateRef.current = ds;
     setDragState(ds);
-  }, [round.options]);
+  }, [isCompleting, round.options]);
 
   const handleTouchMove = useCallback((e) => {
     if (!dragStateRef.current) return;
@@ -129,6 +130,7 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
   }, []);
 
   const handleTouchEnd = useCallback((e) => {
+    if (isCompleting) return;
     const ds = dragStateRef.current;
     if (!ds) return;
     if (isDragging.current) {
@@ -143,7 +145,7 @@ function MissingSoundRound({ round, color, onComplete, lang = "en" }) {
     setDragState(null);
     setIsActiveDrag(false);
     isDragging.current = false;
-  }, [syncSetPlaced]);
+  }, [isCompleting, syncSetPlaced]);
 
   const handleTopLetterTap = useCallback((letter) => {
     const url = getLetterSoundUrl(letter);

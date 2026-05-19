@@ -197,11 +197,12 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
       style={{
         display: "flex", flexDirection: "column", height: "100%", flex: 1,
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden",
-        touchAction: "none", userSelect: "none",
+        touchAction: "none", userSelect: "none", position: "relative",
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      {completing && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
       {/* Header */}
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 14px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <BackArrow onPress={onBack} />

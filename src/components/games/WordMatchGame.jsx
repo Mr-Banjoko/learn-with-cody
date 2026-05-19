@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import BackArrow from "../BackArrow";
 import { playAudio } from "../../lib/useAudio";
+import { useCorrectSound } from "../../lib/useCorrectSound";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 // Pick 1 correct + 3 random distractors from the word pool
 function buildRound(words, excludeUsed, brokenImages) {
@@ -45,6 +47,9 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
     return () => clearTimeout(timer);
   }, [round]);
 
+  const { play: playCorrect } = useCorrectSound();
+  const { play: playTryAgain } = useTryAgainSound();
+
   const handleChoice = useCallback((choice) => {
     if (feedback || !round) return;
     setSelected(choice.word);
@@ -52,17 +57,25 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
     setFeedback(correct ? "correct" : "wrong");
     if (correct) {
       setScore((s) => s + 1);
-      playAudio(round.target.audio);
+      playCorrect(() => {
+        if (round.target.audio) playAudio(round.target.audio);
+        setTimeout(() => {
+          setFeedback(null);
+          setSelected(null);
+          usedRef.current.add(round.target.word);
+          nextRound();
+        }, 900);
+      });
     } else {
+      playTryAgain();
       onMistake && onMistake();
+      setTimeout(() => {
+        setFeedback(null);
+        setSelected(null);
+        nextRound();
+      }, 900);
     }
-    setTimeout(() => {
-      setFeedback(null);
-      setSelected(null);
-      if (correct) usedRef.current.add(round.target.word);
-      nextRound();
-    }, correct ? 1400 : 900);
-  }, [feedback, round, nextRound]);
+  }, [feedback, round, nextRound, playCorrect, playTryAgain]);
 
   const playTarget = () => {
     if (round?.target.audio) playAudio(round.target.audio);
@@ -84,7 +97,8 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
   }
 
   return (
-    <div style={{ background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", minHeight: "100%", fontFamily: "Fredoka, sans-serif", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", minHeight: "100%", fontFamily: "Fredoka, sans-serif", display: "flex", flexDirection: "column", position: "relative" }}>
+      {feedback === "correct" && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
       {/* Header */}
       <div style={{ background: "#A8D0E6", borderBottomLeftRadius: 28, borderBottomRightRadius: 28, padding: "10px 20px 16px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <BackArrow onPress={onBack} />
