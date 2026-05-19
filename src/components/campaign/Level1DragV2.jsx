@@ -120,8 +120,6 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
   const handleSubmit = useCallback(() => {
     if (completing) return;
     if (placed.some((p) => p === null)) return;
-    // Validate by letter value, not tile-instance ID, so duplicate letters
-    // (e.g. both 'd' tiles in "dad") are interchangeable across matching slots.
     const allCorrect = placed.every((optionId, boxIndex) => {
       const opt = round.options.find((o) => o.id === optionId);
       return opt && opt.letter === round.letters[boxIndex];
@@ -129,7 +127,7 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
     if (allCorrect) {
       setCompleting(true);
       playCorrect(() => {
-        setTimeout(() => playCompletion(), 1000);
+        setTimeout(() => playCompletion(), 500);
       });
     } else {
       setSubmitError(true);
@@ -152,7 +150,6 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
     >
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0 }}>
 
-        {/* Picture */}
         <motion.div
           key={round.card.word}
           initial={{ opacity: 0, scale: 0.9 }}
@@ -168,7 +165,6 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
           />
         </motion.div>
 
-        {/* Drop boxes + reset button */}
         <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           {round.letters.map((_, i) => {
             const placedId = placed[i];
@@ -192,7 +188,6 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
             );
           })}
 
-          {/* Reset button — same style as photo-remove RotateCcw icon */}
           <button
             onPointerDown={(e) => {
               e.stopPropagation();
@@ -215,7 +210,6 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
           </button>
         </div>
 
-        {/* Letter tiles */}
         <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", flexShrink: 0, paddingBottom: 4 }}>
           {round.options.map((option, i) => {
             const isPlaced = placed.includes(option.id);
@@ -235,7 +229,6 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
           })}
         </div>
 
-        {/* Submit button */}
         {!completing && (
           <motion.button
             whileTap={allFilled ? { scale: 0.93 } : {}}
@@ -248,7 +241,6 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
         )}
       </div>
 
-      {/* Drag ghost */}
       <AnimatePresence>
         {dragState && isDragging.current && (
           <div style={{ position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%, -50%)", zIndex: 9999, pointerEvents: "none", width: "min(80px, 20vw)", height: "min(80px, 20vw)", borderRadius: 18, background: LETTER_COLORS[round.options.findIndex((o) => o.id === dragState.id) % LETTER_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px, 11vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 12px 36px rgba(0,0,0,0.25)", border: "3px solid rgba(255,255,255,0.8)" }}>
