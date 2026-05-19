@@ -156,6 +156,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
   }, []);
 
   const handleTouchEnd = useCallback((e) => {
+    if (feedback === "completing") return;
     const ds = dragStateRef.current;
     if (!ds) return;
     if (!isDragging.current) {
@@ -173,7 +174,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
     setDragState(null);
     setIsActiveDrag(false);
     isDragging.current = false;
-  }, [syncSetPlaced]);
+  }, [feedback, syncSetPlaced]);
 
   const handleTopLetterTap = useCallback((letter) => {
     if (audioLocked) return;
