@@ -63,12 +63,10 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
   const { play: playCorrect } = useCorrectSound();
   const accentColor = "#4A90C4";
 
-  // Auto-play word audio at mount, lock UI until done
   useEffect(() => {
     const t = setTimeout(() => {
       if (card.audio) {
         playAudio(card.audio);
-        // Estimate audio duration ~1.2s then unlock
         const unlock = setTimeout(() => setAudioLocked(false), 1400);
         return () => clearTimeout(unlock);
       } else {
@@ -108,9 +106,9 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
     const placed = placedOptionRef.current;
     if (!placed || feedback === "completing") return;
     if (placed.isCorrect) {
-      setFeedback("completing"); // lock UI immediately
+      setFeedback("completing");
       playCorrect(() => {
-        setTimeout(() => playCompletion(), 1000);
+        setTimeout(() => playCompletion(), 500);
       });
     } else {
       setFeedback("wrong");
@@ -188,12 +186,10 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Lock overlay during audio or completion */}
       {(isCompleting || audioLocked) && (
         <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />
       )}
 
-      {/* TOP: 3 letter boxes */}
       <div style={{ background: "rgba(255,255,255,0.55)", borderRadius: 32, padding: "18px 22px", boxShadow: "0 8px 32px rgba(30,58,95,0.10)", border: "2px solid rgba(255,255,255,0.85)", display: "flex", gap: "min(20px, 4vw)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         {round.letters.map((letter, i) => {
           const isMissing = i === round.missingPos;
@@ -221,7 +217,6 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
         })}
       </div>
 
-      {/* Play word button */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <motion.button
           whileTap={{ scale: 0.88 }}
@@ -232,7 +227,6 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
         </motion.button>
       </div>
 
-      {/* Answer tiles */}
       <div style={{ display: "flex", gap: "min(16px, 4vw)", justifyContent: "center", flexShrink: 0 }}>
         {round.options.map((option) => {
           const isPlaced = placedOption?.id === option.id;
@@ -251,7 +245,6 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
         })}
       </div>
 
-      {/* Submit */}
       <motion.button
         whileTap={canSubmit ? { scale: 0.95 } : {}}
         onClick={handleSubmit}
@@ -260,7 +253,6 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
         ✓
       </motion.button>
 
-      {/* Drag ghost */}
       <AnimatePresence>
         {dragState && isActiveDrag && (
           <div style={{ position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%, -50%)", zIndex: 9999, pointerEvents: "none", width: "min(78px, 20vw)", height: "min(78px, 20vw)", borderRadius: 20, background: "white", border: "2.5px solid rgba(168,208,230,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 14px 40px rgba(30,58,95,0.22)" }}>
