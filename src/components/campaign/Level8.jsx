@@ -141,6 +141,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
   }, [feedback, playCompletion, syncSetPlaced, playCorrect, playTryAgain]);
 
   const startDrag = useCallback((option, clientX, clientY, currentTarget) => {
+    if (feedback === "completing") return;
     if (placedOptionRef.current?.id === option.id) return;
     isDragging.current = false;
     const rect = currentTarget.getBoundingClientRect();
@@ -153,7 +154,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
     };
     dragStateRef.current = ds;
     setDragState(ds);
-  }, [round.options]);
+  }, [feedback, round.options]);
 
   const moveDrag = useCallback((clientX, clientY) => {
     if (!dragStateRef.current) return;
@@ -170,6 +171,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
   }, []);
 
   const endDrag = useCallback((clientX, clientY) => {
+    if (feedback === "completing") return;
     const ds = dragStateRef.current;
     if (!ds) return;
     if (!isDragging.current) {
@@ -186,7 +188,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
     setDragState(null);
     setIsActiveDrag(false);
     isDragging.current = false;
-  }, [syncSetPlaced]);
+  }, [feedback, syncSetPlaced]);
 
   const handleTouchStart = useCallback((e, option) => {
     e.stopPropagation();
@@ -225,17 +227,21 @@ function MissingSoundRound({ round, onComplete, lang }) {
     if (url) playAudio(url, getLetterGain(letter));
   }, []);
 
-  const canSubmit = placedOption !== null && feedback !== "completing";
+  const isCompleting = feedback === "completing";
+  const canSubmit = placedOption !== null && !isCompleting;
 
   return (
     <div
-      style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0, touchAction: "none", userSelect: "none" }}
+      style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0, touchAction: "none", userSelect: "none", position: "relative" }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
+      {isCompleting && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />
+      )}
       {/* 3 letter boxes */}
       <div style={{ background: "rgba(255,255,255,0.55)", borderRadius: 32, padding: "18px 22px", boxShadow: "0 8px 32px rgba(30,58,95,0.10)", border: "2px solid rgba(255,255,255,0.85)", display: "flex", gap: "min(20px, 4vw)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         {round.letters.map((letter, i) => {

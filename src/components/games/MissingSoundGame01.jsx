@@ -54,6 +54,8 @@ function MissingSoundRound01({ round, color, onComplete, lang = "en", onMistake 
   const placedOptionRef = useRef(null);
   const { play: playCorrect } = useCorrectSound();
 
+  const isCompleting = feedback === "completing";
+
   useEffect(() => {
     return () => {
       if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
@@ -157,7 +159,6 @@ function MissingSoundRound01({ round, color, onComplete, lang = "en", onMistake 
     if (url) playAudio(url, getLetterGain(letter));
   }, []);
 
-  const isCompleting = feedback === "completing";
   const canSubmit = placedOption !== null && !isCompleting;
 
   return (
@@ -166,9 +167,7 @@ function MissingSoundRound01({ round, color, onComplete, lang = "en", onMistake 
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {isCompleting && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />
-      )}
+      {isCompleting && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
       <div style={{ background: "rgba(255,255,255,0.55)", borderRadius: 32, padding: "18px 22px", boxShadow: "0 8px 32px rgba(30,58,95,0.10)", border: "2px solid rgba(255,255,255,0.85)", display: "flex", gap: "min(20px, 4vw)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         {round.letters.map((letter, i) => {
           const isMissing = i === round.missingPos;

@@ -146,6 +146,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   }, [feedback, playCompletion, syncSetPlaced, onMistake, playCorrect, playTryAgain]);
 
   const startDrag = useCallback((option, clientX, clientY, currentTarget) => {
+    if (feedback === "completing") return;
     if (placedOptionRef.current?.id === option.id) return;
     isDragging.current = false;
     const rect = currentTarget.getBoundingClientRect();
@@ -158,7 +159,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
     };
     dragStateRef.current = ds;
     setDragState(ds);
-  }, [round.options]);
+  }, [feedback, round.options]);
 
   const moveDrag = useCallback((clientX, clientY) => {
     if (!dragStateRef.current) return;
@@ -175,6 +176,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   }, []);
 
   const endDrag = useCallback((clientX, clientY) => {
+    if (feedback === "completing") return;
     const ds = dragStateRef.current;
     if (!ds) return;
     if (!isDragging.current) {
@@ -191,7 +193,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
     setDragState(null);
     setIsActiveDrag(false);
     isDragging.current = false;
-  }, [syncSetPlaced]);
+  }, [feedback, syncSetPlaced]);
 
   const handleTouchStart = useCallback((e, option) => {
     e.stopPropagation();
@@ -230,7 +232,8 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
     if (url) playAudio(url, getLetterGain(letter));
   }, []);
 
-  const canSubmit = placedOption !== null && feedback !== "completing";
+  const isCompleting = feedback === "completing";
+  const canSubmit = placedOption !== null && !isCompleting;
 
   return (
     <div
@@ -238,7 +241,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
         flex: 1, display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "space-evenly",
         padding: "10px 20px 14px", minHeight: 0,
-        touchAction: "none", userSelect: "none",
+        touchAction: "none", userSelect: "none", position: "relative",
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -246,6 +249,9 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
+      {isCompleting && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />
+      )}
       {/* 3 letter boxes */}
       <div style={{
         background: "rgba(255,255,255,0.55)", borderRadius: 32,
