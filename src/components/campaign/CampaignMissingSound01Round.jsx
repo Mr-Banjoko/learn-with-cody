@@ -117,7 +117,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
       onMistake && onMistake();
       setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700);
     }
-  }, [audioLocked, feedback, playCompletion, syncSetPlaced, onMistake]);
+  }, [audioLocked, feedback, playCompletion, syncSetPlaced, onMistake, playCorrect]);
 
   const handleTouchStart = useCallback((e, option) => {
     if (audioLocked) return;
