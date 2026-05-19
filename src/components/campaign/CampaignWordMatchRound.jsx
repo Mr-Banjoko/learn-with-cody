@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -32,6 +33,7 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
   const [audioLocked, setAudioLocked] = useState(true);
   const autoPlayedRef = useRef(false);
   const { play: playCorrect } = useCorrectSound();
+  const { play: playTryAgain } = useTryAgainSound();
 
   // Auto-play on mount (suppressed on Round 1 when hint audio handles sequencing)
   useEffect(() => {
@@ -61,13 +63,14 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
         onComplete();
       });
     } else {
+      playTryAgain();
       onMistake && onMistake();
       setTimeout(() => {
         setFeedback(null);
         setSelected(null);
       }, 900);
     }
-  }, [feedback, audioLocked, round, card, onComplete, onMistake]);
+  }, [feedback, audioLocked, round, card, onComplete, onMistake, playTryAgain]);
 
   const color = "#FF6B6B";
 
@@ -102,7 +105,6 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
           const isCorrect = choice.word === round.card.word;
           let bg = "white", border = "2px solid #A8D0E6", textColor = "#1E3A5F", shadow = "0 4px 12px rgba(30,58,95,0.10)";
           if (isSelected && feedback === "correct") { bg = "#E8FFF6"; border = "3px solid #4ECDC4"; shadow = "0 6px 24px rgba(78,205,196,0.35)"; }
-          else if (isSelected && feedback === "wrong") { bg = "#FFF0F0"; border = "3px solid #FF6B6B"; textColor = "#FF6B6B"; }
           else if (!isSelected && feedback === "correct" && isCorrect) { bg = "#E8FFF6"; border = "3px solid #4ECDC4"; }
           return (
             <motion.button

@@ -14,6 +14,7 @@ import { Play } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const TOP_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 const DRAG_THRESHOLD = 6;
@@ -63,6 +64,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
   const placedOptionRef = useRef(null);
   const { play: playCorrect } = useCorrectSound();
   const accentColor = "#4A90C4";
+  const { play: playTryAgain } = useTryAgainSound();
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -112,11 +114,12 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
         setTimeout(() => playCompletion(), 50);
       });
     } else {
+      playTryAgain();
       setFeedback("wrong");
       onMistake && onMistake();
       setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700);
     }
-  }, [audioLocked, feedback, playCompletion, syncSetPlaced, onMistake, playCorrect]);
+  }, [audioLocked, feedback, playCompletion, syncSetPlaced, onMistake, playCorrect, playTryAgain]);
 
   const handleTouchStart = useCallback((e, option) => {
     if (audioLocked) return;

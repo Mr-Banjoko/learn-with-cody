@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Volume2 } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
 const LETTER_COLORS = ["#FFAFC5","#A8D8EA","#FFE57A","#B5EAD7","#FFDAC1","#C4B5FD","#FCA5A5","#6EE7B7","#FCD34D","#93C5FD","#F9A8D4","#86EFAC"];

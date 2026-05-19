@@ -7,6 +7,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../lib/useAudio";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -63,6 +64,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   const [wrongFlash, setWrongFlash] = useState(false);
   const wrongTimeout = useRef(null);
   const advanceTimeout = useRef(null);
+  const { play: playTryAgain } = useTryAgainSound();
 
   useEffect(() => {
     return () => { clearTimeout(wrongTimeout.current); clearTimeout(advanceTimeout.current); };
@@ -85,6 +87,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
           advanceTimeout.current = setTimeout(() => onComplete(), 900);
         }
       } else {
+        playTryAgain();
         onMistake && onMistake();
         clearTimeout(wrongTimeout.current);
         setWrongFlash(true);
@@ -95,7 +98,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
         }, 500);
       }
     }
-  }, [selectedLeft, selectedRight]); // eslint-disable-line
+  }, [selectedLeft, selectedRight, playTryAgain]); // eslint-disable-line
 
   const handleLeftTap = useCallback((item) => {
     if (matchedPairs.includes(item.word)) return;

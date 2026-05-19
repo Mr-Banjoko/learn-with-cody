@@ -9,6 +9,7 @@ import { RotateCcw } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#FFAFC5"];

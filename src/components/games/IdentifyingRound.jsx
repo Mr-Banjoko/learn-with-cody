@@ -6,6 +6,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const CHOICE_COLORS = [
   { border: "#4ECDC4", shadow: "rgba(78,205,196,0.35)", ring: "rgba(78,205,196,0.28)" },
@@ -96,6 +97,9 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
   }, [wrongShake]);
 
   const { play: playCorrect } = useCorrectSound();
+  const { play: playTryAgain } = useTryAgainSound();
+  // Track which choice word is wrong-shaking
+  const [wrongWord, setWrongWord] = useState(null);
 
   const handleSubmit = useCallback(() => {
     if (!selected || correctFiredRef.current) return;
@@ -105,12 +109,13 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
         onComplete();
       });
     } else {
+      playTryAgain();
       clearTimeout(shakeTimeout.current);
-      setWrongShake(true);
-      shakeTimeout.current = setTimeout(() => setWrongShake(false), 600);
+      setWrongWord(selected.word);
+      shakeTimeout.current = setTimeout(() => { setWrongWord(null); }, 600);
       onMistake && onMistake();
     }
-  }, [selected, round, playCorrect, onComplete, onMistake]);
+  }, [selected, round, playCorrect, playTryAgain, onComplete, onMistake]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
@@ -142,9 +147,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
       </div>
 
       {/* Choice area */}
-      <motion.div
-        animate={wrongShake ? { x: [0, -10, 10, -8, 8, 0] } : { x: 0 }}
-        transition={{ duration: 0.45 }}
+      <div
         style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 12, padding: "4px 24px", minHeight: 0 }}
       >
         <AnimatePresence mode="wait">
@@ -172,12 +175,15 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
             >
               {round.choices.map((choice, idx) => {
                 const isSelected = selected?.word === choice.word;
+                const isWrong = wrongWord === choice.word;
                 const colorSet = CHOICE_COLORS[idx % CHOICE_COLORS.length];
                 return (
                   <motion.button
                     key={`${round.target.word}-${choice.word}-${idx}`}
                     onClick={() => handleSelect(choice)}
                     whileTap={{ scale: 0.97 }}
+                    animate={isWrong ? { x: [0, -10, 10, -7, 7, 0] } : {}}
+                    transition={{ duration: 0.38 }}
                     style={{ background: "white", borderRadius: 22, border: isSelected ? `3.5px solid ${colorSet.border}` : "3px solid rgba(168,208,230,0.25)", boxShadow: isSelected ? `0 8px 28px ${colorSet.shadow}, 0 0 0 5px ${colorSet.ring}` : "0 4px 18px rgba(30,58,95,0.09)", overflow: "hidden", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center", transition: "border 0.16s, box-shadow 0.16s", WebkitTapHighlightColor: "transparent", width: "100%", height: 130, flexShrink: 0 }}
                   >
                     <div style={{ width: "100%", height: "100%", backgroundImage: `url(${blobUrls[choice.image] || choice.image})`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none" }} />
@@ -187,7 +193,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
 
       {/* Submit — no Next button */}
       <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", padding: "10px 24px 16px" }}>

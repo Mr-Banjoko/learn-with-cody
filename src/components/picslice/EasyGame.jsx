@@ -3,6 +3,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import SliceImage from "./SliceImage";
 

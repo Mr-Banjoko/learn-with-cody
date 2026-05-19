@@ -9,6 +9,7 @@ import LetterTrace from "../games/write/short-a/LetterTrace";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudioSequence } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const TILE_SIZE = 88;
 

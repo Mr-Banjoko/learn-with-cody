@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import RainbowLetterBlock from "../RainbowLetterBlock";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const CARD_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
@@ -74,9 +75,9 @@ function ConnectorDot({ dotRef, selected, matched, wrong, onTap, color }) {
       onClick={onTap}
       style={{
         width: 28, height: 28, borderRadius: "50%",
-        border: wrong ? "3px solid #FF6B6B" : matched ? `3px solid ${color}` : selected ? `3px solid #4A90C4` : "3px solid #CBD5E1",
-        background: wrong ? "#FFECEC" : matched ? color : selected ? "#4A90C4" : "white",
-        boxShadow: (selected || matched) ? `0 0 0 4px ${color}44` : wrong ? "0 0 0 4px rgba(255,107,107,0.25)" : "0 2px 6px rgba(0,0,0,0.10)",
+        border: matched ? `3px solid ${color}` : selected ? `3px solid #4A90C4` : "3px solid #CBD5E1",
+        background: matched ? color : selected ? "#4A90C4" : "white",
+        boxShadow: (selected || matched) ? `0 0 0 4px ${color}44` : "0 2px 6px rgba(0,0,0,0.10)",
         cursor: matched ? "default" : "pointer",
         transition: "background 0.18s, border 0.18s",
         flexShrink: 0,
@@ -131,7 +132,7 @@ function WinScreen({ card, onDone }) {
   );
 }
 
-function ConnectionRound({ card, onComplete, onMistake }) {
+function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
   const letters = card.word.split("");
   const [shuffledOrder] = useState(() => buildShuffledOrder());
   const [selected, setSelected] = useState(null);
@@ -167,9 +168,10 @@ function ConnectionRound({ card, onComplete, onMistake }) {
 
   const triggerWrong = useCallback((topIdx, botIdx) => {
     onMistake && onMistake();
+    onWrongAnswer && onWrongAnswer();
     setWrongFeedback({ topIdx, botIdx });
     setTimeout(() => { setWrongFeedback(null); setSelected(null); }, 700);
-  }, [onMistake]);
+  }, [onMistake, onWrongAnswer]);
 
   const triggerMatch = useCallback((topIdx, botIdx) => {
     setSelected(null);
@@ -225,9 +227,13 @@ function ConnectionRound({ card, onComplete, onMistake }) {
       <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 10, transform: "translateY(20px)" }}>
         {letters.map((letter, i) => (
           <div key={i} style={{ flex: 1, maxWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-            <div style={{ width: "100%", height: "min(80px, 22vw)", borderRadius: 20, background: LETTER_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px, 12vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 16px rgba(0,0,0,0.10)" }}>
+            <motion.div
+              animate={wrongFeedback?.topIdx === i ? { x: [0, -10, 10, -7, 7, 0] } : {}}
+              transition={{ duration: 0.38 }}
+              style={{ width: "100%", height: "min(80px, 22vw)", borderRadius: 20, background: LETTER_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px, 12vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 16px rgba(0,0,0,0.10)" }}
+            >
               {letter}
-            </div>
+            </motion.div>
             <ConnectorDot
               dotRef={setRef(`top-${i}`)}
               selected={selected === `top-${i}`}
@@ -263,10 +269,10 @@ function ConnectionRound({ card, onComplete, onMistake }) {
                 color={dotColor}
               />
               <motion.div
-                animate={isWrongBot ? { x: [0, -8, 8, -6, 6, 0] } : {}}
-                transition={{ duration: 0.4 }}
+                animate={isWrongBot ? { x: [0, -10, 10, -7, 7, 0] } : {}}
+                transition={{ duration: 0.38 }}
                 onPointerDown={(e) => { e.preventDefault(); handleSliceTap(botSlot); }}
-                style={{ width: "100%", aspectRatio: "1/2", borderRadius: 18, overflow: "hidden", border: isMatched ? `2.5px solid ${dotColor}` : isWrongBot ? "2.5px solid #FF6B6B" : "2.5px solid rgba(168,208,230,0.5)", boxShadow: isMatched ? `0 0 0 4px ${dotColor}44` : isWrongBot ? "0 0 0 4px rgba(255,107,107,0.2)" : "0 4px 14px rgba(0,0,0,0.09)", cursor: "pointer", background: "#f8f8f8", transition: "border 0.18s, box-shadow 0.18s", WebkitTapHighlightColor: "transparent", position: "relative", touchAction: "manipulation" }}
+                style={{ width: "100%", aspectRatio: "1/2", borderRadius: 18, overflow: "hidden", border: isMatched ? `2.5px solid ${dotColor}` : "2.5px solid rgba(168,208,230,0.5)", boxShadow: isMatched ? `0 0 0 4px ${dotColor}44` : "0 4px 14px rgba(0,0,0,0.09)", cursor: "pointer", background: "#f8f8f8", transition: "border 0.18s, box-shadow 0.18s", WebkitTapHighlightColor: "transparent", position: "relative", touchAction: "manipulation" }}
               >
                 <img
                   src={card.phonemes?.[letterIdx]?.sliceSrc || ""}
@@ -286,6 +292,7 @@ function ConnectionRound({ card, onComplete, onMistake }) {
 export default function CampaignConnectionRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [audioLocked, setAudioLocked] = useState(true);
   const [showWin, setShowWin] = useState(false);
+  const { play: playTryAgain } = useTryAgainSound();
 
   // Warmup + auto-play word audio at mount (suppressed on Round 1 when hint audio handles sequencing)
   useEffect(() => {
@@ -334,7 +341,7 @@ export default function CampaignConnectionRound({ card, onComplete, onMistake, l
           </motion.div>
         ) : (
           <motion.div key="round" initial={{ opacity: 0, x: 0 }} animate={{ opacity: 1 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <ConnectionRound card={card} onComplete={handleRoundComplete} onMistake={guardedMistake} />
+            <ConnectionRound card={card} onComplete={handleRoundComplete} onMistake={guardedMistake} onWrongAnswer={playTryAgain} />
           </motion.div>
         )}
       </AnimatePresence>

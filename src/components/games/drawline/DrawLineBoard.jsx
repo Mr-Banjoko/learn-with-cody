@@ -13,6 +13,8 @@ import { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio, playAudioSequence } from "../../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
+import { useTryAgainSound } from "../../../lib/useTryAgainSound";
+import { useCorrectSound } from "../../../lib/useCorrectSound";
 
 // ── Colours ──────────────────────────────────────────────────────────────────
 // Each index: [border/accent, light bg, line color]
@@ -90,6 +92,7 @@ function ConnectorDot({ id, selected, matched, onTap, dotRef }) {
 
 export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onMistake }) {
   const { topCards, bottomLetters } = round;
+  const { play: playTryAgain } = useTryAgainSound();
 
   // Which connector is selected ("top-<id>" | "bot-<idx>" | null)
   const [selected, setSelected] = useState(null);
@@ -228,13 +231,14 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
   }, [onRoundComplete]);
 
   const triggerWrong = useCallback((topCardId, botIdx) => {
+    playTryAgain();
     setWrongFeedback({ topCardId, botIdx });
     onMistake && onMistake();
     setTimeout(() => {
       setWrongFeedback(null);
       setSelected(null);
     }, 700);
-  }, [onMistake]);
+  }, [onMistake, playTryAgain]);
 
   const handleTopCardTap = useCallback((card) => {
     if (locked) return;
@@ -308,23 +312,15 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 transition={{ duration: 0.5 }}
                 onClick={() => handleTopCardTap(card)}
                 style={{
-                  background: isWrongTop
-                    ? "#FFECEC"
-                    : isMatched
-                    ? CARD_BG[i]
-                    : "white",
-                  border: isWrongTop
-                    ? "2.5px solid #FF6B6B"
-                    : isMatched
+                  background: isMatched ? CARD_BG[i] : "white",
+                  border: isMatched
                     ? `2.5px solid ${CARD_COLORS[i]}`
                     : isSelectedTop
                     ? `2.5px solid ${CARD_COLORS[i]}`
                     : `2.5px solid ${CARD_COLORS[i]}`,
                   borderRadius: 18,
                   overflow: "hidden",
-                  boxShadow: isWrongTop
-                    ? "0 0 0 4px rgba(255,107,107,0.25)"
-                    : isMatched
+                  boxShadow: isMatched
                     ? `0 0 0 5px ${CARD_COLORS[i]}55`
                     : isSelectedTop
                     ? `0 0 0 4px ${CARD_COLORS[i]}44`
@@ -355,7 +351,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                     textAlign: "center",
                     fontSize: 18,
                     fontWeight: 700,
-                    color: isWrongTop ? "#FF6B6B" : isMatched ? CARD_COLORS[i] : "#1E3A5F",
+                    color: isMatched ? CARD_COLORS[i] : "#1E3A5F",
                     fontFamily: "Fredoka, sans-serif",
                     letterSpacing: 0.5,
                     transition: "color 0.18s",
@@ -432,21 +428,13 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                   width: "100%",
                   height: 80,
                   borderRadius: 18,
-                  background: isWrongBot
-                    ? "#FFECEC"
-                    : isMatched
-                    ? matchBg
-                    : "white",
-                  border: isWrongBot
-                    ? "2.5px solid #FF6B6B"
-                    : isMatched
+                  background: isMatched ? matchBg : "white",
+                  border: isMatched
                     ? `2.5px solid ${matchColor}`
                     : isSelectedBot
                     ? "2.5px solid #A8D0E6"
                     : "2.5px solid #CBD5E1",
-                  boxShadow: isWrongBot
-                    ? "0 0 0 4px rgba(255,107,107,0.25)"
-                    : isMatched
+                  boxShadow: isMatched
                     ? `0 0 0 5px ${matchColor}55`
                     : isSelectedBot
                     ? "0 0 0 4px rgba(168,208,230,0.3)"
@@ -490,18 +478,18 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                       >
                         <path
                           d="M18 21h-4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h4l8 6V15l-8 6z"
-                          fill={isWrongBot ? "#FF6B6B" : isSelectedBot ? "#4A90C4" : "#A8D0E6"}
+                          fill={isSelectedBot ? "#4A90C4" : "#A8D0E6"}
                         />
                         <path
                           d="M30 20.5a8 8 0 0 1 0 11"
-                          stroke={isWrongBot ? "#FF6B6B" : isSelectedBot ? "#4A90C4" : "#A8D0E6"}
+                          stroke={isSelectedBot ? "#4A90C4" : "#A8D0E6"}
                           strokeWidth="2.5"
                           strokeLinecap="round"
                           fill="none"
                         />
                         <path
                           d="M33.5 17a13 13 0 0 1 0 18"
-                          stroke={isWrongBot ? "#FF6B6B" : isSelectedBot ? "#4A90C4" : "#A8D0E6"}
+                          stroke={isSelectedBot ? "#4A90C4" : "#A8D0E6"}
                           strokeWidth="2.5"
                           strokeLinecap="round"
                           fill="none"

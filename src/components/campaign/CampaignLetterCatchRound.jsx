@@ -14,6 +14,7 @@ import { Volume2 } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { useCorrectSound } from "../../lib/useCorrectSound";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
