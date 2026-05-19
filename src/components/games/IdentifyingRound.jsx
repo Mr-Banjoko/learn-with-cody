@@ -30,59 +30,38 @@ function SpeakerIcon({ color = "#4ECDC4", size = 26 }) {
   );
 }
 
-/**
- * Preload AND FULLY DECODE all images in parallel via Promise.all.
- * Uses img.decode() which guarantees the image is pixel-ready to paint —
- * not just downloaded. This eliminates the per-image decode stagger that
- * causes images to appear sequentially even from cache.
- * Returns a map of url → objectURL so we render from blob: (local) URLs,
- * which are guaranteed to be synchronously available and never re-fetch.
- */
 async function preloadAll(urls) {
   const entries = await Promise.all(
     urls.map(async (url) => {
       if (!url) return [url, url];
       try {
-        // Fetch into a blob so we own the bytes locally
         const resp = await fetch(url);
         const blob = await resp.blob();
         const objectUrl = URL.createObjectURL(blob);
-        // Decode into a bitmap to ensure GPU-upload is complete
         const img = new Image();
         img.src = objectUrl;
         await img.decode().catch(() => {});
         return [url, objectUrl];
       } catch {
-        return [url, url]; // fallback to original on any error
+        return [url, url];
       }
     })
   );
   return Object.fromEntries(entries);
 }
 
-/**
- * Props:
- *   round      { target: WordObj, choices: WordObj[] }
- *   onComplete () => void
- *   lang       "en" | "zh"
- */
 export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake, suppressAutoPlay = false }) {
   const [selected, setSelected]     = useState(null);
   const [showNext, setShowNext]      = useState(false);
   const [wrongShake, setWrongShake]  = useState(false);
-  // Gate: choices are hidden until ALL 3 images are decoded and blob-ready
   const [imagesReady, setImagesReady] = useState(false);
-  // Map of original url → local blob: url (guaranteed sync paint)
   const [blobUrls, setBlobUrls] = useState({});
 
   const shakeTimeout = useRef(null);
-  // Stale-closure guard: only the current round's preload may flip imagesReady
   const roundKeyRef  = useRef(null);
-  // Track blob URLs for cleanup
   const prevBlobsRef = useRef([]);
 
   useEffect(() => {
-    // Reset visible state immediately when round changes
     setImagesReady(false);
     setSelected(null);
     setShowNext(false);
@@ -94,11 +73,9 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
     const urls = round.choices.map((c) => c.image);
     preloadAll(urls).then((urlMap) => {
       if (roundKeyRef.current !== key) {
-        // Round changed while loading — revoke blobs we just created
         Object.values(urlMap).forEach((u) => { if (u?.startsWith("blob:")) URL.revokeObjectURL(u); });
         return;
       }
-      // Revoke previous round's blobs
       prevBlobsRef.current.forEach((u) => { if (u?.startsWith("blob:")) URL.revokeObjectURL(u); });
       prevBlobsRef.current = Object.values(urlMap).filter((u) => u?.startsWith("blob:"));
       setBlobUrls(urlMap);
@@ -108,8 +85,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
     return () => { clearTimeout(shakeTimeout.current); };
   }, [round]);
 
-  // Play audio only after images are ready (avoids audio before visuals)
-  // suppressAutoPlay=true skips this so the parent can chain it after hint audio
   useEffect(() => {
     if (imagesReady && round.target.audio && !suppressAutoPlay) {
       playAudio(round.target.audio);
@@ -135,7 +110,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
         setTimeout(() => {
           if (round.target.audio) playAudio(round.target.audio);
           setShowNext(true);
-        }, 1000);
+        }, 500);
       });
     } else {
       clearTimeout(shakeTimeout.current);
@@ -148,7 +123,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
 
-      {/* Word + speaker */}
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 14, padding: "20px 24px 10px" }}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -174,7 +148,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
         </motion.button>
       </div>
 
-      {/* ── Choice area — skeleton until ALL 3 images are ready ── */}
       <motion.div
         animate={wrongShake ? { x: [0, -10, 10, -8, 8, 0] } : { x: 0 }}
         transition={{ duration: 0.45 }}
@@ -182,7 +155,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
       >
         <AnimatePresence mode="wait">
           {!imagesReady ? (
-            /* Skeleton: three grey placeholder blocks, same size as real buttons */
             <motion.div
               key="skeleton"
               initial={{ opacity: 0 }}
@@ -196,7 +168,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
               ))}
             </motion.div>
           ) : (
-            /* All 3 images revealed simultaneously — already in browser cache */
             <motion.div
               key={`choices-${round.target.word}`}
               initial={{ opacity: 0 }}
@@ -215,7 +186,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
                     whileTap={{ scale: 0.97 }}
                     style={{ background: "white", borderRadius: 22, border: isSelected ? `3.5px solid ${colorSet.border}` : "3px solid rgba(168,208,230,0.25)", boxShadow: isSelected ? `0 8px 28px ${colorSet.shadow}, 0 0 0 5px ${colorSet.ring}` : "0 4px 18px rgba(30,58,95,0.09)", overflow: "hidden", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center", transition: "border 0.16s, box-shadow 0.16s", WebkitTapHighlightColor: "transparent", width: "100%", height: 130, flexShrink: 0 }}
                   >
-                    {/* Render as CSS background from blob: URL — synchronous, no decode lag */}
                     <div style={{ width: "100%", height: "100%", backgroundImage: `url(${blobUrls[choice.image] || choice.image})`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none" }} />
                   </motion.button>
                 );
@@ -225,7 +195,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
         </AnimatePresence>
       </motion.div>
 
-      {/* Submit */}
       <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", padding: "10px 24px 0" }}>
         <motion.button
           onClick={handleSubmit}
@@ -236,7 +205,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
         </motion.button>
       </div>
 
-      {/* Next */}
       <div style={{ flexShrink: 0, display: "flex", justifyContent: "flex-end", paddingRight: 28, paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))", minHeight: 68, alignItems: "flex-end" }}>
         <AnimatePresence>
           {showNext && (
