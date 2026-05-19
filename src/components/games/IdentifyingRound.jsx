@@ -1,13 +1,6 @@
 /**
  * Shared IdentifyingRound component — used by:
  *   WordToPicture, Level4, Level5, Level9, Level10
- *
- * BUG FIX: Previously each file rendered <img> tags directly, letting the
- * browser paint images as they arrived. Because the target word is placed
- * first in buildRound() before the shuffle, it enters the browser's HTTP
- * queue first and loads/paints first — revealing the correct answer by
- * timing. Fix: Promise.all-preload all 3 URLs simultaneously, then reveal
- * the entire choice set only when every image is decoded and ready.
  */
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,19 +45,20 @@ async function preloadAll(urls) {
 
 export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake, suppressAutoPlay = false }) {
   const [selected, setSelected]     = useState(null);
-  const [showNext, setShowNext]      = useState(false);
   const [wrongShake, setWrongShake]  = useState(false);
   const [imagesReady, setImagesReady] = useState(false);
   const [blobUrls, setBlobUrls] = useState({});
 
   const shakeTimeout = useRef(null);
+  // Single-play guard: prevents double-triggering correct flow on repeated taps
+  const correctFiredRef = useRef(false);
   const roundKeyRef  = useRef(null);
   const prevBlobsRef = useRef([]);
 
   useEffect(() => {
     setImagesReady(false);
     setSelected(null);
-    setShowNext(false);
+    correctFiredRef.current = false;
     setWrongShake(false);
 
     const key = round.target.word;
@@ -96,21 +90,22 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
   }, [round]);
 
   const handleSelect = useCallback((choice) => {
-    if (showNext) return;
+    if (correctFiredRef.current) return;
     setSelected(choice);
     if (wrongShake) setWrongShake(false);
-  }, [showNext, wrongShake]);
+  }, [wrongShake]);
 
   const { play: playCorrect } = useCorrectSound();
 
   const handleSubmit = useCallback(() => {
-    if (!selected || showNext) return;
+    if (!selected || correctFiredRef.current) return;
     if (selected.word === round.target.word) {
+      correctFiredRef.current = true;
       playCorrect(() => {
         setTimeout(() => {
           if (round.target.audio) playAudio(round.target.audio);
-          setShowNext(true);
-        }, 500);
+          onComplete();
+        }, 50);
       });
     } else {
       clearTimeout(shakeTimeout.current);
@@ -118,11 +113,12 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
       shakeTimeout.current = setTimeout(() => setWrongShake(false), 600);
       onMistake && onMistake();
     }
-  }, [selected, round, showNext, playCorrect]);
+  }, [selected, round, playCorrect, onComplete, onMistake]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
 
+      {/* Word + speaker */}
       <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 14, padding: "20px 24px 10px" }}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -148,6 +144,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
         </motion.button>
       </div>
 
+      {/* Choice area */}
       <motion.div
         animate={wrongShake ? { x: [0, -10, 10, -8, 8, 0] } : { x: 0 }}
         transition={{ duration: 0.45 }}
@@ -195,32 +192,15 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
         </AnimatePresence>
       </motion.div>
 
-      <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", padding: "10px 24px 0" }}>
+      {/* Submit — no Next button */}
+      <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", padding: "10px 24px 16px" }}>
         <motion.button
           onClick={handleSubmit}
-          whileTap={selected && !showNext ? { scale: 0.95 } : {}}
-          style={{ background: selected && !showNext ? "linear-gradient(135deg, #4ECDC4, #44A08D)" : "#D1D5DB", color: selected && !showNext ? "white" : "#9CA3AF", border: "none", borderRadius: 999, padding: "16px 56px", fontSize: 22, fontWeight: 700, cursor: selected && !showNext ? "pointer" : "not-allowed", fontFamily: "Fredoka, sans-serif", boxShadow: selected && !showNext ? "0 8px 28px rgba(78,205,196,0.4)" : "none", transition: "background 0.2s, color 0.2s, box-shadow 0.2s", WebkitTapHighlightColor: "transparent", width: "100%", maxWidth: 320 }}
+          whileTap={selected ? { scale: 0.95 } : {}}
+          style={{ background: selected ? "linear-gradient(135deg, #4ECDC4, #44A08D)" : "#D1D5DB", color: selected ? "white" : "#9CA3AF", border: "none", borderRadius: 999, padding: "16px 56px", fontSize: 22, fontWeight: 700, cursor: selected ? "pointer" : "not-allowed", fontFamily: "Fredoka, sans-serif", boxShadow: selected ? "0 8px 28px rgba(78,205,196,0.4)" : "none", transition: "background 0.2s, color 0.2s, box-shadow 0.2s", WebkitTapHighlightColor: "transparent", width: "100%", maxWidth: 320 }}
         >
           {lang === "zh" ? "确认 ✓" : "Submit ✓"}
         </motion.button>
-      </div>
-
-      <div style={{ flexShrink: 0, display: "flex", justifyContent: "flex-end", paddingRight: 28, paddingBottom: "calc(16px + env(safe-area-inset-bottom, 0px))", minHeight: 68, alignItems: "flex-end" }}>
-        <AnimatePresence>
-          {showNext && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.7, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.7 }}
-              transition={{ type: "spring", stiffness: 350, damping: 22 }}
-              onClick={onComplete}
-              whileTap={{ scale: 0.93 }}
-              style={{ background: "linear-gradient(135deg, #6BCB77, #44A08D)", color: "white", border: "none", borderRadius: 999, padding: "16px 32px", fontSize: 22, fontWeight: 700, cursor: "pointer", fontFamily: "Fredoka, sans-serif", boxShadow: "0 8px 28px rgba(107,203,119,0.45)", WebkitTapHighlightColor: "transparent" }}
-            >
-              {lang === "zh" ? "继续 →" : "Next →"}
-            </motion.button>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );
