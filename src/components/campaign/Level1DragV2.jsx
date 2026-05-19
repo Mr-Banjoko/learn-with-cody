@@ -127,7 +127,7 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
     if (allCorrect) {
       setCompleting(true);
       playCorrect(() => {
-        setTimeout(() => playCompletion(), 500);
+        setTimeout(() => playCompletion(), 100);
       });
     } else {
       setSubmitError(true);
