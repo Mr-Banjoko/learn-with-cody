@@ -102,10 +102,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
     if (selected.word === round.target.word) {
       correctFiredRef.current = true;
       playCorrect(() => {
-        setTimeout(() => {
-          if (round.target.audio) playAudio(round.target.audio);
-          onComplete();
-        }, 50);
+        onComplete();
       });
     } else {
       clearTimeout(shakeTimeout.current);
