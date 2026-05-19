@@ -178,7 +178,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {audioLocked && <div style={{ position: "absolute", inset: 0, zIndex: 200, touchAction: "none", pointerEvents: "all" }} />}
+      {(audioLocked || completing) && <div style={{ position: "absolute", inset: 0, zIndex: 200, touchAction: "none", pointerEvents: "all" }} />}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "8px 16px 12px", minHeight: 0 }}>
 
         {/* Speaker */}

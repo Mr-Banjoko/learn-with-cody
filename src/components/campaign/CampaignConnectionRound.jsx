@@ -329,8 +329,8 @@ export default function CampaignConnectionRound({ card, onComplete, onMistake, l
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-      {/* Lock overlay during initial audio */}
-      {audioLocked && (
+      {/* Lock overlay during initial audio or win sequence */}
+      {(audioLocked || showWin) && (
         <div style={{ position: "absolute", inset: 0, zIndex: 200, touchAction: "none", pointerEvents: "all" }} />
       )}
 

@@ -293,6 +293,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
       display: "flex", flexDirection: "column", height: "100%",
       fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative",
     }}>
+      {phase === "caught" && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
       <div style={{ padding: "8px 12px 4px", flexShrink: 0 }}>
         <div style={{
           background: "white", borderRadius: 22, padding: "10px 14px",

@@ -132,6 +132,7 @@ function MissingLetterRound({ card, forcedMissingPos, onComplete, lang = "en", o
   }, [feedback, playCompletion, syncSetPlaced, onMistake]);
 
   const handleTouchStart = useCallback((e, option) => {
+    if (feedback === "completing") return;
     if (placedOptionRef.current?.id === option.id) return;
     e.stopPropagation();
     isDragging.current = false;

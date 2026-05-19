@@ -265,10 +265,12 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
         WebkitUserSelect: "none",
         overflow: "hidden",
         padding: "6px 20px 10px",
+        position: "relative",
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      {playingSequence && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
 
       {/* ── WORD LABEL ─────────────────────────────────────────────────────── */}
       <motion.button

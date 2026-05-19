@@ -272,6 +272,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
         overflow: "visible",
       }}
     >
+      {locked && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
       {/* SVG line overlay */}
       <LinesLayer
         matches={matches}
