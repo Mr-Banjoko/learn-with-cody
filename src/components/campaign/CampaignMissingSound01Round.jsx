@@ -248,7 +248,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
 
       <motion.button
         whileTap={canSubmit ? { scale: 0.95 } : {}}
-        onClick={handleSubmit}
+        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleSubmit(); }}
         style={{ padding: "14px 52px", borderRadius: 99, border: "none", background: canSubmit ? accentColor : "rgba(168,208,230,0.35)", color: canSubmit ? "white" : "rgba(74,144,196,0.4)", fontSize: 20, fontWeight: 700, boxShadow: canSubmit ? `0 6px 24px ${accentColor}50` : "none", cursor: canSubmit ? "pointer" : "not-allowed", transition: "all 0.25s", flexShrink: 0, touchAction: "manipulation" }}
       >
         ✓
