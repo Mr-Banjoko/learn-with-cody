@@ -44,6 +44,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   const lockedRef = useRef(true);
   const cancelAudioRef = useRef(null);
   const { play: playCorrect } = useCorrectSound();
+  const { play: playTryAgain } = useTryAgainSound();
   useEffect(() => { lockedRef.current = locked; }, [locked]);
 
   const cancelAudio = useCallback(() => {
@@ -88,6 +89,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
     const tracedCards = round.shuffledCards.filter((c) => tracedCardIds.has(c.id));
     const isCorrect = tracedCards.length === round.correctCards.length && tracedCards.every((c) => c.isCorrect);
     if (!isCorrect) {
+      playTryAgain();
       onMistake && onMistake();
       setSubmitError(true);
       const correctIds = new Set(round.correctCards.map((c) => c.id));
@@ -121,7 +123,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         cancelAudioRef.current = cancel;
       }, 50);
     });
-  }, [phase, round, tracedCardIds, cancelAudio, onComplete, onMistake, card]);
+  }, [phase, round, tracedCardIds, cancelAudio, onComplete, onMistake, card, playTryAgain]);
 
   const tracedCount = tracedCardIds.size;
   const canSubmit = tracedCount >= 3 && phase === "tracing" && !locked && !submitError;
@@ -180,7 +182,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         <motion.button onPointerDown={(e) => { e.preventDefault(); if (canSubmit) handleSubmit(); }}
           animate={submitError ? { x: [0,-10,10,-8,8,-4,4,0] } : canSubmit ? { scale: [1, 1.04, 1] } : {}}
           transition={submitError ? { duration: 0.5 } : { repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-          style={{ padding: "14px 52px", borderRadius: 999, border: "none", fontSize: 22, fontWeight: 700, fontFamily: "Fredoka, sans-serif", cursor: canSubmit ? "pointer" : "default", background: submitError ? "linear-gradient(135deg, #FF6B6B, #ff4444)" : canSubmit ? "linear-gradient(135deg, #4A90C4, #22c55e)" : "#C5DCF0", color: canSubmit || submitError ? "white" : "#9CB8CC", boxShadow: submitError ? "0 6px 24px rgba(255,80,80,0.55)" : canSubmit ? "0 6px 24px rgba(74,144,196,0.45)" : "none", transition: "background 0.3s, color 0.3s", touchAction: "manipulation" }}>
+          style={{ padding: "14px 52px", borderRadius: 999, border: "none", fontSize: 22, fontWeight: 700, fontFamily: "Fredoka, sans-serif", cursor: canSubmit ? "pointer" : "default", background: canSubmit ? "linear-gradient(135deg, #4A90C4, #22c55e)" : "#C5DCF0", color: canSubmit ? "white" : "#9CB8CC", boxShadow: canSubmit ? "0 6px 24px rgba(74,144,196,0.45)" : "none", transition: "background 0.3s, color 0.3s", touchAction: "manipulation" }}>
           ✓
         </motion.button>
       </div>

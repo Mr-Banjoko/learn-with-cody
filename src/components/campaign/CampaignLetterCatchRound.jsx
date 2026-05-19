@@ -148,6 +148,7 @@ function CandyArrow({ direction, onPress }) {
 
 export default function CampaignLetterCatchRound({ word, missingLetter, image, audio, onComplete, onMistake, lang = "en", paused = false, skipInitialAudio = false }) {
   const { play: playCorrect } = useCorrectSound();
+  const { play: playTryAgain } = useTryAgainSound();
   const letters = word.split("");
   const missingPos = letters.indexOf(missingLetter);
 

@@ -9,6 +9,7 @@ import { RotateCcw, Volume2 } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
+import { useCorrectSound } from "../../lib/useCorrectSound";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
 const LETTER_COLORS = ["#FFAFC5","#A8D8EA","#FFE57A","#B5EAD7","#FFDAC1","#C4B5FD","#FCA5A5","#6EE7B7","#FCD34D","#93C5FD","#F9A8D4","#86EFAC"];
@@ -52,6 +53,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
   const dropZoneRefs = useRef([]);
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
+  const { play: playTryAgain } = useTryAgainSound();
 
   useEffect(() => {
     if (suppressAutoPlay) {
@@ -148,6 +150,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       setPulsatingIds(new Set());
       playCompletion();
     } else {
+      playTryAgain();
       onMistake && onMistake();
       setSubmitError(true);
       const correctIds = new Set(round.tiles.filter((t) => t.isCorrect).map((t) => t.id));
@@ -158,7 +161,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
         setPlacedColors({});
       }, 600);
     }
-  }, [completing, audioLocked, placed, round, playCompletion, onMistake]);
+  }, [completing, audioLocked, placed, round, playCompletion, onMistake, playTryAgain]);
 
   const handleReset = useCallback(() => {
     if (completing) return;
@@ -193,7 +196,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
               <motion.div key={i} ref={(el) => (dropZoneRefs.current[i] = el)}
                 animate={submitError ? { x: [0,-10,10,-8,8,-4,4,0] } : bouncingIndex === i ? { y: [0,-16,0,-8,0,-4,0] } : {}}
                 transition={{ duration: 0.5 }}
-                style={{ width: "min(88px,23vw)", height: "min(88px,23vw)", borderRadius: 22, background: tileColor || "rgba(255,255,255,0.75)", border: `3px solid ${tileColor ? (submitError ? "#FF6B6B" : "rgba(255,255,255,0.85)") : "rgba(74,144,196,0.35)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: tileColor ? "0 4px 18px rgba(0,0,0,0.13)" : "inset 0 2px 8px rgba(0,0,0,0.07)", flexShrink: 0 }}>
+                style={{ width: "min(88px,23vw)", height: "min(88px,23vw)", borderRadius: 22, background: tileColor || "rgba(255,255,255,0.75)", border: `3px solid ${tileColor ? "rgba(255,255,255,0.85)" : "rgba(74,144,196,0.35)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: tileColor ? "0 4px 18px rgba(0,0,0,0.13)" : "inset 0 2px 8px rgba(0,0,0,0.07)", flexShrink: 0 }}>
                 {placedTile
                   ? <motion.span key={placedTile.id} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ fontSize: "min(48px,12vw)", fontWeight: 700, color: "#1E3A5F" }}>{placedTile.letter}</motion.span>
                   : <span style={{ fontSize: "min(32px,8vw)", color: "rgba(74,144,196,0.25)", fontWeight: 700 }}>?</span>}

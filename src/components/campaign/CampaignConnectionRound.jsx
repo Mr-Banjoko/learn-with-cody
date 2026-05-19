@@ -228,8 +228,8 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
         {letters.map((letter, i) => (
           <div key={i} style={{ flex: 1, maxWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
             <motion.div
-              animate={wrongFeedback?.topIdx === i ? { x: [0, -10, 10, -7, 7, 0] } : {}}
-              transition={{ duration: 0.38 }}
+              animate={wrongFeedback?.topIdx === i ? { x: [0, -8, 8, -6, 6, 0] } : {}}
+              transition={{ duration: 0.4 }}
               style={{ width: "100%", height: "min(80px, 22vw)", borderRadius: 20, background: LETTER_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px, 12vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 16px rgba(0,0,0,0.10)" }}
             >
               {letter}
@@ -238,7 +238,7 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
               dotRef={setRef(`top-${i}`)}
               selected={selected === `top-${i}`}
               matched={matchedTopIdxs.has(i)}
-              wrong={wrongFeedback?.topIdx === i}
+              wrong={false}
               onTap={() => handleTopDot(i)}
               color={CARD_COLORS[i]}
             />
@@ -264,13 +264,13 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
                 dotRef={setRef(`bot-${botSlot}`)}
                 selected={isSelectedBot}
                 matched={isMatched}
-                wrong={isWrongBot}
+                wrong={false}
                 onTap={() => handleBotDot(botSlot)}
                 color={dotColor}
               />
               <motion.div
-                animate={isWrongBot ? { x: [0, -10, 10, -7, 7, 0] } : {}}
-                transition={{ duration: 0.38 }}
+                animate={isWrongBot ? { x: [0, -8, 8, -6, 6, 0] } : {}}
+                transition={{ duration: 0.4 }}
                 onPointerDown={(e) => { e.preventDefault(); handleSliceTap(botSlot); }}
                 style={{ width: "100%", aspectRatio: "1/2", borderRadius: 18, overflow: "hidden", border: isMatched ? `2.5px solid ${dotColor}` : "2.5px solid rgba(168,208,230,0.5)", boxShadow: isMatched ? `0 0 0 4px ${dotColor}44` : "0 4px 14px rgba(0,0,0,0.09)", cursor: "pointer", background: "#f8f8f8", transition: "border 0.18s, box-shadow 0.18s", WebkitTapHighlightColor: "transparent", position: "relative", touchAction: "manipulation" }}
               >
