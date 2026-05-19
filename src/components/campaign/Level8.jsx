@@ -10,7 +10,7 @@
  * Round 6: Drag the Letter → mat
  * Round 7: Drag the Letter → jam
  */
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
 import LevelHeader from "./LevelHeader";
@@ -22,7 +22,7 @@ import { useCorrectSound } from "../../lib/useCorrectSound";
 const LEVEL_NUM = 8;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
-import { playAudio, playAudioSequence } from "../../lib/useAudio";
+import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 
 function findWord(name) {
   return shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" };
@@ -95,6 +95,15 @@ function MissingSoundRound({ round, onComplete, lang }) {
   const placedOptionRef = useRef(null);
   const { play: playCorrect } = useCorrectSound();
 
+  // Pre-resolve all audio blobs on mount so Safari can play them inside gesture handlers
+  useEffect(() => {
+    const urls = [
+      ...round.letters.map((l) => getLetterSoundUrl(l)),
+      round.card.audio,
+    ].filter(Boolean);
+    warmupAudio(urls).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const syncSetPlaced = useCallback((val) => {
     placedOptionRef.current = val;
     setPlacedOption(val);
@@ -120,7 +129,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
     if (placed.isCorrect) {
       setFeedback("completing");
       playCorrect(() => {
-        setTimeout(() => playCompletion(), 50);
+        setTimeout(() => playCompletion(), 15);
       });
     } else {
       setFeedback("wrong");
@@ -128,30 +137,26 @@ function MissingSoundRound({ round, onComplete, lang }) {
     }
   }, [feedback, playCompletion, syncSetPlaced, playCorrect]);
 
-  const handleTouchStart = useCallback((e, option) => {
+  const startDrag = useCallback((option, clientX, clientY, currentTarget) => {
     if (placedOptionRef.current?.id === option.id) return;
-    e.stopPropagation();
     isDragging.current = false;
-    const touch = e.touches[0];
-    const rect = e.currentTarget.getBoundingClientRect();
+    const rect = currentTarget.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const ds = {
       id: option.id, letter: option.letter, isCorrect: option.isCorrect,
       optionIndex: round.options.findIndex((o) => o.id === option.id),
-      x: cx, y: cy, startX: touch.clientX, startY: touch.clientY, originX: cx, originY: cy,
+      x: cx, y: cy, startX: clientX, startY: clientY, originX: cx, originY: cy,
     };
     dragStateRef.current = ds;
     setDragState(ds);
   }, [round.options]);
 
-  const handleTouchMove = useCallback((e) => {
+  const moveDrag = useCallback((clientX, clientY) => {
     if (!dragStateRef.current) return;
-    e.preventDefault();
-    const touch = e.touches[0];
     const prev = dragStateRef.current;
-    const dx = touch.clientX - prev.startX;
-    const dy = touch.clientY - prev.startY;
+    const dx = clientX - prev.startX;
+    const dy = clientY - prev.startY;
     if (!isDragging.current && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
       isDragging.current = true;
       setIsActiveDrag(true);
@@ -161,20 +166,16 @@ function MissingSoundRound({ round, onComplete, lang }) {
     setDragState(updated);
   }, []);
 
-  const handleTouchEnd = useCallback((e) => {
+  const endDrag = useCallback((clientX, clientY) => {
     const ds = dragStateRef.current;
     if (!ds) return;
     if (!isDragging.current) {
       const url = getLetterSoundUrl(ds.letter);
       if (url) playAudio(url, getLetterGain(ds.letter));
     } else {
-      const touch = e.changedTouches[0];
       if (dropZoneRef.current && !placedOptionRef.current) {
         const rect = dropZoneRef.current.getBoundingClientRect();
-        const hit = (
-          touch.clientX >= rect.left && touch.clientX <= rect.right &&
-          touch.clientY >= rect.top  && touch.clientY <= rect.bottom
-        );
+        const hit = (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom);
         if (hit) syncSetPlaced({ id: ds.id, letter: ds.letter, isCorrect: ds.isCorrect, optionIndex: ds.optionIndex });
       }
     }
@@ -183,6 +184,38 @@ function MissingSoundRound({ round, onComplete, lang }) {
     setIsActiveDrag(false);
     isDragging.current = false;
   }, [syncSetPlaced]);
+
+  const handleTouchStart = useCallback((e, option) => {
+    e.stopPropagation();
+    const touch = e.touches[0];
+    startDrag(option, touch.clientX, touch.clientY, e.currentTarget);
+  }, [startDrag]);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!dragStateRef.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    moveDrag(touch.clientX, touch.clientY);
+  }, [moveDrag]);
+
+  const handleTouchEnd = useCallback((e) => {
+    const touch = e.changedTouches[0];
+    endDrag(touch.clientX, touch.clientY);
+  }, [endDrag]);
+
+  const handleMouseDown = useCallback((e, option) => {
+    e.preventDefault();
+    startDrag(option, e.clientX, e.clientY, e.currentTarget);
+  }, [startDrag]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!dragStateRef.current) return;
+    moveDrag(e.clientX, e.clientY);
+  }, [moveDrag]);
+
+  const handleMouseUp = useCallback((e) => {
+    endDrag(e.clientX, e.clientY);
+  }, [endDrag]);
 
   const handleTopLetterTap = useCallback((letter) => {
     const url = getLetterSoundUrl(letter);
@@ -196,6 +229,9 @@ function MissingSoundRound({ round, onComplete, lang }) {
       style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0, touchAction: "none", userSelect: "none" }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
     >
       {/* 3 letter boxes */}
       <div style={{ background: "rgba(255,255,255,0.55)", borderRadius: 32, padding: "18px 22px", boxShadow: "0 8px 32px rgba(30,58,95,0.10)", border: "2px solid rgba(255,255,255,0.85)", display: "flex", gap: "min(20px, 4vw)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -255,6 +291,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
               key={option.id}
               animate={isDraggingThis ? { scale: 1.06, opacity: 0.3 } : { scale: 1, opacity: 1 }}
               onTouchStart={(e) => handleTouchStart(e, option)}
+              onMouseDown={(e) => handleMouseDown(e, option)}
               style={{ width: "min(74px, 19vw)", height: "min(74px, 19vw)", borderRadius: 20, background: "white", border: "2.5px solid rgba(168,208,230,0.55)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(38px, 9.5vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 3px 12px rgba(30,58,95,0.08)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", flexShrink: 0 }}
             >
               {option.letter}

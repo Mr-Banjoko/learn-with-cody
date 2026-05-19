@@ -8,7 +8,7 @@
  *   Round 6: Drag the Letter — bat
  *   Round 7: Drag the Letter — rat
  */
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
 import LevelHeader from "./LevelHeader";
@@ -21,8 +21,9 @@ const LEVEL_NUM = 2;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { shortAWords } from "../../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
-import { playAudio, playAudioSequence } from "../../lib/useAudio";
+import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 
+// ── helpers ──────────────────────────────────────────────────────────────────
 function findWord(name) {
   return shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" };
 }
@@ -36,6 +37,7 @@ function markLevel2Complete() {
   } catch (_) {}
 }
 
+// Fixed round definition
 const ROUND_SEQUENCE = [
   { type: "missing", word: "rat", missingLetter: "r", missingPos: 0 },
   { type: "missing", word: "dad", missingLetter: "a", missingPos: 1 },
@@ -45,10 +47,11 @@ const ROUND_SEQUENCE = [
   { type: "drag",    word: "bat" },
   { type: "drag",    word: "rat" },
 ];
-const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
+const TOTAL_ROUNDS = ROUND_SEQUENCE.length; // 7
 
+// ── TOP_COLORS for Missing Sound boxes ───────────────────────────────────────
 const TOP_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
-const DRAG_THRESHOLD = 6;
+const DRAG_THRESHOLD = 6; // px
 
 function getDistractors(word, missingLetter) {
   const all = "abcdefghijklmnoprstw".split("");
@@ -79,6 +82,7 @@ function buildMissingRound(def) {
   return { card, letters, missingPos: def.missingPos, options };
 }
 
+// ── MissingSoundRound (inline, campaign-aware) ────────────────────────────────
 function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   const accentColor = "#4ECDC4";
 
@@ -94,6 +98,15 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   const dragStateRef = useRef(null);
   const placedOptionRef = useRef(null);
   const { play: playCorrect } = useCorrectSound();
+
+  // Pre-resolve all audio blobs on mount so Safari can play them inside gesture handlers
+  useEffect(() => {
+    const urls = [
+      ...round.letters.map((l) => getLetterSoundUrl(l)),
+      round.card.audio,
+    ].filter(Boolean);
+    warmupAudio(urls).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const syncSetPlaced = useCallback((val) => {
     placedOptionRef.current = val;
@@ -120,7 +133,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
     if (placed.isCorrect) {
       setFeedback("completing");
       playCorrect(() => {
-        setTimeout(() => playCompletion(), 50);
+        setTimeout(() => playCompletion(), 15);
       });
     } else {
       setFeedback("wrong");
@@ -129,30 +142,26 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
     }
   }, [feedback, playCompletion, syncSetPlaced, onMistake, playCorrect]);
 
-  const handleTouchStart = useCallback((e, option) => {
+  const startDrag = useCallback((option, clientX, clientY, currentTarget) => {
     if (placedOptionRef.current?.id === option.id) return;
-    e.stopPropagation();
     isDragging.current = false;
-    const touch = e.touches[0];
-    const rect = e.currentTarget.getBoundingClientRect();
+    const rect = currentTarget.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const ds = {
       id: option.id, letter: option.letter, isCorrect: option.isCorrect,
       optionIndex: round.options.findIndex((o) => o.id === option.id),
-      x: cx, y: cy, startX: touch.clientX, startY: touch.clientY, originX: cx, originY: cy,
+      x: cx, y: cy, startX: clientX, startY: clientY, originX: cx, originY: cy,
     };
     dragStateRef.current = ds;
     setDragState(ds);
   }, [round.options]);
 
-  const handleTouchMove = useCallback((e) => {
+  const moveDrag = useCallback((clientX, clientY) => {
     if (!dragStateRef.current) return;
-    e.preventDefault();
-    const touch = e.touches[0];
     const prev = dragStateRef.current;
-    const dx = touch.clientX - prev.startX;
-    const dy = touch.clientY - prev.startY;
+    const dx = clientX - prev.startX;
+    const dy = clientY - prev.startY;
     if (!isDragging.current && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
       isDragging.current = true;
       setIsActiveDrag(true);
@@ -162,20 +171,16 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
     setDragState(updated);
   }, []);
 
-  const handleTouchEnd = useCallback((e) => {
+  const endDrag = useCallback((clientX, clientY) => {
     const ds = dragStateRef.current;
     if (!ds) return;
     if (!isDragging.current) {
       const url = getLetterSoundUrl(ds.letter);
       if (url) playAudio(url, getLetterGain(ds.letter));
     } else {
-      const touch = e.changedTouches[0];
       if (dropZoneRef.current && !placedOptionRef.current) {
         const rect = dropZoneRef.current.getBoundingClientRect();
-        const hit = (
-          touch.clientX >= rect.left && touch.clientX <= rect.right &&
-          touch.clientY >= rect.top  && touch.clientY <= rect.bottom
-        );
+        const hit = (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom);
         if (hit) syncSetPlaced({ id: ds.id, letter: ds.letter, isCorrect: ds.isCorrect, optionIndex: ds.optionIndex });
       }
     }
@@ -184,6 +189,38 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
     setIsActiveDrag(false);
     isDragging.current = false;
   }, [syncSetPlaced]);
+
+  const handleTouchStart = useCallback((e, option) => {
+    e.stopPropagation();
+    const touch = e.touches[0];
+    startDrag(option, touch.clientX, touch.clientY, e.currentTarget);
+  }, [startDrag]);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!dragStateRef.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    moveDrag(touch.clientX, touch.clientY);
+  }, [moveDrag]);
+
+  const handleTouchEnd = useCallback((e) => {
+    const touch = e.changedTouches[0];
+    endDrag(touch.clientX, touch.clientY);
+  }, [endDrag]);
+
+  const handleMouseDown = useCallback((e, option) => {
+    e.preventDefault();
+    startDrag(option, e.clientX, e.clientY, e.currentTarget);
+  }, [startDrag]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!dragStateRef.current) return;
+    moveDrag(e.clientX, e.clientY);
+  }, [moveDrag]);
+
+  const handleMouseUp = useCallback((e) => {
+    endDrag(e.clientX, e.clientY);
+  }, [endDrag]);
 
   const handleTopLetterTap = useCallback((letter) => {
     const url = getLetterSoundUrl(letter);
@@ -202,7 +239,11 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
       }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
     >
+      {/* 3 letter boxes */}
       <div style={{
         background: "rgba(255,255,255,0.55)", borderRadius: 32,
         padding: "18px 22px", boxShadow: "0 8px 32px rgba(30,58,95,0.10)",
@@ -251,6 +292,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
         })}
       </div>
 
+      {/* Play word button */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flexShrink: 0 }}>
         <motion.button
           whileTap={{ scale: 0.88 }}
@@ -264,8 +306,10 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
         >
           <Play size={26} color="white" fill="white" />
         </motion.button>
+        
       </div>
 
+      {/* Answer tiles */}
       <div style={{ display: "flex", gap: "min(16px, 4vw)", justifyContent: "center", flexShrink: 0 }}>
         {round.options.map((option) => {
           const isPlaced = placedOption?.id === option.id;
@@ -276,6 +320,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
               key={option.id}
               animate={isDraggingThis ? { scale: 1.06, opacity: 0.3 } : { scale: 1, opacity: 1 }}
               onTouchStart={(e) => handleTouchStart(e, option)}
+              onMouseDown={(e) => handleMouseDown(e, option)}
               style={{
                 width: "min(74px, 19vw)", height: "min(74px, 19vw)", borderRadius: 20,
                 background: "white", border: "2.5px solid rgba(168,208,230,0.55)",
@@ -292,6 +337,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
         })}
       </div>
 
+      {/* Submit */}
       <motion.button
         whileTap={canSubmit ? { scale: 0.95 } : {}}
         onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleSubmit(); }}
@@ -308,6 +354,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
         ✓
       </motion.button>
 
+      {/* Drag ghost */}
       <AnimatePresence>
         {dragState && isActiveDrag && (
           <div style={{
@@ -327,6 +374,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   );
 }
 
+// ── Level2 shell ──────────────────────────────────────────────────────────────
 export default function Level2({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
@@ -353,15 +401,23 @@ export default function Level2({ onBack, lang = "en" }) {
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
 
+  // Build missing round data — stable per roundIndex
   const missingRound = useMemo(() => {
     if (!roundDef || roundDef.type !== "missing") return null;
     return buildMissingRound(roundDef);
   }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Drag card
   const dragCard = useMemo(() => {
     if (!roundDef || roundDef.type !== "drag") return null;
     return findWord(roundDef.word);
   }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const roundLabel = roundDef
+    ? roundDef.type === "missing"
+      ? (lang === "zh" ? "缺失的音" : "Missing Sound")
+      : (lang === "zh" ? "拖拽字母" : "Drag the Letter")
+    : "";
 
   return (
     <div style={{
@@ -372,6 +428,7 @@ export default function Level2({ onBack, lang = "en" }) {
     }}>
       <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={ROUND_SEQUENCE[roundIndex]?.type} />
 
+      {/* Progress bar */}
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div
@@ -382,6 +439,7 @@ export default function Level2({ onBack, lang = "en" }) {
         </div>
       )}
 
+      {/* Content */}
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div
