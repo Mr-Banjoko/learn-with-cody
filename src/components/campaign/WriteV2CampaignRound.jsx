@@ -118,7 +118,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
           onComplete();
         });
         cancelAudioRef.current = cancel;
-      }, 500);
+      }, 50);
     });
   }, [phase, round, tracedCardIds, cancelAudio, onComplete, onMistake, card]);
 
@@ -130,6 +130,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 16, overflowY: "auto", position: "relative" }}>
       {locked && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
+      {/* Word image */}
       <AnimatePresence mode="wait">
         <motion.div key={card.word} initial={{ opacity: 0, scale: 0.93 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }} style={{ position: "relative", width: "100%", maxWidth: 220 }}>
           <div style={{ position: "absolute", top: -12, right: -6, width: 100, height: 85, borderRadius: 28, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
@@ -141,6 +142,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         </motion.div>
       </AnimatePresence>
 
+      {/* Card grid */}
       <AnimatePresence mode="wait">
         <motion.div key={`${roundKey}-${phase}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}
           style={{ display: "grid", gridTemplateColumns: phase === "success" ? `repeat(${displayCards.length}, ${TILE_SIZE}px)` : `repeat(3, ${TILE_SIZE}px)`, gap: 8, justifyContent: "center", width: "100%" }}>
@@ -168,6 +170,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         </motion.div>
       </AnimatePresence>
 
+      {/* Buttons */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
         <button onPointerDown={(e) => { e.preventDefault(); handleRefresh(); }}
           style={{ width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.14)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, touchAction: "manipulation", opacity: tracedCount > 0 && !locked && phase === "tracing" ? 1 : 0.35 }}>
