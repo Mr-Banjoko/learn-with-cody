@@ -148,7 +148,6 @@ function CandyArrow({ direction, onPress }) {
 export default function CampaignLetterCatchRound({ word, missingLetter, image, audio, onComplete, onMistake, lang = "en", paused = false, skipInitialAudio = false }) {
   const { play: playCorrect } = useCorrectSound();
   const letters = word.split("");
-  // Find the index of the missing letter in the word
   const missingPos = letters.indexOf(missingLetter);
 
   const [tiles, setTiles] = useState([]);
@@ -171,7 +170,6 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
 
   useEffect(() => { codyLaneRef.current = codyLane; }, [codyLane]);
 
-  // Auto-play word audio at round start (skip if external sequence handles it)
   useEffect(() => {
     if (skipInitialAudio) return;
     const t = setTimeout(() => playAudio(audio), 300);
@@ -199,9 +197,8 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         tilesRef.current = [];
         setTiles([]);
         setCaughtVisible(true);
-        playCorrect(() => onComplete());
+        playCorrect(() => { setTimeout(() => onComplete(), 100); });
       } else {
-        // Wrong catch — deduct life
         onMistake && onMistake();
         tilesRef.current = tilesRef.current.map((t) =>
           t.id === tile.id ? { ...t, status: "wrong" } : t
@@ -293,7 +290,6 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
       display: "flex", flexDirection: "column", height: "100%",
       fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative",
     }}>
-      {/* Word Card */}
       <div style={{ padding: "8px 12px 4px", flexShrink: 0 }}>
         <div style={{
           background: "white", borderRadius: 22, padding: "10px 14px",
@@ -352,7 +348,6 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         </div>
       </div>
 
-      {/* Game Field */}
       <div ref={gameAreaRef} style={{ flex: 1, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, display: "flex", pointerEvents: "none" }}>
           {[0, 1, 2].map((l) => (
@@ -424,7 +419,6 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         }} />
       </div>
 
-      {/* Arrow controls */}
       <div style={{
         display: "flex", justifyContent: "space-between", alignItems: "center",
         flexShrink: 0, padding: "6px 16px 10px",
