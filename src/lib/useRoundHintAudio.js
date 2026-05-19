@@ -135,8 +135,8 @@ export function getHintAudioUrl(levelNum, roundIndex, lang) {
     return `${GH}/catch_the_letter_hint/${folder}/hint.mp3`;
   }
 
-  // Level 9, Round 1 (roundIndex 0) → identifying_hint / hint.mp3
-  if (levelNum === 9 && roundIndex === 0) {
+  // Level 4, Round 1 (roundIndex 0) → identifying_hint / hint.mp3
+  if (levelNum === 4 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/identifying_hint/${folder}/hint.mp3`;
   }

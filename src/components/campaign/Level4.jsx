@@ -8,9 +8,10 @@ import LevelHeader from "./LevelHeader";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import IdentifyingRound from "../games/IdentifyingRound";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { shortAWords } from "../../lib/shortAWords";
 const LEVEL_NUM = 4;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
@@ -44,6 +45,22 @@ export default function Level4({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  // Round 1 only: chain word audio after hint audio before unlocking
+  const round1WordAudio = roundIndex === 0 ? (shortAWords.find((w) => w.word === TARGET_WORDS[0])?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!round1WordAudio) { unlock(); return; }
+    const audio = new Audio(round1WordAudio);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [round1WordAudio]);
+
+  const hintUrl = getHintAudioUrl(4, roundIndex, lang);
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
+  });
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
@@ -79,7 +96,8 @@ export default function Level4({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <IdentifyingRound key={roundIndex} round={round} onComplete={advance} lang={lang} onMistake={onMistake} />
+            <IdentifyingRound key={roundIndex} round={round} onComplete={advance} lang={lang} onMistake={onMistake} suppressAutoPlay={roundIndex === 0} />
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>
