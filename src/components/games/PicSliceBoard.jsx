@@ -323,14 +323,12 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
               key={wi}
               whileTap={playbackLocked ? {} : { scale: 0.93 }}
               onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
-              animate={isPlaying ? { scale: [1, 1.06, 1.06, 1], boxShadow: ["0 4px 16px rgba(30,58,95,0.10)", "0 0 0 4px rgba(78,205,196,0.55)", "0 0 0 4px rgba(78,205,196,0.55)", "0 4px 16px rgba(30,58,95,0.10)"] } : {}}
+              animate={isPlaying ? { scale: [1, 1.06, 1.06, 1] } : {}}
               transition={isPlaying ? { duration: 0.5, repeat: Infinity, repeatType: "loop" } : {}}
               style={{
                 flex: 1, padding: "10px 8px",
                 background: wi === 0 ? "#FFD6E0" : "#D6F0FF",
-                border: isPlaying
-                  ? "3px solid #4ECDC4"
-                  : `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
+                border: `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
                 borderRadius: 18,
                 fontSize: "clamp(26px, 7.5vw, 40px)",
                 fontWeight: 700, color: "#1E3A5F",
