@@ -118,7 +118,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
 
     const advanceTimer = { id: null };
     cancelSequenceRef.current = playAudioSequence(steps, () => {
-      advanceTimer.id = setTimeout(onRoundComplete, 300);
+      advanceTimer.id = setTimeout(onRoundComplete, 10);
     });
 
     return () => {

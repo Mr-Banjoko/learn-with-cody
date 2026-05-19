@@ -199,7 +199,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         tilesRef.current = [];
         setTiles([]);
         setCaughtVisible(true);
-        playCorrect(() => { setTimeout(() => onComplete(), 100); });
+        playCorrect(() => { setTimeout(() => onComplete(), 10); });
       } else {
         playTryAgain();
         onMistake && onMistake();

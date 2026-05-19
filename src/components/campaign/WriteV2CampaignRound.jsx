@@ -121,7 +121,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
           onComplete();
         });
         cancelAudioRef.current = cancel;
-      }, 50);
+      }, 10);
     });
   }, [phase, round, tracedCardIds, cancelAudio, onComplete, onMistake, card, playTryAgain]);
 
