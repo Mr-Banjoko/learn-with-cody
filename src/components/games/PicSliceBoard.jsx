@@ -366,10 +366,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                       aspectRatio: "1 / 1",
                       borderRadius: 20,
                       overflow: "hidden",
-                      border: isPlaying ? "3px solid #4ECDC4" : "3px solid #4ECDC4",
-                      boxShadow: isPlaying
-                        ? "0 0 0 4px rgba(78,205,196,0.45), 0 6px 28px rgba(78,205,196,0.4)"
-                        : "0 6px 28px rgba(78,205,196,0.4)",
+                      border: `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
+                      boxShadow: `0 6px 28px ${wi === 0 ? "rgba(255,130,170,0.30)" : "rgba(60,150,240,0.25)"}`,
                       transition: "box-shadow 0.25s",
                     }}
                   >

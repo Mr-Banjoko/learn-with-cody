@@ -311,8 +311,8 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                 aspectRatio: "1 / 1",
                 borderRadius: 22,
                 overflow: "hidden",
-                border: `3px solid #4ECDC4`,
-                boxShadow: "0 6px 28px rgba(78,205,196,0.42)",
+                border: `2.5px solid ${border}`,
+                boxShadow: `0 4px 18px ${shadow}`,
               }}
             >
               <img
@@ -455,12 +455,8 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                 aspectRatio: "2 / 3",
                 borderRadius: 16,
                 overflow: "hidden",
-                border: isListened
-                  ? `2.5px solid #4ECDC4`          // tapped → teal highlight
-                  : `2.5px solid ${border}`,
-                boxShadow: isListened
-                  ? `0 4px 14px rgba(78,205,196,0.38)`
-                  : `0 4px 14px ${shadow}`,
+                border: `2.5px solid ${border}`,
+                boxShadow: `0 4px 14px ${shadow}`,
                 background: bg,
                 cursor: locked ? "pointer" : "grab",
                 touchAction: "none",
