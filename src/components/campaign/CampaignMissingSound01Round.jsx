@@ -108,7 +108,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
     if (placed.isCorrect) {
       setFeedback("completing");
       playCorrect(() => {
-        setTimeout(() => playCompletion(), 500);
+        setTimeout(() => playCompletion(), 100);
       });
     } else {
       setFeedback("wrong");
