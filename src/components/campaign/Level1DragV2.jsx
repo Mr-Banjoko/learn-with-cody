@@ -51,6 +51,7 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
   const { play: playCorrect } = useCorrectSound();
+  const { play: playTryAgain } = useTryAgainSound();
 
   const playCompletion = useCallback(() => {
     const letterSteps = round.letters.map((letter, i) => {
@@ -131,6 +132,7 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
         setTimeout(() => playCompletion(), 100);
       });
     } else {
+      playTryAgain();
       setSubmitError(true);
       onMistake && onMistake();
       setTimeout(() => {
@@ -139,7 +141,7 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
         setPlacedColors({});
       }, 600);
     }
-  }, [completing, placed, round, card, playCompletion, playCorrect]);
+  }, [completing, placed, round, card, playCompletion, playCorrect, playTryAgain]);
 
   const allFilled = placed.every((p) => p !== null);
 
@@ -178,7 +180,7 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
                 ref={(el) => (dropZoneRefs.current[i] = el)}
                 animate={submitError ? { x: [0, -10, 10, -8, 8, -4, 4, 0] } : isBouncing ? { y: [0, -16, 0, -8, 0, -4, 0] } : {}}
                 transition={{ duration: 0.5 }}
-                style={{ width: "min(76px, 20vw)", height: "min(76px, 20vw)", borderRadius: 18, background: tileColor || "rgba(255,255,255,0.7)", border: `3px solid ${tileColor ? (submitError ? "#FF6B6B" : "rgba(255,255,255,0.85)") : "rgba(74,144,196,0.4)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: tileColor ? "0 4px 16px rgba(0,0,0,0.12)" : "inset 0 2px 8px rgba(0,0,0,0.06)", transition: "background 0.2s, border 0.2s" }}
+                style={{ width: "min(76px, 20vw)", height: "min(76px, 20vw)", borderRadius: 18, background: tileColor || "rgba(255,255,255,0.7)", border: `3px solid ${tileColor ? "rgba(255,255,255,0.85)" : "rgba(74,144,196,0.4)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: tileColor ? "0 4px 16px rgba(0,0,0,0.12)" : "inset 0 2px 8px rgba(0,0,0,0.06)", transition: "background 0.2s, border 0.2s" }}
               >
                 {placedOption ? (
                   <motion.span key={placedOption.id} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F" }}>

@@ -201,6 +201,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         setCaughtVisible(true);
         playCorrect(() => { setTimeout(() => onComplete(), 100); });
       } else {
+        playTryAgain();
         onMistake && onMistake();
         tilesRef.current = tilesRef.current.map((t) =>
           t.id === tile.id ? { ...t, status: "wrong" } : t

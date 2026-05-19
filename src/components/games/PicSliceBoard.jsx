@@ -5,6 +5,7 @@ import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { tx } from "../../lib/i18n";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 function buildState(wordPair) {
   const pieces = buildRoundPieces(wordPair);
@@ -34,6 +35,7 @@ function buildCompletionSequence(wordData) {
 }
 
 export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", onMistake }) {
+  const { play: playTryAgain } = useTryAgainSound();
   const [state, setState] = useState(() => buildState(wordPair));
   const [dragState, setDragState] = useState(null);
 
@@ -230,6 +232,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
           }
         });
       } else {
+        playTryAgain();
         setState((prev) => ({ ...prev, rejectedSlot: hitKey }));
         onMistake && onMistake();
         setTimeout(() => setState((prev) => ({ ...prev, rejectedSlot: null })), 500);
@@ -238,7 +241,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
 
     setDragState(null);
     isDragging.current = false;
-  }, [playbackLocked, dragState, state, wordPair, onWordCompleted, onMistake]);
+  }, [playbackLocked, dragState, state, wordPair, onWordCompleted, onMistake, playTryAgain]);
 
   const handlePlacedTap = useCallback((slotKey) => {
     if (playbackLocked) return;                        // 🔒 LOCK

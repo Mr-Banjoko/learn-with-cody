@@ -4,6 +4,7 @@ import { RotateCcw } from "lucide-react";
 import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 // Round color palette — one theme chosen randomly per round
 const ROUND_PALETTES = [
@@ -73,6 +74,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
   const [listenedIds, setListenedIds] = useState(new Set());
   const allListened = listenedIds.size >= 3;
 
+  const { play: playTryAgain } = useTryAgainSound();
   const isDragging = useRef(false);
   const dropZoneRefs = useRef({});
   const autoPlayRef = useRef(null);
@@ -211,6 +213,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
         });
         setState((prev) => ({ ...prev, placed: newPlaced, trayIds: newTrayIds, wordComplete }));
       } else {
+        playTryAgain();
         setState((prev) => ({ ...prev, rejectedSlot: hitKey }));
         onMistake && onMistake();
         setTimeout(() => setState((prev) => ({ ...prev, rejectedSlot: null })), 500);

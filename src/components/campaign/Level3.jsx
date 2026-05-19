@@ -17,6 +17,7 @@ import Level1DragV2 from "./Level1DragV2";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
+import { useTryAgainSound } from "../../lib/useTryAgainSound";
 const LEVEL_NUM = 2;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { shortAWords } from "../../lib/shortAWords";
@@ -98,6 +99,7 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   const dragStateRef = useRef(null);
   const placedOptionRef = useRef(null);
   const { play: playCorrect } = useCorrectSound();
+  const { play: playTryAgain } = useTryAgainSound();
 
   // Pre-resolve all audio blobs on mount so Safari can play them inside gesture handlers
   useEffect(() => {
@@ -136,11 +138,12 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
         setTimeout(() => playCompletion(), 15);
       });
     } else {
+      playTryAgain();
       setFeedback("wrong");
       onMistake && onMistake();
       setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700);
     }
-  }, [feedback, playCompletion, syncSetPlaced, onMistake, playCorrect]);
+  }, [feedback, playCompletion, syncSetPlaced, onMistake, playCorrect, playTryAgain]);
 
   const startDrag = useCallback((option, clientX, clientY, currentTarget) => {
     if (placedOptionRef.current?.id === option.id) return;
