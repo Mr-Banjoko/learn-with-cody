@@ -18,6 +18,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import Level1DragV2 from "./Level1DragV2";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useCorrectSound } from "../../lib/useCorrectSound";
 const LEVEL_NUM = 8;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
@@ -92,6 +93,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
   const isDragging = useRef(false);
   const dragStateRef = useRef(null);
   const placedOptionRef = useRef(null);
+  const { play: playCorrect } = useCorrectSound();
 
   const syncSetPlaced = useCallback((val) => {
     placedOptionRef.current = val;
@@ -99,7 +101,6 @@ function MissingSoundRound({ round, onComplete, lang }) {
   }, []);
 
   const playCompletion = useCallback(() => {
-    setFeedback("completing");
     const steps = round.letters.map((letter, i) => {
       const url = getLetterSoundUrl(letter);
       return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
@@ -117,12 +118,15 @@ function MissingSoundRound({ round, onComplete, lang }) {
     const placed = placedOptionRef.current;
     if (!placed || feedback === "completing") return;
     if (placed.isCorrect) {
-      playCompletion();
+      setFeedback("completing");
+      playCorrect(() => {
+        setTimeout(() => playCompletion(), 50);
+      });
     } else {
       setFeedback("wrong");
       setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700);
     }
-  }, [feedback, playCompletion, syncSetPlaced]);
+  }, [feedback, playCompletion, syncSetPlaced, playCorrect]);
 
   const handleTouchStart = useCallback((e, option) => {
     if (placedOptionRef.current?.id === option.id) return;
@@ -262,7 +266,7 @@ function MissingSoundRound({ round, onComplete, lang }) {
       {/* Submit */}
       <motion.button
         whileTap={canSubmit ? { scale: 0.95 } : {}}
-        onClick={handleSubmit}
+        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleSubmit(); }}
         style={{ padding: "14px 52px", borderRadius: 99, border: "none", background: canSubmit ? accentColor : "rgba(168,208,230,0.35)", color: canSubmit ? "white" : "rgba(74,144,196,0.4)", fontSize: 20, fontWeight: 700, boxShadow: canSubmit ? `0 6px 24px ${accentColor}50` : "none", cursor: canSubmit ? "pointer" : "not-allowed", transition: "all 0.25s", flexShrink: 0, touchAction: "manipulation" }}
       >
         ✓
