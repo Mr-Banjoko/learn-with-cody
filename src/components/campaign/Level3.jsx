@@ -165,7 +165,6 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
   const handleTouchEnd = useCallback((e) => {
     const ds = dragStateRef.current;
     if (!ds) return;
-
     if (!isDragging.current) {
       const url = getLetterSoundUrl(ds.letter);
       if (url) playAudio(url, getLetterGain(ds.letter));
@@ -180,7 +179,6 @@ function MissingSoundRound({ round, onComplete, lang, onMistake }) {
         if (hit) syncSetPlaced({ id: ds.id, letter: ds.letter, isCorrect: ds.isCorrect, optionIndex: ds.optionIndex });
       }
     }
-
     dragStateRef.current = null;
     setDragState(null);
     setIsActiveDrag(false);
