@@ -1,10 +1,20 @@
 /**
  * useCorrectSound
  *
- * Preloads correct-sound.mp3 from GitHub and provides a play function.
- * play(onEnded) — plays the sound and calls onEnded when it finishes.
- * Double-trigger protected: if already playing, the previous instance is
- * stopped before a new one starts.
+ * Safari-safe correct sound player.
+ *
+ * Safari requires audio to be both created AND played within a synchronous
+ * user-gesture stack. Blob URL + async fetch breaks this chain.
+ *
+ * Strategy:
+ *  1. On first user interaction anywhere in the document, create a silent
+ *     Audio element and call .play() to "unlock" the audio context for this
+ *     Audio instance — Safari allows subsequent .play() calls on the same
+ *     element without a gesture once it has been unlocked.
+ *  2. After unlocking, load the real src via element.src assignment (no fetch/blob).
+ *  3. play(onEnded) reuses the same element, seeking to 0 and calling .play().
+ *     This stays within Safari's gesture trust window because the element is
+ *     already unlocked.
  */
 
 const CORRECT_SOUND_URL =
@@ -14,53 +24,84 @@ import { useRef, useEffect } from "react";
 
 export function useCorrectSound() {
   const audioRef = useRef(null);
-  const blobUrlRef = useRef(null);
+  const unlockedRef = useRef(false);
 
-  // Preload once on mount
   useEffect(() => {
-    let cancelled = false;
-    fetch(CORRECT_SOUND_URL)
-      .then((r) => r.blob())
-      .then((blob) => {
-        if (!cancelled) blobUrlRef.current = URL.createObjectURL(blob);
-      })
-      .catch(() => {
-        // Fallback to remote URL if preload fails
-        blobUrlRef.current = CORRECT_SOUND_URL;
-      });
-    return () => {
-      cancelled = true;
-      if (blobUrlRef.current && blobUrlRef.current.startsWith("blob:")) {
-        URL.revokeObjectURL(blobUrlRef.current);
+    // Create the audio element immediately so it's ready
+    const audio = new Audio();
+    audio.preload = "auto";
+    audioRef.current = audio;
+
+    // Unlock on first touch/pointer anywhere — Safari requirement
+    const unlock = () => {
+      if (unlockedRef.current) return;
+      // Play silence to unlock, then load real src
+      audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+      const p = audio.play();
+      if (p && typeof p.then === "function") {
+        p.then(() => {
+          audio.pause();
+          audio.src = CORRECT_SOUND_URL;
+          audio.load();
+          unlockedRef.current = true;
+        }).catch(() => {
+          audio.src = CORRECT_SOUND_URL;
+          audio.load();
+          unlockedRef.current = true;
+        });
+      } else {
+        audio.pause();
+        audio.src = CORRECT_SOUND_URL;
+        audio.load();
+        unlockedRef.current = true;
       }
+      document.removeEventListener("touchstart", unlock, true);
+      document.removeEventListener("pointerdown", unlock, true);
+    };
+
+    document.addEventListener("touchstart", unlock, { capture: true, passive: true });
+    document.addEventListener("pointerdown", unlock, { capture: true, passive: true });
+
+    return () => {
+      document.removeEventListener("touchstart", unlock, true);
+      document.removeEventListener("pointerdown", unlock, true);
+      audio.pause();
+      audio.src = "";
+      audioRef.current = null;
     };
   }, []);
 
-  /**
-   * Play the correct sound.
-   * @param {() => void} onEnded - called when audio finishes (or on error)
-   */
   const play = (onEnded) => {
-    // Stop any already-playing instance
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.onended = null;
-      audioRef.current.onerror = null;
-      audioRef.current = null;
+    const audio = audioRef.current;
+    if (!audio) {
+      if (onEnded) onEnded();
+      return;
     }
 
-    const src = blobUrlRef.current || CORRECT_SOUND_URL;
-    const audio = new Audio(src);
-    audioRef.current = audio;
+    try { audio.pause(); } catch (_) {}
+    audio.onended = null;
+    audio.onerror = null;
+    audio.currentTime = 0;
+
+    if (!unlockedRef.current) {
+      audio.src = CORRECT_SOUND_URL;
+      audio.load();
+      unlockedRef.current = true;
+    }
 
     const cleanup = () => {
-      audioRef.current = null;
+      audio.onended = null;
+      audio.onerror = null;
       if (onEnded) onEnded();
     };
 
     audio.onended = cleanup;
     audio.onerror = cleanup;
-    audio.play().catch(cleanup);
+
+    const p = audio.play();
+    if (p && typeof p.then === "function") {
+      p.catch(cleanup);
+    }
   };
 
   return { play };
