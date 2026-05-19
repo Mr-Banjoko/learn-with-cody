@@ -147,10 +147,11 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
 
   return (
     <div
-      style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif", touchAction: "none", userSelect: "none" }}
+      style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif", touchAction: "none", userSelect: "none", position: "relative" }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      {completing && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0 }}>
 
         <motion.div
