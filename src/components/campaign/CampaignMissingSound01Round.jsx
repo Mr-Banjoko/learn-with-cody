@@ -12,8 +12,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
-import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
-import IncorrectGlow from "./IncorrectGlow";
 
 const TOP_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 const DRAG_THRESHOLD = 6;
@@ -47,11 +45,10 @@ function buildRound(card, forcedMissingPos) {
   return { card, letters, missingPos, options };
 }
 
-export default function CampaignMissingSound01Round({ card, onComplete, onMistake, lang = "en", forcedMissingPos, levelNum = 0, roundIndex = 0 }) {
+export default function CampaignMissingSound01Round({ card, onComplete, onMistake, lang = "en", forcedMissingPos }) {
   const [round] = useState(() => buildRound(card, forcedMissingPos));
   const [placedOption, setPlacedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
-  const [glowTrigger, setGlowTrigger] = useState(0);
   const [bouncingIndex, setBouncingIndex] = useState(null);
   const [dragState, setDragState] = useState(null);
   const [isActiveDrag, setIsActiveDrag] = useState(false);
@@ -92,20 +89,18 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
 
   const playCompletion = useCallback(() => {
     setFeedback("completing");
-    playCorrectFeedback(levelNum, roundIndex, () => {
-      const steps = round.letters.map((letter, i) => {
-        const url = getLetterSoundUrl(letter);
-        return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
-      }).filter(Boolean);
-      if (round.card.audio) steps.push({ url: round.card.audio, onStart: () => setBouncingIndex(null) });
-      const cancel = playAudioSequence(steps, () => {
-        sequenceRef.current = null;
-        setBouncingIndex(null);
-        onComplete();
-      });
-      sequenceRef.current = cancel;
+    const steps = round.letters.map((letter, i) => {
+      const url = getLetterSoundUrl(letter);
+      return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
+    }).filter(Boolean);
+    if (round.card.audio) steps.push({ url: round.card.audio, onStart: () => setBouncingIndex(null) });
+    const cancel = playAudioSequence(steps, () => {
+      sequenceRef.current = null;
+      setBouncingIndex(null);
+      onComplete();
     });
-  }, [round, onComplete, levelNum, roundIndex]);
+    sequenceRef.current = cancel;
+  }, [round, onComplete]);
 
   const handleSubmit = useCallback(() => {
     if (audioLocked) return;
@@ -114,8 +109,6 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
     if (placed.isCorrect) {
       playCompletion();
     } else {
-      playIncorrectFeedback();
-      setGlowTrigger((n) => n + 1);
       setFeedback("wrong");
       onMistake && onMistake();
       setTimeout(() => { syncSetPlaced(null); setFeedback(null); }, 700);
@@ -191,7 +184,6 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <IncorrectGlow trigger={glowTrigger} />
       {/* Lock overlay during audio or completion */}
       {(isCompleting || audioLocked) && (
         <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />

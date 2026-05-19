@@ -14,7 +14,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Lottie from "lottie-react";
-import { playLevelCompleteFeedback } from "../../lib/feedbackAudio";
 
 const TROPHY_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/60db8f70c_Trophy.json";
 const STAR_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/f3442391d_3starrating.json";
@@ -45,8 +44,6 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   useEffect(() => {
     fetch(TROPHY_URL).then((r) => r.json()).then(setTrophyData).catch(() => {});
     fetch(STAR_URL).then((r) => r.json()).then(setStarBaseData).catch(() => {});
-    // Play completion sound the moment this screen mounts (Phase 1 — trophy animation)
-    playLevelCompleteFeedback();
   }, []);
 
   const starAnimData = useMemo(

@@ -160,11 +160,11 @@ export default function Level5({ onBack, lang = "en" }) {
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
             {roundDef.type === "rearrange" && rearrangeWordPair ? (
-              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
+              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "drag" && dragCard ? (
-              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
+              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "identifying" && identifyingRound ? (
-              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
+              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : null}
           </motion.div>
         )}

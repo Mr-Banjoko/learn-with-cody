@@ -74,7 +74,7 @@ export default function Level33({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <CampaignMissingSound01Round key={`missing-${roundIndex}`} card={currentCard} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
+            <CampaignMissingSound01Round key={`missing-${roundIndex}`} card={currentCard} onComplete={advance} onMistake={onMistake} lang={lang} />
           </motion.div>
         )}
       </AnimatePresence>

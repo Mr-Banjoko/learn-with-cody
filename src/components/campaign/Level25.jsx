@@ -135,16 +135,16 @@ export default function Level25({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {roundDef.type === "rearrange" && rearrangeWordPair && (
-              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
+              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "catch" && catchCard && (
-              <CampaignLetterCatchRound key={`catch-${roundIndex}`} word={catchCard.word} missingLetter={roundDef.missing} image={catchCard.image} audio={catchCard.audio} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
+              <CampaignLetterCatchRound key={`catch-${roundIndex}`} word={catchCard.word} missingLetter={roundDef.missing} image={catchCard.image} audio={catchCard.audio} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {roundDef.type === "identifying" && identifyingRound && (
-              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
+              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "connection" && connectionCard && (
-              <CampaignConnectionRound key={`connection-${roundIndex}`} card={connectionCard} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
+              <CampaignConnectionRound key={`connection-${roundIndex}`} card={connectionCard} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {roundDef.type === "drawline1" && drawLineRound7 && (
               <DrawLineBoard key={`dl1-${roundIndex}`} round={drawLineRound7} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
@@ -153,7 +153,7 @@ export default function Level25({ onBack, lang = "en" }) {
               <DrawLineBoard key={`dl2-${roundIndex}`} round={drawLineRound8} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
             )}
             {roundDef.type === "missing" && missingCard && (
-              <CampaignMissingSound01Round key={`missing-${roundIndex}`} card={missingCard} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />
+              <CampaignMissingSound01Round key={`missing-${roundIndex}`} card={missingCard} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
           </motion.div>
         )}

@@ -8,8 +8,6 @@ import { RotateCcw } from "lucide-react";
 import LetterTrace from "../games/write/short-a/LetterTrace";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudioSequence } from "../../lib/useAudio";
-import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
-import IncorrectGlow from "./IncorrectGlow";
 
 const TILE_SIZE = 88;
 
@@ -30,7 +28,7 @@ function createRound(card, key) {
   return { correctCards, distractorCards: distractors, shuffledCards };
 }
 
-export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang = "en", levelNum = 0, roundIndex = 0 }) {
+export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang = "en" }) {
   const [roundKey, setRoundKey] = useState(0);
   const [round, setRound] = useState(() => createRound(card, 0));
   const [tracedCardIds, setTracedCardIds] = useState(new Set());
@@ -40,7 +38,6 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   const [successCards, setSuccessCards] = useState(null);
   const [submitError, setSubmitError] = useState(false);
   const [pulsatingCardIds, setPulsatingCardIds] = useState(new Set());
-  const [glowTrigger, setGlowTrigger] = useState(0);
 
   const lockedRef = useRef(true);
   const cancelAudioRef = useRef(null);
@@ -88,8 +85,6 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
     const tracedCards = round.shuffledCards.filter((c) => tracedCardIds.has(c.id));
     const isCorrect = tracedCards.length === round.correctCards.length && tracedCards.every((c) => c.isCorrect);
     if (!isCorrect) {
-      playIncorrectFeedback();
-      setGlowTrigger((n) => n + 1);
       onMistake && onMistake();
       setSubmitError(true);
       const correctIds = new Set(round.correctCards.map((c) => c.id));
@@ -108,20 +103,17 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
     setLocked(true);
     lockedRef.current = true;
     cancelAudio();
-    // Play feedback audio first, then run letter-sound success sequence
-    playCorrectFeedback(levelNum, roundIndex, () => {
-      const steps = ordered.map((c, i) => {
-        const url = getLetterSoundUrl(c.letter);
-        return url ? { url, gain: getLetterGain(c.letter), onStart: () => setBouncingCardIdx(i) } : null;
-      }).filter(Boolean);
-      if (card.audio) steps.push({ url: card.audio, gain: 1, onStart: () => setBouncingCardIdx(null) });
-      const cancel = playAudioSequence(steps, () => {
-        cancelAudioRef.current = null;
-        setBouncingCardIdx(null);
-        onComplete();
-      });
-      cancelAudioRef.current = cancel;
+    const steps = ordered.map((c, i) => {
+      const url = getLetterSoundUrl(c.letter);
+      return url ? { url, gain: getLetterGain(c.letter), onStart: () => setBouncingCardIdx(i) } : null;
+    }).filter(Boolean);
+    if (card.audio) steps.push({ url: card.audio, gain: 1, onStart: () => setBouncingCardIdx(null) });
+    const cancel = playAudioSequence(steps, () => {
+      cancelAudioRef.current = null;
+      setBouncingCardIdx(null);
+      onComplete();
     });
+    cancelAudioRef.current = cancel;
   }, [phase, round, tracedCardIds, cancelAudio, onComplete, onMistake, card]);
 
   const tracedCount = tracedCardIds.size;
@@ -130,7 +122,6 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 16, overflowY: "auto", position: "relative" }}>
-      <IncorrectGlow trigger={glowTrigger} />
       {locked && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
       {/* Word image */}

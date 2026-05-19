@@ -8,8 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Volume2 } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
-import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
-import IncorrectGlow from "./IncorrectGlow";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
 const LETTER_COLORS = ["#FFAFC5","#A8D8EA","#FFE57A","#B5EAD7","#FFDAC1","#C4B5FD","#FCA5A5","#6EE7B7","#FCD34D","#93C5FD","#F9A8D4","#86EFAC"];
@@ -39,13 +37,12 @@ function splitRows(tiles) {
   return [tiles.slice(0, 4), tiles.slice(4, 8), tiles.slice(8, 12)];
 }
 
-export default function DictationCampaignRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false, levelNum = 0, roundIndex = 0 }) {
+export default function DictationCampaignRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [round] = useState(() => buildRound(card));
   const [placed, setPlaced] = useState([null, null, null]);
   const [placedColors, setPlacedColors] = useState({});
   const [submitError, setSubmitError] = useState(false);
   const [completing, setCompleting] = useState(false);
-  const [glowTrigger, setGlowTrigger] = useState(0);
   const [bouncingIndex, setBouncingIndex] = useState(null);
   const [dragState, setDragState] = useState(null);
   const [audioLocked, setAudioLocked] = useState(true);
@@ -75,21 +72,18 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
   const playCompletion = useCallback(() => {
     setCompleting(true);
-    // Play feedback audio first, then run the letter-sound success sequence
-    playCorrectFeedback(levelNum, roundIndex, () => {
-      const steps = round.letters.map((letter, i) => {
-        const url = getLetterSoundUrl(letter);
-        return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
-      }).filter(Boolean);
-      if (card.audio) steps.push({ url: card.audio, onStart: () => setBouncingIndex(null) });
-      const cancel = playAudioSequence(steps, () => {
-        sequenceRef.current = null;
-        setBouncingIndex(null);
-        onComplete();
-      });
-      sequenceRef.current = cancel;
+    const steps = round.letters.map((letter, i) => {
+      const url = getLetterSoundUrl(letter);
+      return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
+    }).filter(Boolean);
+    if (card.audio) steps.push({ url: card.audio, onStart: () => setBouncingIndex(null) });
+    const cancel = playAudioSequence(steps, () => {
+      sequenceRef.current = null;
+      setBouncingIndex(null);
+      onComplete();
     });
-  }, [round, card, onComplete, levelNum, roundIndex]);
+    sequenceRef.current = cancel;
+  }, [round, card, onComplete]);
 
   const stopPulsating = useCallback(() => {
     setPulsatingIds((prev) => prev.size > 0 ? new Set() : prev);
@@ -153,8 +147,6 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       setPulsatingIds(new Set());
       playCompletion();
     } else {
-      playIncorrectFeedback();
-      setGlowTrigger((n) => n + 1);
       onMistake && onMistake();
       setSubmitError(true);
       const correctIds = new Set(round.tiles.filter((t) => t.isCorrect).map((t) => t.id));
@@ -182,7 +174,6 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <IncorrectGlow trigger={glowTrigger} />
       {audioLocked && <div style={{ position: "absolute", inset: 0, zIndex: 200, touchAction: "none", pointerEvents: "all" }} />}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "8px 16px 12px", minHeight: 0 }}>
 

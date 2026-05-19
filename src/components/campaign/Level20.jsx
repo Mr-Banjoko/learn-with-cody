@@ -184,8 +184,6 @@ export default function Level20({ onBack, lang = "en" }) {
                 onComplete={advance}
                 lang={lang}
                 onMistake={onMistake}
-                levelNum={LEVEL_NUM}
-                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "write" && writeCard && (
@@ -194,8 +192,6 @@ export default function Level20({ onBack, lang = "en" }) {
                 card={writeCard}
                 onComplete={advance}
                 lang={lang}
-                levelNum={LEVEL_NUM}
-                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "connection" && connectionCard && (
@@ -205,8 +201,6 @@ export default function Level20({ onBack, lang = "en" }) {
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
-                levelNum={LEVEL_NUM}
-                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "catch" && catchWordData && (
@@ -219,8 +213,6 @@ export default function Level20({ onBack, lang = "en" }) {
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
-                levelNum={LEVEL_NUM}
-                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "drag" && dragCard && (
@@ -230,8 +222,6 @@ export default function Level20({ onBack, lang = "en" }) {
                 onComplete={advance}
                 lang={lang}
                 onMistake={onMistake}
-                levelNum={LEVEL_NUM}
-                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "drawline" && drawLineRound && (
@@ -250,8 +240,6 @@ export default function Level20({ onBack, lang = "en" }) {
                 onRoundComplete={advance}
                 lang={lang}
                 onMistake={onMistake}
-                levelNum={LEVEL_NUM}
-                roundIndex={roundIndex}
               />
             )}
             {roundDef.type === "missing" && missingCard && (
@@ -261,8 +249,6 @@ export default function Level20({ onBack, lang = "en" }) {
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
-                levelNum={LEVEL_NUM}
-                roundIndex={roundIndex}
               />
             )}
           </motion.div>

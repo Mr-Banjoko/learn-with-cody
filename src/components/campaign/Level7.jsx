@@ -130,8 +130,6 @@ export default function Level7({ onBack, lang = "en" }) {
               lang={lang}
               paused={hintLocked}
               skipInitialAudio={roundIndex === 0}
-              levelNum={LEVEL_NUM}
-              roundIndex={roundIndex}
             />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>

@@ -13,8 +13,6 @@ import { motion } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
-import { playCorrectFeedback, playIncorrectFeedback } from "../../lib/feedbackAudio";
-import IncorrectGlow from "./IncorrectGlow";
 
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
@@ -146,7 +144,7 @@ function CandyArrow({ direction, onPress }) {
   );
 }
 
-export default function CampaignLetterCatchRound({ word, missingLetter, image, audio, onComplete, onMistake, lang = "en", paused = false, skipInitialAudio = false, levelNum = 0, roundIndex = 0 }) {
+export default function CampaignLetterCatchRound({ word, missingLetter, image, audio, onComplete, onMistake, lang = "en", paused = false, skipInitialAudio = false }) {
   const letters = word.split("");
   // Find the index of the missing letter in the word
   const missingPos = letters.indexOf(missingLetter);
@@ -156,7 +154,6 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
   const [phase, setPhase] = useState("playing");
   const [caughtVisible, setCaughtVisible] = useState(false);
   const [redGlowId, setRedGlowId] = useState(null);
-  const [glowTrigger, setGlowTrigger] = useState(0);
 
   const tilesRef = useRef([]);
   const codyLaneRef = useRef(1);
@@ -201,12 +198,9 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         setTiles([]);
         setCaughtVisible(true);
         playAudio(audio);
-        // Play feedback audio then trigger onComplete
-        playCorrectFeedback(levelNum, roundIndex, () => onComplete());
+        setTimeout(() => onComplete(), 1200);
       } else {
         // Wrong catch — deduct life
-        playIncorrectFeedback();
-        setGlowTrigger((n) => n + 1);
         onMistake && onMistake();
         tilesRef.current = tilesRef.current.map((t) =>
           t.id === tile.id ? { ...t, status: "wrong" } : t
@@ -298,7 +292,6 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
       display: "flex", flexDirection: "column", height: "100%",
       fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative",
     }}>
-      <IncorrectGlow trigger={glowTrigger} />
       {/* Word Card */}
       <div style={{ padding: "8px 12px 4px", flexShrink: 0 }}>
         <div style={{

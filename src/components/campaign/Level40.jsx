@@ -94,13 +94,13 @@ export default function Level40({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {roundDef.type === "rearrange_easy" && rearrangeEasyData && <PicSliceBoardEasy key={`easy-${roundIndex}`} wordPair={rearrangeEasyData} onRoundComplete={advance} lang={lang} onMistake={onMistake} levelNum={LEVEL_NUM} roundIndex={roundIndex} />}
-            {roundDef.type === "writev2" && writev2Card && <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={writev2Card} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />}
-            {roundDef.type === "dictation" && dictCard && <DictationCampaignRound key={`dict-${roundIndex}`} card={dictCard} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />}
-            {roundDef.type === "wordmatch" && wordMatchCard && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={wordMatchCard} overrideChoices={[...FAT_DISTRACTORS, wordMatchCard].sort(() => Math.random() - 0.5)} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />}
+            {roundDef.type === "rearrange_easy" && rearrangeEasyData && <PicSliceBoardEasy key={`easy-${roundIndex}`} wordPair={rearrangeEasyData} onRoundComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "writev2" && writev2Card && <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={writev2Card} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "dictation" && dictCard && <DictationCampaignRound key={`dict-${roundIndex}`} card={dictCard} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "wordmatch" && wordMatchCard && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={wordMatchCard} overrideChoices={[...FAT_DISTRACTORS, wordMatchCard].sort(() => Math.random() - 0.5)} onComplete={advance} onMistake={onMistake} lang={lang} />}
             {roundDef.type === "rearrange_hard" && rearrangeHardData && <PicSliceBoard key={`hard-${roundIndex}`} wordPair={rearrangeHardData} onRoundComplete={advance} lang={lang} onMistake={onMistake} />}
-            {roundDef.type === "catch" && catchCard && <CampaignLetterCatchRound key={`catch-${roundIndex}`} word={catchCard.word} missingLetter={roundDef.missing} image={catchCard.image} audio={catchCard.audio} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />}
-            {roundDef.type === "missing" && missingCard && <CampaignMissingSound01Round key={`missing-${roundIndex}`} card={missingCard} forcedMissingPos={roundDef.forcedMissingPos} onComplete={advance} onMistake={onMistake} lang={lang} levelNum={LEVEL_NUM} roundIndex={roundIndex} />}
+            {roundDef.type === "catch" && catchCard && <CampaignLetterCatchRound key={`catch-${roundIndex}`} word={catchCard.word} missingLetter={roundDef.missing} image={catchCard.image} audio={catchCard.audio} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "missing" && missingCard && <CampaignMissingSound01Round key={`missing-${roundIndex}`} card={missingCard} forcedMissingPos={roundDef.forcedMissingPos} onComplete={advance} onMistake={onMistake} lang={lang} />}
             {roundDef.type === "wordaudio" && <CampaignWordToAudioRound key={`audio-${roundIndex}`} words={roundDef.words} onComplete={advance} onMistake={onMistake} lang={lang} />}
           </motion.div>
         )}
