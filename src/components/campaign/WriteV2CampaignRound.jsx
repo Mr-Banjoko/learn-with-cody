@@ -8,6 +8,7 @@ import { RotateCcw } from "lucide-react";
 import LetterTrace from "../games/write/short-a/LetterTrace";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudioSequence } from "../../lib/useAudio";
+import { useCorrectSound } from "../../lib/useCorrectSound";
 
 const TILE_SIZE = 88;
 
@@ -41,6 +42,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
 
   const lockedRef = useRef(true);
   const cancelAudioRef = useRef(null);
+  const { play: playCorrect } = useCorrectSound();
   useEffect(() => { lockedRef.current = locked; }, [locked]);
 
   const cancelAudio = useCallback(() => {
@@ -103,17 +105,21 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
     setLocked(true);
     lockedRef.current = true;
     cancelAudio();
-    const steps = ordered.map((c, i) => {
-      const url = getLetterSoundUrl(c.letter);
-      return url ? { url, gain: getLetterGain(c.letter), onStart: () => setBouncingCardIdx(i) } : null;
-    }).filter(Boolean);
-    if (card.audio) steps.push({ url: card.audio, gain: 1, onStart: () => setBouncingCardIdx(null) });
-    const cancel = playAudioSequence(steps, () => {
-      cancelAudioRef.current = null;
-      setBouncingCardIdx(null);
-      onComplete();
+    playCorrect(() => {
+      setTimeout(() => {
+        const steps = ordered.map((c, i) => {
+          const url = getLetterSoundUrl(c.letter);
+          return url ? { url, gain: getLetterGain(c.letter), onStart: () => setBouncingCardIdx(i) } : null;
+        }).filter(Boolean);
+        if (card.audio) steps.push({ url: card.audio, gain: 1, onStart: () => setBouncingCardIdx(null) });
+        const cancel = playAudioSequence(steps, () => {
+          cancelAudioRef.current = null;
+          setBouncingCardIdx(null);
+          onComplete();
+        });
+        cancelAudioRef.current = cancel;
+      }, 1000);
     });
-    cancelAudioRef.current = cancel;
   }, [phase, round, tracedCardIds, cancelAudio, onComplete, onMistake, card]);
 
   const tracedCount = tracedCardIds.size;

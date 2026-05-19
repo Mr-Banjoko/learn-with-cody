@@ -12,6 +12,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../lib/useAudio";
+import { useCorrectSound } from "../../lib/useCorrectSound";
 
 const CHOICE_COLORS = [
   { border: "#4ECDC4", shadow: "rgba(78,205,196,0.35)", ring: "rgba(78,205,196,0.28)" },
@@ -125,18 +126,24 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
     if (wrongShake) setWrongShake(false);
   }, [showNext, wrongShake]);
 
+  const { play: playCorrect } = useCorrectSound();
+
   const handleSubmit = useCallback(() => {
     if (!selected || showNext) return;
     if (selected.word === round.target.word) {
-      if (round.target.audio) playAudio(round.target.audio);
-      setShowNext(true);
+      playCorrect(() => {
+        setTimeout(() => {
+          if (round.target.audio) playAudio(round.target.audio);
+          setShowNext(true);
+        }, 1000);
+      });
     } else {
       clearTimeout(shakeTimeout.current);
       setWrongShake(true);
       shakeTimeout.current = setTimeout(() => setWrongShake(false), 600);
       onMistake && onMistake();
     }
-  }, [selected, round, showNext]);
+  }, [selected, round, showNext, playCorrect]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>

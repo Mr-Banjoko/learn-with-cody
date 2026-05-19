@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
+import { useCorrectSound } from "../../lib/useCorrectSound";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#FFAFC5"];
@@ -48,9 +49,9 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
   const dropZoneRefs = useRef([]);
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
+  const { play: playCorrect } = useCorrectSound();
 
   const playCompletion = useCallback(() => {
-    setCompleting(true);
     const letterSteps = round.letters.map((letter, i) => {
       const url = getLetterSoundUrl(letter);
       return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
@@ -126,7 +127,10 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
       return opt && opt.letter === round.letters[boxIndex];
     });
     if (allCorrect) {
-      playCompletion();
+      setCompleting(true);
+      playCorrect(() => {
+        setTimeout(() => playCompletion(), 1000);
+      });
     } else {
       setSubmitError(true);
       onMistake && onMistake();
@@ -136,7 +140,7 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake 
         setPlacedColors({});
       }, 600);
     }
-  }, [completing, placed, round, card, playCompletion]);
+  }, [completing, placed, round, card, playCompletion, playCorrect]);
 
   const allFilled = placed.every((p) => p !== null);
 

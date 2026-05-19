@@ -7,6 +7,7 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
+import { useCorrectSound } from "../../lib/useCorrectSound";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -30,6 +31,7 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
   const [feedback, setFeedback] = useState(null);
   const [audioLocked, setAudioLocked] = useState(true);
   const autoPlayedRef = useRef(false);
+  const { play: playCorrect } = useCorrectSound();
 
   // Auto-play on mount (suppressed on Round 1 when hint audio handles sequencing)
   useEffect(() => {
@@ -53,15 +55,18 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
     const correct = choice.word === round.card.word;
     setFeedback(correct ? "correct" : "wrong");
     if (correct) {
-      if (card.audio) playAudio(card.audio);
+      playCorrect(() => {
+        setFeedback(null);
+        setSelected(null);
+        onComplete();
+      });
     } else {
       onMistake && onMistake();
+      setTimeout(() => {
+        setFeedback(null);
+        setSelected(null);
+      }, 900);
     }
-    setTimeout(() => {
-      setFeedback(null);
-      setSelected(null);
-      if (correct) onComplete();
-    }, correct ? 1400 : 900);
   }, [feedback, audioLocked, round, card, onComplete, onMistake]);
 
   const color = "#FF6B6B";

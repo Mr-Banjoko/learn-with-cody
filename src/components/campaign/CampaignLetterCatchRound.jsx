@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
+import { useCorrectSound } from "../../lib/useCorrectSound";
 
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
@@ -145,6 +146,7 @@ function CandyArrow({ direction, onPress }) {
 }
 
 export default function CampaignLetterCatchRound({ word, missingLetter, image, audio, onComplete, onMistake, lang = "en", paused = false, skipInitialAudio = false }) {
+  const { play: playCorrect } = useCorrectSound();
   const letters = word.split("");
   // Find the index of the missing letter in the word
   const missingPos = letters.indexOf(missingLetter);
@@ -197,8 +199,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         tilesRef.current = [];
         setTiles([]);
         setCaughtVisible(true);
-        playAudio(audio);
-        setTimeout(() => onComplete(), 1200);
+        playCorrect(() => onComplete());
       } else {
         // Wrong catch — deduct life
         onMistake && onMistake();

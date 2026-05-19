@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
+import { useCorrectSound } from "../../lib/useCorrectSound";
 
 const TOP_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 const DRAG_THRESHOLD = 6;
@@ -59,6 +60,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
   const isDragging = useRef(false);
   const dragStateRef = useRef(null);
   const placedOptionRef = useRef(null);
+  const { play: playCorrect } = useCorrectSound();
   const accentColor = "#4A90C4";
 
   // Auto-play word audio at mount, lock UI until done
@@ -88,7 +90,6 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
   }, []);
 
   const playCompletion = useCallback(() => {
-    setFeedback("completing");
     const steps = round.letters.map((letter, i) => {
       const url = getLetterSoundUrl(letter);
       return url ? { url, gain: getLetterGain(letter), onStart: () => setBouncingIndex(i) } : null;
@@ -107,7 +108,10 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
     const placed = placedOptionRef.current;
     if (!placed || feedback === "completing") return;
     if (placed.isCorrect) {
-      playCompletion();
+      setFeedback("completing"); // lock UI immediately
+      playCorrect(() => {
+        setTimeout(() => playCompletion(), 1000);
+      });
     } else {
       setFeedback("wrong");
       onMistake && onMistake();
