@@ -62,6 +62,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   const [selectedRight, setSelectedRight] = useState(null);
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [wrongFlash, setWrongFlash] = useState(false);
+  const [completing, setCompleting] = useState(false);
   const wrongTimeout = useRef(null);
   const advanceTimeout = useRef(null);
   const { play: playTryAgain } = useTryAgainSound();
@@ -84,6 +85,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
         const wordObj = leftItems.find((it) => it.word === leftWord);
         if (wordObj?.audio) playAudio(wordObj.audio);
         if (newMatched.length === 3) {
+          setCompleting(true);
           advanceTimeout.current = setTimeout(() => onComplete(), 900);
         }
       } else {
@@ -101,14 +103,14 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   }, [selectedLeft, selectedRight, playTryAgain]); // eslint-disable-line
 
   const handleLeftTap = useCallback((item) => {
-    if (matchedPairs.includes(item.word)) return;
+    if (completing || matchedPairs.includes(item.word)) return;
     if (item.audio) playAudio(item.audio);
     setSelectedLeft((prev) => (prev === item.id ? null : item.id));
     setSelectedRight(null);
   }, [matchedPairs]);
 
   const handleRightTap = useCallback((item) => {
-    if (matchedPairs.includes(item.word)) return;
+    if (completing || matchedPairs.includes(item.word)) return;
     setSelectedRight(item.id);
   }, [matchedPairs]);
 
@@ -119,6 +121,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative" }}>
+      {completing && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
 
       {/* Hint */}
       <div style={{ flexShrink: 0, textAlign: "center", padding: "10px 24px 4px" }}>
