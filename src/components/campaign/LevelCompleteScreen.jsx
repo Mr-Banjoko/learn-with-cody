@@ -27,6 +27,61 @@ const COMPLETION_SOUND_URL =
 const STARS_SOUND_URL =
   "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/stars.mp3";
 
+const GITHUB_FEEDBACK_BASE =
+  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback";
+
+// ── Hardcoded performance audio lookup: [levelIndex][starRating] ─────────────
+// levelIndex = levelNum - 1 (0-based), starRating key: 3 | 2 | 1
+const PERFORMANCE_AUDIO_TABLE = [
+  /* L1  */ { 3: "Amazing.mp3",       2: "goodJob.mp3",  1: "keepItUp.mp3" },
+  /* L2  */ { 3: "awesome.mp3",       2: "Great.mp3",    1: "Nice.mp3"     },
+  /* L3  */ { 3: "brilliant.mp3",     2: "veryGood.mp3", 1: "Super.mp3"    },
+  /* L4  */ { 3: "Fantastic job.mp3", 2: "Super.mp3",    1: "keepItUp.mp3" },
+  /* L5  */ { 3: "outstanding.mp3",   2: "Cool.mp3",     1: "Nice.mp3"     },
+  /* L6  */ { 3: "Amazing.mp3",       2: "goodJob.mp3",  1: "Super.mp3"    },
+  /* L7  */ { 3: "awesome.mp3",       2: "Great.mp3",    1: "keepItUp.mp3" },
+  /* L8  */ { 3: "brilliant.mp3",     2: "veryGood.mp3", 1: "Nice.mp3"     },
+  /* L9  */ { 3: "Fantastic job.mp3", 2: "Super.mp3",    1: "Super.mp3"    },
+  /* L10 */ { 3: "outstanding.mp3",   2: "Cool.mp3",     1: "keepItUp.mp3" },
+  /* L11 */ { 3: "Amazing.mp3",       2: "goodJob.mp3",  1: "Nice.mp3"     },
+  /* L12 */ { 3: "awesome.mp3",       2: "Great.mp3",    1: "Super.mp3"    },
+  /* L13 */ { 3: "brilliant.mp3",     2: "veryGood.mp3", 1: "keepItUp.mp3" },
+  /* L14 */ { 3: "Fantastic job.mp3", 2: "Super.mp3",    1: "Nice.mp3"     },
+  /* L15 */ { 3: "outstanding.mp3",   2: "Cool.mp3",     1: "Super.mp3"    },
+  /* L16 */ { 3: "Amazing.mp3",       2: "goodJob.mp3",  1: "keepItUp.mp3" },
+  /* L17 */ { 3: "awesome.mp3",       2: "Great.mp3",    1: "Nice.mp3"     },
+  /* L18 */ { 3: "brilliant.mp3",     2: "veryGood.mp3", 1: "Super.mp3"    },
+  /* L19 */ { 3: "Fantastic job.mp3", 2: "Super.mp3",    1: "keepItUp.mp3" },
+  /* L20 */ { 3: "outstanding.mp3",   2: "Cool.mp3",     1: "Nice.mp3"     },
+  /* L21 */ { 3: "Amazing.mp3",       2: "goodJob.mp3",  1: "Super.mp3"    },
+  /* L22 */ { 3: "awesome.mp3",       2: "Great.mp3",    1: "keepItUp.mp3" },
+  /* L23 */ { 3: "brilliant.mp3",     2: "veryGood.mp3", 1: "Nice.mp3"     },
+  /* L24 */ { 3: "Fantastic job.mp3", 2: "Super.mp3",    1: "Super.mp3"    },
+  /* L25 */ { 3: "outstanding.mp3",   2: "Cool.mp3",     1: "keepItUp.mp3" },
+  /* L26 */ { 3: "Amazing.mp3",       2: "goodJob.mp3",  1: "Nice.mp3"     },
+  /* L27 */ { 3: "awesome.mp3",       2: "Great.mp3",    1: "Super.mp3"    },
+  /* L28 */ { 3: "brilliant.mp3",     2: "veryGood.mp3", 1: "keepItUp.mp3" },
+  /* L29 */ { 3: "Fantastic job.mp3", 2: "Super.mp3",    1: "Nice.mp3"     },
+  /* L30 */ { 3: "outstanding.mp3",   2: "Cool.mp3",     1: "Super.mp3"    },
+  /* L31 */ { 3: "Amazing.mp3",       2: "goodJob.mp3",  1: "keepItUp.mp3" },
+  /* L32 */ { 3: "awesome.mp3",       2: "Great.mp3",    1: "Nice.mp3"     },
+  /* L33 */ { 3: "brilliant.mp3",     2: "veryGood.mp3", 1: "Super.mp3"    },
+  /* L34 */ { 3: "Fantastic job.mp3", 2: "Super.mp3",    1: "keepItUp.mp3" },
+  /* L35 */ { 3: "outstanding.mp3",   2: "Cool.mp3",     1: "Nice.mp3"     },
+  /* L36 */ { 3: "Amazing.mp3",       2: "goodJob.mp3",  1: "Super.mp3"    },
+  /* L37 */ { 3: "awesome.mp3",       2: "Great.mp3",    1: "keepItUp.mp3" },
+  /* L38 */ { 3: "brilliant.mp3",     2: "veryGood.mp3", 1: "Nice.mp3"     },
+  /* L39 */ { 3: "Fantastic job.mp3", 2: "Super.mp3",    1: "Super.mp3"    },
+  /* L40 */ { 3: "outstanding.mp3",   2: "Cool.mp3",     1: "keepItUp.mp3" },
+];
+
+// All unique filenames that need preloading
+const ALL_PERFORMANCE_FILES = [
+  "Amazing.mp3", "awesome.mp3", "brilliant.mp3", "Fantastic job.mp3", "outstanding.mp3",
+  "goodJob.mp3", "Great.mp3", "veryGood.mp3", "Super.mp3", "Cool.mp3",
+  "keepItUp.mp3", "Nice.mp3",
+];
+
 // ── Preload audio into a blob URL so repeat plays are instant ────────────────
 async function preloadAudio(url) {
   const res = await fetch(url);
@@ -76,6 +131,9 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [starsBlobUrl, setStarsBlobUrl] = useState(null);
   const assetsReady = trophyData && completionBlobUrl && starsBlobUrl;
 
+  // Performance audio blobs keyed by filename
+  const perfBlobsRef = useRef({});
+
   // ── Sequence state ────────────────────────────────────────────────────────
   // phase 1 = trophy playing, phase 2 = layout visible / waiting for completion sound,
   // phase 3 = star sequence running, phase 4 = all done / button shown
@@ -93,6 +151,14 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
     fetch(TROPHY_URL).then((r) => r.json()).then(setTrophyData).catch(() => {});
     preloadAudio(COMPLETION_SOUND_URL).then(setCompletionBlobUrl).catch(() => {});
     preloadAudio(STARS_SOUND_URL).then(setStarsBlobUrl).catch(() => {});
+
+    // Preload all performance audio files (failures are logged, not fatal)
+    ALL_PERFORMANCE_FILES.forEach((filename) => {
+      const url = `${GITHUB_FEEDBACK_BASE}/${encodeURIComponent(filename)}`;
+      preloadAudio(url)
+        .then((blobUrl) => { perfBlobsRef.current[filename] = blobUrl; })
+        .catch(() => { console.warn(`[LevelCompleteScreen] Failed to preload: ${filename}`); });
+    });
   }, []);
 
   // ── Phase 1 → play completion sound the moment trophy animation starts ────
@@ -118,7 +184,9 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
     setPhase(3); // enter star-sequence phase
   }, [phase]);
 
-  // ── Phase 3 → award stars one by one, each chained via stars.mp3 onended ─
+  // ── Phase 3 → award stars one by one, then play performance audio ────────
+  const perfPlayedRef = useRef(false);
+
   useEffect(() => {
     if (phase !== 3) return;
     if (clampedStars === 0) {
@@ -129,19 +197,34 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
     let cancelled = false;
 
     async function awardStars() {
+      // Award each star, each gated by stars.mp3 onended
       for (let i = 1; i <= clampedStars; i++) {
         if (cancelled) return;
-        // Reveal this star and play sound simultaneously
         setVisibleStars(i);
         await playOnce(starsBlobUrl);
         if (cancelled) return;
       }
-      setPhase(4);
+
+      // All stars awarded + last stars.mp3 finished → play performance audio once
+      if (!perfPlayedRef.current) {
+        perfPlayedRef.current = true;
+        const levelIndex = Math.min(Math.max((levelNum || 1) - 1, 0), 39);
+        const row = PERFORMANCE_AUDIO_TABLE[levelIndex] || PERFORMANCE_AUDIO_TABLE[0];
+        const filename = row[clampedStars] || row[3];
+        const blobUrl = perfBlobsRef.current[filename];
+        if (blobUrl) {
+          await playOnce(blobUrl);
+        } else {
+          console.warn(`[LevelCompleteScreen] Performance audio not ready: ${filename}`);
+        }
+      }
+
+      if (!cancelled) setPhase(4);
     }
 
     awardStars();
     return () => { cancelled = true; };
-  }, [phase, clampedStars, starsBlobUrl]);
+  }, [phase, clampedStars, starsBlobUrl, levelNum]);
 
   // ── Don't render until all assets are ready ───────────────────────────────
   if (!assetsReady) return null;
