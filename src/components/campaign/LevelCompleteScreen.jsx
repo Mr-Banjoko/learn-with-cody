@@ -204,15 +204,32 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
               {levelLabel} {lang === "zh" ? "完成！" : "Complete!"}
             </p>
 
-            {/* ── Star row — each star pops in one at a time ───────────── */}
+            {/* ── Star row — earned stars pop in, unearned show as grey outlines ── */}
             <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "center", marginBottom: 16, minHeight: 80 }}>
-              {[1, 2, 3].map((starNum) => (
-                <AnimatedStar
-                  key={starNum}
-                  visible={visibleStars >= starNum && starNum <= clampedStars}
-                  size={72}
-                />
-              ))}
+              {[1, 2, 3].map((starNum) => {
+                const isEarned = starNum <= clampedStars;
+                const isRevealed = visibleStars >= starNum && isEarned;
+                return (
+                  <div key={starNum} style={{ position: "relative", width: 72, height: 72 }}>
+                    {/* Grey outline — always visible for unearned slots */}
+                    {!isEarned && (
+                      <svg width={72} height={72} viewBox="0 0 48 48" fill="none" style={{ position: "absolute", inset: 0 }}>
+                        <path
+                          d="M24 4L29.8 16.26L43 17.9L33.5 27.14L35.96 40.1L24 33.77L12.04 40.1L14.5 27.14L5 17.9L18.2 16.26L24 4Z"
+                          fill="rgba(200,200,200,0.25)"
+                          stroke="rgba(180,180,180,0.55)"
+                          strokeWidth="2"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                    {/* Earned star — pops in when revealed */}
+                    {isEarned && (
+                      <AnimatedStar visible={isRevealed} size={72} />
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* ── Back to Map button — appears after all stars awarded ──── */}
