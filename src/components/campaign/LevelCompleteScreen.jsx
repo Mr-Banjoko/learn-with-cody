@@ -14,18 +14,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Lottie from "lottie-react";
-import { playAudio, warmupAudio } from "../../lib/useAudio";
-
-const FEEDBACK_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback";
-const COMPLETION_SOUND = `${FEEDBACK_BASE}/correct-sound.mp3`;
-const PRAISE_SOUNDS = [
-  `${FEEDBACK_BASE}/Amazing.mp3`,
-  `${FEEDBACK_BASE}/awesome.mp3`,
-  `${FEEDBACK_BASE}/brilliant.mp3`,
-  `${FEEDBACK_BASE}/Fantastic%20job.mp3`,
-  `${FEEDBACK_BASE}/Great.mp3`,
-  `${FEEDBACK_BASE}/Super.mp3`,
-];
 
 const TROPHY_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/60db8f70c_Trophy.json";
 const STAR_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/f3442391d_3starrating.json";
@@ -50,25 +38,13 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [phase, setPhase] = useState(1);
   const [trophyData, setTrophyData] = useState(null);
   const [starBaseData, setStarBaseData] = useState(null);
-  const completionSoundFiredRef = useRef(false);
-  const praiseSoundRef = useRef(PRAISE_SOUNDS[Math.floor(Math.random() * PRAISE_SOUNDS.length)]);
 
   const levelLabel = lang === "zh" ? `第 ${levelNum} 关` : `Level ${levelNum}`;
 
   useEffect(() => {
     fetch(TROPHY_URL).then((r) => r.json()).then(setTrophyData).catch(() => {});
     fetch(STAR_URL).then((r) => r.json()).then(setStarBaseData).catch(() => {});
-    warmupAudio([COMPLETION_SOUND, ...PRAISE_SOUNDS]);
   }, []);
-
-  // Play completion sound once when trophy animation starts (data ready → phase 1 renders)
-  useEffect(() => {
-    if (trophyData && !completionSoundFiredRef.current) {
-      completionSoundFiredRef.current = true;
-      // Small delay to let Lottie mount and ensure we're past the user-gesture context
-      setTimeout(() => playAudio(COMPLETION_SOUND), 100);
-    }
-  }, [trophyData]);
 
   const starAnimData = useMemo(
     () => (starBaseData ? buildStarAnimData(starBaseData, clampedStars) : null),
@@ -95,12 +71,7 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
             <h1 style={{ fontSize: 34, fontWeight: 700, color: "#1E293B", margin: "0 0 4px" }}>{lang === "zh" ? "完成！" : "You did it!"}</h1>
             <p style={{ fontSize: 16, color: "#64748B", margin: "0 0 4px", maxWidth: 280 }}>{levelLabel} {lang === "zh" ? "完成！" : "Complete!"}</p>
             <div style={{ width: "min(320px, 90vw)", aspectRatio: "1/1" }}>
-              <Lottie animationData={starAnimData} loop={false} autoplay={true}
-                onComplete={() => {
-                  playAudio(praiseSoundRef.current);
-                  setPhase(4);
-                }}
-                style={{ width: "100%", height: "100%" }} />
+              <Lottie animationData={starAnimData} loop={false} autoplay={true} onComplete={() => setPhase(4)} style={{ width: "100%", height: "100%" }} />
             </div>
             <AnimatePresence>
               {phase >= 4 && (
