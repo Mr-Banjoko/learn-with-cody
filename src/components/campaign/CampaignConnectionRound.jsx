@@ -20,7 +20,7 @@ import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
-const CARD_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
+const CARD_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 
 function shuffleArr(arr) {

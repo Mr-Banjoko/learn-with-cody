@@ -23,7 +23,7 @@ const CARD_BG      = ["#E8F7FC", "#FDEEF5", "#F3EFFE"]; // matching light bg tin
 const LINE_COLORS  = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 
 // ── SVG line layer ────────────────────────────────────────────────────────────
-function LinesLayer({ matches, connectorRects, containerRect }) {
+function LinesLayer({ matches, connectorRects, containerRect, topCards }) {
   if (!containerRect) return null;
   return (
     <svg
@@ -45,11 +45,13 @@ function LinesLayer({ matches, connectorRects, containerRect }) {
         const y1 = topR.top + topR.height / 2 - containerRect.top;
         const x2 = botR.left + botR.width / 2 - containerRect.left;
         const y2 = botR.top + botR.height / 2 - containerRect.top;
+        const topCardIdx = topCards ? topCards.findIndex((c) => c.id === m.topCardId) : i;
+        const lineColor = LINE_COLORS[topCardIdx >= 0 ? topCardIdx : i];
         return (
           <motion.line
             key={m.topCardId}
             x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke={LINE_COLORS[i % LINE_COLORS.length]}
+            stroke={lineColor}
             strokeWidth={4}
             strokeLinecap="round"
             initial={{ pathLength: 0, opacity: 0 }}
@@ -278,6 +280,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
         matches={matches}
         connectorRects={connectorRects}
         containerRect={containerRect}
+        topCards={topCards}
       />
 
       {/* ── TOP CARDS ─────────────────────────────────────────────────── */}
