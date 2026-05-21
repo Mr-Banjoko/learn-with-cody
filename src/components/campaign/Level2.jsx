@@ -59,9 +59,17 @@ export default function Level2({ onBack, lang = "en" }) {
     audio.play().catch(unlock);
   }, [r5WordAudio]);
 
+  const [r5HintDone, setR5HintDone] = useState(false);
+  const onHintCompleteWrapped = useCallback((unlock) => {
+    onHintComplete((...args) => {
+      setR5HintDone(true);
+      unlock(...args);
+    });
+  }, [onHintComplete]);
+
   const { locked: hintLocked } = useRoundHintAudio({
     url: hintUrl,
-    onHintComplete: roundIndex === 4 ? onHintComplete : undefined,
+    onHintComplete: roundIndex === 4 ? onHintCompleteWrapped : undefined,
   });
 
   const advance = useCallback(() => {
@@ -106,6 +114,7 @@ export default function Level2({ onBack, lang = "en" }) {
                 onMistake={onMistake}
                 lang={lang}
                 suppressAutoPlay={roundIndex === 4}
+                pulseCorrectLetter={roundIndex === 4 && r5HintDone}
               />
             )}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}

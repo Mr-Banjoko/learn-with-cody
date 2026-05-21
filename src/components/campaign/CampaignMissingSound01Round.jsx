@@ -48,7 +48,7 @@ function buildRound(card, forcedMissingPos) {
   return { card, letters, missingPos, options };
 }
 
-export default function CampaignMissingSound01Round({ card, onComplete, onMistake, lang = "en", forcedMissingPos, suppressAutoPlay = false }) {
+export default function CampaignMissingSound01Round({ card, onComplete, onMistake, lang = "en", forcedMissingPos, suppressAutoPlay = false, pulseCorrectLetter = false }) {
   const [round] = useState(() => buildRound(card, forcedMissingPos));
   const [placedOption, setPlacedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -240,13 +240,21 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
         {round.options.map((option) => {
           const isPlaced = placedOption?.id === option.id;
           const isDraggingThis = dragState?.id === option.id;
+          const shouldPulse = pulseCorrectLetter && option.isCorrect && !isPlaced && !isDraggingThis && !isCompleting;
           if (isPlaced) return <div key={option.id} style={{ width: "min(74px, 19vw)", height: "min(74px, 19vw)", visibility: "hidden", flexShrink: 0 }} />;
           return (
             <motion.div
               key={option.id}
-              animate={isDraggingThis ? { scale: 1.06, opacity: 0.3 } : { scale: 1, opacity: 1 }}
+              animate={
+                isDraggingThis
+                  ? { scale: 1.06, opacity: 0.3 }
+                  : shouldPulse
+                  ? { boxShadow: ["0 3px 12px rgba(30,58,95,0.08)", "0 0 0 6px rgba(74,144,196,0.35)", "0 3px 12px rgba(30,58,95,0.08)"] }
+                  : { scale: 1, opacity: 1 }
+              }
+              transition={shouldPulse ? { duration: 1.8, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : {}}
               onTouchStart={(e) => handleTouchStart(e, option)}
-              style={{ width: "min(74px, 19vw)", height: "min(74px, 19vw)", borderRadius: 20, background: "white", border: "2.5px solid rgba(168,208,230,0.55)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(38px, 9.5vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 3px 12px rgba(30,58,95,0.08)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", flexShrink: 0 }}
+              style={{ width: "min(74px, 19vw)", height: "min(74px, 19vw)", borderRadius: 20, background: "white", border: shouldPulse ? `2.5px solid ${accentColor}` : "2.5px solid rgba(168,208,230,0.55)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(38px, 9.5vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 3px 12px rgba(30,58,95,0.08)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", flexShrink: 0 }}
             >
               {option.letter}
             </motion.div>
