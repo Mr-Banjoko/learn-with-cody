@@ -59,7 +59,11 @@ function PadlockIcon({ size = 28 }) {
   );
 }
 
-export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake, orderedAudio = false, suppressAutoPlay = false }) {
+// mistakeGuide: optional array of slot indices in "hint order" e.g. [0, 1, 2]
+// When provided, after a mistake the component pulsates the tray piece for the
+// next un-filled slot (and the word label). After that slot is correctly filled,
+// it advances to the next slot in the guide sequence automatically.
+export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake, orderedAudio = false, suppressAutoPlay = false, mistakeGuide = null }) {
   const wd = wordPair[0];
 
   const palette = useMemo(() => pickPalette(), [wordPair]);
@@ -67,6 +71,13 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
   const [state, setState] = useState(() => buildState(wordPair, orderedAudio));
   const [dragState, setDragState] = useState(null);
   const [playingSequence, setPlayingSequence] = useState(false);
+  // IDs of tray pieces that should currently be pulsating (hint glow)
+  const [pulsatingIds, setPulsatingIds] = useState(new Set());
+  // Whether the word label should pulsate
+  const [wordPulsating, setWordPulsating] = useState(false);
+  // Which slot index we are currently guiding toward (index into mistakeGuide array)
+  const guideSlotRef = useRef(0);
+  const pulseCancelRef = useRef(null);
 
   // ── LISTEN-FIRST LOCK STATE ──────────────────────────────────────────────
   // Set of piece IDs that have been tapped (listened to). All 3 must be in
@@ -80,12 +91,43 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
   const autoPlayRef = useRef(null);
   const cancelSequenceRef = useRef(null);
 
+  // ── MISTAKE GUIDE HELPER ──────────────────────────────────────────────────
+  // Finds the tray piece that corresponds to targetSlot == slotIdx for word 0
+  const findGuidepiece = useCallback((pieces, trayIds, slotIdx) => {
+    return pieces.find((p) => p.wordIndex === 0 && p.targetSlot === slotIdx && trayIds.includes(p.id));
+  }, []);
+
+  const triggerPulse = useCallback((pieces, trayIds) => {
+    if (!mistakeGuide) return;
+    if (pulseCancelRef.current) { clearTimeout(pulseCancelRef.current); pulseCancelRef.current = null; }
+
+    const slotIdx = mistakeGuide[guideSlotRef.current];
+    if (slotIdx === undefined) return;
+
+    const gp = findGuidepiece(pieces, trayIds, slotIdx);
+    if (!gp) return;
+
+    setPulsatingIds(new Set([gp.id]));
+    setWordPulsating(true);
+
+    // Stop pulsing after 3 seconds
+    pulseCancelRef.current = setTimeout(() => {
+      setPulsatingIds(new Set());
+      setWordPulsating(false);
+      pulseCancelRef.current = null;
+    }, 3000);
+  }, [mistakeGuide, findGuidepiece]);
+
   // ── RESET on new word ────────────────────────────────────────────────────
   useEffect(() => {
     setState(buildState(wordPair, orderedAudio));
     setDragState(null);
     setPlayingSequence(false);
     setListenedIds(new Set());   // ← reset locks every round
+    setPulsatingIds(new Set());
+    setWordPulsating(false);
+    guideSlotRef.current = 0;
+    if (pulseCancelRef.current) { clearTimeout(pulseCancelRef.current); pulseCancelRef.current = null; }
     isDragging.current = false;
     // Cancel any in-flight completion sequence from the previous round
     if (cancelSequenceRef.current) { cancelSequenceRef.current(); cancelSequenceRef.current = null; }
@@ -212,11 +254,43 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
           return k === hitKey ? true : !!newPlaced[k];
         });
         setState((prev) => ({ ...prev, placed: newPlaced, trayIds: newTrayIds, wordComplete }));
+
+        // If mistakeGuide active and this slot matches current guide slot, advance guide
+        if (mistakeGuide) {
+          const currentGuideSlot = mistakeGuide[guideSlotRef.current];
+          if (currentGuideSlot === si) {
+            // Clear current pulse
+            if (pulseCancelRef.current) { clearTimeout(pulseCancelRef.current); pulseCancelRef.current = null; }
+            setPulsatingIds(new Set());
+            setWordPulsating(false);
+            guideSlotRef.current += 1;
+            // Trigger pulse for next guide slot (after short delay so placed animation settles)
+            const nextSlot = mistakeGuide[guideSlotRef.current];
+            if (nextSlot !== undefined) {
+              const afterNewTrayIds = newTrayIds;
+              const afterNewPieces = state.pieces;
+              setTimeout(() => {
+                const gp = afterNewPieces.find((p) => p.wordIndex === 0 && p.targetSlot === nextSlot && afterNewTrayIds.includes(p.id));
+                if (gp) {
+                  setPulsatingIds(new Set([gp.id]));
+                  setWordPulsating(true);
+                  pulseCancelRef.current = setTimeout(() => {
+                    setPulsatingIds(new Set());
+                    setWordPulsating(false);
+                    pulseCancelRef.current = null;
+                  }, 3000);
+                }
+              }, 400);
+            }
+          }
+        }
       } else {
         playTryAgain();
         setState((prev) => ({ ...prev, rejectedSlot: hitKey }));
         onMistake && onMistake();
         setTimeout(() => setState((prev) => ({ ...prev, rejectedSlot: null })), 500);
+        // Trigger hint pulse on mistake
+        triggerPulse(state.pieces, state.trayIds);
       }
     }
 
@@ -275,6 +349,8 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       {/* ── WORD LABEL ─────────────────────────────────────────────────────── */}
       <motion.button
         whileTap={{ scale: 0.93 }}
+        animate={wordPulsating ? { scale: [1, 1.06, 1, 1.06, 1], boxShadow: ["0 3px 14px rgba(255,160,30,0.3)", "0 0 0 6px rgba(255,160,30,0.55)", "0 3px 14px rgba(255,160,30,0.3)", "0 0 0 6px rgba(255,160,30,0.55)", "0 3px 14px rgba(255,160,30,0.3)"] } : {}}
+        transition={wordPulsating ? { duration: 1.2, repeat: Infinity, repeatType: "loop" } : {}}
         onPointerDown={(e) => { e.preventDefault(); wd.audio && playAudio(wd.audio); }}
         style={{
           width: "100%",
@@ -425,16 +501,24 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
             return <div key={piece.id} style={{ aspectRatio: "2 / 3", visibility: "hidden" }} />;
           }
 
+          const isPulsating = pulsatingIds.has(piece.id);
           return (
             <motion.div
               key={piece.id}
-              animate={isDraggingThis ? { opacity: 0.22, scale: 1.04 } : { opacity: 1, scale: 1 }}
+              animate={
+                isDraggingThis
+                  ? { opacity: 0.22, scale: 1.04 }
+                  : isPulsating
+                  ? { scale: [1, 1.08, 1, 1.08, 1], boxShadow: [`0 4px 14px ${shadow}`, "0 0 0 5px rgba(255,160,30,0.7)", `0 4px 14px ${shadow}`, "0 0 0 5px rgba(255,160,30,0.7)", `0 4px 14px ${shadow}`] }
+                  : { opacity: 1, scale: 1 }
+              }
+              transition={isPulsating ? { duration: 1.1, repeat: Infinity, repeatType: "loop" } : {}}
               onTouchStart={(e) => handleTouchStart(e, piece)}
               style={{
                 aspectRatio: "2 / 3",
                 borderRadius: 16,
                 overflow: "hidden",
-                border: `2.5px solid ${border}`,
+                border: isPulsating ? "2.5px solid rgba(255,160,30,0.9)" : `2.5px solid ${border}`,
                 boxShadow: `0 4px 14px ${shadow}`,
                 background: bg,
                 cursor: locked ? "pointer" : "grab",
