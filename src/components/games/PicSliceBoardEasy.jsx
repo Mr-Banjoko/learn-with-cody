@@ -433,13 +433,23 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                         />
                       </motion.div>
                     ) : (
-                      <motion.span
-                        animate={isSlotPulsating ? { opacity: [0.7, 1, 0.7], color: ["#F59E0B", "#F97316", "#F59E0B"] } : { opacity: 0.7 }}
-                        transition={isSlotPulsating ? { duration: 1.6, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : {}}
-                        style={{ fontSize: 13, fontWeight: 600, color: isSlotPulsating ? "#F59E0B" : border, userSelect: "none" }}
-                      >
-                        {si === 0 ? "1st" : si === 1 ? "2nd" : "3rd"}
-                      </motion.span>
+                      <>
+                        {isSlotPulsating && (
+                          <motion.div
+                            animate={{ opacity: [0, 0.35, 0] }}
+                            transition={{ duration: 1.8, repeat: Infinity, repeatType: "loop", ease: "easeInOut" }}
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              background: border,
+                              pointerEvents: "none",
+                            }}
+                          />
+                        )}
+                        <span style={{ fontSize: 13, fontWeight: 600, color: border, opacity: 0.7, userSelect: "none", position: "relative" }}>
+                          {si === 0 ? "1st" : si === 1 ? "2nd" : "3rd"}
+                        </span>
+                      </>
                     )}
                   </div>
                 );
@@ -498,7 +508,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                 isDraggingThis
                   ? { opacity: 0.22, scale: 1.04 }
                   : isPulsating
-                  ? { boxShadow: [`0 4px 14px ${shadow}`, "0 0 0 6px rgba(251,191,36,0.45)", `0 4px 14px ${shadow}`] }
+                  ? { boxShadow: [`0 4px 14px ${shadow}`, `0 0 0 6px ${shadow}`, `0 4px 14px ${shadow}`] }
                   : { opacity: 1, scale: 1 }
               }
               transition={isPulsating ? { duration: 1.8, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : {}}
@@ -507,7 +517,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                 aspectRatio: "2 / 3",
                 borderRadius: 16,
                 overflow: "hidden",
-                border: isPulsating ? "2.5px solid rgba(251,191,36,0.8)" : `2.5px solid ${border}`,
+                border: `2.5px solid ${border}`,
                 boxShadow: `0 4px 14px ${shadow}`,
                 background: bg,
                 cursor: locked ? "pointer" : "grab",
