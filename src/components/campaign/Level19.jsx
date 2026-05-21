@@ -2,7 +2,7 @@
  * Level 19 — Logic + Recognition Batch D
  * R1: rearrange_easy — gas
  * R2: identifying    — jar
- * R3: drawline       — tag(T-FINAL), tap(A-MEDIAL), bag(G-FINAL)
+ * R3: drawline       — tag(T-INITIAL), tap(T-INITIAL), bag(B-INITIAL) — ALL INITIAL
  * R4: identifying    — tap
  * R5: rearrange_easy — bag
  */
@@ -26,34 +26,16 @@ const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-// Hardcoded drawline for R3: tag(T-FINAL), tap(A-MEDIAL), bag(G-FINAL)
-const R3_DRAW_DEFS = [
-  { word: "tag", targetLetter: "t" }, // T FINAL... wait: tag = t-a-g, T is INITIAL, G is FINAL
-  // Per spec: tag(T-FINAL) means missing letter T at position FINAL? But tag's final is 'g'.
-  // Re-reading spec: "tag(T-FINAL)" = missing letter T, position FINAL means the letter T is
-  // the FINAL... Actually per spec: "tag(T-FINAL)" means the MISSING LETTER for tag is T and
-  // position label is FINAL. But T in "tag" is at position 0 (INITIAL). The position label
-  // in drawline describes where the FINAL letter IS in the word for matching purposes.
-  // Looking at the MISSING LETTER POSITION SUMMARY: Level 19 R3: tag(T-FINAL)
-  // This means: missing letter = last letter of "tag" = G? No — T-FINAL means T is the target,
-  // and positional description is just the label for that specific letter's position.
-  // Actually: in drawline the "targetLetter" IS the letter shown at bottom that child draws to.
-  // For "tag(T-FINAL)" the target letter IS "T" at FINAL position of the matching label.
-  // WAIT: "tag" has T at position 0. "T-FINAL" can't mean position 0.
-  // Re-read: the drawline letter assignment is: tag→T is FINAL means the bottom letter for "tag"
-  // is the FINAL letter of "tag" = "g"... but it says T not G.
-  // Most likely reading: tag(T-FINAL) = the target letter shown at bottom is "t", and that letter
-  // appears at INITIAL position in "tag". The "FINAL" label may be a typo or describe something else.
-  // Given the spec also lists tap(A-MEDIAL) and bag(G-FINAL), and comparing to Level 18 spec
-  // which uses the same pattern consistently, I'll trust the explicit letter: T for tag, A for tap, G for bag.
-  { word: "tag", targetLetter: "t" },
-];
-
-const R3_DEFS = [
-  { word: "tag", targetLetter: "t" }, // per spec: T from tag
-  { word: "tap", targetLetter: "a" }, // per spec: A from tap (MEDIAL)
-  { word: "bag", targetLetter: "g" }, // per spec: G from bag (FINAL)
-];
+// R3 drawline — ALL INITIAL — tokens: T, T, B
+// tag and tap both missing T (independent tokens); bag missing B
+const R3_DRAW_DEF = {
+  positionType: "initial",
+  words: [
+    { word: "tag", targetLetter: "t" },
+    { word: "tap", targetLetter: "t" },
+    { word: "bag", targetLetter: "b" },
+  ],
+};
 
 const ROUND_SEQUENCE = [
   { type: "rearrange_easy", word: "gas" },
@@ -71,20 +53,15 @@ function buildIdentifyingRound(word) {
   return { target, choices };
 }
 
-function buildDrawLineRound(defs) {
-  const topCards = defs.map((def, i) => ({
-    ...findWord(def.word),
-    targetLetter: def.targetLetter,
-    id: `card-${i}-${def.word}-${def.targetLetter}`,
+function buildDrawLineRound(def) {
+  const topCards = def.words.map((w, i) => ({
+    ...findWord(w.word),
+    targetLetter: w.targetLetter,
+    positionType: def.positionType,
+    id: `card-${i}-${w.word}-${w.targetLetter}`,
   }));
-  const letters = topCards.map((c) => ({ letter: c.targetLetter, topCardId: c.id }));
-  let shuffled = [...letters].sort(() => Math.random() - 0.5);
-  let tries = 0;
-  while (tries < 20 && shuffled.some((l, i) => l.topCardId === topCards[i].id)) {
-    shuffled = [...letters].sort(() => Math.random() - 0.5);
-    tries++;
-  }
-  return { topCards, bottomLetters: shuffled };
+  const bottomLetters = topCards.map((c, i) => ({ letter: c.targetLetter, topCardId: c.id, botIdx: i }));
+  return { topCards, bottomLetters };
 }
 
 function markComplete() {
@@ -120,7 +97,7 @@ export default function Level19({ onBack, lang = "en" }) {
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
   const rearrangeWordPair = useMemo(() => roundDef.type === "rearrange_easy" ? [buildWordData(roundDef.word)] : null, [roundIndex]); // eslint-disable-line
   const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
-  const drawLineRound = useMemo(() => roundDef.type === "drawline" ? buildDrawLineRound(R3_DEFS) : null, [roundIndex]); // eslint-disable-line
+  const drawLineRound = useMemo(() => roundDef.type === "drawline" ? buildDrawLineRound(R3_DRAW_DEF) : null, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>

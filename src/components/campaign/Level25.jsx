@@ -5,7 +5,7 @@
  * R3: catch          — tax | X (FINAL)
  * R4: identifying    — wax
  * R5: connection     — map
- * R6: drawline       — dam(D-INITIAL), gap(A-MEDIAL), can(N-FINAL)
+ * R6: drawline       — dam(D-INITIAL), gap(G-INITIAL), can(C-INITIAL) — ALL INITIAL
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,12 +30,15 @@ const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-// R6 drawline: dam(D-INITIAL), gap(A-MEDIAL), can(N-FINAL)
-const R6_DRAW_DEFS = [
-  { word: "dam", targetLetter: "d" }, // D INITIAL
-  { word: "gap", targetLetter: "a" }, // A MEDIAL
-  { word: "can", targetLetter: "n" }, // N FINAL
-];
+// R6 drawline — ALL INITIAL — tokens: D, G, C
+const R6_DRAW_DEF = {
+  positionType: "initial",
+  words: [
+    { word: "dam", targetLetter: "d" },
+    { word: "gap", targetLetter: "g" },
+    { word: "can", targetLetter: "c" },
+  ],
+};
 
 const ROUND_SEQUENCE = [
   { type: "dictation",      word: "tan" },
@@ -54,20 +57,15 @@ function buildIdentifyingRound(word) {
   return { target, choices };
 }
 
-function buildDrawLineRound(defs) {
-  const topCards = defs.map((def, i) => ({
-    ...findWord(def.word),
-    targetLetter: def.targetLetter,
-    id: `card-${i}-${def.word}-${def.targetLetter}`,
+function buildDrawLineRound(def) {
+  const topCards = def.words.map((w, i) => ({
+    ...findWord(w.word),
+    targetLetter: w.targetLetter,
+    positionType: def.positionType,
+    id: `card-${i}-${w.word}-${w.targetLetter}`,
   }));
-  const letters = topCards.map((c) => ({ letter: c.targetLetter, topCardId: c.id }));
-  let shuffled = [...letters].sort(() => Math.random() - 0.5);
-  let tries = 0;
-  while (tries < 20 && shuffled.some((l, i) => l.topCardId === topCards[i].id)) {
-    shuffled = [...letters].sort(() => Math.random() - 0.5);
-    tries++;
-  }
-  return { topCards, bottomLetters: shuffled };
+  const bottomLetters = topCards.map((c, i) => ({ letter: c.targetLetter, topCardId: c.id, botIdx: i }));
+  return { topCards, bottomLetters };
 }
 
 function markComplete() {
@@ -106,7 +104,7 @@ export default function Level25({ onBack, lang = "en" }) {
   const catchCard = useMemo(() => roundDef.type === "catch" ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
   const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
   const connectionCard = useMemo(() => roundDef.type === "connection" ? buildWordData(roundDef.word) : null, [roundIndex]); // eslint-disable-line
-  const drawLineRound = useMemo(() => roundDef.type === "drawline" ? buildDrawLineRound(R6_DRAW_DEFS) : null, [roundIndex]); // eslint-disable-line
+  const drawLineRound = useMemo(() => roundDef.type === "drawline" ? buildDrawLineRound(R6_DRAW_DEF) : null, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>

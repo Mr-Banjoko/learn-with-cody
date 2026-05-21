@@ -19,32 +19,55 @@ const LEVEL_NUM = 18;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-// Hardcoded drawline definitions: each entry is [{word, targetLetter}]
+/**
+ * Hardcoded drawline round definitions — ALL INITIAL or ALL FINAL per round.
+ * Each entry: { positionType, words: [{ word, targetLetter }] }
+ * bottomLetters order is fixed (no shuffling) and matches the spec exactly.
+ */
 const ROUND_DEFS = [
-  [ { word: "gas", targetLetter: "s" }, { word: "jar", targetLetter: "j" }, { word: "tag", targetLetter: "g" } ],
-  [ { word: "tap", targetLetter: "t" }, { word: "bag", targetLetter: "a" }, { word: "rat", targetLetter: "r" } ],
-  [ { word: "can", targetLetter: "n" }, { word: "mat", targetLetter: "m" }, { word: "sad", targetLetter: "d" } ],
-  [ { word: "hat", targetLetter: "a" }, { word: "pan", targetLetter: "p" }, { word: "pat", targetLetter: "t" } ],
-  [ { word: "bag", targetLetter: "b" }, { word: "tag", targetLetter: "a" }, { word: "jar", targetLetter: "a" } ],
+  // R1 ALL INITIAL — tokens: G, J, T
+  { positionType: "initial", words: [
+    { word: "gas", targetLetter: "g" },
+    { word: "jar", targetLetter: "j" },
+    { word: "tag", targetLetter: "t" },
+  ]},
+  // R2 ALL FINAL — tokens: P, G, T
+  { positionType: "final", words: [
+    { word: "tap", targetLetter: "p" },
+    { word: "bag", targetLetter: "g" },
+    { word: "rat", targetLetter: "t" },
+  ]},
+  // R3 ALL FINAL — tokens: N, T, D
+  { positionType: "final", words: [
+    { word: "can", targetLetter: "n" },
+    { word: "mat", targetLetter: "t" },
+    { word: "sad", targetLetter: "d" },
+  ]},
+  // R4 ALL INITIAL — tokens: H, P, P  (pan and pat both missing P — independent tokens)
+  { positionType: "initial", words: [
+    { word: "hat", targetLetter: "h" },
+    { word: "pan", targetLetter: "p" },
+    { word: "pat", targetLetter: "p" },
+  ]},
+  // R5 ALL FINAL — tokens: G, G, R  (bag and tag both missing G — independent tokens)
+  { positionType: "final", words: [
+    { word: "bag", targetLetter: "g" },
+    { word: "tag", targetLetter: "g" },
+    { word: "jar", targetLetter: "r" },
+  ]},
 ];
 const TOTAL_ROUNDS = ROUND_DEFS.length;
 
-function buildDrawLineRound(defs) {
-  const topCards = defs.map((def, i) => ({
-    ...findWord(def.word),
-    targetLetter: def.targetLetter,
-    id: `card-${i}-${def.word}-${def.targetLetter}`,
+function buildDrawLineRound(def) {
+  const topCards = def.words.map((w, i) => ({
+    ...findWord(w.word),
+    targetLetter: w.targetLetter,
+    positionType: def.positionType,
+    id: `card-${i}-${w.word}-${w.targetLetter}`,
   }));
-  const letters = topCards.map((c) => ({ letter: c.targetLetter, topCardId: c.id }));
-  // For R5 there are two "a" tokens — both must be independently matchable.
-  // We shuffle but ensure no letter sits in its own card's position.
-  let shuffled = [...letters].sort(() => Math.random() - 0.5);
-  let tries = 0;
-  while (tries < 30 && shuffled.some((l, i) => l.topCardId === topCards[i].id)) {
-    shuffled = [...letters].sort(() => Math.random() - 0.5);
-    tries++;
-  }
-  return { topCards, bottomLetters: shuffled };
+  // bottomLetters order is fixed — each token at index i corresponds to topCards[i]
+  const bottomLetters = topCards.map((c, i) => ({ letter: c.targetLetter, topCardId: c.id, botIdx: i }));
+  return { topCards, bottomLetters };
 }
 
 function markComplete() {
@@ -85,7 +108,7 @@ export default function Level18({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
-  const drawLineRound = useMemo(() => buildDrawLineRound(ROUND_DEFS[roundIndex]), [roundIndex]); // eslint-disable-line
+  const drawLineRound = useMemo(() => buildDrawLineRound(ROUND_DEFS[roundIndex]), [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (

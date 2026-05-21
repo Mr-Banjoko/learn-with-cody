@@ -1,6 +1,6 @@
 /**
  * Level 20 — Review A–D
- * R1: drawline       — map(P-FINAL), can(C-INITIAL), hat(H-INITIAL)
+ * R1: drawline       — map(P-FINAL), can(N-FINAL), hat(T-FINAL) — ALL FINAL
  * R2: connection     — bag
  * R3: catch          — sat | A (MEDIAL)
  * R4: identifying    — tap
@@ -30,12 +30,15 @@ const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-// R1 drawline: map(P-FINAL), can(C-INITIAL), hat(H-INITIAL)
-const R1_DRAW_DEFS = [
-  { word: "map", targetLetter: "p" }, // P FINAL
-  { word: "can", targetLetter: "c" }, // C INITIAL
-  { word: "hat", targetLetter: "h" }, // H INITIAL
-];
+// R1 drawline — ALL FINAL — tokens: P, N, T
+const R1_DRAW_DEF = {
+  positionType: "final",
+  words: [
+    { word: "map", targetLetter: "p" },
+    { word: "can", targetLetter: "n" },
+    { word: "hat", targetLetter: "t" },
+  ],
+};
 
 const ROUND_SEQUENCE = [
   { type: "drawline" },
@@ -54,20 +57,15 @@ function buildIdentifyingRound(word) {
   return { target, choices };
 }
 
-function buildDrawLineRound(defs) {
-  const topCards = defs.map((def, i) => ({
-    ...findWord(def.word),
-    targetLetter: def.targetLetter,
-    id: `card-${i}-${def.word}-${def.targetLetter}`,
+function buildDrawLineRound(def) {
+  const topCards = def.words.map((w, i) => ({
+    ...findWord(w.word),
+    targetLetter: w.targetLetter,
+    positionType: def.positionType,
+    id: `card-${i}-${w.word}-${w.targetLetter}`,
   }));
-  const letters = topCards.map((c) => ({ letter: c.targetLetter, topCardId: c.id }));
-  let shuffled = [...letters].sort(() => Math.random() - 0.5);
-  let tries = 0;
-  while (tries < 20 && shuffled.some((l, i) => l.topCardId === topCards[i].id)) {
-    shuffled = [...letters].sort(() => Math.random() - 0.5);
-    tries++;
-  }
-  return { topCards, bottomLetters: shuffled };
+  const bottomLetters = topCards.map((c, i) => ({ letter: c.targetLetter, topCardId: c.id, botIdx: i }));
+  return { topCards, bottomLetters };
 }
 
 function markComplete() {
@@ -101,7 +99,7 @@ export default function Level20({ onBack, lang = "en" }) {
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-  const drawLineRound = useMemo(() => roundDef.type === "drawline" ? buildDrawLineRound(R1_DRAW_DEFS) : null, [roundIndex]); // eslint-disable-line
+  const drawLineRound = useMemo(() => roundDef.type === "drawline" ? buildDrawLineRound(R1_DRAW_DEF) : null, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
   const connectionCard = useMemo(() => roundDef.type === "connection" ? buildWordData(roundDef.word) : null, [roundIndex]); // eslint-disable-line
   const catchCard = useMemo(() => roundDef.type === "catch" ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
   const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
