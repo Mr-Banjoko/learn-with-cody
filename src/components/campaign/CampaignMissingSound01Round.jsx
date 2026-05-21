@@ -48,7 +48,7 @@ function buildRound(card, forcedMissingPos) {
   return { card, letters, missingPos, options };
 }
 
-export default function CampaignMissingSound01Round({ card, onComplete, onMistake, lang = "en", forcedMissingPos }) {
+export default function CampaignMissingSound01Round({ card, onComplete, onMistake, lang = "en", forcedMissingPos, suppressAutoPlay = false }) {
   const [round] = useState(() => buildRound(card, forcedMissingPos));
   const [placedOption, setPlacedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -67,6 +67,10 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
   const { play: playTryAgain } = useTryAgainSound();
 
   useEffect(() => {
+    if (suppressAutoPlay) {
+      setAudioLocked(false);
+      return;
+    }
     const t = setTimeout(() => {
       if (card.audio) {
         playAudio(card.audio);
