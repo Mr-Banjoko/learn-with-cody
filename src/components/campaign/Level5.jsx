@@ -24,7 +24,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 const LEVEL_NUM = 5;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
+import CampaignConnectionRound from "./CampaignConnectionRound";
 import Level1DragV2 from "./Level1DragV2";
 import IdentifyingRound from "../games/IdentifyingRound";
 import { buildWordData } from "../../lib/picSliceGameData";
@@ -36,15 +36,15 @@ import { shortUWords } from "../../lib/shortUWords";
 
 // ── Fixed 9-round sequence ────────────────────────────────────────────────────
 const ROUND_SEQUENCE = [
-  { type: "rearrange",    word: "hat" },
+  { type: "connection",   word: "hat" },
   { type: "identifying",  word: "dad" },
   { type: "drag",         word: "bat" },
   { type: "identifying",  word: "cat" },
-  { type: "rearrange",    word: "bat" },
+  { type: "connection",   word: "bat" },
   { type: "drag",         word: "rat" },
   { type: "drag",         word: "cat" },
   { type: "identifying",  word: "hat" },
-  { type: "rearrange",    word: "rat" },
+  { type: "connection",   word: "rat" },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length; // 9
 
@@ -99,10 +99,10 @@ export default function Level5({ onBack, lang = "en" }) {
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
 
-  // Build rearrange wordPair — stable per roundIndex
-  const rearrangeWordPair = useMemo(() => {
-    if (!roundDef || roundDef.type !== "rearrange") return null;
-    return [buildWordData(roundDef.word)];
+  // Build connection card — stable per roundIndex
+  const connectionCard = useMemo(() => {
+    if (!roundDef || roundDef.type !== "connection") return null;
+    return buildWordData(roundDef.word);
   }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build drag card — stable per roundIndex
@@ -159,8 +159,8 @@ export default function Level5({ onBack, lang = "en" }) {
             transition={{ duration: 0.22 }}
             style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
           >
-            {roundDef.type === "rearrange" && rearrangeWordPair ? (
-              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
+            {roundDef.type === "connection" && connectionCard ? (
+              <CampaignConnectionRound key={`connection-${roundIndex}`} card={connectionCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "drag" && dragCard ? (
               <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "identifying" && identifyingRound ? (

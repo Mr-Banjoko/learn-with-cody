@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
+import CampaignConnectionRound from "./CampaignConnectionRound";
 import Level1DragV2 from "./Level1DragV2";
 import IdentifyingRound from "../games/IdentifyingRound";
 import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
@@ -32,15 +32,15 @@ const LEVEL_NUM = 10;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 
 const ROUND_SEQUENCE = [
-  { type: "rearrange",   word: "map" },
+  { type: "connection",  word: "map" },
   { type: "identifying", word: "pan" },
   { type: "drag",        word: "mat" },
   { type: "catch",       word: "can",  missingLetter: "a" },
-  { type: "rearrange",   word: "mat" },
+  { type: "connection",  word: "mat" },
   { type: "drag",        word: "jam" },
   { type: "drag",        word: "can" },
   { type: "identifying", word: "map" },
-  { type: "rearrange",   word: "jam" },
+  { type: "connection",  word: "jam" },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 
@@ -92,9 +92,9 @@ export default function Level10({ onBack, lang = "en" }) {
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
 
-  const rearrangeWordPair = useMemo(() => {
-    if (!roundDef || roundDef.type !== "rearrange") return null;
-    return [buildWordData(roundDef.word)];
+  const connectionCard = useMemo(() => {
+    if (!roundDef || roundDef.type !== "connection") return null;
+    return buildWordData(roundDef.word);
   }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dragCard = useMemo(() => {
@@ -129,8 +129,8 @@ export default function Level10({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {roundDef.type === "rearrange" && rearrangeWordPair ? (
-              <PicSliceBoardEasy key={`rearrange-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
+            {roundDef.type === "connection" && connectionCard ? (
+              <CampaignConnectionRound key={`connection-${roundIndex}`} card={connectionCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "drag" && dragCard ? (
               <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
             ) : roundDef.type === "identifying" && identifyingRound ? (

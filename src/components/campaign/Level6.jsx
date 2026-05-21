@@ -9,7 +9,7 @@ import LevelHeader from "./LevelHeader";
 import Level6Phonics from "./Level6Phonics";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import HeartDisplay from "./HeartDisplay";
-import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
+import CampaignConnectionRound from "./CampaignConnectionRound";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
@@ -24,8 +24,8 @@ const TOTAL_ROUNDS = WORDS.length * 2; // 10
 function buildRounds() {
   const rounds = [];
   WORDS.forEach((card) => {
-    rounds.push({ type: "phonics",   card });
-    rounds.push({ type: "rearrange", card });
+    rounds.push({ type: "phonics",    card });
+    rounds.push({ type: "connection", card });
   });
   return rounds;
 }
@@ -65,9 +65,9 @@ export default function Level6({ onBack, lang = "en" }) {
   const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  const rearrangeWordPair = useMemo(() => {
-    if (!round || round.type !== "rearrange") return null;
-    return [buildWordData(round.card.word)];
+  const connectionCard = useMemo(() => {
+    if (!round || round.type !== "connection") return null;
+    return buildWordData(round.card.word);
   }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -119,10 +119,10 @@ export default function Level6({ onBack, lang = "en" }) {
             {round.type === "phonics" ? (
               <Level6Phonics card={round.card} onNext={advance} lang={lang} />
             ) : (
-              <PicSliceBoardEasy
-                key={`rearrange-${roundIndex}`}
-                wordPair={rearrangeWordPair}
-                onRoundComplete={advance}
+              <CampaignConnectionRound
+                key={`connection-${roundIndex}`}
+                card={connectionCard}
+                onComplete={advance}
                 lang={lang}
                 onMistake={onMistake}
               />

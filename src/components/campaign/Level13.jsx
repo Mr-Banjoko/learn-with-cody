@@ -17,7 +17,7 @@ import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import CampaignConnectionRound from "./CampaignConnectionRound";
+import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 import { buildWordData } from "../../lib/picSliceGameData";
@@ -44,21 +44,8 @@ export default function Level13({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // Round 1 only: chain word audio after hint audio before unlocking
-  const round1WordAudio = roundIndex === 0 ? (buildWordData(WORD_ORDER[0])?.audio || null) : null;
-  const onHintComplete = useCallback((unlock) => {
-    if (!round1WordAudio) { unlock(); return; }
-    const audio = new Audio(round1WordAudio);
-    audio.onended = unlock;
-    audio.onerror = unlock;
-    audio.play().catch(unlock);
-  }, [round1WordAudio]);
-
   const hintUrl = getHintAudioUrl(13, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({
-    url: hintUrl,
-    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
-  });
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -75,14 +62,14 @@ export default function Level13({ onBack, lang = "en" }) {
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  const card = useMemo(
-    () => buildWordData(WORD_ORDER[roundIndex]),
+  const rearrangeWordPair = useMemo(
+    () => [buildWordData(WORD_ORDER[roundIndex])],
     [roundIndex]
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="connection" />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="rearrange" />
 
       {/* Progress bar */}
       {!done && (
@@ -99,13 +86,12 @@ export default function Level13({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <CampaignConnectionRound
-              key={`connection-${roundIndex}`}
-              card={card}
-              onComplete={advance}
-              onMistake={onMistake}
+            <PicSliceBoardEasy
+              key={`rearrange-${roundIndex}`}
+              wordPair={rearrangeWordPair}
+              onRoundComplete={advance}
               lang={lang}
-              suppressAutoPlay={roundIndex === 0}
+              onMistake={onMistake}
             />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
