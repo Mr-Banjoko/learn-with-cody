@@ -30,7 +30,7 @@ function createRound(card, key) {
   return { correctCards, distractorCards: distractors, shuffledCards };
 }
 
-export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang = "en" }) {
+export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [roundKey, setRoundKey] = useState(0);
   const [round, setRound] = useState(() => createRound(card, 0));
   const [tracedCardIds, setTracedCardIds] = useState(new Set());
@@ -52,6 +52,11 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   }, []);
 
   useEffect(() => {
+    if (suppressAutoPlay) {
+      setLocked(false);
+      lockedRef.current = false;
+      return;
+    }
     setLocked(true);
     lockedRef.current = true;
     const t = setTimeout(() => {
