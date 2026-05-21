@@ -1,25 +1,22 @@
 /**
- * Level 2 — 5-round campaign:
- * Rearrange the Pictures (easy mode) for each of the 5 Short-a words:
+ * Level 2.jsx — displayed as Level 3 in the game (see AppShell import alias)
+ * 5-round Letter-to-Sound Connection game:
  * cat → dad → rat → hat → bat
  */
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
+import CampaignConnectionRound from "./CampaignConnectionRound";
 import { buildWordData } from "../../lib/picSliceGameData";
-import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
 const LEVEL_NUM = 3;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 
-// Fixed word order — do NOT randomize
 const WORD_NAMES = ["cat", "dad", "rat", "hat", "bat"];
-const WORDS = WORD_NAMES.map((name) => shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" });
-const TOTAL_ROUNDS = WORDS.length; // 5
+const TOTAL_ROUNDS = WORD_NAMES.length; // 5
 
 function markLevel3Complete() {
   try {
@@ -37,31 +34,14 @@ export default function Level3({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // Round 1 only: chain word audio after hint audio before unlocking
-  const round1WordAudio = roundIndex === 0 ? (WORDS[0]?.audio || null) : null;
-  const onHintComplete = useCallback((unlock) => {
-    if (!round1WordAudio) { unlock(); return; }
-    const audio = new Audio(round1WordAudio);
-    audio.onended = unlock;
-    audio.onerror = unlock;
-    audio.play().catch(unlock);
-  }, [round1WordAudio]);
-
   const hintUrl = getHintAudioUrl(3, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({
-    url: hintUrl,
-    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
-  });
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
-  // Build wordPair for PicSliceBoardEasy — it expects an array (easy uses index 0 only)
-  const wordPair = useMemo(() => {
-    const word = WORDS[roundIndex];
-    return [buildWordData(word.word)];
-  }, [roundIndex]);
+  const card = useMemo(() => buildWordData(WORD_NAMES[roundIndex]), [roundIndex]);
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
-  const handleRoundComplete = () => {
+  const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markLevel3Complete();
@@ -72,65 +52,31 @@ export default function Level3({ onBack, lang = "en" }) {
     } else {
       setRoundIndex(next);
     }
-  };
+  }, [roundIndex, mistakes]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        fontFamily: "Fredoka, sans-serif",
-        background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
-        overflow: "hidden",
-      }}
-    >
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="rearrange" />
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="connection" />
 
-      {/* Progress bar */}
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
-          <motion.div
-            animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.4 }}
-            style={{
-              height: "100%",
-              borderRadius: 99,
-              background: "linear-gradient(90deg, #4ECDC4, #4D96FF)",
-            }}
-          />
+          <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
 
-      {/* Content */}
       <AnimatePresence mode="wait">
         {done ? (
-          <motion.div
-            key="complete"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
-          >
+          <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
           </motion.div>
         ) : (
-          <motion.div
-            key={`round-${roundIndex}`}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -40 }}
-            transition={{ duration: 0.22 }}
-            style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
-          >
-            <PicSliceBoardEasy
-              key={`round-${roundIndex}`}
-              wordPair={wordPair}
-              onRoundComplete={handleRoundComplete}
-              lang={lang}
+          <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <CampaignConnectionRound
+              key={`connection-${roundIndex}`}
+              card={card}
+              onComplete={advance}
               onMistake={onMistake}
-              orderedAudio={roundIndex < 4}
+              lang={lang}
               suppressAutoPlay={roundIndex === 0}
             />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
