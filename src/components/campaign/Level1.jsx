@@ -62,12 +62,24 @@ export default function Level1({ onBack, lang = "en" }) {
     audio.play().catch(unlock);
   }, [round2WordAudio]);
 
+  const [dragGuideStep, setDragGuideStep] = useState(-1); // -1 = not started
+  const onHintCompleteWrapped = useCallback((unlock) => {
+    onHintComplete((...args) => {
+      setDragGuideStep(0); // start guide after audio finishes
+      unlock(...args);
+    });
+  }, [onHintComplete]);
+
   const { locked: hintLocked } = useRoundHintAudio({
     url: hintUrl,
-    onHintComplete: roundIndex === 1 ? onHintComplete : undefined,
+    onHintComplete: roundIndex === 1 ? onHintCompleteWrapped : undefined,
   });
 
+  // Reset guide step when round changes
+  const resetGuide = useCallback(() => setDragGuideStep(-1), []);
+
   const advance = useCallback(() => {
+    resetGuide();
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
       markComplete();
@@ -101,7 +113,15 @@ export default function Level1({ onBack, lang = "en" }) {
             {round.type === "phonics" ? (
               <Level1Phonics card={round.card} onNext={advance} lang={lang} isFirstCard={round.guided === true} />
             ) : (
-              <Level1DragV2 card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} suppressAutoPlay={roundIndex === 1} />
+              <Level1DragV2
+                card={round.card}
+                onComplete={advance}
+                lang={lang}
+                onMistake={onMistake}
+                suppressAutoPlay={roundIndex === 1}
+                dragGuideStep={roundIndex === 1 ? dragGuideStep : -1}
+                onDragGuideAdvance={roundIndex === 1 ? () => setDragGuideStep((s) => s + 1) : undefined}
+              />
             )}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
