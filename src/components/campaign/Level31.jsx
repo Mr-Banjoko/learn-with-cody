@@ -1,54 +1,40 @@
 /**
- * Level 31 — 10-round fixed sequence:
- * For each of 5 words: Learn Phonics (Level6Phonics) → Write (CampaignWriteRound)
- *
- * Words (exact order): dab, fan, jab, man, nab
- *
- * Round map:
- *  1. dab — phonics
- *  2. dab — write
- *  3. fan — phonics
- *  4. fan — write
- *  5. jab — phonics
- *  6. jab — write
- *  7. man — phonics
- *  8. man — write
- *  9. nab — phonics
- * 10. nab — write → marks level complete
+ * Level 31 — Introduce Batch G (first 3 words)
+ * R1: phonics — dab
+ * R2: drag    — dab
+ * R3: phonics — fan
+ * R4: drag    — fan
+ * R5: phonics — jab
+ * R6: drag    — jab
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
 import Level6Phonics from "./Level6Phonics";
-import CampaignWriteRound from "./CampaignWriteRound";
+import Level1DragV2 from "./Level1DragV2";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
 const LEVEL_NUM = 31;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-const WORD_NAMES = ["dab", "fan", "jab", "man", "nab"];
-const WORDS = WORD_NAMES.map((name) => shortAWords.find((w) => w.word === name));
-const TOTAL_ROUNDS = WORDS.length * 2; // 10
+const ROUNDS = [
+  { type: "phonics", card: findWord("dab") },
+  { type: "drag",    card: findWord("dab") },
+  { type: "phonics", card: findWord("fan") },
+  { type: "drag",    card: findWord("fan") },
+  { type: "phonics", card: findWord("jab") },
+  { type: "drag",    card: findWord("jab") },
+];
+const TOTAL_ROUNDS = ROUNDS.length;
 
-function buildRounds() {
-  const rounds = [];
-  WORDS.forEach((card) => {
-    rounds.push({ type: "phonics", card });
-    rounds.push({ type: "write",   card });
-  });
-  return rounds;
-}
-
-const ROUNDS = buildRounds();
-
-function markLevel31Complete() {
+function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][31] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -63,7 +49,7 @@ export default function Level31({ onBack, lang = "en" }) {
   const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
-      markLevel31Complete();
+      markComplete();
       const stars = calcStars(mistakes, SCORED_ROUNDS);
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
@@ -79,13 +65,11 @@ export default function Level31({ onBack, lang = "en" }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
       <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={round?.type} />
-
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
-
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -93,11 +77,8 @@ export default function Level31({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {round.type === "phonics" ? (
-              <Level6Phonics card={round.card} onNext={advance} lang={lang} />
-            ) : (
-              <CampaignWriteRound key={`write-${roundIndex}`} card={round.card} onComplete={advance} lang={lang} />
-            )}
+            {round.type === "phonics" && <Level6Phonics card={round.card} onNext={advance} lang={lang} />}
+            {round.type === "drag" && <Level1DragV2 key={`drag-${roundIndex}`} card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} />}
           </motion.div>
         )}
       </AnimatePresence>

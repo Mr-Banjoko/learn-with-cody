@@ -1,71 +1,58 @@
 /**
- * Level 10 — same structure as Level 5 (Review)
- *
- * Fixed 9-round sequence:
- *   R1: Rearrange the Pictures → map
- *   R2: Identifying            → pan
- *   R3: Drag the Letters       → mat
- *   R4: Letter Catch (difficult) → can, missing: a
- *   R5: Rearrange the Pictures → mat
- *   R6: Drag the Letters       → jam
- *   R7: Drag the Letters       → can
- *   R8: Identifying            → map
- *   R9: Rearrange the Pictures → jam
+ * Level 10 — Review A + B
+ * R1: catch      — cat  | T (FINAL)
+ * R2: connection — jam
+ * R3: drag       — map
+ * R4: identifying — bat
+ * R5: missing01  — pan  | A (MEDIAL, pos 1)
+ * R6: identifying — hat
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import LevelCompleteScreen from "./LevelCompleteScreen";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
 import CampaignConnectionRound from "./CampaignConnectionRound";
 import Level1DragV2 from "./Level1DragV2";
 import IdentifyingRound from "../games/IdentifyingRound";
-import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
+import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
+import LevelCompleteScreen from "./LevelCompleteScreen";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
 const LEVEL_NUM = 10;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
+const findWord = (w) => shortAWords.find((x) => x.word === w);
 
 const ROUND_SEQUENCE = [
-  { type: "connection",  word: "map" },
-  { type: "identifying", word: "pan" },
-  { type: "drag",        word: "mat" },
-  { type: "catch",       word: "can",  missingLetter: "a" },
-  { type: "connection",  word: "mat" },
-  { type: "drag",        word: "jam" },
-  { type: "drag",        word: "can" },
-  { type: "identifying", word: "map" },
+  { type: "catch",       word: "cat", missingLetter: "t" }, // T FINAL
   { type: "connection",  word: "jam" },
+  { type: "drag",        word: "map" },
+  { type: "identifying", word: "bat" },
+  { type: "missing01",   word: "pan", missingPos: 1 },      // A MEDIAL
+  { type: "identifying", word: "hat" },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 
-function findWord(name) {
-  return shortAWords.find((w) => w.word === name) || { word: name, image: "", audio: "" };
+function buildIdentifyingRound(word) {
+  const target = findWord(word);
+  const pool = ALL_WORDS.filter((w) => w.word !== word);
+  const choices = [target, ...[...pool].sort(() => Math.random() - 0.5).slice(0, 2)].sort(() => Math.random() - 0.5);
+  return { target, choices };
 }
 
-function markLevel10Complete() {
+function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][10] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
-}
-
-const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
-
-function buildIdentifyingRound(targetWord) {
-  const target = shortAWords.find((w) => w.word === targetWord);
-  const distractorPool = ALL_WORDS.filter((w) => w.word !== targetWord);
-  const shuffled = [...distractorPool].sort(() => Math.random() - 0.5);
-  const distractors = shuffled.slice(0, 2);
-  const choices = [target, ...distractors].sort(() => Math.random() - 0.5);
-  return { target, choices };
 }
 
 export default function Level10({ onBack, lang = "en" }) {
@@ -75,12 +62,10 @@ export default function Level10({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-
   const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
-      markLevel10Complete();
+      markComplete();
       const stars = calcStars(mistakes, SCORED_ROUNDS);
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
@@ -91,37 +76,21 @@ export default function Level10({ onBack, lang = "en" }) {
   }, [roundIndex, mistakes]);
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
-
-  const connectionCard = useMemo(() => {
-    if (!roundDef || roundDef.type !== "connection") return null;
-    return buildWordData(roundDef.word);
-  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const dragCard = useMemo(() => {
-    if (!roundDef || roundDef.type !== "drag") return null;
-    return findWord(roundDef.word);
-  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const identifyingRound = useMemo(() => {
-    if (!roundDef || roundDef.type !== "identifying") return null;
-    return buildIdentifyingRound(roundDef.word);
-  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const catchWordData = useMemo(() => {
-    if (!roundDef || roundDef.type !== "catch") return null;
-    return findWord(roundDef.word);
-  }, [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+  const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
+  const catchCard = useMemo(() => roundDef.type === "catch" ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const connectionCard = useMemo(() => roundDef.type === "connection" ? buildWordData(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const dragCard = useMemo(() => roundDef.type === "drag" ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const missingCard = useMemo(() => roundDef.type === "missing01" ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={ROUND_SEQUENCE[roundIndex]?.type} />
-
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={roundDef?.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
-
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -129,24 +98,11 @@ export default function Level10({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {roundDef.type === "connection" && connectionCard ? (
-              <CampaignConnectionRound key={`connection-${roundIndex}`} card={connectionCard} onComplete={advance} lang={lang} onMistake={onMistake} />
-            ) : roundDef.type === "drag" && dragCard ? (
-              <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />
-            ) : roundDef.type === "identifying" && identifyingRound ? (
-              <IdentifyingRound key={`identifying-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />
-            ) : roundDef.type === "catch" && catchWordData ? (
-              <CampaignLetterCatchRound
-                key={`catch-${roundIndex}`}
-                word={roundDef.word}
-                missingLetter={roundDef.missingLetter}
-                image={catchWordData.image}
-                audio={catchWordData.audio}
-                onComplete={advance}
-                onMistake={onMistake}
-                lang={lang}
-              />
-            ) : null}
+            {roundDef.type === "catch" && catchCard && <CampaignLetterCatchRound key={`catch-${roundIndex}`} word={catchCard.word} missingLetter={roundDef.missingLetter} image={catchCard.image} audio={catchCard.audio} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "connection" && connectionCard && <CampaignConnectionRound key={`conn-${roundIndex}`} card={connectionCard} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "drag" && dragCard && <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "identifying" && identifyingRound && <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "missing01" && missingCard && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={missingCard} forcedMissingPos={roundDef.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} />}
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,28 +1,41 @@
 /**
- * Level 38 — 6-round Dictation game with pulsating hint system
- * R1: fat  R2: nap  R3: sap  R4: ran  R5: ram  R6: rag
+ * Level 38 — Advanced Audio Intro (word_to_audio) — 6 rounds
+ * R1: rag  — choices: rag, ram, ran   [first appearance — audio guide]
+ * R2: ram  — choices: ram, rag, rap
+ * R3: ran  — choices: ran, ram, tan
+ * R4: sap  — choices: sap, nap, map
+ * R5: nap  — choices: nap, sap, nab
+ * R6: fat  — choices: fat, bat, mat
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import DictationCampaignRound from "./DictationCampaignRound";
+import CampaignWordToAudioRound from "./CampaignWordToAudioRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 import { shortAWords } from "../../lib/shortAWords";
 
 const LEVEL_NUM = 38;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-const WORD_ORDER = ["fat", "nap", "sap", "ran", "ram", "rag"];
-const TOTAL_ROUNDS = WORD_ORDER.length;
+// Hardcoded choices: first word = target
+const ROUND_DEFS = [
+  ["rag", "ram", "ran"],
+  ["ram", "rag", "rap"],
+  ["ran", "ram", "tan"],
+  ["sap", "nap", "map"],
+  ["nap", "sap", "nab"],
+  ["fat", "bat", "mat"],
+];
+const TOTAL_ROUNDS = ROUND_DEFS.length;
 
 function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][38] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -33,6 +46,22 @@ export default function Level38({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  // R1 (index 0): word_to_audio first appearance — audio guide + chain target word audio
+  const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
+  const r1WordAudio = roundIndex === 0 ? (findWord(ROUND_DEFS[0][0])?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!r1WordAudio) { unlock(); return; }
+    const audio = new Audio(r1WordAudio);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [r1WordAudio]);
+
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -48,11 +77,10 @@ export default function Level38({ onBack, lang = "en" }) {
   }, [roundIndex, mistakes]);
 
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-  const card = findWord(WORD_ORDER[roundIndex]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="dictation" />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="word_to_audio" />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
@@ -65,9 +93,8 @@ export default function Level38({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {card && (
-              <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />
-            )}
+            <CampaignWordToAudioRound key={`audio-${roundIndex}`} words={ROUND_DEFS[roundIndex]} onComplete={advance} onMistake={onMistake} lang={lang} />
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>

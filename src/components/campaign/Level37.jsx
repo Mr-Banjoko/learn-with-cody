@@ -1,32 +1,40 @@
 /**
- * Level 37 — 6-round Word-to-Audio Match
+ * Level 37 — Introduce Batch H (last 3 words)
+ * R1: phonics — sap
+ * R2: drag    — sap
+ * R3: phonics — nap
+ * R4: drag    — nap
+ * R5: phonics — fat
+ * R6: drag    — fat
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import CampaignWordToAudioRound from "./CampaignWordToAudioRound";
+import Level6Phonics from "./Level6Phonics";
+import Level1DragV2 from "./Level1DragV2";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
+import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
 const LEVEL_NUM = 37;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-const ROUND_WORDS = [
-  ["rag", "tag", "bag"],
-  ["ram", "ham", "jam"],
-  ["ran", "man", "can"],
-  ["sap", "map", "tap"],
-  ["fat", "mat", "bat"],
-  ["nap", "tap", "pan"],
+const ROUNDS = [
+  { type: "phonics", card: findWord("sap") },
+  { type: "drag",    card: findWord("sap") },
+  { type: "phonics", card: findWord("nap") },
+  { type: "drag",    card: findWord("nap") },
+  { type: "phonics", card: findWord("fat") },
+  { type: "drag",    card: findWord("fat") },
 ];
-const TOTAL_ROUNDS = ROUND_WORDS.length;
+const TOTAL_ROUNDS = ROUNDS.length;
 
 function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][37] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -51,11 +59,12 @@ export default function Level37({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
+  const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="word_to_audio" />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={round?.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
@@ -68,7 +77,8 @@ export default function Level37({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <CampaignWordToAudioRound key={`audio-${roundIndex}`} words={ROUND_WORDS[roundIndex]} onComplete={advance} onMistake={onMistake} lang={lang} />
+            {round.type === "phonics" && <Level6Phonics card={round.card} onNext={advance} lang={lang} />}
+            {round.type === "drag" && <Level1DragV2 key={`drag-${roundIndex}`} card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} />}
           </motion.div>
         )}
       </AnimatePresence>

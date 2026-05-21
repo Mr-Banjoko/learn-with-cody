@@ -1,61 +1,53 @@
 /**
- * Level 39 — 6-round alternating Identifying / Word Match
+ * Level 39 — Full Recall Batch H
+ * R1: dictation   — rag
+ * R2: identifying — ram
+ * R3: word_match  — ran
+ * R4: dictation   — sap
+ * R5: identifying — nap
+ * R6: word_match  — fat
  */
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
+import DictationCampaignRound from "./DictationCampaignRound";
 import IdentifyingRound from "../games/IdentifyingRound";
 import CampaignWordMatchRound from "./CampaignWordMatchRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
 const LEVEL_NUM = 39;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-const findWord = (w) => shortAWords.find((x) => x.word === w);
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
-
-const WORD_MATCH_DISTRACTORS = {
-  rag: ["bag", "tag", "wag"],
-  sap: ["map", "tap", "cap"],
-  nap: ["tap", "pan", "can"],
-};
+const findWord = (w) => shortAWords.find((x) => x.word === w);
 
 const ROUND_SEQUENCE = [
-  { type: "identifying", word: "fat" },
-  { type: "wordmatch",   word: "rag" },
+  { type: "dictation",   word: "rag" },
   { type: "identifying", word: "ram" },
-  { type: "wordmatch",   word: "sap" },
-  { type: "identifying", word: "ran" },
-  { type: "wordmatch",   word: "nap" },
+  { type: "word_match",  word: "ran" },
+  { type: "dictation",   word: "sap" },
+  { type: "identifying", word: "nap" },
+  { type: "word_match",  word: "fat" },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 
-function buildIdentifyingRound(targetWord) {
-  const target = findWord(targetWord);
-  const pool = ALL_WORDS.filter((w) => w.word !== targetWord);
+function buildIdentifyingRound(word) {
+  const target = findWord(word);
+  const pool = ALL_WORDS.filter((w) => w.word !== word);
   const choices = [target, ...[...pool].sort(() => Math.random() - 0.5).slice(0, 2)].sort(() => Math.random() - 0.5);
   return { target, choices };
-}
-
-function buildWordMatchCard(targetWord) {
-  const target = findWord(targetWord);
-  const distractorWords = WORD_MATCH_DISTRACTORS[targetWord] || [];
-  const distractors = distractorWords.map((d) => ALL_WORDS.find((w) => w.word === d) || { word: d, audio: null, image: null });
-  const choices = [...distractors, target].sort(() => Math.random() - 0.5);
-  return { target, choices, overrideChoices: choices };
 }
 
 function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][39] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -75,17 +67,19 @@ export default function Level39({ onBack, lang = "en" }) {
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
       setDone(true);
-    } else setRoundIndex(next);
+    } else {
+      setRoundIndex(next);
+    }
   }, [roundIndex, mistakes]);
 
   const roundDef = ROUND_SEQUENCE[roundIndex];
-  const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
+  const card = useMemo(() => findWord(roundDef.word), [roundIndex]); // eslint-disable-line
   const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
-  const wordMatchData = useMemo(() => roundDef.type === "wordmatch" ? buildWordMatchCard(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={ROUND_SEQUENCE[roundIndex]?.type} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={roundDef?.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
@@ -98,8 +92,9 @@ export default function Level39({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            {roundDef.type === "dictation" && card && <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
             {roundDef.type === "identifying" && identifyingRound && <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />}
-            {roundDef.type === "wordmatch" && wordMatchData && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={wordMatchData.target} overrideChoices={wordMatchData.overrideChoices} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "word_match" && card && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,36 +1,31 @@
 /**
- * Level 23 — 6-round alternating: Write V2 + Drag the Letters V2
- * R1 writev2: rat, R2 drag: map, R3 writev2: sad,
- * R4 drag: jar, R5 writev2: wax, R6 drag: dam
+ * Level 23 — Spell-Tap Intro (writev2)
+ * R1: writev2 — gap  [first appearance — audio guide]
+ * R2: writev2 — wax
+ * R3: writev2 — tan
+ * R4: writev2 — tax
+ * R5: writev2 — dam
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import LevelCompleteScreen from "./LevelCompleteScreen";
-import Level1DragV2 from "./Level1DragV2";
 import WriteV2CampaignRound from "./WriteV2CampaignRound";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
 const LEVEL_NUM = 23;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+const WORD_ORDER = ["gap", "wax", "tan", "tax", "dam"];
+const TOTAL_ROUNDS = WORD_ORDER.length;
 const findWord = (w) => shortAWords.find((x) => x.word === w);
-
-const ROUND_SEQUENCE = [
-  { type: "writev2", word: "rat" },
-  { type: "drag",    word: "map" },
-  { type: "writev2", word: "sad" },
-  { type: "drag",    word: "jar" },
-  { type: "writev2", word: "wax" },
-  { type: "drag",    word: "dam" },
-];
-const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 
 function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][23] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -41,6 +36,22 @@ export default function Level23({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  // R1 (index 0): writev2 first appearance — audio guide + chain word audio
+  const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
+  const r1WordAudio = roundIndex === 0 ? (findWord(WORD_ORDER[0])?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!r1WordAudio) { unlock(); return; }
+    const audio = new Audio(r1WordAudio);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [r1WordAudio]);
+
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -55,13 +66,12 @@ export default function Level23({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
-  const roundDef = ROUND_SEQUENCE[roundIndex];
+  const card = useMemo(() => findWord(WORD_ORDER[roundIndex]), [roundIndex]); // eslint-disable-line
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-  const card = useMemo(() => findWord(roundDef.word), [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={ROUND_SEQUENCE[roundIndex]?.type} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="writev2" />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
@@ -74,12 +84,10 @@ export default function Level23({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {roundDef.type === "writev2" && card && (
+            {card && (
               <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
-            {roundDef.type === "drag" && card && (
-              <Level1DragV2 key={`drag-${roundIndex}`} card={card} onComplete={advance} lang={lang} onMistake={onMistake} />
-            )}
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>

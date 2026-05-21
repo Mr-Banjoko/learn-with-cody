@@ -1,41 +1,41 @@
 /**
- * Level 12 — 5-round Drag the Letters V2
- *
- * Round order:
- *  1. sat
- *  2. mad
- *  3. sad
- *  4. ham
- *  5. pat
+ * Level 12 — Finish Batch C + light review
+ * R1: phonics   — mad
+ * R2: drag      — mad
+ * R3: phonics   — ham
+ * R4: drag      — ham
+ * R5: missing01 — sad | D (FINAL, pos 2)
+ * R6: missing01 — sat | S (INITIAL, pos 0)
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
+import Level6Phonics from "./Level6Phonics";
 import Level1DragV2 from "./Level1DragV2";
+import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
+import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+
 const LEVEL_NUM = 12;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-import { shortAWords } from "../../lib/shortAWords";
-
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
 const ROUNDS = [
-  findWord("sat"),
-  findWord("mad"),
-  findWord("sad"),
-  findWord("ham"),
-  findWord("pat"),
+  { type: "phonics",   card: findWord("mad") },
+  { type: "drag",      card: findWord("mad") },
+  { type: "phonics",   card: findWord("ham") },
+  { type: "drag",      card: findWord("ham") },
+  { type: "missing01", card: findWord("sad"), missingPos: 2 }, // D FINAL
+  { type: "missing01", card: findWord("sat"), missingPos: 0 }, // S INITIAL
 ];
-
 const TOTAL_ROUNDS = ROUNDS.length;
 
-function markLevel12Complete() {
+function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][12] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -47,10 +47,10 @@ export default function Level12({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  const advance = () => {
+  const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
-      markLevel12Complete();
+      markComplete();
       const stars = calcStars(mistakes, SCORED_ROUNDS);
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
@@ -58,22 +58,19 @@ export default function Level12({ onBack, lang = "en" }) {
     } else {
       setRoundIndex(next);
     }
-  };
+  }, [roundIndex, mistakes]);
 
+  const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="drag" />
-
-      {/* Progress bar */}
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={round?.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
-
-      {/* Content */}
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -81,13 +78,9 @@ export default function Level12({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <Level1DragV2
-              key={`drag-${roundIndex}`}
-              card={ROUNDS[roundIndex]}
-              onComplete={advance}
-              lang={lang}
-              onMistake={onMistake}
-            />
+            {round.type === "phonics" && <Level6Phonics card={round.card} onNext={advance} lang={lang} />}
+            {round.type === "drag" && <Level1DragV2 key={`drag-${roundIndex}`} card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {round.type === "missing01" && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={round.card} forcedMissingPos={round.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} />}
           </motion.div>
         )}
       </AnimatePresence>

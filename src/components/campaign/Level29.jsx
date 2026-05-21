@@ -1,33 +1,38 @@
 /**
- * Level 29 — 5-round Dictation game with pulsating hint system
- *
- * Round 1: lad
- * Round 2: cab
- * Round 3: ban
- * Round 4: lab
- * Round 5: pal
+ * Level 29 — Recall Batch F
+ * R1: writev2   — cab
+ * R2: dictation — lad
+ * R3: writev2   — lab
+ * R4: dictation — pal
+ * R5: writev2   — ban
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
+import WriteV2CampaignRound from "./WriteV2CampaignRound";
 import DictationCampaignRound from "./DictationCampaignRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
 const LEVEL_NUM = 29;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-const WORD_ORDER = ["lad", "cab", "ban", "lab", "pal"];
-const TOTAL_ROUNDS = WORD_ORDER.length;
+const ROUND_SEQUENCE = [
+  { type: "writev2",   word: "cab" },
+  { type: "dictation", word: "lad" },
+  { type: "writev2",   word: "lab" },
+  { type: "dictation", word: "pal" },
+  { type: "writev2",   word: "ban" },
+];
+const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 
 function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][29] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -52,12 +57,13 @@ export default function Level29({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
+  const roundDef = ROUND_SEQUENCE[roundIndex];
+  const card = useMemo(() => findWord(roundDef.word), [roundIndex]); // eslint-disable-line
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-  const card = findWord(WORD_ORDER[roundIndex]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="dictation" />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={roundDef?.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
@@ -70,9 +76,8 @@ export default function Level29({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {card && (
-              <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />
-            )}
+            {roundDef.type === "writev2" && card && <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "dictation" && card && <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,33 +1,39 @@
 /**
- * Level 34 — 5-round Write V2 (WriteV2CampaignRound)
- *
- * Round order:
- *  1. man
- *  2. jab
- *  3. dab
- *  4. nab
- *  5. fan
+ * Level 34 — Mixed Batch G Practice
+ * R1: writev2    — man
+ * R2: word_match — jab
+ * R3: missing01  — dab | B (FINAL, pos 2)
+ * R4: word_match — fan
+ * R5: writev2    — nab
  */
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
 import WriteV2CampaignRound from "./WriteV2CampaignRound";
+import CampaignWordMatchRound from "./CampaignWordMatchRound";
+import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
 const LEVEL_NUM = 34;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-const WORD_ORDER = ["man", "jab", "dab", "nab", "fan"];
-const TOTAL_ROUNDS = WORD_ORDER.length;
+const ROUND_SEQUENCE = [
+  { type: "writev2",    word: "man" },
+  { type: "word_match", word: "jab" },
+  { type: "missing01",  word: "dab", missingPos: 2 }, // B FINAL
+  { type: "word_match", word: "fan" },
+  { type: "writev2",    word: "nab" },
+];
+const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 
-function markLevel34Complete() {
+function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][34] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -42,31 +48,28 @@ export default function Level34({ onBack, lang = "en" }) {
   const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
-      markLevel34Complete();
+      markComplete();
       const stars = calcStars(mistakes, SCORED_ROUNDS);
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
       setDone(true);
-    } else setRoundIndex(next);
+    } else {
+      setRoundIndex(next);
+    }
   }, [roundIndex, mistakes]);
 
+  const roundDef = ROUND_SEQUENCE[roundIndex];
+  const card = useMemo(() => findWord(roundDef.word), [roundIndex]); // eslint-disable-line
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-
-  const currentCard = useMemo(
-    () => shortAWords.find((w) => w.word === WORD_ORDER[roundIndex]),
-    [roundIndex]
-  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="writev2" />
-
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={roundDef?.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
-
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -74,7 +77,9 @@ export default function Level34({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={currentCard} onComplete={advance} onMistake={onMistake} lang={lang} />
+            {roundDef.type === "writev2" && card && <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "word_match" && card && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "missing01" && card && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={card} forcedMissingPos={roundDef.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} />}
           </motion.div>
         )}
       </AnimatePresence>

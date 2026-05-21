@@ -1,39 +1,39 @@
 /**
- * Level 28 — 5-round Letter Catch game
- *
- * Round 1: cab — missing: a
- * Round 2: lad — missing: l
- * Round 3: lab — missing: b
- * Round 4: pal — missing: p
- * Round 5: ban — missing: n
+ * Level 28 — Double Logic Intro (rearrange_hard)
+ * R1: rearrange_hard — cat + cab  [first appearance — audio guide]
+ * R2: rearrange_hard — map + lad
+ * R3: rearrange_hard — bat + lab
+ * R4: rearrange_hard — jam + pal
+ * R5: rearrange_hard — bag + ban
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
+import PicSliceBoard from "../games/PicSliceBoard";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { buildShortASliceData } from "../../lib/buildShortASliceData";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
 const LEVEL_NUM = 28;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-const ROUND_DEFS = [
-  { word: "cab", missing: "a" },
-  { word: "lad", missing: "l" },
-  { word: "lab", missing: "b" },
-  { word: "pal", missing: "p" },
-  { word: "ban", missing: "n" },
+const ROUND_WORDS = [
+  ["cat", "cab"],
+  ["map", "lad"],
+  ["bat", "lab"],
+  ["jam", "pal"],
+  ["bag", "ban"],
 ];
-const TOTAL_ROUNDS = ROUND_DEFS.length;
+const TOTAL_ROUNDS = ROUND_WORDS.length;
 
 function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][28] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -44,6 +44,22 @@ export default function Level28({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  // R1 (index 0): rearrange_hard first appearance — audio guide + chain first word audio
+  const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
+  const r1WordAudio = roundIndex === 0 ? (findWord(ROUND_WORDS[0][0])?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!r1WordAudio) { unlock(); return; }
+    const audio = new Audio(r1WordAudio);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [r1WordAudio]);
+
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -58,13 +74,12 @@ export default function Level28({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
+  const wordPair = useMemo(() => ROUND_WORDS[roundIndex].map(buildShortASliceData), [roundIndex]); // eslint-disable-line
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-  const def = ROUND_DEFS[roundIndex];
-  const card = findWord(def.word);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="catch" />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="rearrange" />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
@@ -77,18 +92,8 @@ export default function Level28({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {card && (
-              <CampaignLetterCatchRound
-                key={`catch-${roundIndex}`}
-                word={card.word}
-                missingLetter={def.missing}
-                image={card.image}
-                audio={card.audio}
-                onComplete={advance}
-                onMistake={onMistake}
-                lang={lang}
-              />
-            )}
+            <PicSliceBoard key={`hard-${roundIndex}`} wordPair={wordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>

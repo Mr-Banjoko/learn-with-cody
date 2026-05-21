@@ -102,78 +102,88 @@ export function saveLevelResult(vowelKey, levelNum, stars, mistakes) {
 // Add new levels here as they're implemented.
 
 export const SHORT_A_SCORED_ROUNDS = {
-  // Level  1: 11 rounds total — 5 drag (scored) + 6 phonics (not scored) = 5 scored
-  1: 5,
-  // Level  2: alternating phonics+rearrange for 5 words = 5 rearrange scored
-  2: 5,
-  // Level  3: alternating phonics+rearrange for 5 words = 5 rearrange scored
+  // L1:  6 rounds, 3 phonics(not scored) + 3 drag = 3 scored
+  1: 3,
+  // L2:  6 rounds, 2 phonics + 2 drag + 2 missing01 = 4 scored
+  2: 4,
+  // L3:  5 connection rounds = 5 scored
   3: 5,
-  // Level  4: 5 identifying rounds only (phonics not scored)
+  // L4:  5 identifying rounds = 5 scored
   4: 5,
-  // Level  5: 5 identifying
-  5: 5,
-  // Level  6: 10 rounds, 5 phonics + 5 drag = 5 scored
-  6: 5,
-  // Level  7: similar 10-round structure
-  7: 5,
-  // Level  8: 10 rounds, drag-heavy
+  // L5:  6 rounds, 0 phonics: drag×2 + identifying×2 + missing01×1 + connection×1 = 6 scored
+  5: 6,
+  // L6:  6 rounds, 3 phonics + 3 drag = 3 scored
+  6: 3,
+  // L7:  6 rounds, 2 phonics + 2 drag + 2 missing01 = 4 scored
+  7: 4,
+  // L8:  5 connection rounds = 5 scored
   8: 5,
-  // Level  9: identifying rounds
+  // L9:  5 catch rounds = 5 scored
   9: 5,
-  // Level 10: review mix
-  10: 7,
-  // Level 11: 10 rounds alternating phonics+rearrange = 5 scored
-  11: 5,
-  // Level 12: alternating phonics+rearrange
-  12: 5,
-  // Level 13: mix
+  // L10: 6 rounds, no phonics: catch×1 + connection×1 + drag×1 + identifying×2 + missing01×1 = 6 scored
+  10: 6,
+  // L11: 6 rounds, 3 phonics + 3 drag = 3 scored
+  11: 3,
+  // L12: 6 rounds, 2 phonics + 2 drag + 2 missing01 = 4 scored
+  12: 4,
+  // L13: 5 rearrange_easy rounds = 5 scored
   13: 5,
-  // Level 14: mix
+  // L14: 5 rounds: connection×2 + identifying×3 = 5 scored
   14: 5,
-  // Level 15: 9-round review mix
-  15: 7,
-  // Level 16: 10 rounds alternating phonics+drag = 5 scored
-  16: 5,
-  // Level 17: drag+identifying = 10 scored (no phonics)
-  17: 10,
-  // Level 18: rearrange+identifying mix
-  18: 8,
-  // Level 19: mix
-  19: 8,
-  // Level 20: 10-round review (drag×2, rearrange×1, missing×2, identifying×4, drawline×1) = 10 scored
-  20: 10,
-  // Level 21: 10 rounds alternating phonics+rearrange = 5 scored
-  21: 5,
-  // Level 22: alternating phonics+rearrange
-  22: 5,
-  // Level 23: alternating phonics+rearrange
+  // L15: 6 rounds: rearrange×1 + catch×1 + connection×1 + identifying×1 + drag×1 + missing01×1 = 6 scored
+  15: 6,
+  // L16: 6 rounds, 3 phonics + 3 drag = 3 scored
+  16: 3,
+  // L17: 6 rounds, 2 phonics + 2 drag + 2 missing01 = 4 scored
+  17: 4,
+  // L18: 5 drawline rounds = 5 scored
+  18: 5,
+  // L19: 5 rounds: rearrange×2 + identifying×2 + drawline×1 = 5 scored
+  19: 5,
+  // L20: 6 rounds: drawline×1 + connection×1 + catch×1 + identifying×1 + rearrange×1 + drag×1 = 6 scored
+  20: 6,
+  // L21: 6 rounds, 3 phonics + 3 drag = 3 scored
+  21: 3,
+  // L22: 6 rounds, 2 phonics + 2 drag + 2 missing01 = 4 scored
+  22: 4,
+  // L23: 5 writev2 rounds = 5 scored
   23: 5,
-  // Level 24: rearrange+identifying mix
-  24: 8,
-  // Level 25: mix
-  25: 8,
-  // Level 26: 10 rounds alternating phonics+missing = 5 scored
-  26: 5,
-  // Level 27: 5 word-match rounds (all scored)
-  27: 5,
-  // Level 28: alternating phonics+rearrange = 5 scored
+  // L24: 5 rounds: dictation×3 + writev2×2 = 5 scored
+  24: 5,
+  // L25: 6 rounds: dictation×1 + rearrange×1 + catch×1 + identifying×1 + connection×1 + drawline×1 = 6 scored
+  25: 6,
+  // L26: 6 rounds, 3 phonics + 3 drag = 3 scored
+  26: 3,
+  // L27: 6 rounds, 2 phonics + 2 drag + 2 missing01 = 4 scored
+  27: 4,
+  // L28: 5 rearrange_hard rounds = 5 scored
   28: 5,
-  // Level 29: alternating phonics+rearrange = 5 scored
+  // L29: 5 rounds: writev2×3 + dictation×2 = 5 scored
   29: 5,
-  // Level 30: 6-round mixed = 6 scored
+  // L30: 6 rounds: drag + missing01 + catch + connection + identifying + rearrange_hard = 6 scored
   30: 6,
-  // Level 31: 10 rounds alternating phonics+drag = 5 scored
-  31: 5,
-  // Level 32: 5-round rearrange difficult = 5 scored
-  32: 5,
-  // Level 33: 5-round missing = 5 scored
+  // L31: 6 rounds, 3 phonics + 3 drag = 3 scored
+  31: 3,
+  // L32: 6 rounds, 2 phonics + 2 drag + 2 missing01 = 4 scored
+  32: 4,
+  // L33: 5 word_match rounds = 5 scored
   33: 5,
-  // Level 34: rearrange+identifying mix = 8 scored
-  34: 8,
-  // Level 35: 10-round review = 10 scored
-  35: 10,
-  // Levels 36–40 (final block of Short A campaign)
-  36: 6, 37: 6, 38: 6, 39: 6, 40: 8,
+  // L34: 5 rounds: writev2×2 + word_match×2 + missing01×1 = 5 scored
+  34: 5,
+  // L35: 6 rounds: dictation×1 + drag×1 + connection×1 + catch×1 + word_match×1 + identifying×1 = 6 scored
+  35: 6,
+  // L36: 6 rounds, 3 phonics + 3 drag = 3 scored
+  36: 3,
+  // L37: 6 rounds, 3 phonics + 3 drag = 3 scored
+  37: 3,
+  // L38: 6 word_to_audio rounds = 6 scored
+  38: 6,
+  // L39: 6 rounds: dictation×2 + identifying×2 + word_match×2 = 6 scored
+  39: 6,
+  // L40: 8 rounds, no phonics = 8 scored
+  40: 8,
+  // L41: 8 rounds, no phonics = 8 scored
+  41: 8,
 };
 
 /**

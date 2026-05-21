@@ -1,38 +1,32 @@
 /**
- * Level 13 — 5-round Letter-to-Sound Connection game
- *
- * Round order:
- *  1. ham
- *  2. sat
- *  3. mad
- *  4. sad
- *  5. pat
- *
- * Uses CampaignConnectionRound (inlines ConnectionRound + WinScreen from
- * LetterSoundConnectionGame). Picture slices come from shortASlices via
- * buildWordData(). Wrong connections deduct 1 life via onMistake.
- * Audio auto-plays at start of each round.
+ * Level 13 — Logic Intro (rearrange_easy)
+ * R1: rearrange_easy — sad  [first appearance — audio guide]
+ * R2: rearrange_easy — sat
+ * R3: rearrange_easy — pat
+ * R4: rearrange_easy — mad
+ * R5: rearrange_easy — ham
  */
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import LevelCompleteScreen from "./LevelCompleteScreen";
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import { buildWordData } from "../../lib/picSliceGameData";
+import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
-import { buildWordData } from "../../lib/picSliceGameData";
 
 const LEVEL_NUM = 13;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-
-const WORD_ORDER = ["ham", "sat", "mad", "sad", "pat"];
+const WORD_ORDER = ["sad", "sat", "pat", "mad", "ham"];
 const TOTAL_ROUNDS = WORD_ORDER.length;
+const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-function markLevel13Complete() {
+function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][13] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -44,17 +38,17 @@ export default function Level13({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // Round 1 only: chain word audio after hint audio before unlocking
-  const round1WordAudio = roundIndex === 0 ? (buildWordData(WORD_ORDER[0])?.audio || null) : null;
+  // R1 (index 0): rearrange_easy first appearance — audio guide + chain word audio
+  const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
+  const r1WordAudio = roundIndex === 0 ? (findWord(WORD_ORDER[0])?.audio || null) : null;
   const onHintComplete = useCallback((unlock) => {
-    if (!round1WordAudio) { unlock(); return; }
-    const audio = new Audio(round1WordAudio);
+    if (!r1WordAudio) { unlock(); return; }
+    const audio = new Audio(r1WordAudio);
     audio.onended = unlock;
     audio.onerror = unlock;
     audio.play().catch(unlock);
-  }, [round1WordAudio]);
+  }, [r1WordAudio]);
 
-  const hintUrl = getHintAudioUrl(13, roundIndex, lang);
   const { locked: hintLocked } = useRoundHintAudio({
     url: hintUrl,
     onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
@@ -63,7 +57,7 @@ export default function Level13({ onBack, lang = "en" }) {
   const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
-      markLevel13Complete();
+      markComplete();
       const stars = calcStars(mistakes, SCORED_ROUNDS);
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
@@ -73,25 +67,17 @@ export default function Level13({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
+  const wordPair = useMemo(() => [buildWordData(WORD_ORDER[roundIndex])], [roundIndex]); // eslint-disable-line
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-
-  const rearrangeWordPair = useMemo(
-    () => [buildWordData(WORD_ORDER[roundIndex])],
-    [roundIndex]
-  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
       <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="rearrange" />
-
-      {/* Progress bar */}
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
-
-      {/* Content */}
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
@@ -101,7 +87,7 @@ export default function Level13({ onBack, lang = "en" }) {
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             <PicSliceBoardEasy
               key={`rearrange-${roundIndex}`}
-              wordPair={rearrangeWordPair}
+              wordPair={wordPair}
               onRoundComplete={advance}
               lang={lang}
               onMistake={onMistake}

@@ -1,35 +1,32 @@
 /**
- * Level 21 — 10-round sequence:
- * Odd rounds  (1,3,5,7,9):  Learn Phonics  (Level1Phonics)
- * Even rounds (2,4,6,8,10): Write game     (CampaignWriteRound)
- *
- * Words (exact order): gap, wax, tan, tax, dam
+ * Level 21 — Introduce Batch E (first 3 words)
+ * R1: phonics — gap
+ * R2: drag    — gap
+ * R3: phonics — wax
+ * R4: drag    — wax
+ * R5: phonics — tan
+ * R6: drag    — tan
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import Level1Phonics from "./Level1Phonics";
-import CampaignWriteRound from "./CampaignWriteRound";
+import Level6Phonics from "./Level6Phonics";
+import Level1DragV2 from "./Level1DragV2";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
 const LEVEL_NUM = 21;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
 const ROUNDS = [
-  { type: "phonics", word: "gap" },
-  { type: "write",   word: "gap" },
-  { type: "phonics", word: "wax" },
-  { type: "write",   word: "wax" },
-  { type: "phonics", word: "tan" },
-  { type: "write",   word: "tan" },
-  { type: "phonics", word: "tax" },
-  { type: "write",   word: "tax" },
-  { type: "phonics", word: "dam" },
-  { type: "write",   word: "dam" },
+  { type: "phonics", card: findWord("gap") },
+  { type: "drag",    card: findWord("gap") },
+  { type: "phonics", card: findWord("wax") },
+  { type: "drag",    card: findWord("wax") },
+  { type: "phonics", card: findWord("tan") },
+  { type: "drag",    card: findWord("tan") },
 ];
 const TOTAL_ROUNDS = ROUNDS.length;
 
@@ -37,7 +34,7 @@ function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][21] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -63,12 +60,11 @@ export default function Level21({ onBack, lang = "en" }) {
   }, [roundIndex, mistakes]);
 
   const round = ROUNDS[roundIndex];
-  const card = findWord(round.word);
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={ROUNDS[roundIndex]?.type} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={round?.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
@@ -81,12 +77,8 @@ export default function Level21({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {round.type === "phonics" && card && (
-              <Level1Phonics card={card} onNext={advance} lang={lang} isFirstCard={false} />
-            )}
-            {round.type === "write" && card && (
-              <CampaignWriteRound key={`write-${roundIndex}`} card={card} onComplete={advance} lang={lang} />
-            )}
+            {round.type === "phonics" && <Level6Phonics card={round.card} onNext={advance} lang={lang} />}
+            {round.type === "drag" && <Level1DragV2 key={`drag-${roundIndex}`} card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} />}
           </motion.div>
         )}
       </AnimatePresence>

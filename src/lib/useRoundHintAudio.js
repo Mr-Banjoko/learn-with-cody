@@ -110,66 +110,78 @@ const GH = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/le
 export function getHintAudioUrl(levelNum, roundIndex, lang) {
   const zh = lang === "zh";
 
-  // Level 1, Round 3 (roundIndex 2) → letter_drag_hint / hint 3.mp3
-  if (levelNum === 1 && roundIndex === 2) {
+  // ── Level 1: Round 1 (index 0) — guided phonics tutorial (existing, keep)
+  // Handled inside Level1Phonics directly (phase audio), not here.
+
+  // ── Level 1: Round 2 (index 1) — drag hint (existing, keep as index 1)
+  if (levelNum === 1 && roundIndex === 1) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/letter_drag_hint/${folder}/hint%203.mp3`;
   }
 
-  // Level 2, Round 1 (roundIndex 0) → missing_sound_hint / hint.mp3
-  if (levelNum === 2 && roundIndex === 0) {
+  // ── Level 2: Round 5 (index 4) — missing01 first appearance
+  if (levelNum === 2 && roundIndex === 4) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/missing_sound_hint/${folder}/hint.mp3`;
   }
 
-  // Level 3, Round 1 (roundIndex 0) → rearrange_the_picture_hint / hint.mp3
-  // NOTE: English subfolder on GitHub is "english " (trailing space → %20)
+  // ── Level 3: Round 1 (index 0) — connection first appearance
   if (levelNum === 3 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english%20";
-    return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
+    return `${GH}/letter_to_sound_hint/${folder}/hint.mp3`;
   }
 
-  // Level 7, Round 1 (roundIndex 0) → catch_the_letter_hint / hint.mp3
-  if (levelNum === 7 && roundIndex === 0) {
-    const folder = zh ? "chinese" : "english";
-    return `${GH}/catch_the_letter_hint/${folder}/hint.mp3`;
-  }
-
-  // Level 4, Round 1 (roundIndex 0) → identifying_hint / hint.mp3
+  // ── Level 4: Round 1 (index 0) — identifying first appearance
   if (levelNum === 4 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/identifying_hint/${folder}/hint.mp3`;
   }
 
-  // Level 13, Round 1 (roundIndex 0) → letter_to_sound_hint / hint.mp3
-  // NOTE: English subfolder on GitHub is "english " (trailing space → %20)
+  // ── Level 9: Round 1 (index 0) — catch first appearance
+  if (levelNum === 9 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/catch_the_letter_hint/${folder}/hint.mp3`;
+  }
+
+  // ── Level 13: Round 1 (index 0) — rearrange_easy first appearance
   if (levelNum === 13 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english%20";
-    return `${GH}/letter_to_sound_hint/${folder}/hint.mp3`;
+    return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
   }
 
-  // Level 17, Round 1 (roundIndex 0) → write_hint  / hint.mp3
-  // NOTE: Folder name on GitHub is "write_hint " (trailing space → write_hint%20)
-  if (levelNum === 17 && roundIndex === 0) {
-    const folder = zh ? "chinese" : "english";
-    return `${GH}/write_hint%20/${folder}/hint.mp3`;
-  }
-
-  // Level 18, Round 1 (roundIndex 0) → draw_a_line_hint / hint.mp3
+  // ── Level 18: Round 1 (index 0) — drawline first appearance
   if (levelNum === 18 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/draw_a_line_hint/${folder}/hint.mp3`;
   }
 
-  // Level 22, Round 1 (roundIndex 0) → dictation_hint / hint.mp3
-  if (levelNum === 22 && roundIndex === 0) {
+  // ── Level 23: Round 1 (index 0) — writev2 first appearance
+  if (levelNum === 23 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/write_v2_hint/${folder}/hint.mp3`;
+  }
+
+  // ── Level 24: Round 1 (index 0) — dictation first appearance
+  if (levelNum === 24 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/dictation_hint/${folder}/hint.mp3`;
   }
 
-  // Level 32, Round 1 (roundIndex 0) → word match / hint.mp3
-  // NOTE: Folder name on GitHub is "word match" (space → word%20match)
-  if (levelNum === 32 && roundIndex === 0) {
+  // ── Level 28: Round 1 (index 0) — rearrange_hard first appearance
+  if (levelNum === 28 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english%20";
+    return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
+  }
+
+  // ── Level 33: Round 1 (index 0) — word_match first appearance
+  if (levelNum === 33 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/word%20match/${folder}/hint.mp3`;
+  }
+
+  // ── Level 38: Round 1 (index 0) — word_to_audio first appearance
+  // Reuse word_match hint as closest available
+  if (levelNum === 38 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/word%20match/${folder}/hint.mp3`;
   }

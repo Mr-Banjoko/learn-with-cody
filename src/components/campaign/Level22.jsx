@@ -1,27 +1,41 @@
 /**
- * Level 22 — 5-round Dictation game
- * Words: gap, wax, tan, tax, dam
+ * Level 22 — Finish Batch E + light review
+ * R1: phonics   — tax
+ * R2: drag      — tax
+ * R3: phonics   — dam
+ * R4: drag      — dam
+ * R5: missing01 — gap | P (FINAL, pos 2)
+ * R6: missing01 — wax | W (INITIAL, pos 0)
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
+import Level6Phonics from "./Level6Phonics";
+import Level1DragV2 from "./Level1DragV2";
+import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import DictationCampaignRound from "./DictationCampaignRound";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 
 const LEVEL_NUM = 22;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
-const WORD_ORDER = ["gap", "wax", "tan", "tax", "dam"];
-const TOTAL_ROUNDS = WORD_ORDER.length;
+
+const ROUNDS = [
+  { type: "phonics",   card: findWord("tax") },
+  { type: "drag",      card: findWord("tax") },
+  { type: "phonics",   card: findWord("dam") },
+  { type: "drag",      card: findWord("dam") },
+  { type: "missing01", card: findWord("gap"), missingPos: 2 }, // P FINAL
+  { type: "missing01", card: findWord("wax"), missingPos: 0 }, // W INITIAL
+];
+const TOTAL_ROUNDS = ROUNDS.length;
 
 function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][22] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -32,21 +46,6 @@ export default function Level22({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
-  // Round 1 only: chain word audio after hint audio before unlocking
-  const round1WordAudio = roundIndex === 0 ? (findWord(WORD_ORDER[0])?.audio || null) : null;
-  const onHintComplete = useCallback((unlock) => {
-    if (!round1WordAudio) { unlock(); return; }
-    const audio = new Audio(round1WordAudio);
-    audio.onended = unlock;
-    audio.onerror = unlock;
-    audio.play().catch(unlock);
-  }, [round1WordAudio]);
-
-  const hintUrl = getHintAudioUrl(22, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({
-    url: hintUrl,
-    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
-  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -61,12 +60,12 @@ export default function Level22({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
-  const card = findWord(WORD_ORDER[roundIndex]);
+  const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="dictation" />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={round?.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
@@ -79,10 +78,9 @@ export default function Level22({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {card && (
-              <DictationCampaignRound key={`dictation-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={roundIndex === 0} />
-            )}
-            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
+            {round.type === "phonics" && <Level6Phonics card={round.card} onNext={advance} lang={lang} />}
+            {round.type === "drag" && <Level1DragV2 key={`drag-${roundIndex}`} card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {round.type === "missing01" && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={round.card} forcedMissingPos={round.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} />}
           </motion.div>
         )}
       </AnimatePresence>

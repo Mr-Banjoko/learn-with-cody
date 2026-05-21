@@ -9,8 +9,8 @@ import Games from "../pages/Games";
 import CampaignHome from "./campaign/CampaignHome.jsx";
 import ShortALevels from "./campaign/ShortALevels.jsx";
 import Level1 from "./campaign/Level1.jsx";
-import Level3 from "./campaign/Level2.jsx";  // file contains new Level 3 (old rearrange game)
-import Level2 from "./campaign/Level3.jsx";  // file contains new Level 2 (old missing-sound game)
+import Level2 from "./campaign/Level2.jsx";
+import Level3 from "./campaign/Level3.jsx";
 import Level4 from "./campaign/Level4.jsx";
 import Level5 from "./campaign/Level5.jsx";
 import Level6 from "./campaign/Level6.jsx";
@@ -48,9 +48,10 @@ import Level37 from "./campaign/Level37";
 import Level38 from "./campaign/Level38";
 import Level39 from "./campaign/Level39";
 import Level40 from "./campaign/Level40";
+import Level41 from "./campaign/Level41";
 
 // Screens that hide the tab bar and language toggle
-const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15", "campaign-short-a-level-16", "campaign-short-a-level-17", "campaign-short-a-level-18", "campaign-short-a-level-19", "campaign-short-a-level-20", "campaign-short-a-level-21", "campaign-short-a-level-22", "campaign-short-a-level-23", "campaign-short-a-level-24", "campaign-short-a-level-25", "campaign-short-a-level-26", "campaign-short-a-level-27", "campaign-short-a-level-28", "campaign-short-a-level-29", "campaign-short-a-level-30", "campaign-short-a-level-31", "campaign-short-a-level-32", "campaign-short-a-level-33", "campaign-short-a-level-34", "campaign-short-a-level-35", "campaign-short-a-level-36", "campaign-short-a-level-37", "campaign-short-a-level-38", "campaign-short-a-level-39", "campaign-short-a-level-40"]);
+const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15", "campaign-short-a-level-16", "campaign-short-a-level-17", "campaign-short-a-level-18", "campaign-short-a-level-19", "campaign-short-a-level-20", "campaign-short-a-level-21", "campaign-short-a-level-22", "campaign-short-a-level-23", "campaign-short-a-level-24", "campaign-short-a-level-25", "campaign-short-a-level-26", "campaign-short-a-level-27", "campaign-short-a-level-28", "campaign-short-a-level-29", "campaign-short-a-level-30", "campaign-short-a-level-31", "campaign-short-a-level-32", "campaign-short-a-level-33", "campaign-short-a-level-34", "campaign-short-a-level-35", "campaign-short-a-level-36", "campaign-short-a-level-37", "campaign-short-a-level-38", "campaign-short-a-level-39", "campaign-short-a-level-40", "campaign-short-a-level-41"]);
 
 export default function AppShell() {
   useBuildGuard();
@@ -80,6 +81,8 @@ export default function AppShell() {
 
   const renderHomeScreen = () => {
     switch (homeSubScreen) {
+      case "campaign-short-a-level-41":
+        return <Level41 onBack={() => setHomeSubScreen("campaign-short-a")} lang={language} />;
       case "campaign-short-a-level-40":
         return <Level40 onBack={() => setHomeSubScreen("campaign-short-a")} lang={language} />;
       case "campaign-short-a-level-39":
@@ -355,6 +358,7 @@ export default function AppShell() {
               if (lvl === 38) setHomeSubScreen("campaign-short-a-level-38");
               if (lvl === 39) setHomeSubScreen("campaign-short-a-level-39");
               if (lvl === 40) setHomeSubScreen("campaign-short-a-level-40");
+              if (lvl === 41) setHomeSubScreen("campaign-short-a-level-41");
             }}
             lang={language}
           />

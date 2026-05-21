@@ -1,56 +1,31 @@
 /**
- * Level 24 — 5-round draw-a-line (missing letter = LAST letter of each word)
- * R1: gap(p), wax(x), tan(n)
- * R2: tax(x), dam(m), bag(g)
- * R3: tap(p), tag(g), gas(s)
- * R4: ham(m), mad(d), pat(t)
- * R5: can(n), map(p), mat(t)
+ * Level 24 — Audio Recall Intro (dictation)
+ * R1: dictation — cat  [first appearance — audio guide]
+ * R2: dictation — jam
+ * R3: dictation — bag
+ * R4: writev2   — gap
+ * R5: writev2   — dam
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import DrawLineBoard from "../games/drawline/DrawLineBoard";
+import DictationCampaignRound from "./DictationCampaignRound";
+import WriteV2CampaignRound from "./WriteV2CampaignRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import HeartDisplay from "./HeartDisplay";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { shortAWords } from "../../lib/shortAWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
 const LEVEL_NUM = 24;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-function shuffleArr(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function buildLastLetterRound(wordNames) {
-  const words = wordNames.map(findWord);
-  const topCards = words.map((w, i) => ({
-    ...w,
-    targetLetter: w.word[w.word.length - 1],
-    id: `card-${i}-${w.word}`,
-  }));
-  const letters = topCards.map((c) => ({ letter: c.targetLetter, topCardId: c.id }));
-  let shuffled = shuffleArr(letters);
-  let tries = 0;
-  while (tries < 20 && shuffled.some((l, i) => l.topCardId === topCards[i].id)) {
-    shuffled = shuffleArr(letters);
-    tries++;
-  }
-  return { topCards, bottomLetters: shuffled };
-}
-
 const ROUND_SEQUENCE = [
-  { words: ["gap", "wax", "tan"] },
-  { words: ["tax", "dam", "bag"] },
-  { words: ["tap", "tag", "gas"] },
-  { words: ["ham", "mad", "pat"] },
-  { words: ["can", "map", "mat"] },
+  { type: "dictation", word: "cat" },
+  { type: "dictation", word: "jam" },
+  { type: "dictation", word: "bag" },
+  { type: "writev2",   word: "gap" },
+  { type: "writev2",   word: "dam" },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 
@@ -58,7 +33,7 @@ function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][24] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -69,6 +44,22 @@ export default function Level24({ onBack, lang = "en" }) {
   const [mistakes, setMistakes] = useState(0);
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  // R1 (index 0): dictation first appearance — audio guide + chain word audio
+  const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
+  const r1WordAudio = roundIndex === 0 ? (findWord(ROUND_SEQUENCE[0].word)?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!r1WordAudio) { unlock(); return; }
+    const audio = new Audio(r1WordAudio);
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [r1WordAudio]);
+
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -83,15 +74,13 @@ export default function Level24({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
+  const roundDef = ROUND_SEQUENCE[roundIndex];
+  const card = useMemo(() => findWord(roundDef.word), [roundIndex]); // eslint-disable-line
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-  const drawLineRound = useMemo(
-    () => buildLastLetterRound(ROUND_SEQUENCE[roundIndex].words),
-    [roundIndex] // eslint-disable-line react-hooks/exhaustive-deps
-  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="drawline" />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={roundDef?.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
@@ -104,7 +93,13 @@ export default function Level24({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <DrawLineBoard key={`drawline-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
+            {roundDef.type === "dictation" && card && (
+              <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={roundIndex === 0} />
+            )}
+            {roundDef.type === "writev2" && card && (
+              <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />
+            )}
+            {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
       </AnimatePresence>

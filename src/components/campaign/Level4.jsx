@@ -1,40 +1,44 @@
 /**
- * Level 4 — 5-round Identifying game (Word → Picture)
- * Words: cat → dad → rat → hat → bat (fixed order)
+ * Level 4 — Recognition Batch A (identifying)
+ * R1: identifying — cat  [first appearance — audio guide]
+ * R2: identifying — dad
+ * R3: identifying — rat
+ * R4: identifying — hat
+ * R5: identifying — bat
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import LevelCompleteScreen from "./LevelCompleteScreen";
 import IdentifyingRound from "../games/IdentifyingRound";
-import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortAWords } from "../../lib/shortAWords";
-const LEVEL_NUM = 4;
-const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
-const TARGET_WORDS = ["cat", "dad", "rat", "hat", "bat"];
-const TOTAL_ROUNDS = TARGET_WORDS.length;
+const LEVEL_NUM = 4;
+const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
+const WORD_ORDER = ["cat", "dad", "rat", "hat", "bat"];
+const TOTAL_ROUNDS = WORD_ORDER.length;
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
+const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-function buildRound(targetWord) {
-  const target = shortAWords.find((w) => w.word === targetWord);
-  const distractorPool = ALL_WORDS.filter((w) => w.word !== targetWord);
-  const shuffled = [...distractorPool].sort(() => Math.random() - 0.5);
-  const distractors = shuffled.slice(0, 2);
-  const choices = [target, ...distractors].sort(() => Math.random() - 0.5);
+function buildRound(word) {
+  const target = findWord(word);
+  const pool = ALL_WORDS.filter((w) => w.word !== word);
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  const choices = [target, ...shuffled.slice(0, 2)].sort(() => Math.random() - 0.5);
   return { target, choices };
 }
 
-function markLevel4Complete() {
+function markComplete() {
   try {
     const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
     if (!data["short-a"]) data["short-a"] = {};
-    data["short-a"][4] = { completed: true, completedAt: new Date().toISOString() };
+    data["short-a"][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
     localStorage.setItem("campaign_progress", JSON.stringify(data));
   } catch (_) {}
 }
@@ -46,28 +50,26 @@ export default function Level4({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // Round 1 only: chain word audio after hint audio before unlocking
-  const round1WordAudio = roundIndex === 0 ? (shortAWords.find((w) => w.word === TARGET_WORDS[0])?.audio || null) : null;
+  // R1 (index 0): identifying first appearance — audio guide + chain word audio
+  const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
+  const r1WordAudio = roundIndex === 0 ? (findWord(WORD_ORDER[0])?.audio || null) : null;
   const onHintComplete = useCallback((unlock) => {
-    if (!round1WordAudio) { unlock(); return; }
-    const audio = new Audio(round1WordAudio);
+    if (!r1WordAudio) { unlock(); return; }
+    const audio = new Audio(r1WordAudio);
     audio.onended = unlock;
     audio.onerror = unlock;
     audio.play().catch(unlock);
-  }, [round1WordAudio]);
+  }, [r1WordAudio]);
 
-  const hintUrl = getHintAudioUrl(4, roundIndex, lang);
   const { locked: hintLocked } = useRoundHintAudio({
     url: hintUrl,
     onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
   });
 
-  const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-
   const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {
-      markLevel4Complete();
+      markComplete();
       const stars = calcStars(mistakes, SCORED_ROUNDS);
       saveLevelResult("short-a", LEVEL_NUM, stars, mistakes);
       setEarnedStars(stars);
@@ -77,18 +79,17 @@ export default function Level4({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
-  const round = useMemo(() => buildRound(TARGET_WORDS[roundIndex]), [roundIndex]);
+  const round = useMemo(() => buildRound(WORD_ORDER[roundIndex]), [roundIndex]); // eslint-disable-line
+  const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
       <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType="identifying" />
-
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #4ECDC4, #4D96FF)" }} />
         </div>
       )}
-
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>

@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { getBestStars } from "../../lib/campaignPerformance";
 
-// PERSISTENCE_SENTINEL_2026_05_14_SHORT_A_FINAL_40
-const TOTAL_LEVELS = 40;
+// PERSISTENCE_SENTINEL_2026_05_21_SHORT_A_FINAL_41
+const TOTAL_LEVELS = 41;
 // Winding path: 5 columns across the screen, offset left%
 // Values chosen so nothing goes off-screen on a 375px phone
 // Smooth S-curve: sweeps fully left → right → left across the screen
@@ -167,7 +167,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
             🍎 {lang === "zh" ? "短元音 A" : "Short a"}
           </p>
           <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>
-            {lang === "zh" ? "40 关卡冒险" : "40-level adventure"}
+            {lang === "zh" ? "41 关卡冒险" : "41-level adventure"}
           </p>
         </div>
 
