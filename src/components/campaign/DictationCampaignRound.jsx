@@ -88,20 +88,15 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
     sequenceRef.current = cancel;
   }, [round, card, onComplete]);
 
-  const stopPulsating = useCallback(() => {
-    setPulsatingIds((prev) => prev.size > 0 ? new Set() : prev);
-  }, []);
-
   const handleTouchStart = useCallback((e, tile) => {
     if (placed.includes(tile.id) || completing || audioLocked) return;
-    stopPulsating();
     isDragging.current = false;
     const touch = e.touches[0];
     const rect = e.currentTarget.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     setDragState({ id: tile.id, letter: tile.letter, x: cx, y: cy, startX: touch.clientX, startY: touch.clientY, originX: cx, originY: cy });
-  }, [placed, completing, audioLocked, stopPulsating]);
+  }, [placed, completing, audioLocked]);
 
   const handleTouchMove = useCallback((e) => {
     if (!dragState) return;
@@ -135,6 +130,8 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       newPlaced[hitBox] = dragState.id;
       setPlacedColors((prev) => ({ ...prev, [hitBox]: tileColor }));
       setPlaced(newPlaced);
+      // Remove only this tile from pulsating when placed
+      setPulsatingIds((prev) => { const next = new Set(prev); next.delete(dragState.id); return next; });
     }
     setDragState(null);
     isDragging.current = false;
@@ -165,10 +162,9 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
   const handleReset = useCallback(() => {
     if (completing) return;
-    stopPulsating();
     setPlaced([null, null, null]);
     setPlacedColors({});
-  }, [completing, stopPulsating]);
+  }, [completing]);
 
   const allFilled = placed.every((p) => p !== null);
   const tileRows = splitRows(round.tiles);
@@ -221,7 +217,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
                     animate={isDraggingThis ? { scale: 1.08 } : isPulsating ? { scale: [1, 1.12, 1] } : { scale: 1 }}
                     transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
                     onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, tile); }}
-                    style={{ width: "min(72px,18vw)", height: "min(72px,18vw)", borderRadius: 18, background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(38px,9.5vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: isPulsating ? "0 0 0 3px #22c55e, 0 4px 16px rgba(34,197,94,0.45)" : "0 4px 12px rgba(0,0,0,0.10)", border: isPulsating ? "3px solid #22c55e" : "3px solid rgba(255,255,255,0.75)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1, flexShrink: 0 }}>
+                    style={{ width: "min(72px,18vw)", height: "min(72px,18vw)", borderRadius: 18, background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(38px,9.5vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 12px rgba(0,0,0,0.10)", border: "3px solid rgba(255,255,255,0.75)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1, flexShrink: 0 }}>
                     {tile.letter}
                   </motion.div>
                 );
