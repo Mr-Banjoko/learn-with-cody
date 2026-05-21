@@ -138,7 +138,8 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   // phase 1 = trophy playing, phase 2 = layout visible / waiting for completion sound,
   // phase 3 = star sequence running, phase 4 = all done / button shown
   const [phase, setPhase] = useState(1);
-  const [visibleStars, setVisibleStars] = useState(0); // 0–3 stars revealed
+  const [visibleStars, setVisibleStars] = useState(0); // 0–3 earned stars revealed
+  const [visibleGreyStars, setVisibleGreyStars] = useState(0); // 0–N grey stars revealed
 
   // Refs to prevent double-firing / track both conditions
   const completionSoundStarted = useRef(false);
@@ -203,6 +204,15 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
         setVisibleStars(i);
         await playOnce(starsBlobUrl);
         if (cancelled) return;
+      }
+
+      // Reveal grey (unearned) stars one by one after earned stars, no sound
+      const greyCount = 3 - clampedStars;
+      for (let g = 1; g <= greyCount; g++) {
+        if (cancelled) return;
+        await new Promise((res) => setTimeout(res, 300));
+        if (cancelled) return;
+        setVisibleGreyStars(g);
       }
 
       // All stars awarded + last stars.mp3 finished → play performance audio once
@@ -291,24 +301,31 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
             <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "center", marginBottom: 16, minHeight: 80 }}>
               {[1, 2, 3].map((starNum) => {
                 const isEarned = starNum <= clampedStars;
-                const isRevealed = visibleStars >= starNum && isEarned;
+                const isRevealed = visibleStars >= starNum;
+                // Grey stars reveal sequentially after earned ones
+                const greyIndex = starNum - clampedStars; // 1-based index among grey stars
+                const isGreyRevealed = !isEarned && visibleGreyStars >= greyIndex;
                 return (
                   <div key={starNum} style={{ position: "relative", width: 72, height: 72 }}>
-                    {/* Grey outline — always visible for unearned slots */}
-                    {!isEarned && (
-                      <svg width={72} height={72} viewBox="0 0 48 48" fill="none" style={{ position: "absolute", inset: 0 }}>
-                        <path
-                          d="M24 4L29.8 16.26L43 17.9L33.5 27.14L35.96 40.1L24 33.77L12.04 40.1L14.5 27.14L5 17.9L18.2 16.26L24 4Z"
-                          fill="rgba(200,200,200,0.25)"
-                          stroke="rgba(180,180,180,0.55)"
-                          strokeWidth="2"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
-                    {/* Earned star — pops in when revealed */}
-                    {isEarned && (
+                    {isEarned ? (
                       <AnimatedStar visible={isRevealed} size={72} />
+                    ) : (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0, rotate: -30 }}
+                        animate={isGreyRevealed ? { scale: 1, opacity: 1, rotate: 0 } : { scale: 0, opacity: 0, rotate: -30 }}
+                        transition={{ type: "spring", stiffness: 280, damping: 16 }}
+                        style={{ width: 72, height: 72 }}
+                      >
+                        <svg width={72} height={72} viewBox="0 0 48 48" fill="none">
+                          <path
+                            d="M24 4L29.8 16.26L43 17.9L33.5 27.14L35.96 40.1L24 33.77L12.04 40.1L14.5 27.14L5 17.9L18.2 16.26L24 4Z"
+                            fill="rgba(200,200,200,0.25)"
+                            stroke="rgba(180,180,180,0.55)"
+                            strokeWidth="2"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </motion.div>
                     )}
                   </div>
                 );
