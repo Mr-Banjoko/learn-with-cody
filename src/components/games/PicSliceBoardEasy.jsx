@@ -405,28 +405,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       </div>
 
       {/* ── SLICE TRAY ─────────────────────────────────────────────────────── */}
-      {/* Hint bar — shown until all 3 tapped */}
-      <AnimatePresence>
-        {!allListened && (
-          <motion.p
-            key="hint"
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.25 }}
-            style={{
-              margin: 0,
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#64748B",
-              textAlign: "center",
-              flexShrink: 0,
-            }}
-          >
-            {lang === "zh" ? "🔒 先点每一块，听声音！" : "🔒 Tap each piece to hear its sound!"}
-          </motion.p>
-        )}
-      </AnimatePresence>
+
 
       <div style={{
         display: "grid",
