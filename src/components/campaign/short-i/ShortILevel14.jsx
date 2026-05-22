@@ -38,7 +38,13 @@ function buildDrawLineRound(def) {
     positionType: def.positionType,
     id: `card-${i}-${w.word}-${w.targetLetter}`,
   }));
-  const bottomLetters = topCards.map((c, i) => ({ letter: c.targetLetter, topCardId: c.id, botIdx: i }));
+  // Shuffled token order: t(tin), f(fin), p(pin) — no token sits below its own word
+  const tokenOrder = [1, 2, 0];
+  const bottomLetters = tokenOrder.map((ci, botIdx) => ({
+    letter: topCards[ci].targetLetter,
+    topCardId: topCards[ci].id,
+    botIdx,
+  }));
   return { topCards, bottomLetters };
 }
 
