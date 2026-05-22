@@ -76,43 +76,45 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
     if (!selectedLeft || !selectedRight) return;
     const leftWord = leftItems.find((it) => it.id === selectedLeft)?.word;
     const rightWord = rightItems.find((it) => it.id === selectedRight)?.word;
-    if (leftWord && rightWord) {
-      if (leftWord === rightWord) {
-        const newMatched = [...matchedPairs, leftWord];
-        setMatchedPairs(newMatched);
-        setSelectedLeft(null);
-        setSelectedRight(null);
+    if (!leftWord || !rightWord) return;
+
+    if (leftWord === rightWord) {
+      setMatchedPairs((prev) => {
+        const newMatched = [...prev, leftWord];
         const wordObj = leftItems.find((it) => it.word === leftWord);
         if (wordObj?.audio) playAudio(wordObj.audio);
         if (newMatched.length === 3) {
           setCompleting(true);
           advanceTimeout.current = setTimeout(() => onComplete(), 900);
         }
-      } else {
-        playTryAgain();
-        onMistake && onMistake();
-        clearTimeout(wrongTimeout.current);
-        setWrongFlash(true);
-        wrongTimeout.current = setTimeout(() => {
-          setWrongFlash(false);
-          setSelectedLeft(null);
-          setSelectedRight(null);
-        }, 500);
-      }
+        return newMatched;
+      });
+      setSelectedLeft(null);
+      setSelectedRight(null);
+    } else {
+      playTryAgain();
+      onMistake && onMistake();
+      clearTimeout(wrongTimeout.current);
+      setWrongFlash(true);
+      wrongTimeout.current = setTimeout(() => {
+        setWrongFlash(false);
+        setSelectedLeft(null);
+        setSelectedRight(null);
+      }, 700);
     }
-  }, [selectedLeft, selectedRight, playTryAgain]); // eslint-disable-line
+  }, [selectedLeft, selectedRight]); // eslint-disable-line
 
   const handleLeftTap = useCallback((item) => {
     if (completing || matchedPairs.includes(item.word)) return;
     if (item.audio) playAudio(item.audio);
     setSelectedLeft((prev) => (prev === item.id ? null : item.id));
     setSelectedRight(null);
-  }, [matchedPairs]);
+  }, [completing, matchedPairs]);
 
   const handleRightTap = useCallback((item) => {
     if (completing || matchedPairs.includes(item.word)) return;
     setSelectedRight(item.id);
-  }, [matchedPairs]);
+  }, [completing, matchedPairs]);
 
   const getMatchColor = (word) => {
     const idx = matchedPairs.indexOf(word);
