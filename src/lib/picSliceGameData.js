@@ -72,6 +72,11 @@ export const GAME_ROUNDS = {
     easy: [
       ["bib"], ["big"], ["bin"], ["bit"], ["dig"],
       ["dim"], ["dip"], ["fig"], ["fin"], ["fit"],
+      ["gig"], ["hid"], ["hip"], ["hit"], ["jig"],
+      ["kid"], ["kit"], ["lid"], ["lip"], ["mix"],
+      ["fix"], ["pig"], ["pin"], ["pit"], ["rib"],
+      ["rid"], ["rim"], ["rip"], ["sip"], ["sit"],
+      ["six"], ["tin"], ["tip"], ["wig"], ["win"], ["zip"],
     ],
     difficult: [
       ["bib", "big"],
@@ -79,6 +84,11 @@ export const GAME_ROUNDS = {
       ["dig", "dim"],
       ["dip", "fig"],
       ["fin", "fit"],
+      ["gig", "hid"],
+      ["hip", "hit"],
+      ["jig", "kid"],
+      ["lip", "mix"],
+      ["pin", "sit"],
     ],
   },
   "short-o": {
