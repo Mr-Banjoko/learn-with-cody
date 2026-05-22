@@ -1,6 +1,6 @@
 /**
  * Short I — Level 10 — Drawline (ALL FINAL) + Arcade
- * R1: drawline ALL FINAL — hit(T), bit(T), fit(T)
+ * R1: drawline ALL FINAL — win(n), rib(b), lid(d)
  * R2: rearrange_easy — kit
  * R3: catch — mix | M (INITIAL)
  * R4: phonics — mix
@@ -25,9 +25,9 @@ const findWord = (w) => shortIWords.find((x) => x.word === w);
 const DRAWLINE_DEF = {
   positionType: "final",
   words: [
-    { word: "hit", targetLetter: "t" },
-    { word: "bit", targetLetter: "t" },
-    { word: "fit", targetLetter: "t" },
+    { word: "win", targetLetter: "n" },
+    { word: "rib", targetLetter: "b" },
+    { word: "lid", targetLetter: "d" },
   ],
 };
 

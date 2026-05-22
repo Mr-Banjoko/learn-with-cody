@@ -2,7 +2,7 @@
  * Short I — Level 25 — Contrast + Drawline Mix
  * R1: rearrange_hard — dim + rim (anagram)
  * R2: word_to_audio  — lip | lip, lap, led
- * R3: drawline ALL INITIAL — dig(D), dip(D), dim(D)
+ * R3: drawline ALL INITIAL — dig(d), rip(r), fin(f)
  * R4: connection — bib
  */
 import { useState, useCallback, useMemo } from "react";
@@ -26,8 +26,8 @@ const DRAWLINE_DEF = {
   positionType: "initial",
   words: [
     { word: "dig", targetLetter: "d" },
-    { word: "dip", targetLetter: "d" },
-    { word: "dim", targetLetter: "d" },
+    { word: "rip", targetLetter: "r" },
+    { word: "fin", targetLetter: "f" },
   ],
 };
 

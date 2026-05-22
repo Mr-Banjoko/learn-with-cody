@@ -1,6 +1,6 @@
 /**
  * Short I — Level 14 — Drawline (ALL INITIAL) + Missing
- * R1: drawline ALL INITIAL — pin(P), pig(P), pit(P)
+ * R1: drawline ALL INITIAL — pin(p), tin(t), fin(f)
  * R2: missing01 — rid | I (MEDIAL)
  * R3: rearrange_easy — fin
  * R4: connection — fit
@@ -26,8 +26,8 @@ const DRAWLINE_DEF = {
   positionType: "initial",
   words: [
     { word: "pin", targetLetter: "p" },
-    { word: "pig", targetLetter: "p" },
-    { word: "pit", targetLetter: "p" },
+    { word: "tin", targetLetter: "t" },
+    { word: "fin", targetLetter: "f" },
   ],
 };
 

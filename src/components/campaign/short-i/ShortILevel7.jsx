@@ -1,6 +1,6 @@
 /**
  * Short I — Level 7 — Drawline Early Intro (ALL INITIAL)
- * R1: drawline ALL INITIAL — sit(S), sip(S), six(S)  [audio guide]
+ * R1: drawline ALL INITIAL — sit(s), pin(p), win(w)  [audio guide]
  * R2: identifying — win
  * R3: drag        — kid
  */
@@ -28,8 +28,8 @@ const DRAWLINE_DEF = {
   positionType: "initial",
   words: [
     { word: "sit", targetLetter: "s" },
-    { word: "sip", targetLetter: "s" },
-    { word: "six", targetLetter: "s" },
+    { word: "pin", targetLetter: "p" },
+    { word: "win", targetLetter: "w" },
   ],
 };
 

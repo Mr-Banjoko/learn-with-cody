@@ -2,7 +2,7 @@
  * Short I — Level 27 — Advanced Mixed Logic
  * R1: word_to_audio  — hid | hid, had, red
  * R2: rearrange_hard — fit + bit (anagram)
- * R3: drawline ALL FINAL — lip(P), rip(P), tip(P)
+ * R3: drawline ALL FINAL — fit(t), bin(n), rid(d)
  * R4: writev2        — six
  */
 import { useState, useCallback, useMemo } from "react";
@@ -25,9 +25,9 @@ const findWord = (w) => shortIWords.find((x) => x.word === w);
 const DRAWLINE_DEF = {
   positionType: "final",
   words: [
-    { word: "lip", targetLetter: "p" },
-    { word: "rip", targetLetter: "p" },
-    { word: "tip", targetLetter: "p" },
+    { word: "fit", targetLetter: "t" },
+    { word: "bin", targetLetter: "n" },
+    { word: "rid", targetLetter: "d" },
   ],
 };
 

@@ -2,7 +2,7 @@
  * Short I — Level 23 — Advanced Contrast + Drawline
  * R1: word_to_audio — big | big, bag, beg
  * R2: rearrange_hard — dip + rip (anagram)
- * R3: drawline ALL FINAL — rib(B), bib(B), bin(N)
+ * R3: drawline ALL FINAL — dig(g), rib(b), lid(d)
  * R4: connection — lid
  */
 import { useState, useCallback, useMemo } from "react";
@@ -25,9 +25,9 @@ const findWord = (w) => shortIWords.find((x) => x.word === w);
 const DRAWLINE_DEF = {
   positionType: "final",
   words: [
+    { word: "dig", targetLetter: "g" },
     { word: "rib", targetLetter: "b" },
-    { word: "bib", targetLetter: "b" },
-    { word: "bin", targetLetter: "n" },
+    { word: "lid", targetLetter: "d" },
   ],
 };
 
