@@ -21,11 +21,8 @@ export default function IntroVideo({ onComplete }) {
     doneRef.current = true;
     clearTimeout(fallbackRef.current);
     setVisible(false);
-  };
-
-  // After fade-out animation finishes, notify parent
-  const handleExitComplete = () => {
-    onComplete();
+    // Call onComplete after fade-out duration
+    setTimeout(onComplete, 750);
   };
 
   useEffect(() => {
@@ -59,7 +56,7 @@ export default function IntroVideo({ onComplete }) {
   }, []);
 
   return (
-    <AnimatePresence onExitComplete={handleExitComplete}>
+    <AnimatePresence>
       {visible && (
         <motion.div
           key="intro"
