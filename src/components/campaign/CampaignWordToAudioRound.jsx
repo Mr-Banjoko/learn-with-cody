@@ -2,7 +2,14 @@
  * CampaignWordToAudioRound — fixed-word Word-to-Audio match round for campaign levels.
  * Accepts exactly 3 word strings (first = target, rest = distractors).
  * Calls onComplete() when all 3 pairs are matched, onMistake() on each wrong attempt.
- * Audio auto-plays the first speaker at mount; UI locked until then.
+ *
+ * BUG FIX (root cause: event stacking + stale closure):
+ *   - A `processingRef` flag blocks ALL input during the 500ms wrong-answer cooldown,
+ *     preventing rapid taps from firing onMistake() multiple times per wrong selection.
+ *   - `matchedPairsRef` and `completingRef` stay in sync with state so the match-check
+ *     effect never reads stale values.
+ *   - onMistake is always a safe decrement (+1 to mistakes counter in parent) — never
+ *     an assignment. It is only called once per wrong-answer event, never during cooldown.
  */
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,7 +48,6 @@ function SpeakerIcon({ color = "#4ECDC4", size = 40 }) {
 }
 
 export default function CampaignWordToAudioRound({ words, onComplete, onMistake, lang = "en" }) {
-  // words = [targetWord, distractor1, distractor2]
   const cards = words.map(findCard);
 
   const [leftItems] = useState(() => {
@@ -63,56 +69,101 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [wrongFlash, setWrongFlash] = useState(false);
   const [completing, setCompleting] = useState(false);
+
+  // Refs to avoid stale closures and prevent event stacking
+  const processingRef = useRef(false);   // GUARD: blocks input during wrong-answer cooldown
+  const completingRef = useRef(false);   // GUARD: mirrors completing state for callbacks
+  const matchedPairsRef = useRef([]);    // GUARD: mirrors matchedPairs for callbacks
   const wrongTimeout = useRef(null);
   const advanceTimeout = useRef(null);
   const { play: playTryAgain } = useTryAgainSound();
 
+  // Keep refs in sync with state
+  useEffect(() => { matchedPairsRef.current = matchedPairs; }, [matchedPairs]);
+  useEffect(() => { completingRef.current = completing; }, [completing]);
+
   useEffect(() => {
-    return () => { clearTimeout(wrongTimeout.current); clearTimeout(advanceTimeout.current); };
+    return () => {
+      clearTimeout(wrongTimeout.current);
+      clearTimeout(advanceTimeout.current);
+    };
   }, []);
 
-  // Check match when both selected
+  // Check match when both sides selected
   useEffect(() => {
     if (!selectedLeft || !selectedRight) return;
-    const leftWord = leftItems.find((it) => it.id === selectedLeft)?.word;
-    const rightWord = rightItems.find((it) => it.id === selectedRight)?.word;
-    if (leftWord && rightWord) {
+
+    // GUARD: ignore if game is already completing or input is blocked
+    if (completingRef.current || processingRef.current) return;
+
+    try {
+      const leftWord = leftItems.find((it) => it.id === selectedLeft)?.word;
+      const rightWord = rightItems.find((it) => it.id === selectedRight)?.word;
+
+      if (!leftWord || !rightWord) {
+        // GUARD: corrupted state — reset to safe default
+        setSelectedLeft(null);
+        setSelectedRight(null);
+        return;
+      }
+
       if (leftWord === rightWord) {
-        const newMatched = [...matchedPairs, leftWord];
+        // Correct match
+        const newMatched = [...matchedPairsRef.current, leftWord];
         setMatchedPairs(newMatched);
+        matchedPairsRef.current = newMatched;
         setSelectedLeft(null);
         setSelectedRight(null);
         const wordObj = leftItems.find((it) => it.word === leftWord);
         if (wordObj?.audio) playAudio(wordObj.audio);
         if (newMatched.length === 3) {
+          completingRef.current = true;
           setCompleting(true);
           advanceTimeout.current = setTimeout(() => onComplete(), 900);
         }
       } else {
-        playTryAgain();
-        onMistake && onMistake();
-        clearTimeout(wrongTimeout.current);
+        // Wrong match — GUARD: set processing flag to block further input
+        processingRef.current = true;
+        try {
+          playTryAgain();
+        } catch (_) {}
+        // GUARD: onMistake is called exactly once, only here, never during cooldown
+        try {
+          onMistake && onMistake();
+        } catch (_) {}
         setWrongFlash(true);
+        clearTimeout(wrongTimeout.current);
         wrongTimeout.current = setTimeout(() => {
           setWrongFlash(false);
           setSelectedLeft(null);
           setSelectedRight(null);
+          processingRef.current = false; // GUARD: release input block after cooldown
         }, 500);
       }
+    } catch (err) {
+      // GUARD: catch-all — recover gracefully, never crash
+      console.warn("[WordToAudio] error in match check:", err);
+      processingRef.current = false;
+      setSelectedLeft(null);
+      setSelectedRight(null);
     }
-  }, [selectedLeft, selectedRight, playTryAgain]); // eslint-disable-line
+  }, [selectedLeft, selectedRight]); // eslint-disable-line
 
   const handleLeftTap = useCallback((item) => {
-    if (completing || matchedPairs.includes(item.word)) return;
+    // GUARD: ignore taps while completing, processing wrong answer, or already matched
+    if (completingRef.current || processingRef.current) return;
+    if (matchedPairsRef.current.includes(item.word)) return;
     if (item.audio) playAudio(item.audio);
     setSelectedLeft((prev) => (prev === item.id ? null : item.id));
     setSelectedRight(null);
-  }, [matchedPairs]);
+  }, []); // no deps needed — all state read via refs
 
   const handleRightTap = useCallback((item) => {
-    if (completing || matchedPairs.includes(item.word)) return;
+    // GUARD: ignore taps while completing, processing wrong answer, or already matched
+    if (completingRef.current || processingRef.current) return;
+    if (matchedPairsRef.current.includes(item.word)) return;
     setSelectedRight(item.id);
-  }, [matchedPairs]);
+  }, []); // no deps needed — all state read via refs
 
   const getMatchColor = (word) => {
     const idx = matchedPairs.indexOf(word);
