@@ -16,7 +16,7 @@
  *   onBack    {()=>void}   — navigate back to map
  *   lang      {"en"|"zh"}
  */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Lottie from "lottie-react";
 
@@ -82,16 +82,11 @@ const ALL_PERFORMANCE_FILES = [
   "keepItUp.mp3", "Nice.mp3",
 ];
 
-// ── Module-level cache: blob URLs survive re-mounts, never double-fetched ────
-const audioBlobCache = {};
-
+// ── Preload audio into a blob URL so repeat plays are instant ────────────────
 async function preloadAudio(url) {
-  if (audioBlobCache[url]) return audioBlobCache[url];
   const res = await fetch(url);
   const blob = await res.blob();
-  const blobUrl = URL.createObjectURL(blob);
-  audioBlobCache[url] = blobUrl;
-  return blobUrl;
+  return URL.createObjectURL(blob);
 }
 
 // ── Play an Audio element once, resolve when it ends ────────────────────────
@@ -134,6 +129,7 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [trophyData, setTrophyData] = useState(null);
   const [completionBlobUrl, setCompletionBlobUrl] = useState(null);
   const [starsBlobUrl, setStarsBlobUrl] = useState(null);
+  const assetsReady = trophyData && completionBlobUrl && starsBlobUrl;
 
   // Performance audio blobs keyed by filename
   const perfBlobsRef = useRef({});
@@ -145,14 +141,11 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [visibleStars, setVisibleStars] = useState(0); // 0–3 earned stars revealed
   const [visibleGreyStars, setVisibleGreyStars] = useState(0); // 0–N grey stars revealed
 
-  // Refs to prevent double-firing / track both conditions (default false = correct initial value)
+  // Refs to prevent double-firing / track both conditions
   const completionSoundStarted = useRef(false);
   const starSequenceStarted = useRef(false);
   const soundDone = useRef(false);
   const trophyDone = useRef(false);
-  const perfPlayedRef = useRef(false);
-
-  const assetsReady = trophyData && completionBlobUrl && starsBlobUrl;
 
   // ── Preload all assets before showing anything ────────────────────────────
   useEffect(() => {
@@ -193,6 +186,8 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   }, [phase]);
 
   // ── Phase 3 → award stars one by one, then play performance audio ────────
+  const perfPlayedRef = useRef(false);
+
   useEffect(() => {
     if (phase !== 3) return;
     if (clampedStars === 0) {
