@@ -48,7 +48,10 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
       if (card.audio) playAudio(card.audio);
       innerTimer = setTimeout(() => setAudioLocked(false), 1400);
     }, 300);
-    return () => { clearTimeout(t); clearTimeout(innerTimer); };
+    return () => {
+      clearTimeout(t);
+      if (innerTimer) clearTimeout(innerTimer);
+    };
   }, []); // eslint-disable-line
 
   const handleChoice = useCallback((choice) => {

@@ -318,7 +318,10 @@ export default function CampaignConnectionRound({ card, onComplete, onMistake, l
         setAudioLocked(false);
       }
     }, 300);
-    return () => { clearTimeout(t); clearTimeout(innerTimer); };
+    return () => {
+      clearTimeout(t);
+      if (innerTimer) clearTimeout(innerTimer);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRoundComplete = useCallback(() => {

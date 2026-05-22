@@ -129,7 +129,8 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [trophyData, setTrophyData] = useState(null);
   const [completionBlobUrl, setCompletionBlobUrl] = useState(null);
   const [starsBlobUrl, setStarsBlobUrl] = useState(null);
-  const assetsReady = trophyData && completionBlobUrl && starsBlobUrl;
+  // trophyData can be null (load failed) — we still show the screen without the animation
+  const assetsReady = trophyData !== null && !!completionBlobUrl && !!starsBlobUrl;
 
   // Performance audio blobs keyed by filename
   const perfBlobsRef = useRef({});
@@ -149,17 +150,25 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
 
   // ── Preload all assets before showing anything ────────────────────────────
   useEffect(() => {
-    fetch(TROPHY_URL).then((r) => r.json()).then(setTrophyData).catch(() => {});
-    preloadAudio(COMPLETION_SOUND_URL).then(setCompletionBlobUrl).catch(() => {});
-    preloadAudio(STARS_SOUND_URL).then(setStarsBlobUrl).catch(() => {});
+    fetch(TROPHY_URL).then((r) => r.json()).then(setTrophyData).catch(() => setTrophyData(null));
+    preloadAudio(COMPLETION_SOUND_URL).then(setCompletionBlobUrl).catch(() => setCompletionBlobUrl(COMPLETION_SOUND_URL));
+    preloadAudio(STARS_SOUND_URL).then(setStarsBlobUrl).catch(() => setStarsBlobUrl(STARS_SOUND_URL));
 
     // Preload all performance audio files (failures are logged, not fatal)
     ALL_PERFORMANCE_FILES.forEach((filename) => {
       const url = `${GITHUB_FEEDBACK_BASE}/${encodeURIComponent(filename)}`;
       preloadAudio(url)
         .then((blobUrl) => { perfBlobsRef.current[filename] = blobUrl; })
-        .catch(() => { console.warn(`[LevelCompleteScreen] Failed to preload: ${filename}`); });
+        .catch(() => { perfBlobsRef.current[filename] = url; }); // fallback to direct URL
     });
+
+    // Safety: if assets haven't loaded after 8s, force show the screen anyway
+    const safetyTimer = setTimeout(() => {
+      setTrophyData((prev) => prev || {});
+      setCompletionBlobUrl((prev) => prev || COMPLETION_SOUND_URL);
+      setStarsBlobUrl((prev) => prev || STARS_SOUND_URL);
+    }, 8000);
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   // ── Phase 1 → play completion sound the moment trophy animation starts ────
@@ -256,17 +265,25 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
             transition={{ duration: 0.2 }}
             style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 20 }}
           >
-            <Lottie
-              animationData={trophyData}
-              loop={false}
-              autoplay={true}
-              onComplete={() => {
-                // Trophy animation done → if sound also finished, advance to layout
-                trophyDone.current = true;
-                if (soundDone.current) setPhase(2);
-              }}
-              style={{ width: 320, height: 320 }}
-            />
+            {trophyData && Object.keys(trophyData).length > 0 ? (
+              <Lottie
+                animationData={trophyData}
+                loop={false}
+                autoplay={true}
+                onComplete={() => {
+                  trophyDone.current = true;
+                  if (soundDone.current) setPhase(2);
+                }}
+                style={{ width: 320, height: 320 }}
+              />
+            ) : (
+              // Fallback: no trophy data — skip straight to next phase
+              <div style={{ width: 320, height: 320, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 96 }}
+                ref={(el) => { if (el && !trophyDone.current) { trophyDone.current = true; if (soundDone.current) setPhase(2); } }}
+              >
+                🏆
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -281,13 +298,17 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
             style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}
           >
             {/* Frozen trophy */}
-            <div style={{ width: 180, height: 180, marginBottom: 4 }}>
-              <Lottie
-                animationData={trophyData}
-                loop={false} autoplay={false}
-                initialSegment={[70, 71]}
-                style={{ width: "100%", height: "100%" }}
-              />
+            <div style={{ width: 180, height: 180, marginBottom: 4, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {trophyData && Object.keys(trophyData).length > 0 ? (
+                <Lottie
+                  animationData={trophyData}
+                  loop={false} autoplay={false}
+                  initialSegment={[70, 71]}
+                  style={{ width: "100%", height: "100%" }}
+                />
+              ) : (
+                <span style={{ fontSize: 100 }}>🏆</span>
+              )}
             </div>
 
             <h1 style={{ fontSize: 34, fontWeight: 700, color: "#1E293B", margin: "0 0 4px" }}>

@@ -71,16 +71,19 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
       setAudioLocked(false);
       return;
     }
+    let unlockTimer = null;
     const t = setTimeout(() => {
       if (card.audio) {
         playAudio(card.audio);
-        const unlock = setTimeout(() => setAudioLocked(false), 1400);
-        return () => clearTimeout(unlock);
+        unlockTimer = setTimeout(() => setAudioLocked(false), 1400);
       } else {
         setAudioLocked(false);
       }
     }, 300);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      if (unlockTimer) clearTimeout(unlockTimer);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
