@@ -235,7 +235,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
         {/* Submit + Reset */}
         <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <button onPointerDown={(e) => { e.stopPropagation(); handleReset(); }}
+          <button onClick={(e) => { e.stopPropagation(); handleReset(); }}
             style={{ width: 54, height: 54, borderRadius: 27, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, touchAction: "manipulation", opacity: placed.some(Boolean) && !completing ? 1 : 0.35 }}>
             <RotateCcw size={24} color="#A8D0E6" strokeWidth={2.2} />
           </button>
