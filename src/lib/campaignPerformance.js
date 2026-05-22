@@ -215,7 +215,7 @@ export const SHORT_E_SCORED_ROUNDS = {
 // ── Short I scored rounds ─────────────────────────────────────────────────────
 export const SHORT_I_SCORED_ROUNDS = {
   1:  2,  // drag×2 = 2 scored (2 phonics not scored)
-  2:  3,  // drag×1 + catch×2 = 3 scored (1 phonics not scored)
+  2:  3,  // catch×2 + drag×1 = 3 scored (1 phonics not scored)
   3:  2,  // drag×2 = 2 scored (2 phonics not scored)
   4:  3,  // rearrange_easy×2 + catch×1 = 3 scored (1 phonics not scored)
   5:  4,  // connection×2 + identifying×2 = 4 scored
@@ -223,7 +223,7 @@ export const SHORT_I_SCORED_ROUNDS = {
   7:  3,  // drawline×1 + identifying×1 + drag×1 = 3 scored
   8:  4,  // missing01×1 + connection×1 + rearrange_easy×1 + catch×1 = 4 scored
   9:  4,  // writev2×2 + drag×1 + identifying×1 = 4 scored
-  10: 4,  // drawline×1 + rearrange_easy×1 + catch×1 + phonics=0 = 3 scored
+  10: 4,  // drawline×1 + rearrange_easy×1 + catch×1 + phonics(not scored) = 3 scored → 3
   11: 3,  // drag×1 + missing01×1 + connection×1 = 3 scored (1 phonics not scored)
   12: 4,  // rearrange_easy×1 + identifying×1 + catch×1 + connection×1 = 4 scored
   13: 4,  // writev2×2 + drag×1 + identifying×1 = 4 scored
@@ -260,5 +260,5 @@ export function getScoredRounds(vowelKey, levelNum) {
   if (vowelKey === "short-i") {
     return SHORT_I_SCORED_ROUNDS[levelNum] ?? 4;
   }
-  return 4; // safe fallback for future vowels
+  return 5; // safe fallback for future vowels
 }
