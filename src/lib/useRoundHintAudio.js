@@ -60,7 +60,10 @@ export function useRoundHintAudio({ url, onHintComplete }) {
     const audio = new Audio(url);
     audioRef.current = audio;
 
+    let unlockCalled = false;
     const unlock = () => {
+      if (unlockCalled) return; // GUARD: idempotent — safe to call multiple times
+      unlockCalled = true;
       setLocked(false);
       audioRef.current = null;
     };
