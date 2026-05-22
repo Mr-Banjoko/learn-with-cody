@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Lottie from "lottie-react";
 import BackArrow from "../BackArrow";
 import { tx } from "../../lib/i18n";
 import {
@@ -10,40 +9,6 @@ import {
 } from "../../lib/picSliceGameData";
 import PicSliceBoard from "./PicSliceBoard";
 import PicSliceBoardEasy from "./PicSliceBoardEasy";
-
-const INTRO_LOTTIE_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/0c998b09b_ElevenLabs_video_seedance-2-0_thecharacte_2026-05-22T02_21_19.json";
-
-function IntroAnimation({ onDone }) {
-  const [animData, setAnimData] = useState(null);
-
-  useEffect(() => {
-    fetch(INTRO_LOTTIE_URL)
-      .then((r) => r.json())
-      .then((data) => setAnimData(data));
-  }, []);
-
-  return (
-    <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 9999,
-        background: "#000",
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}
-      onClick={onDone}
-    >
-      {animData ? (
-        <Lottie
-          animationData={animData}
-          loop={false}
-          onComplete={onDone}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      ) : (
-        <div style={{ color: "white", fontSize: 18, fontFamily: "Fredoka, sans-serif" }}>Loading...</div>
-      )}
-    </div>
-  );
-}
 
 // ── Screen 1: Vowel group selection ────────────────────────────────────────
 function VowelSelect({ onSelect, onBack, lang = "en" }) {
@@ -177,7 +142,7 @@ function DifficultySelect({ vowelId, onSelect, onBack, lang = "en" }) {
 
 // ── Main navigator ──────────────────────────────────────────────────────────
 export default function RearrangePictures({ onBack, lang = "en" }) {
-  const [screen, setScreen] = useState("vowel"); // vowel | difficulty | intro | game
+  const [screen, setScreen] = useState("vowel"); // vowel | difficulty | game
   const [selectedVowel, setSelectedVowel] = useState(null);
   const [difficulty, setDifficulty] = useState("easy");
   const [roundIndex, setRoundIndex] = useState(0);
@@ -200,12 +165,7 @@ export default function RearrangePictures({ onBack, lang = "en" }) {
     setDifficulty(diff);
     setRoundIndex(0);
     loadRound(selectedVowel, diff, 0);
-    // Only show intro for short-a easy (first time into the game)
-    if (selectedVowel === "short-a" && diff === "easy") {
-      setScreen("intro");
-    } else {
-      setScreen("game");
-    }
+    setScreen("game");
   };
 
   const handleRoundComplete = () => {
@@ -239,9 +199,6 @@ export default function RearrangePictures({ onBack, lang = "en" }) {
 
   return (
     <div style={{ fontFamily: "Fredoka, sans-serif", height: "100%", display: "flex", flexDirection: "column", position: "relative" }}>
-      {screen === "intro" && (
-        <IntroAnimation onDone={() => setScreen("game")} />
-      )}
       <AnimatePresence mode="wait">
         {screen === "vowel" && (
           <motion.div key="vowel" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
