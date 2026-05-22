@@ -1,7 +1,10 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Lottie from "lottie-react";
 import BackArrow from "../BackArrow";
 import WordMatchGame from "./WordMatchGame";
+
+const CODY_WAVE_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/d14da962b_cody_wave_lottie.json";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -18,6 +21,35 @@ const VOWEL_GROUPS = [
 
 export default function WordMatch({ onBack, lang = "en" }) {
   const [selected, setSelected] = useState(null);
+  const [introPlaying, setIntroPlaying] = useState(true);
+  const [lottieData, setLottieData] = useState(null);
+
+  useEffect(() => {
+    fetch(CODY_WAVE_URL)
+      .then((r) => r.json())
+      .then((data) => setLottieData(data));
+  }, []);
+
+  if (introPlaying) {
+    return (
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 9999,
+        background: "#fff",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        overflow: "hidden",
+      }}>
+        {lottieData ? (
+          <Lottie
+            animationData={lottieData}
+            loop={false}
+            autoplay={true}
+            onComplete={() => setIntroPlaying(false)}
+            style={{ width: "100vw", height: "100vh", objectFit: "cover" }}
+          />
+        ) : null}
+      </div>
+    );
+  }
 
   if (selected) {
     const group = VOWEL_GROUPS.find((g) => g.id === selected);
