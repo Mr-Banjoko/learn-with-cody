@@ -45,4 +45,7 @@ export const shortASlices = [
   makeWord("tan"),
   makeWord("tax"),
   makeWord("dam"),
+  makeWord("bad"),
+  makeWord("fad"),
+  makeWord("man"),
 ];

@@ -33,10 +33,13 @@ const ROUND_PAIRS = [
 ];
 const TOTAL_ROUNDS = ROUND_PAIRS.length;
 
+// SHORT_A_CONTRASTS: words sourced from a_slices; last pair ["net","ten"] are both short-E
+const SHORT_A_CONTRAST = new Set(["man", "pan", "bad", "fad"]);
+
 function buildPair(pair) {
   const [w1, w2] = pair;
   const d1 = buildWordData(w1) || findShortE(w1);
-  const d2 = buildShortASliceData(w2);
+  const d2 = SHORT_A_CONTRAST.has(w2) ? buildShortASliceData(w2) : buildWordData(w2);
   return [d1, d2].filter(Boolean);
 }
 
