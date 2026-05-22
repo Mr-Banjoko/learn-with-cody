@@ -53,6 +53,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
   const dropZoneRefs = useRef([]);
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
+  const [isActiveDrag, setIsActiveDrag] = useState(false);
   const { play: playTryAgain } = useTryAgainSound();
 
   useEffect(() => {
@@ -104,7 +105,10 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
     const touch = e.touches[0];
     const dx = touch.clientX - dragState.startX;
     const dy = touch.clientY - dragState.startY;
-    if (!isDragging.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) isDragging.current = true;
+    if (!isDragging.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      isDragging.current = true;
+      setIsActiveDrag(true);
+    }
     setDragState((prev) => prev ? { ...prev, x: prev.originX + dx, y: prev.originY + dy } : null);
   }, [dragState]);
 
@@ -114,6 +118,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       const url = getLetterSoundUrl(dragState.letter);
       if (url) playAudio(url, getLetterGain(dragState.letter));
       setDragState(null);
+      setIsActiveDrag(false);
       return;
     }
     const touch = e.changedTouches[0];
@@ -135,6 +140,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
     }
     setDragState(null);
     isDragging.current = false;
+    setIsActiveDrag(false);
   }, [dragState, placed, round]);
 
   const handleSubmit = useCallback(() => {
@@ -243,7 +249,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
       {/* Drag ghost */}
       <AnimatePresence>
-        {dragState && isDragging.current && (
+        {dragState && isActiveDrag && (
           <div style={{ position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%,-50%)", zIndex: 9999, pointerEvents: "none", width: "min(80px,20vw)", height: "min(80px,20vw)", borderRadius: 18, background: LETTER_COLORS[round.tiles.findIndex((t) => t.id === dragState.id) % LETTER_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px,11vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 12px 36px rgba(0,0,0,0.25)", border: "3px solid rgba(255,255,255,0.8)" }}>
             {dragState.letter}
           </div>

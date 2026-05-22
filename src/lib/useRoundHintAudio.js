@@ -68,6 +68,10 @@ export function useRoundHintAudio({ url, onHintComplete }) {
       audioRef.current = null;
     };
 
+    // Safety net: if all audio callbacks fail silently (e.g. Safari strict autoplay),
+    // force-unlock after 6 seconds so the game is never permanently frozen.
+    const safetyTimer = setTimeout(unlock, 6000);
+
     const onHintDone = () => {
       audioRef.current = null;
       const cb = onHintCompleteRef.current;
@@ -94,6 +98,7 @@ export function useRoundHintAudio({ url, onHintComplete }) {
     });
 
     return () => {
+      clearTimeout(safetyTimer);
       audio.pause();
       audio.onended = null;
       audio.onerror = null;
