@@ -96,7 +96,7 @@ function PartialWord({ word, targetLetter, positionType, isMatched, color, revea
               fontFamily: "Fredoka, sans-serif",
               transition: "border 0.18s, background 0.18s",
             }}>
-              {isMatched ? revealedLetter?.toUpperCase() : ""}
+              {isMatched ? revealedLetter?.toLowerCase() : ""}
             </div>
           );
         }
@@ -108,7 +108,7 @@ function PartialWord({ word, targetLetter, positionType, isMatched, color, revea
             lineHeight: 1,
             transition: "color 0.18s",
           }}>
-            {ch.toUpperCase()}
+            {ch.toLowerCase()}
           </span>
         );
       })}
@@ -352,7 +352,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                                color: matchColor || "#A8D0E6",
                                fontFamily: "Fredoka, sans-serif", lineHeight: 1 }}
                     >
-                      {bl.letter.toUpperCase()}
+                      {bl.letter.toLowerCase()}
                     </motion.span>
                   ) : (
                     /* Always show the letter clearly — no hidden speaker icon */
@@ -363,7 +363,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                                fontFamily: "Fredoka, sans-serif", lineHeight: 1,
                                transition: "color 0.18s" }}
                     >
-                      {bl.letter.toUpperCase()}
+                      {bl.letter.toLowerCase()}
                     </motion.span>
                   )}
                 </AnimatePresence>
