@@ -16,7 +16,7 @@
  *   onBack    {()=>void}   — navigate back to map
  *   lang      {"en"|"zh"}
  */
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Lottie from "lottie-react";
 
@@ -134,7 +134,6 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [trophyData, setTrophyData] = useState(null);
   const [completionBlobUrl, setCompletionBlobUrl] = useState(null);
   const [starsBlobUrl, setStarsBlobUrl] = useState(null);
-  const assetsReady = trophyData && completionBlobUrl && starsBlobUrl && mountReady;
 
   // Performance audio blobs keyed by filename
   const perfBlobsRef = useRef({});
@@ -143,16 +142,17 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   // phase 1 = trophy playing, phase 2 = layout visible / waiting for completion sound,
   // phase 3 = star sequence running, phase 4 = all done / button shown
   const [phase, setPhase] = useState(1);
-  // mountReady: set to true after mount-reset effect runs, prevents phase-1 from firing with stale refs
-  const [mountReady, setMountReady] = useState(false);
   const [visibleStars, setVisibleStars] = useState(0); // 0–3 earned stars revealed
   const [visibleGreyStars, setVisibleGreyStars] = useState(0); // 0–N grey stars revealed
 
-  // Refs to prevent double-firing / track both conditions — reset on every mount
+  // Refs to prevent double-firing / track both conditions (default false = correct initial value)
   const completionSoundStarted = useRef(false);
   const starSequenceStarted = useRef(false);
   const soundDone = useRef(false);
   const trophyDone = useRef(false);
+  const perfPlayedRef = useRef(false);
+
+  const assetsReady = trophyData && completionBlobUrl && starsBlobUrl;
 
   // ── Preload all assets before showing anything ────────────────────────────
   useEffect(() => {
@@ -193,18 +193,6 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   }, [phase]);
 
   // ── Phase 3 → award stars one by one, then play performance audio ────────
-  const perfPlayedRef = useRef(false);
-
-  // Reset all sequence refs on mount so every new LevelCompleteScreen starts fresh
-  useEffect(() => {
-    completionSoundStarted.current = false;
-    starSequenceStarted.current = false;
-    soundDone.current = false;
-    trophyDone.current = false;
-    perfPlayedRef.current = false;
-    setMountReady(true);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     if (phase !== 3) return;
     if (clampedStars === 0) {
