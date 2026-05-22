@@ -16,7 +16,7 @@
  *   onBack    {()=>void}   — navigate back to map
  *   lang      {"en"|"zh"}
  */
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Lottie from "lottie-react";
 
@@ -31,7 +31,6 @@ const GITHUB_FEEDBACK_BASE =
   "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback";
 
 // ── Hardcoded performance audio lookup: [levelIndex][starRating] ─────────────
-// levelIndex = levelNum - 1 (0-based), starRating key: 3 | 2 | 1
 const PERFORMANCE_AUDIO_TABLE = [
   /* L1  */ { 3: "Amazing.mp3",       2: "goodJob.mp3",  1: "keepItUp.mp3" },
   /* L2  */ { 3: "awesome.mp3",       2: "Great.mp3",    1: "Nice.mp3"     },
@@ -75,31 +74,27 @@ const PERFORMANCE_AUDIO_TABLE = [
   /* L40 */ { 3: "outstanding.mp3",   2: "Cool.mp3",     1: "keepItUp.mp3" },
 ];
 
-// All unique filenames that need preloading
 const ALL_PERFORMANCE_FILES = [
   "Amazing.mp3", "awesome.mp3", "brilliant.mp3", "Fantastic job.mp3", "outstanding.mp3",
   "goodJob.mp3", "Great.mp3", "veryGood.mp3", "Super.mp3", "Cool.mp3",
   "keepItUp.mp3", "Nice.mp3",
 ];
 
-// ── Preload audio into a blob URL so repeat plays are instant ────────────────
 async function preloadAudio(url) {
   const res = await fetch(url);
   const blob = await res.blob();
   return URL.createObjectURL(blob);
 }
 
-// ── Play an Audio element once, resolve when it ends ────────────────────────
 function playOnce(blobUrl) {
   return new Promise((resolve) => {
     const audio = new Audio(blobUrl);
     audio.onended = resolve;
-    audio.onerror = resolve; // don't block sequence on error
+    audio.onerror = resolve;
     audio.play().catch(resolve);
   });
 }
 
-// ── Individual animated star ─────────────────────────────────────────────────
 function AnimatedStar({ visible, size = 72 }) {
   return (
     <motion.div
@@ -111,10 +106,7 @@ function AnimatedStar({ visible, size = 72 }) {
       <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
         <path
           d="M24 4L29.8 16.26L43 17.9L33.5 27.14L35.96 40.1L24 33.77L12.04 40.1L14.5 27.14L5 17.9L18.2 16.26L24 4Z"
-          fill="#FFD93D"
-          stroke="#F4B942"
-          strokeWidth="2"
-          strokeLinejoin="round"
+          fill="#FFD93D" stroke="#F4B942" strokeWidth="2" strokeLinejoin="round"
         />
       </svg>
     </motion.div>
@@ -125,80 +117,68 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const clampedStars = Math.max(0, Math.min(3, stars));
   const levelLabel = lang === "zh" ? `第 ${levelNum} 关` : `Level ${levelNum}`;
 
-  // ── Asset loading ─────────────────────────────────────────────────────────
+  // ── Asset state ───────────────────────────────────────────────────────────
   const [trophyData, setTrophyData] = useState(null);
   const [completionBlobUrl, setCompletionBlobUrl] = useState(null);
   const [starsBlobUrl, setStarsBlobUrl] = useState(null);
-  const assetsReady = trophyData && completionBlobUrl && starsBlobUrl;
-
-  // Performance audio blobs keyed by filename
   const perfBlobsRef = useRef({});
 
   // ── Sequence state ────────────────────────────────────────────────────────
-  // phase 1 = trophy playing, phase 2 = layout visible / waiting for completion sound,
-  // phase 3 = star sequence running, phase 4 = all done / button shown
+  // phase 1 = trophy + sound playing, phase 2 = layout, phase 3 = stars, phase 4 = done
   const [phase, setPhase] = useState(1);
-  const [visibleStars, setVisibleStars] = useState(0); // 0–3 earned stars revealed
-  const [visibleGreyStars, setVisibleGreyStars] = useState(0); // 0–N grey stars revealed
+  const [visibleStars, setVisibleStars] = useState(0);
+  const [visibleGreyStars, setVisibleGreyStars] = useState(0);
 
-  // Refs to prevent double-firing / track both conditions
-  const completionSoundStarted = useRef(false);
-  const starSequenceStarted = useRef(false);
+  // Guard refs — prevent double-firing
+  const soundStarted = useRef(false);
   const soundDone = useRef(false);
   const trophyDone = useRef(false);
+  const starSequenceStarted = useRef(false);
+  const perfPlayedRef = useRef(false);
 
-  // ── Preload all assets before showing anything ────────────────────────────
+  // ── Load all assets in parallel on mount ─────────────────────────────────
   useEffect(() => {
     fetch(TROPHY_URL).then((r) => r.json()).then(setTrophyData).catch(() => {});
     preloadAudio(COMPLETION_SOUND_URL).then(setCompletionBlobUrl).catch(() => {});
     preloadAudio(STARS_SOUND_URL).then(setStarsBlobUrl).catch(() => {});
-
-    // Preload all performance audio files (failures are logged, not fatal)
     ALL_PERFORMANCE_FILES.forEach((filename) => {
       const url = `${GITHUB_FEEDBACK_BASE}/${encodeURIComponent(filename)}`;
       preloadAudio(url)
         .then((blobUrl) => { perfBlobsRef.current[filename] = blobUrl; })
-        .catch(() => { console.warn(`[LevelCompleteScreen] Failed to preload: ${filename}`); });
+        .catch(() => {});
     });
   }, []);
 
-  // ── Phase 1 → play completion sound the moment trophy animation starts ────
-  // Triggered when phase becomes 1 AND assets are ready (trophy Lottie autoplay fires immediately)
+  // ── Start completion sound as soon as it's loaded (independent of trophy) ─
+  // This fires reliably whether the Lottie loads fast or slow.
   useEffect(() => {
-    if (phase !== 1 || !assetsReady) return;
-    if (completionSoundStarted.current) return;
-    completionSoundStarted.current = true;
-    // Play completion sound — when it ends, check if trophy also done
+    if (!completionBlobUrl) return;
+    if (soundStarted.current) return;
+    soundStarted.current = true;
     playOnce(completionBlobUrl).then(() => {
       soundDone.current = true;
+      // If trophy already done, advance; else trophy's onComplete will advance
       if (trophyDone.current) setPhase(2);
     });
-  }, [phase, assetsReady, completionBlobUrl]);
+  }, [completionBlobUrl]);
 
-  // ── Phase 2 → trophy Lottie onComplete fires, layout appears.
-  //    Completion sound's onended already moved us to phase 2, so when
-  //    phase === 2 we immediately start the star sequence (completion sound is done).
+  // ── Phase 2 → immediately enter star sequence ─────────────────────────────
   useEffect(() => {
     if (phase !== 2) return;
     if (starSequenceStarted.current) return;
     starSequenceStarted.current = true;
-    setPhase(3); // enter star-sequence phase
+    setPhase(3);
   }, [phase]);
 
-  // ── Phase 3 → award stars one by one, then play performance audio ────────
-  const perfPlayedRef = useRef(false);
-
+  // ── Phase 3 → award stars one by one, then play performance audio ─────────
   useEffect(() => {
     if (phase !== 3) return;
-    if (clampedStars === 0) {
-      setPhase(4);
-      return;
-    }
+    if (!starsBlobUrl) return;
+    if (clampedStars === 0) { setPhase(4); return; }
 
     let cancelled = false;
 
     async function awardStars() {
-      // Award each star, each gated by stars.mp3 onended
       for (let i = 1; i <= clampedStars; i++) {
         if (cancelled) return;
         setVisibleStars(i);
@@ -206,7 +186,6 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
         if (cancelled) return;
       }
 
-      // Reveal grey (unearned) stars one by one after earned stars, no sound
       const greyCount = 3 - clampedStars;
       for (let g = 1; g <= greyCount; g++) {
         if (cancelled) return;
@@ -215,18 +194,13 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
         setVisibleGreyStars(g);
       }
 
-      // All stars awarded + last stars.mp3 finished → play performance audio once
       if (!perfPlayedRef.current) {
         perfPlayedRef.current = true;
-        const levelIndex = Math.min(Math.max((levelNum || 1) - 1, 0), 39);
+        const levelIndex = Math.min(Math.max((levelNum || 1) - 1, 0), PERFORMANCE_AUDIO_TABLE.length - 1);
         const row = PERFORMANCE_AUDIO_TABLE[levelIndex] || PERFORMANCE_AUDIO_TABLE[0];
         const filename = row[clampedStars] || row[3];
         const blobUrl = perfBlobsRef.current[filename];
-        if (blobUrl) {
-          await playOnce(blobUrl);
-        } else {
-          console.warn(`[LevelCompleteScreen] Performance audio not ready: ${filename}`);
-        }
+        if (blobUrl) await playOnce(blobUrl);
       }
 
       if (!cancelled) setPhase(4);
@@ -236,8 +210,8 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
     return () => { cancelled = true; };
   }, [phase, clampedStars, starsBlobUrl, levelNum]);
 
-  // ── Don't render until all assets are ready ───────────────────────────────
-  if (!assetsReady) return null;
+  // ── Don't show trophy until its JSON is loaded ────────────────────────────
+  if (!trophyData) return null;
 
   return (
     <div style={{
@@ -261,8 +235,8 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
               loop={false}
               autoplay={true}
               onComplete={() => {
-                // Trophy animation done → if sound also finished, advance to layout
                 trophyDone.current = true;
+                // If sound already done, advance; else sound's then() will advance
                 if (soundDone.current) setPhase(2);
               }}
               style={{ width: 320, height: 320 }}
@@ -280,7 +254,6 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
             transition={{ duration: 0.3 }}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}
           >
-            {/* Frozen trophy */}
             <div style={{ width: 180, height: 180, marginBottom: 4 }}>
               <Lottie
                 animationData={trophyData}
@@ -297,13 +270,11 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
               {levelLabel} {lang === "zh" ? "完成！" : "Complete!"}
             </p>
 
-            {/* ── Star row — earned stars pop in, unearned show as grey outlines ── */}
             <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "center", marginBottom: 16, minHeight: 80 }}>
               {[1, 2, 3].map((starNum) => {
                 const isEarned = starNum <= clampedStars;
                 const isRevealed = visibleStars >= starNum;
-                // Grey stars reveal sequentially after earned ones
-                const greyIndex = starNum - clampedStars; // 1-based index among grey stars
+                const greyIndex = starNum - clampedStars;
                 const isGreyRevealed = !isEarned && visibleGreyStars >= greyIndex;
                 return (
                   <div key={starNum} style={{ position: "relative", width: 72, height: 72 }}>
@@ -319,10 +290,8 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
                         <svg width={72} height={72} viewBox="0 0 48 48" fill="none">
                           <path
                             d="M24 4L29.8 16.26L43 17.9L33.5 27.14L35.96 40.1L24 33.77L12.04 40.1L14.5 27.14L5 17.9L18.2 16.26L24 4Z"
-                            fill="rgba(200,200,200,0.25)"
-                            stroke="rgba(180,180,180,0.55)"
-                            strokeWidth="2"
-                            strokeLinejoin="round"
+                            fill="rgba(200,200,200,0.25)" stroke="rgba(180,180,180,0.55)"
+                            strokeWidth="2" strokeLinejoin="round"
                           />
                         </svg>
                       </motion.div>
@@ -332,7 +301,6 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
               })}
             </div>
 
-            {/* ── Back to Map button — appears after all stars awarded ──── */}
             <AnimatePresence>
               {phase >= 4 && (
                 <motion.button
