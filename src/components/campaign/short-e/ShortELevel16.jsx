@@ -14,7 +14,6 @@ import LevelCompleteScreen from "../LevelCompleteScreen";
 import { buildShortASliceData } from "../../../lib/buildShortASliceData";
 import { buildWordData } from "../../../lib/picSliceGameData";
 import { shortEWords } from "../../../lib/shortEWords";
-import { shortAWords } from "../../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../../lib/campaignPerformance";
 import { useRoundHintAudio, LOCK_OVERLAY_STYLE } from "../../../lib/useRoundHintAudio";
 
@@ -23,7 +22,6 @@ const LEVEL_NUM = 16;
 const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
 const GH = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/levels";
 const findShortE = (w) => shortEWords.find((x) => x.word === w);
-const findShortA = (w) => shortAWords.find((x) => x.word === w);
 
 // [shortE word, shortA contrast word]
 const ROUND_PAIRS = [
@@ -38,7 +36,7 @@ const TOTAL_ROUNDS = ROUND_PAIRS.length;
 function buildPair(pair) {
   const [w1, w2] = pair;
   const d1 = buildWordData(w1) || findShortE(w1);
-  const d2 = buildWordData(w2) || findShortA(w2);
+  const d2 = buildShortASliceData(w2);
   return [d1, d2].filter(Boolean);
 }
 
