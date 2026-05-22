@@ -113,7 +113,7 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
               whileTap={!feedback ? { scale: 0.93 } : {}}
               animate={isSelected && feedback === "wrong" ? { x: [0, -8, 8, -6, 6, 0] } : {}}
               transition={{ duration: 0.4 }}
-              onPointerDown={(e) => { e.preventDefault(); handleChoice(choice); }}
+              onClick={() => handleChoice(choice)}
               style={{ padding: "16px 8px", borderRadius: 20, background: bg, border, color: textColor, fontSize: 24, fontWeight: 700, fontFamily: "Fredoka, sans-serif", cursor: feedback ? "default" : "pointer", boxShadow: shadow, transition: "background 0.2s, border 0.2s", minHeight: 64, touchAction: "manipulation" }}
             >
               {choice.word}

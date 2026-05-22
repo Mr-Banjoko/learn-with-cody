@@ -274,7 +274,7 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
               <motion.div
                 animate={isWrongBot ? { x: [0, -8, 8, -6, 6, 0] } : {}}
                 transition={{ duration: 0.4 }}
-                onPointerDown={(e) => { e.preventDefault(); handleSliceTap(botSlot); }}
+                onClick={() => handleSliceTap(botSlot)}
                 style={{ width: "100%", aspectRatio: "1/2", borderRadius: 18, overflow: "hidden", border: isMatched ? `2.5px solid ${dotColor}` : "2.5px solid rgba(168,208,230,0.5)", boxShadow: isMatched ? `0 0 0 4px ${dotColor}44` : "0 4px 14px rgba(0,0,0,0.09)", cursor: "pointer", background: "#f8f8f8", transition: "border 0.18s, box-shadow 0.18s", WebkitTapHighlightColor: "transparent", position: "relative", touchAction: "manipulation" }}
               >
                 <img

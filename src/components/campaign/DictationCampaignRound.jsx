@@ -240,7 +240,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
             <RotateCcw size={24} color="#A8D0E6" strokeWidth={2.2} />
           </button>
           {!completing && (
-            <motion.button whileTap={allFilled ? { scale: 0.93 } : {}} onPointerDown={(e) => { e.preventDefault(); handleSubmit(); }} disabled={!allFilled}
+            <motion.button whileTap={allFilled ? { scale: 0.93 } : {}} onClick={handleSubmit} disabled={!allFilled}
               style={{ padding: "14px 44px", borderRadius: 999, background: allFilled ? "#FF6B6B" : "rgba(255,107,107,0.28)", color: allFilled ? "white" : "rgba(255,107,107,0.55)", border: "none", fontSize: 20, fontWeight: 700, fontFamily: "Fredoka, sans-serif", cursor: allFilled ? "pointer" : "default", boxShadow: allFilled ? "0 4px 0 #cc4444" : "none", transition: "background 0.25s, color 0.25s", touchAction: "manipulation", flexShrink: 0 }}>
               {lang === "zh" ? "提交 ✓" : "Submit ✓"}
             </motion.button>
