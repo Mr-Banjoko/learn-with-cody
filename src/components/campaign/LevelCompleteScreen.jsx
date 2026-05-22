@@ -82,11 +82,16 @@ const ALL_PERFORMANCE_FILES = [
   "keepItUp.mp3", "Nice.mp3",
 ];
 
-// ── Preload audio into a blob URL so repeat plays are instant ────────────────
+// ── Module-level cache: blob URLs survive re-mounts, never double-fetched ────
+const audioBlobCache = {};
+
 async function preloadAudio(url) {
+  if (audioBlobCache[url]) return audioBlobCache[url];
   const res = await fetch(url);
   const blob = await res.blob();
-  return URL.createObjectURL(blob);
+  const blobUrl = URL.createObjectURL(blob);
+  audioBlobCache[url] = blobUrl;
+  return blobUrl;
 }
 
 // ── Play an Audio element once, resolve when it ends ────────────────────────
@@ -129,7 +134,7 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [trophyData, setTrophyData] = useState(null);
   const [completionBlobUrl, setCompletionBlobUrl] = useState(null);
   const [starsBlobUrl, setStarsBlobUrl] = useState(null);
-  const assetsReady = trophyData && completionBlobUrl && starsBlobUrl;
+  const assetsReady = trophyData && completionBlobUrl && starsBlobUrl && mountReady;
 
   // Performance audio blobs keyed by filename
   const perfBlobsRef = useRef({});
@@ -138,10 +143,12 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   // phase 1 = trophy playing, phase 2 = layout visible / waiting for completion sound,
   // phase 3 = star sequence running, phase 4 = all done / button shown
   const [phase, setPhase] = useState(1);
+  // mountReady: set to true after mount-reset effect runs, prevents phase-1 from firing with stale refs
+  const [mountReady, setMountReady] = useState(false);
   const [visibleStars, setVisibleStars] = useState(0); // 0–3 earned stars revealed
   const [visibleGreyStars, setVisibleGreyStars] = useState(0); // 0–N grey stars revealed
 
-  // Refs to prevent double-firing / track both conditions
+  // Refs to prevent double-firing / track both conditions — reset on every mount
   const completionSoundStarted = useRef(false);
   const starSequenceStarted = useRef(false);
   const soundDone = useRef(false);
@@ -187,6 +194,16 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
 
   // ── Phase 3 → award stars one by one, then play performance audio ────────
   const perfPlayedRef = useRef(false);
+
+  // Reset all sequence refs on mount so every new LevelCompleteScreen starts fresh
+  useEffect(() => {
+    completionSoundStarted.current = false;
+    starSequenceStarted.current = false;
+    soundDone.current = false;
+    trophyDone.current = false;
+    perfPlayedRef.current = false;
+    setMountReady(true);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (phase !== 3) return;
