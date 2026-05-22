@@ -1,7 +1,7 @@
 /**
  * Level 38 — Advanced Audio Intro (word_to_audio) — 6 rounds
  * R1: rag  — choices: rag, ram, ran   [first appearance — audio guide]
- * R2: ram  — choices: ram, rag, rap
+ * R2: ram  — choices: ram, rag, ran
  * R3: ran  — choices: ran, ram, tan
  * R4: sap  — choices: sap, nap, map
  * R5: nap  — choices: nap, sap, nab
@@ -23,7 +23,7 @@ const findWord = (w) => shortAWords.find((x) => x.word === w);
 // Hardcoded choices: first word = target
 const ROUND_DEFS = [
   ["rag", "ram", "ran"],
-  ["ram", "rag", "rap"],
+  ["ram", "rag", "ran"],
   ["ran", "ram", "tan"],
   ["sap", "nap", "map"],
   ["nap", "sap", "nab"],
