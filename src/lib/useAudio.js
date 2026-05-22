@@ -98,8 +98,6 @@ class AppLifecycleManager {
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) onInterrupt(); else onReturn();
     });
-    window.addEventListener("blur", onInterrupt);
-    window.addEventListener("focus", onReturn);
     window.addEventListener("pagehide", onInterrupt);
     window.addEventListener("pageshow", onReturn);
     // Freeze/resume — fired by some mobile browsers on aggressive background suspension
@@ -159,11 +157,10 @@ class AppLifecycleManager {
       currentAudio = null;
     }
 
-    // Mark all sequences as paused (they are now stuck mid-step)
+    // Mark all sequences as paused and stop any active audio in them
     for (const seq of this._sequences.values()) {
       seq.paused = true;
-      // Cancel the active cancel fn reference so it doesn't fire further callbacks
-      seq.activeCancel = null;
+      if (seq.activeCancel) { seq.activeCancel(); seq.activeCancel = null; }
     }
   }
 
