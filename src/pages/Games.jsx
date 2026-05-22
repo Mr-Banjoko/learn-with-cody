@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Lottie from "lottie-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { games } from "../lib/content";
 import { tx } from "../lib/i18n";
 import TestHub from "../components/test/TestHub";
@@ -48,36 +47,13 @@ const WRITE_SUBFOLDERS = [
   { id: "short-u", label: "Short U", emoji: "☂️" },
 ];
 
-const IP_ANIMATION_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/01e368040_ip.json";
-
 export default function Games({ onDeepScreen, lang = "en" }) {
   const [activeGame, setActiveGame] = useState(null);
   const [writeExpanded, setWriteExpanded] = useState(false);
-  const [showIpAnim, setShowIpAnim] = useState(false);
-  const [ipAnimData, setIpAnimData] = useState(null);
-  const pendingGameRef = useRef(null);
-
-  useEffect(() => {
-    fetch(IP_ANIMATION_URL).then(r => r.json()).then(setIpAnimData).catch(() => {});
-  }, []);
 
   const enterGame = (id) => {
-    if (id === "pic-slice" && ipAnimData) {
-      pendingGameRef.current = id;
-      setShowIpAnim(true);
-    } else {
-      setActiveGame(id);
-      onDeepScreen && onDeepScreen(true);
-    }
-  };
-
-  const handleAnimComplete = () => {
-    setShowIpAnim(false);
-    if (pendingGameRef.current) {
-      setActiveGame(pendingGameRef.current);
-      onDeepScreen && onDeepScreen(true);
-      pendingGameRef.current = null;
-    }
+    setActiveGame(id);
+    onDeepScreen && onDeepScreen(true);
   };
 
   const exitGame = () => {
@@ -131,29 +107,6 @@ export default function Games({ onDeepScreen, lang = "en" }) {
       className="min-h-full pb-32 pt-4"
       style={{ fontFamily: "Fredoka, sans-serif" }}
     >
-      <AnimatePresence>
-        {showIpAnim && ipAnimData && (
-          <motion.div
-            key="ip-anim"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "fixed", inset: 0, zIndex: 9999,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.92)",
-              pointerEvents: "all",
-            }}
-          >
-            <Lottie
-              animationData={ipAnimData}
-              loop={false}
-              onComplete={handleAnimComplete}
-              style={{ width: 280, height: 280 }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
       {/* Header */}
       <div className="px-4 mb-6 flex items-center gap-3">
         <img src={CODY_IMG} alt="Cody" style={{ width: 56, height: 62, objectFit: "contain" }} />
