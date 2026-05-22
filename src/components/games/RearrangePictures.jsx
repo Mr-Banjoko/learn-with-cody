@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Lottie from "lottie-react";
 import BackArrow from "../BackArrow";
 import { tx } from "../../lib/i18n";
 import {
@@ -141,20 +140,13 @@ function DifficultySelect({ vowelId, onSelect, onBack, lang = "en" }) {
   );
 }
 
-const CODY_WAVE_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/8c2f90269_cody_wave_optimized.json";
-
 // ── Main navigator ──────────────────────────────────────────────────────────
 export default function RearrangePictures({ onBack, lang = "en" }) {
-  const [screen, setScreen] = useState("vowel"); // vowel | difficulty | game | intro
+  const [screen, setScreen] = useState("vowel"); // vowel | difficulty | game
   const [selectedVowel, setSelectedVowel] = useState(null);
   const [difficulty, setDifficulty] = useState("easy");
   const [roundIndex, setRoundIndex] = useState(0);
   const [wordPair, setWordPair] = useState(null);
-  const [introAnim, setIntroAnim] = useState(null);
-
-  useEffect(() => {
-    fetch(CODY_WAVE_URL).then(r => r.json()).then(setIntroAnim).catch(() => {});
-  }, []);
 
   const loadRound = (vowelId, difficulty, index) => {
     const rounds = GAME_ROUNDS[vowelId]?.[difficulty] || [];
@@ -173,7 +165,7 @@ export default function RearrangePictures({ onBack, lang = "en" }) {
     setDifficulty(diff);
     setRoundIndex(0);
     loadRound(selectedVowel, diff, 0);
-    setScreen("intro");
+    setScreen("game");
   };
 
   const handleRoundComplete = () => {
@@ -222,20 +214,6 @@ export default function RearrangePictures({ onBack, lang = "en" }) {
               onBack={() => setScreen("vowel")}
               lang={lang}
             />
-          </motion.div>
-        )}
-
-        {screen === "intro" && (
-          <motion.div key="intro" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)" }}>
-            {introAnim ? (
-              <Lottie
-                animationData={introAnim}
-                loop={false}
-                onComplete={() => setScreen("game")}
-                style={{ width: "min(380px, 90vw)" }}
-              />
-            ) : null}
           </motion.div>
         )}
 
