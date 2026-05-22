@@ -67,7 +67,9 @@ export default function IntroVideo({ onComplete }) {
             position: "fixed",
             inset: 0,
             zIndex: 9999,
-            background: "#000",
+            width: "100vw",
+            height: "100vh",
+            background: "#0d0d2b",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -85,11 +87,12 @@ export default function IntroVideo({ onComplete }) {
             style={{
               width: "100%",
               height: "100%",
-              objectFit: "cover",
+              maxWidth: "100vw",
+              maxHeight: "100vh",
+              objectFit: "contain",
+              objectPosition: "center center",
               display: "block",
-              // hardware acceleration hint
-              transform: "translateZ(0)",
-              willChange: "transform",
+              background: "#0d0d2b",
             }}
           />
         </motion.div>
