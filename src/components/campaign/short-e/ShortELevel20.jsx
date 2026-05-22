@@ -2,7 +2,7 @@
  * Short E — Level 20 — Unit Review 1
  * R1: missing01      — keg | K (INITIAL)
  * R2: catch          — peg | G (FINAL)
- * R3: drawline ALL FINAL — den(N), hen(N), men(N)
+ * R3: drawline ALL FINAL — bed(d), leg(g), men(n)
  * R4: dictation      — jet
  * R5: rearrange_hard — vet + wet
  */
@@ -27,8 +27,8 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 const DRAWLINE_DEF = {
   positionType: "final",
   words: [
-    { word: "den", targetLetter: "n" },
-    { word: "hen", targetLetter: "n" },
+    { word: "bed", targetLetter: "d" },
+    { word: "leg", targetLetter: "g" },
     { word: "men", targetLetter: "n" },
   ],
 };

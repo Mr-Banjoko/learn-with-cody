@@ -1,6 +1,6 @@
 /**
  * Short E — Level 9 — Drawline (ALL INITIAL)
- * R1: drawline ALL INITIAL — pen(P), pet(P), fed(F)  [audio guide]
+ * R1: drawline ALL INITIAL — bed(b), fed(f), wed(w)  [audio guide]
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,9 +19,9 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 
 const ROUND_DEFS = [
   { positionType: "initial", words: [
-    { word: "pen", targetLetter: "p" },
-    { word: "pet", targetLetter: "p" },
+    { word: "bed", targetLetter: "b" },
     { word: "fed", targetLetter: "f" },
+    { word: "wed", targetLetter: "w" },
   ]},
 ];
 const TOTAL_ROUNDS = ROUND_DEFS.length;

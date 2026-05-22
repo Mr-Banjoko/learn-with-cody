@@ -1,6 +1,6 @@
 /**
  * Short E — Level 10 — Drawline (ALL FINAL)
- * R1: drawline ALL FINAL — net(T), wet(T), jet(T)
+ * R1: drawline ALL FINAL — men(n), bed(d), leg(g)
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,9 +17,9 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 
 const ROUND_DEFS = [
   { positionType: "final", words: [
-    { word: "net", targetLetter: "t" },
-    { word: "wet", targetLetter: "t" },
-    { word: "jet", targetLetter: "t" },
+    { word: "men", targetLetter: "n" },
+    { word: "bed", targetLetter: "d" },
+    { word: "leg", targetLetter: "g" },
   ]},
 ];
 const TOTAL_ROUNDS = ROUND_DEFS.length;
