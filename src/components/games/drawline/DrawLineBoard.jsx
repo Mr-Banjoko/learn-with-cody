@@ -14,6 +14,7 @@
  * Wrong: shake + try-again sound + onMistake.
  */
 import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react";
+import { Volume2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
@@ -319,18 +320,18 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 color={matchColor || "#7EC8E3"}
               />
 
-              {/* Letter token */}
+              {/* Letter token — speaker icon until matched, then revealed letter */}
               <motion.div
                 animate={
                   isBouncing ? { y: [0, -14, 0, -7, 0] } :
                   isWrongBot ? { x: [0, -8, 8, -6, 6, 0] } : {}
                 }
                 transition={{ duration: 0.5 }}
-                onClick={() => handleBotLetterTap(botIdx)}
+                onClick={() => !isRevealed && handleBotLetterTap(botIdx)}
                 style={{
                   width: "100%", height: 80, borderRadius: 18,
                   background: isMatched ? matchBg : "white",
-                  border: isMatched   ? `2.5px solid ${matchColor}` :
+                  border: isMatched     ? `2.5px solid ${matchColor}` :
                           isSelectedBot ? "2.5px solid #4A90C4" :
                           "2.5px solid #CBD5E1",
                   boxShadow: isMatched    ? `0 0 0 5px ${matchColor}55` :
@@ -355,16 +356,16 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                       {bl.letter.toLowerCase()}
                     </motion.span>
                   ) : (
-                    /* Always show the letter clearly — no hidden speaker icon */
-                    <motion.span key="token"
-                      initial={{ opacity: 1 }} exit={{ opacity: 0 }}
-                      style={{ fontSize: 36, fontWeight: 700,
-                               color: isSelectedBot ? "#4A90C4" : "#64748B",
-                               fontFamily: "Fredoka, sans-serif", lineHeight: 1,
-                               transition: "color 0.18s" }}
+                    <motion.div key="speaker"
+                      initial={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.8 }}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                     >
-                      {bl.letter.toLowerCase()}
-                    </motion.span>
+                      <Volume2
+                        size={34}
+                        color={isSelectedBot ? "#4A90C4" : "#94A3B8"}
+                        style={{ transition: "color 0.18s" }}
+                      />
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </motion.div>
