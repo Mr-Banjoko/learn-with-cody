@@ -50,7 +50,7 @@ function buildDrawLineRound(def) {
 
 const ROUNDS = [
   { type: "rearrange_hard", pair: ["dim", "rim"] },
-  { type: "word_to_audio",  words: ["lip", "lap", "led"] },
+  { type: "word_to_audio",  words: ["lip", "lap", "leg"] },
   { type: "drawline" },
   { type: "connection",     word: "bib" },
 ];

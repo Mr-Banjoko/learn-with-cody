@@ -1,9 +1,9 @@
 /**
  * Short E — Level 19 — Advanced Audio (A vs E Contrast)
  * R1: word_to_audio — pen  | choices: pen, pan, ten  [audio guide]
- * R2: word_to_audio — bed  | choices: bed, bad, red
+ * R2: word_to_audio — bed  | choices: bed, wed, red
  * R3: word_to_audio — men  | choices: men, man, hen
- * R4: word_to_audio — fed  | choices: fed, fad, bed
+ * R4: word_to_audio — fed  | choices: fed, get, bed
  * R5: word_to_audio — gem  | choices: gem, jam, hem
  */
 import { useState, useCallback } from "react";
@@ -24,9 +24,9 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 // First word in each array = target
 const ROUND_DEFS = [
   ["pen", "pan", "ten"],
-  ["bed", "bad", "red"],
+  ["bed", "wed", "red"],
   ["men", "man", "hen"],
-  ["fed", "fad", "bed"],
+  ["fed", "get", "bed"],
   ["gem", "jam", "hem"],
 ];
 const TOTAL_ROUNDS = ROUND_DEFS.length;

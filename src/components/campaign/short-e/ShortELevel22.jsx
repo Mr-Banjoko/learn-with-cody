@@ -1,6 +1,6 @@
 /**
  * Short E — Level 22 — Short E Mastery
- * R1: word_to_audio — red  | choices: red, rad, bed
+ * R1: word_to_audio — red  | choices: red, den, bed
  * R2: dictation     — ten
  * R3: rearrange_hard — men + pen
  * R4: drawline ALL INITIAL — get(G), jet(J), wet(W)
@@ -53,7 +53,7 @@ function buildDrawLineRound(def) {
 }
 
 const ROUND_SEQUENCE = [
-  { type: "word_to_audio", words: ["red", "rad", "bed"] },
+  { type: "word_to_audio", words: ["red", "den", "bed"] },
   { type: "dictation",     word: "ten" },
   { type: "rearrange_hard", words: ["men", "pen"] },
   { type: "drawline" },

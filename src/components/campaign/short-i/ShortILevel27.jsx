@@ -49,7 +49,7 @@ function buildDrawLineRound(def) {
 }
 
 const ROUNDS = [
-  { type: "word_to_audio",  words: ["hid", "had", "red"] },
+  { type: "word_to_audio",  words: ["hid", "hat", "red"] },
   { type: "rearrange_hard", pair: ["fit", "bit"] },
   { type: "drawline" },
   { type: "writev2",        word: "six" },
