@@ -58,15 +58,28 @@ const ROUND_DEFS = [
 ];
 const TOTAL_ROUNDS = ROUND_DEFS.length;
 
-function buildDrawLineRound(def) {
+// Hardcoded token orders per round index — no token sits below its own word
+const TOKEN_ORDERS = [
+  [1, 2, 0], // R1 INITIAL: g(jar), j(tag), t(gas)
+  [1, 2, 0], // R2 FINAL:   g(bag), t(rat), p(tap)
+  [2, 0, 1], // R3 FINAL:   d(sad), n(can), t(mat)
+  [1, 2, 0], // R4 INITIAL: p(pan), p(pat), h(hat)
+  [2, 0, 1], // R5 FINAL:   r(jar), g(bag), g(tag)
+];
+
+function buildDrawLineRound(def, roundIdx) {
   const topCards = def.words.map((w, i) => ({
     ...findWord(w.word),
     targetLetter: w.targetLetter,
     positionType: def.positionType,
     id: `card-${i}-${w.word}-${w.targetLetter}`,
   }));
-  // bottomLetters order is fixed — each token at index i corresponds to topCards[i]
-  const bottomLetters = topCards.map((c, i) => ({ letter: c.targetLetter, topCardId: c.id, botIdx: i }));
+  const tokenOrder = TOKEN_ORDERS[roundIdx] || [1, 2, 0];
+  const bottomLetters = tokenOrder.map((ci, botIdx) => ({
+    letter: topCards[ci].targetLetter,
+    topCardId: topCards[ci].id,
+    botIdx,
+  }));
   return { topCards, bottomLetters };
 }
 
@@ -108,7 +121,7 @@ export default function Level18({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
-  const drawLineRound = useMemo(() => buildDrawLineRound(ROUND_DEFS[roundIndex]), [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+  const drawLineRound = useMemo(() => buildDrawLineRound(ROUND_DEFS[roundIndex], roundIndex), [roundIndex]); // eslint-disable-line react-hooks/exhaustive-deps
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
