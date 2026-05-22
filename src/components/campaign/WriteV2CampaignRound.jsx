@@ -135,7 +135,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   const displayCards = phase === "success" && successCards ? successCards : round.shuffledCards;
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 16, overflowY: "auto", position: "relative", overflow: "hidden" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 16, overflow: "hidden", position: "relative" }}>
       {(locked || phase === "success") && <div style={{ position: "absolute", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
       {/* Word image */}

@@ -214,7 +214,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         }, 700);
       }
     },
-    [missingLetter, audio, onComplete, onMistake]
+    [missingLetter, onComplete, onMistake]
   );
 
   const handleCatchRef = useRef(handleCatch);

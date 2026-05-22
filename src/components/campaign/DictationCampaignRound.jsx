@@ -41,7 +41,8 @@ function splitRows(tiles) {
 
 export default function DictationCampaignRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [round] = useState(() => buildRound(card));
-  const [placed, setPlaced] = useState([null, null, null]);
+  const wordLen = round.letters.length;
+  const [placed, setPlaced] = useState(() => Array(round.letters.length).fill(null));
   const [placedColors, setPlacedColors] = useState({});
   const [submitError, setSubmitError] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -62,16 +63,16 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       return;
     }
     setAudioLocked(true);
+    let innerTimer = null;
     const t = setTimeout(() => {
       if (card.audio) {
         playAudio(card.audio);
-        const u = setTimeout(() => setAudioLocked(false), 1400);
-        return () => clearTimeout(u);
+        innerTimer = setTimeout(() => setAudioLocked(false), 1400);
       } else {
         setAudioLocked(false);
       }
     }, 300);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t); clearTimeout(innerTimer); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const playCompletion = useCallback(() => {
@@ -144,7 +145,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
   }, [dragState, placed, round]);
 
   const handleSubmit = useCallback(() => {
-    if (completing || audioLocked || placed.some((p) => p === null)) return;
+    if (completing || audioLocked || placed.some((p) => p === null) || placed.length !== round.letters.length) return;
     const allCorrect = placed.every((tileId, boxIndex) => {
       const tile = round.tiles.find((t) => t.id === tileId);
       return tile && tile.letter === round.letters[boxIndex];
@@ -160,7 +161,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       setPulsatingIds(correctIds);
       setTimeout(() => {
         setSubmitError(false);
-        setPlaced([null, null, null]);
+        setPlaced(Array(round.letters.length).fill(null));
         setPlacedColors({});
       }, 600);
     }
@@ -168,9 +169,9 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
   const handleReset = useCallback(() => {
     if (completing) return;
-    setPlaced([null, null, null]);
+    setPlaced(Array(round.letters.length).fill(null));
     setPlacedColors({});
-  }, [completing]);
+  }, [completing, round.letters.length]);
 
   const allFilled = placed.every((p) => p !== null);
   const tileRows = splitRows(round.tiles);
@@ -191,7 +192,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
         {/* Drop boxes */}
         <div style={{ display: "flex", gap: "min(14px,3vw)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          {[0, 1, 2].map((i) => {
+          {Array.from({ length: wordLen }, (_, i) => i).map((i) => {
             const placedTile = placed[i] ? round.tiles.find((t) => t.id === placed[i]) : null;
             const tileColor = placedColors[i];
             return (

@@ -152,6 +152,9 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
   const matchedTopIds  = new Set(matches.map((m) => m.topCardId));
   const matchedBotIdxs = new Set(matches.map((m) => m.botIdx));
 
+  const onRoundCompleteRef = useRef(onRoundComplete);
+  useEffect(() => { onRoundCompleteRef.current = onRoundComplete; }, [onRoundComplete]);
+
   const triggerCorrectMatch = useCallback((topCardId, letter, botIdx, topCard) => {
     setSelected(null);
     setLocked(true);
@@ -169,13 +172,13 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
           setBounceTop(null);
           setLocked(false);
           setMatches((prev) => {
-            if (prev.length === 3) setTimeout(() => onRoundComplete && onRoundComplete(), 400);
+            if (prev.length === 3) setTimeout(() => onRoundCompleteRef.current && onRoundCompleteRef.current(), 400);
             return prev;
           });
         }, 900);
       }, 900);
     }, 120);
-  }, [onRoundComplete]);
+  }, []);
 
   const triggerWrong = useCallback((topCardId, botIdx) => {
     playTryAgain();

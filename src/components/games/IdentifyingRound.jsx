@@ -142,7 +142,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
         </AnimatePresence>
 
         <motion.button
-          onClick={handleSpeakerTap}
+          onPointerDown={(e) => { e.preventDefault(); handleSpeakerTap(); }}
           whileTap={{ scale: 0.88 }}
           style={{ width: 52, height: 52, borderRadius: 16, background: "white", border: "2.5px solid rgba(78,205,196,0.35)", boxShadow: "0 4px 16px rgba(78,205,196,0.18)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, WebkitTapHighlightColor: "transparent" }}
         >
@@ -184,7 +184,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
                 return (
                   <motion.button
                     key={`${round.target.word}-${choice.word}-${idx}`}
-                    onClick={() => handleSelect(choice)}
+                    onPointerDown={(e) => { e.preventDefault(); handleSelect(choice); }}
                     whileTap={{ scale: 0.97 }}
                     animate={isWrong ? { x: [0, -10, 10, -7, 7, 0] } : {}}
                     transition={{ duration: 0.38 }}
@@ -202,7 +202,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
       {/* Submit — no Next button */}
       <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", padding: "10px 24px 16px" }}>
         <motion.button
-          onClick={handleSubmit}
+          onPointerDown={(e) => { e.preventDefault(); handleSubmit(); }}
           whileTap={selected ? { scale: 0.95 } : {}}
           style={{ background: selected ? "linear-gradient(135deg, #4ECDC4, #44A08D)" : "#D1D5DB", color: selected ? "white" : "#9CA3AF", border: "none", borderRadius: 999, padding: "16px 56px", fontSize: 22, fontWeight: 700, cursor: selected ? "pointer" : "not-allowed", fontFamily: "Fredoka, sans-serif", boxShadow: selected ? "0 8px 28px rgba(78,205,196,0.4)" : "none", transition: "background 0.2s, color 0.2s, box-shadow 0.2s", WebkitTapHighlightColor: "transparent", width: "100%", maxWidth: 320 }}
         >

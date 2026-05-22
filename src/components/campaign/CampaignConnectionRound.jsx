@@ -179,16 +179,19 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
     const letter = letters[topIdx];
     const letterUrl = getLetterSoundUrl(letter);
     if (letterUrl) playAudio(letterUrl, getLetterGain(letter));
-    const newMatches = [...matches, { topIdx, botIdx }];
-    setMatches(newMatches);
-    setTimeout(() => {
-      setLocked(false);
+    setMatches((prev) => {
+      const newMatches = [...prev, { topIdx, botIdx }];
       if (newMatches.length === 3) {
-        setWon(true);
-        setTimeout(onComplete, 200);
+        setTimeout(() => {
+          setWon(true);
+          setTimeout(onComplete, 200);
+        }, 800);
+      } else {
+        setTimeout(() => setLocked(false), 800);
       }
-    }, 800);
-  }, [matches, letters, onComplete]);
+      return newMatches;
+    });
+  }, [letters, onComplete]);
 
   const handleTopDot = useCallback((topIdx) => {
     if (locked || matchedTopIdxs.has(topIdx)) return;
@@ -306,16 +309,16 @@ export default function CampaignConnectionRound({ card, onComplete, onMistake, l
       return;
     }
 
+    let innerTimer = null;
     const t = setTimeout(() => {
       if (card.audio) {
         playAudio(card.audio);
-        const unlock = setTimeout(() => setAudioLocked(false), 1400);
-        return () => clearTimeout(unlock);
+        innerTimer = setTimeout(() => setAudioLocked(false), 1400);
       } else {
         setAudioLocked(false);
       }
     }, 300);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t); clearTimeout(innerTimer); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRoundComplete = useCallback(() => {
