@@ -1,11 +1,14 @@
 /**
  * Short E — Level 11 — Intro Batch D
  * R1: phonics — jet
- * R2: phonics — vet
- * R3: phonics — beg
- * R4: phonics — den
- * R5: phonics — hen
- * R6: drag    — hen
+ * R2: drag    — jet
+ * R3: phonics — vet
+ * R4: drag    — vet
+ * R5: phonics — beg
+ * R6: drag    — beg
+ * R7: phonics — den
+ * R8: phonics — hen
+ * R9: drag    — hen
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,8 +26,11 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 
 const ROUNDS = [
   { type: "phonics", card: findWord("jet") },
+  { type: "drag",    card: findWord("jet") },
   { type: "phonics", card: findWord("vet") },
+  { type: "drag",    card: findWord("vet") },
   { type: "phonics", card: findWord("beg") },
+  { type: "drag",    card: findWord("beg") },
   { type: "phonics", card: findWord("den") },
   { type: "phonics", card: findWord("hen") },
   { type: "drag",    card: findWord("hen") },

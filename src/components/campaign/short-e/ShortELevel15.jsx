@@ -1,11 +1,14 @@
 /**
  * Short E — Level 15 — Intro Batch E
  * R1: phonics — gem
- * R2: phonics — hem
- * R3: phonics — wed
- * R4: phonics — peg
- * R5: phonics — keg
- * R6: drag    — keg
+ * R2: drag    — gem
+ * R3: phonics — hem
+ * R4: drag    — hem
+ * R5: phonics — wed
+ * R6: drag    — wed
+ * R7: phonics — peg
+ * R8: phonics — keg
+ * R9: drag    — keg
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,8 +26,11 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 
 const ROUNDS = [
   { type: "phonics", card: findWord("gem") },
+  { type: "drag",    card: findWord("gem") },
   { type: "phonics", card: findWord("hem") },
+  { type: "drag",    card: findWord("hem") },
   { type: "phonics", card: findWord("wed") },
+  { type: "drag",    card: findWord("wed") },
   { type: "phonics", card: findWord("peg") },
   { type: "phonics", card: findWord("keg") },
   { type: "drag",    card: findWord("keg") },
