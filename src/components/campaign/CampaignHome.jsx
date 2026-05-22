@@ -4,7 +4,7 @@ import BackArrow from "../BackArrow";
 const VOWEL_FOLDERS = [
   { id: "short-a", vowel: "a", label: "Short a", labelZh: "短元音 a", color: "#FF6B6B", emoji: "🍎", available: true,  levels: 50 },
   { id: "short-e", vowel: "e", label: "Short e", labelZh: "短元音 e", color: "#4ECDC4", emoji: "🥚", available: true,  levels: 22 },
-  { id: "short-i", available: true, vowel: "i", label: "Short i", labelZh: "短元音 i", color: "#4D96FF", emoji: "🐛", available: false, levels: 50 },
+  { id: "short-i", vowel: "i", label: "Short i", labelZh: "短元音 i", color: "#4D96FF", emoji: "🐛", available: true, levels: 28 },
   { id: "short-o", vowel: "o", label: "Short o", labelZh: "短元音 o", color: "#FF9F43", emoji: "🐙", available: false, levels: 50 },
   { id: "short-u", vowel: "u", label: "Short u", labelZh: "短元音 u", color: "#C77DFF", emoji: "☂️", available: false, levels: 50 },
 ];
