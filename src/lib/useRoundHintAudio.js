@@ -204,5 +204,4 @@ export const LOCK_OVERLAY_STYLE = {
   zIndex: 9000,
   cursor: "default",
   touchAction: "none",
-  pointerEvents: "all",
 };

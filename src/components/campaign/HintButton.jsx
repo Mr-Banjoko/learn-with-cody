@@ -16,6 +16,7 @@ export default function HintButton({ gameType, lang = "en" }) {
   const audioRef = useRef(null);
 
   const handleTap = useCallback((e) => {
+    e.preventDefault();
     e.stopPropagation();
 
     const url = getHintAudioForGameType(gameType, lang);
@@ -48,7 +49,7 @@ export default function HintButton({ gameType, lang = "en" }) {
   return (
     <motion.button
       whileTap={{ scale: 0.85 }}
-      onClick={handleTap}
+      onPointerDown={handleTap}
       style={{
         background: "none",
         border: "none",

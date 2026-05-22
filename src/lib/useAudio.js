@@ -17,17 +17,10 @@ export const BLEND_GAP_MS = 200;
 let currentAudio = null;
 
 // Simple in-memory cache of Audio elements keyed by URL
-// Capped at 120 entries to prevent unbounded growth on long sessions.
 const audioCache = new Map();
-const AUDIO_CACHE_MAX = 120;
 
 function getAudio(url) {
   if (!audioCache.has(url)) {
-    // Evict oldest entry if cache is full
-    if (audioCache.size >= AUDIO_CACHE_MAX) {
-      const firstKey = audioCache.keys().next().value;
-      audioCache.delete(firstKey);
-    }
     const a = new Audio();
     a.preload = "auto";
     a.src = url;
@@ -53,9 +46,8 @@ export function playAudio(url, gain = 1) {
   if (!url) return;
   stopCurrent();
 
-  // Re-use cached Audio element so Safari has a pre-loaded source
-  const audio = getAudio(url);
-  try { audio.currentTime = 0; } catch {}
+  const audio = new Audio();
+  audio.src = url;
   audio.volume = Math.min(1, Math.max(0, gain));
   currentAudio = audio;
 
@@ -91,9 +83,8 @@ export function playAudioSequence(steps, onDone) {
     const { url, gain = 1, onStart } = steps[i];
     onStart && onStart(i);
 
-    // Re-use cached element for pre-loaded playback
-    const audio = getAudio(url);
-    try { audio.currentTime = 0; } catch {}
+    const audio = new Audio();
+    audio.src = url;
     audio.volume = Math.min(1, Math.max(0, gain));
     currentAudio = audio;
 

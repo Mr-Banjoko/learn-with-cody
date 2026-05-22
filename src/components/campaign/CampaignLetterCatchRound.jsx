@@ -58,7 +58,7 @@ function CandyArrow({ direction, onPress }) {
 
   return (
     <button
-      onClick={onPress}
+      onPointerDown={(e) => { e.preventDefault(); onPress(); }}
       style={{
         background: "transparent", border: "none", padding: 0,
         cursor: "pointer", WebkitTapHighlightColor: "transparent",
