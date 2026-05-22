@@ -6,6 +6,9 @@ import { playAudio } from "../../lib/useAudio";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import SliceImage from "./SliceImage";
+import Lottie from "lottie-react";
+
+const CODY_WAVE_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/8c2f90269_cody_wave_optimized.json";
 
 // Pool piece dimensions
 const POOL_W = 82;
@@ -40,10 +43,16 @@ function buildPool(round) {
 }
 
 export default function EasyGame({ rounds, onBack }) {
+  const [showIntro, setShowIntro] = useState(true);
+  const [introAnim, setIntroAnim] = useState(null);
   const [roundIdx, setRoundIdx] = useState(0);
   const [pool, setPool] = useState([]);
   const [slots, setSlots] = useState({});
   const [roundDone, setRoundDone] = useState(false);
+
+  useEffect(() => {
+    fetch(CODY_WAVE_URL).then(r => r.json()).then(setIntroAnim).catch(() => setShowIntro(false));
+  }, []);
 
   const round = rounds[roundIdx];
 
@@ -110,6 +119,21 @@ export default function EasyGame({ rounds, onBack }) {
   };
 
   if (!round) return null;
+
+  if (showIntro) {
+    return (
+      <div style={{ background: "#D6EEFF", minHeight: "100%", fontFamily: "Fredoka, sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        {introAnim && (
+          <Lottie
+            animationData={introAnim}
+            loop={false}
+            onComplete={() => setShowIntro(false)}
+            style={{ width: "min(380px, 90vw)" }}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div style={{ background: "#D6EEFF", minHeight: "100%", fontFamily: "Fredoka, sans-serif", display: "flex", flexDirection: "column" }}>
