@@ -13,6 +13,7 @@
  */
 import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Volume2 } from "lucide-react";
 import BackArrow from "../BackArrow";
 import { shortASlices } from "../../lib/shortASlices";
 import { shortESlices } from "../../lib/shortESlices";
@@ -157,7 +158,7 @@ function WinScreen({ card, onDone }) {
 }
 
 // ── Main round component ──────────────────────────────────────────────────────
-function ConnectionRound({ card, onComplete }) {
+function ConnectionRound({ card, onComplete }) {  // card is used for speaker button and phoneme slices
   const letters = card.word.split(""); // e.g. ['c','a','t']
   // shuffledOrder[botSlot] = letterIndex (which letter belongs at this bottom slot)
   const [shuffledOrder] = useState(() => buildShuffledOrder());
@@ -214,7 +215,11 @@ function ConnectionRound({ card, onComplete }) {
     const feedbackUrl = isFinal
       ? "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3"
       : "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-line.mp3";
-    setTimeout(() => playAudio(feedbackUrl), 80);
+
+    // Use a dedicated Audio element so it never conflicts with playAudio's shared context
+    const sfx = new Audio(feedbackUrl);
+    sfx.volume = 1;
+    sfx.play().catch(() => {});
 
     setMatches(newMatches);
 
@@ -294,8 +299,16 @@ function ConnectionRound({ card, onComplete }) {
         ))}
       </div>
 
-      {/* Spacer */}
-      <div style={{ flex: 1, minHeight: 16 }} />
+      {/* Spacer + Speaker button */}
+      <div style={{ flex: 1, minHeight: 16, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
+        <motion.button
+          whileTap={{ scale: 0.88 }}
+          onPointerDown={(e) => { e.preventDefault(); if (card.audio) playAudio(card.audio); }}
+          style={{ width: 52, height: 52, borderRadius: "50%", background: "white", border: "2.5px solid #A8D8EA", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(74,144,196,0.22)", cursor: "pointer", touchAction: "manipulation" }}
+        >
+          <Volume2 size={26} color="#4A90C4" strokeWidth={2} />
+        </motion.button>
+      </div>
 
       {/* ── ROW 3 + ROW 4: Bottom dots + slices (shuffled) ── */}
       <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 10, transform: "translateY(-25%)" }}>
