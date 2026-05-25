@@ -250,13 +250,13 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
     if (card.audio) playAudio(card.audio);
   }, [locked]);
 
-  // Tapping a speaker icon (unmatched bottom token) plays the word hint for that token's top card
+  // Tapping a speaker icon (unmatched bottom token) plays the letter sound
   const handleBotSpeakerTap = useCallback((botIdx) => {
     if (locked) return;
-    const bl = bottomLetters[botIdx];
-    const topCard = topCards.find((c) => c.id === bl.topCardId);
-    if (topCard?.audio) playAudio(topCard.audio);
-  }, [locked, bottomLetters, topCards]);
+    const letter = bottomLetters[botIdx].letter;
+    const url = getLetterSoundUrl(letter);
+    if (url) playAudio(url, getLetterGain(letter));
+  }, [locked, bottomLetters]);
 
   const setRef = (key) => (el) => { connectorRefs.current[key] = el; };
 
