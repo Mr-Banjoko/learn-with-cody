@@ -26,6 +26,8 @@ const COMPLETION_SOUND_URL =
   "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/level_completion_sound.mp3";
 const STARS_SOUND_URL =
   "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/stars.mp3";
+const THREE_STARS_SOUND_URL =
+  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/getting%203%20stars.mp3";
 
 const GITHUB_FEEDBACK_BASE =
   "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback";
@@ -131,6 +133,11 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [starsBlobUrl, setStarsBlobUrl] = useState(null);
   const assetsReady = trophyData && completionBlobUrl && starsBlobUrl;
 
+  // 3-star celebration audio
+  const threeStarsBlobUrlRef = useRef(null);
+  const threeStarsAudioRef = useRef(null);
+  const threeStarsPlayedRef = useRef(false);
+
   // Performance audio blobs keyed by filename
   const perfBlobsRef = useRef({});
 
@@ -152,6 +159,9 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
     fetch(TROPHY_URL).then((r) => r.json()).then(setTrophyData).catch(() => {});
     preloadAudio(COMPLETION_SOUND_URL).then(setCompletionBlobUrl).catch(() => {});
     preloadAudio(STARS_SOUND_URL).then(setStarsBlobUrl).catch(() => {});
+    preloadAudio(THREE_STARS_SOUND_URL)
+      .then((blobUrl) => { threeStarsBlobUrlRef.current = blobUrl; })
+      .catch(() => {});
 
     // Preload all performance audio files (failures are logged, not fatal)
     ALL_PERFORMANCE_FILES.forEach((filename) => {
@@ -229,7 +239,18 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
         }
       }
 
-      if (!cancelled) setPhase(4);
+      if (!cancelled) {
+        setPhase(4);
+        // Play 3-star celebration sound (no UI lock, deduplication guard)
+        if (clampedStars === 3 && !threeStarsPlayedRef.current && threeStarsBlobUrlRef.current) {
+          threeStarsPlayedRef.current = true;
+          const audio = new Audio(threeStarsBlobUrlRef.current);
+          threeStarsAudioRef.current = audio;
+          audio.onended = () => { threeStarsAudioRef.current = null; };
+          audio.onerror = () => { threeStarsAudioRef.current = null; };
+          audio.play().catch(() => { threeStarsAudioRef.current = null; });
+        }
+      }
     }
 
     awardStars();
@@ -340,7 +361,16 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
                   initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={onBack}
+                  onClick={() => {
+                    try {
+                      if (threeStarsAudioRef.current) {
+                        threeStarsAudioRef.current.pause();
+                        threeStarsAudioRef.current.currentTime = 0;
+                        threeStarsAudioRef.current = null;
+                      }
+                    } catch (_) {}
+                    onBack();
+                  }}
                   style={{
                     marginTop: 4, padding: "16px 48px", borderRadius: 999,
                     background: "linear-gradient(135deg, #FF6B6B, #FF9F43)",
