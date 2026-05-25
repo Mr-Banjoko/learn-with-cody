@@ -210,11 +210,17 @@ function ConnectionRound({ card, onComplete }) {
     if (letterUrl) playAudio(letterUrl, getLetterGain(letter));
 
     const newMatches = [...matches, { topIdx, botIdx }];
+    const isFinal = newMatches.length === letters.length;
+    const feedbackUrl = isFinal
+      ? "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3"
+      : "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-line.mp3";
+    setTimeout(() => playAudio(feedbackUrl), 80);
+
     setMatches(newMatches);
 
     setTimeout(() => {
       setLocked(false);
-      if (newMatches.length === 3) {
+      if (isFinal) {
         setWon(true);
         setTimeout(onComplete, 200);
       }
