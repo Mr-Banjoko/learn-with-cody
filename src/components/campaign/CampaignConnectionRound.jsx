@@ -239,10 +239,10 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
     // Commit match to state so line draws immediately
     setMatches(newMatches);
 
-    // Step 1: match-end.mp3 (blob-cached), then play letter/word sounds
+    // Step 1: match-end.mp3 (blob-cached), then play letter sound, then word only on final match
     const audioSteps = [{ url: MATCH_END_URL, gain: 1 }];
     if (letterUrl) audioSteps.push({ url: letterUrl, gain: getLetterGain(letter) });
-    if (card.audio) audioSteps.push({ url: card.audio, gain: 1 });
+    if (isFinal && card.audio) audioSteps.push({ url: card.audio, gain: 1 });
 
     playAudioSequence(audioSteps, () => {
       setLocked(false);
