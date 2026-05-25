@@ -104,7 +104,7 @@ function PartialWord({ word, positionType, isMatched, color, revealedLetter }) {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 300, damping: 18 }}
                 >
-                  {revealedLetter.toUpperCase()}
+                  {revealedLetter}
                 </motion.span>
               ) : null}
             </div>
@@ -118,7 +118,7 @@ function PartialWord({ word, positionType, isMatched, color, revealedLetter }) {
             lineHeight: 1,
             transition: "color 0.18s",
           }}>
-            {ch.toUpperCase()}
+            {ch}
           </span>
         );
       })}
@@ -368,7 +368,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                       transition={{ type: "spring", stiffness: 300, damping: 18 }}
                       style={{ fontSize: 36, fontWeight: 700, color: matchColor || "#A8D0E6", fontFamily: "Fredoka, sans-serif", lineHeight: 1 }}
                     >
-                      {bl.letter.toUpperCase()}
+                      {bl.letter}
                     </motion.span>
                   ) : (
                     <motion.div key="speaker"
