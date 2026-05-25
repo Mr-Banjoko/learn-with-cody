@@ -176,14 +176,22 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
   const triggerMatch = useCallback((topIdx, botIdx) => {
     setSelected(null);
     setLocked(true);
+
+    const newMatches = [...matches, { topIdx, botIdx }];
+    const isFinal = newMatches.length === letters.length;
+
+    // Play match-end.mp3 first, then the letter sound after it ends
+    const sfx = new Audio("https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3");
+    sfx.volume = 1;
     const letter = letters[topIdx];
     const letterUrl = getLetterSoundUrl(letter);
-    if (letterUrl) playAudio(letterUrl, getLetterGain(letter));
-    const newMatches = [...matches, { topIdx, botIdx }];
+    sfx.onended = () => { if (letterUrl) playAudio(letterUrl, getLetterGain(letter)); };
+    sfx.play().catch(() => { if (letterUrl) playAudio(letterUrl, getLetterGain(letter)); });
+
     setMatches(newMatches);
     setTimeout(() => {
       setLocked(false);
-      if (newMatches.length === 3) {
+      if (isFinal) {
         setWon(true);
         setTimeout(onComplete, 200);
       }

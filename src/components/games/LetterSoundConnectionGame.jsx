@@ -206,20 +206,17 @@ function ConnectionRound({ card, onComplete }) {  // card is used for speaker bu
   const triggerMatch = useCallback((topIdx, botIdx) => {
     setSelected(null);
     setLocked(true);
-    const letter = letters[topIdx];
-    const letterUrl = getLetterSoundUrl(letter);
-    if (letterUrl) playAudio(letterUrl, getLetterGain(letter));
 
     const newMatches = [...matches, { topIdx, botIdx }];
     const isFinal = newMatches.length === letters.length;
-    const feedbackUrl = isFinal
-      ? "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3"
-      : "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-line.mp3";
 
-    // Use a dedicated Audio element so it never conflicts with playAudio's shared context
-    const sfx = new Audio(feedbackUrl);
+    // Play match-end.mp3 first, then the letter sound after it ends
+    const sfx = new Audio("https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3");
     sfx.volume = 1;
-    sfx.play().catch(() => {});
+    const letter = letters[topIdx];
+    const letterUrl = getLetterSoundUrl(letter);
+    sfx.onended = () => { if (letterUrl) playAudio(letterUrl, getLetterGain(letter)); };
+    sfx.play().catch(() => { if (letterUrl) playAudio(letterUrl, getLetterGain(letter)); });
 
     setMatches(newMatches);
 
