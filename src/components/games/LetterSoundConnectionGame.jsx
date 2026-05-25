@@ -213,10 +213,7 @@ function ConnectionRound({ card, onComplete }) {  // card is used for speaker bu
     // Play match-end.mp3 first, then the letter sound after it ends
     const sfx = new Audio("https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3");
     sfx.volume = 1;
-    const letter = letters[topIdx];
-    const letterUrl = getLetterSoundUrl(letter);
-    sfx.onended = () => { if (letterUrl) playAudio(letterUrl, getLetterGain(letter)); };
-    sfx.play().catch(() => { if (letterUrl) playAudio(letterUrl, getLetterGain(letter)); });
+    sfx.play().catch(() => {});
 
     setMatches(newMatches);
 
