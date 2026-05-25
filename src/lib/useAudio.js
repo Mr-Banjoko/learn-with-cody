@@ -6,7 +6,7 @@
 //   - playAudioSequence returns a controller with { cancel, pause, resume } — but pause/resume
 //     are managed automatically by AppLifecycleManager; callers only need the cancel function.
 
-const CACHE_NAME = "cody-audio-v9";
+const CACHE_NAME = "cody-audio-v10";
 
 /**
  * APPROVED BLEND TIMING
