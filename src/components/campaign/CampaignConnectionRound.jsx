@@ -254,65 +254,30 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
     const letter = letters[topIdx];
     const letterUrl = getLetterSoundUrl(letter);
 
-    // Step 1: play match-end.mp3
-    const sfx = new Audio(MATCH_END_URL);
-    sfx.volume = 1;
-
-    sfx.onended = () => {
-      // Step 2: reveal the letter
-      setRevealedBotSlots((prev) => new Set([...prev, botIdx]));
-
-      // Step 3: play letter sound, then Step 4: word sound
-      const audioSteps = [];
-      if (letterUrl) {
-        audioSteps.push({ url: letterUrl, gain: getLetterGain(letter) });
-      }
-      if (card.audio) {
-        audioSteps.push({ url: card.audio, gain: 1 });
-      }
-
-      if (audioSteps.length > 0) {
-        playAudioSequence(audioSteps, () => {
-          // All audio done — unlock and advance if final
-          setLocked(false);
-          matchingInProgress.current.delete(topIdx);
-          if (isFinal) {
-            setWon(true);
-            setTimeout(onComplete, 200);
-          }
-        });
-      } else {
-        setLocked(false);
-        matchingInProgress.current.delete(topIdx);
-        if (isFinal) {
-          setWon(true);
-          setTimeout(onComplete, 200);
-        }
-      }
-    };
-
-    sfx.onerror = () => {
-      // Fallback: skip match-end, still reveal + play sounds
-      setRevealedBotSlots((prev) => new Set([...prev, botIdx]));
-      const audioSteps = [];
-      if (letterUrl) audioSteps.push({ url: letterUrl, gain: getLetterGain(letter) });
-      if (card.audio) audioSteps.push({ url: card.audio, gain: 1 });
-      if (audioSteps.length > 0) {
-        playAudioSequence(audioSteps, () => {
-          setLocked(false);
-          matchingInProgress.current.delete(topIdx);
-          if (isFinal) { setWon(true); setTimeout(onComplete, 200); }
-        });
-      } else {
-        setLocked(false);
-        matchingInProgress.current.delete(topIdx);
-        if (isFinal) { setWon(true); setTimeout(onComplete, 200); }
-      }
-    };
-
     // Commit match to state so line draws immediately
     setMatches(newMatches);
-    sfx.play().catch(() => sfx.onerror && sfx.onerror());
+
+    // Step 1: match-end.mp3 (blob-cached), then reveal + play letter/word sounds
+    const audioSteps = [{ url: MATCH_END_URL, gain: 1 }];
+    if (letterUrl) audioSteps.push({ url: letterUrl, gain: getLetterGain(letter) });
+    if (card.audio) audioSteps.push({ url: card.audio, gain: 1 });
+
+    // Reveal letter after match-end finishes (i.e. when step index moves to 1)
+    const stepsWithReveal = audioSteps.map((step, i) =>
+      i === 1 ? { ...step, onStart: () => setRevealedBotSlots((prev) => new Set([...prev, botIdx])) } : step
+    );
+    // If no letter/word steps, reveal immediately after match-end via onDone
+    const revealOnDone = audioSteps.length === 1;
+
+    playAudioSequence(stepsWithReveal, () => {
+      if (revealOnDone) setRevealedBotSlots((prev) => new Set([...prev, botIdx]));
+      setLocked(false);
+      matchingInProgress.current.delete(topIdx);
+      if (isFinal) {
+        setWon(true);
+        setTimeout(onComplete, 200);
+      }
+    });
   }, [matches, letters, card, onComplete]);
 
   const handleTopDot = useCallback((topIdx) => {

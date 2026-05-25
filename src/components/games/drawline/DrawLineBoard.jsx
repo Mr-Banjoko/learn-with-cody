@@ -175,39 +175,39 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
 
     const letterUrl = getLetterSoundUrl(letter);
 
-    // Step 1: play match-end.mp3
-    const sfx = new Audio(MATCH_END_URL);
-    sfx.volume = 1;
+    // Build blob-cached sequence: match-end → reveal → letter → word
+    const audioSteps = [{ url: MATCH_END_URL, gain: 1 }];
+    if (letterUrl) audioSteps.push({ url: letterUrl, gain: getLetterGain(letter) });
+    if (topCard.audio) audioSteps.push({ url: topCard.audio, gain: 1 });
 
-    const afterMatchEnd = () => {
-      // Step 2: reveal letter in BOTH bottom token and top card blank simultaneously
-      setRevealedBotIdxs((prev) => new Set([...prev, botIdx]));
-      setRevealedTopIds((prev) => new Set([...prev, topCardId]));
+    // Reveal both top and bottom simultaneously when step after match-end starts
+    const stepsWithReveal = audioSteps.map((step, i) =>
+      i === 1
+        ? {
+            ...step,
+            onStart: () => {
+              setRevealedBotIdxs((prev) => new Set([...prev, botIdx]));
+              setRevealedTopIds((prev) => new Set([...prev, topCardId]));
+            },
+          }
+        : step
+    );
 
-      // Steps 3 + 4: letter sound then word sound
-      const audioSteps = [];
-      if (letterUrl) audioSteps.push({ url: letterUrl, gain: getLetterGain(letter) });
-      if (topCard.audio) audioSteps.push({ url: topCard.audio, gain: 1 });
+    // If only match-end (no letter/word), reveal on done
+    const revealOnDone = audioSteps.length === 1;
 
-      const onAllDone = () => {
-        setLocked(false);
-        matchingInProgress.current.delete(topCardId);
-        setMatches((prev) => {
-          if (prev.length === 3) setTimeout(() => onRoundComplete && onRoundComplete(), 400);
-          return prev;
-        });
-      };
-
-      if (audioSteps.length > 0) {
-        playAudioSequence(audioSteps, onAllDone);
-      } else {
-        onAllDone();
+    playAudioSequence(stepsWithReveal, () => {
+      if (revealOnDone) {
+        setRevealedBotIdxs((prev) => new Set([...prev, botIdx]));
+        setRevealedTopIds((prev) => new Set([...prev, topCardId]));
       }
-    };
-
-    sfx.onended = afterMatchEnd;
-    sfx.onerror = afterMatchEnd;
-    sfx.play().catch(() => afterMatchEnd());
+      setLocked(false);
+      matchingInProgress.current.delete(topCardId);
+      setMatches((prev) => {
+        if (prev.length === 3) setTimeout(() => onRoundComplete && onRoundComplete(), 400);
+        return prev;
+      });
+    });
   }, [onRoundComplete]);
 
   const triggerWrong = useCallback((topCardId, botIdx) => {
