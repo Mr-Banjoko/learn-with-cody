@@ -13,7 +13,7 @@ const CACHE_NAME = "cody-audio-v10";
  * 200 ms inter-phoneme gap between each step in playAudioSequence.
  * DO NOT change without explicit approval.
  */
-export const BLEND_GAP_MS = 200;
+export const BLEND_GAP_MS = 100;
 
 // currentAudio: the HTMLAudioElement currently playing (or null)
 let currentAudio = null;
