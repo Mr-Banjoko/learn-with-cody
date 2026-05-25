@@ -15,6 +15,7 @@
  */
 import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Volume2 } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import RainbowLetterBlock from "../RainbowLetterBlock";
@@ -132,7 +133,7 @@ function WinScreen({ card, onDone }) {
   );
 }
 
-function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
+function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeakerTap }) {
   const letters = card.word.split("");
   const [shuffledOrder] = useState(() => buildShuffledOrder());
   const [selected, setSelected] = useState(null);
@@ -254,7 +255,16 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
         ))}
       </div>
 
-      <div style={{ flex: 1, minHeight: 16 }} />
+      {/* Spacer + Speaker button */}
+      <div style={{ flex: 1, minHeight: 16, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
+        <motion.button
+          whileTap={{ scale: 0.88 }}
+          onPointerDown={(e) => { e.preventDefault(); onSpeakerTap && onSpeakerTap(); }}
+          style={{ width: 73, height: 73, borderRadius: "50%", background: "white", border: "2.5px solid #A8D8EA", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(74,144,196,0.22)", cursor: "pointer", touchAction: "manipulation" }}
+        >
+          <Volume2 size={36} color="#4A90C4" strokeWidth={2} />
+        </motion.button>
+      </div>
 
       {/* Row 3: Bottom dots + Row 4: Slices */}
       <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 10, transform: "translateY(-25%)" }}>
@@ -349,7 +359,7 @@ export default function CampaignConnectionRound({ card, onComplete, onMistake, l
           </motion.div>
         ) : (
           <motion.div key="round" initial={{ opacity: 0, x: 0 }} animate={{ opacity: 1 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <ConnectionRound card={card} onComplete={handleRoundComplete} onMistake={guardedMistake} onWrongAnswer={playTryAgain} />
+            <ConnectionRound card={card} onComplete={handleRoundComplete} onMistake={guardedMistake} onWrongAnswer={playTryAgain} onSpeakerTap={() => { if (card.audio) playAudio(card.audio); }} />
           </motion.div>
         )}
       </AnimatePresence>
