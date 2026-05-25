@@ -10,13 +10,14 @@
  *   Step 4: word sound plays (after letter sound finishes)
  * Tapping a speaker icon before match plays the word hint audio.
  */
-import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react";
+import { useState, useRef, useCallback, useLayoutEffect, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
+import { buildWordData } from "../../lib/picSliceGameData";
 
 const MATCH_END_URL = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3";
 
@@ -132,65 +133,46 @@ function WinScreen({ card, onDone }) {
   );
 }
 
-// Speaker icon tile used for unmatched bottom slots
-function SpeakerTile({ color, onHintTap, isWrong, isSelected }) {
+// Picture slice tile (tap to hear letter sound)
+function SliceTile({ sliceSrc, letterAlt, onTap, isWrong, isSelected, isMatched, dotColor }) {
   return (
     <motion.div
       animate={isWrong ? { x: [0, -8, 8, -6, 6, 0] } : {}}
       transition={{ duration: 0.4 }}
-      onPointerDown={(e) => { e.preventDefault(); onHintTap(); }}
+      onPointerDown={(e) => { e.preventDefault(); onTap(); }}
       style={{
         width: "100%",
         aspectRatio: "1/2",
         borderRadius: 18,
-        background: isSelected ? "rgba(74,144,196,0.12)" : "rgba(255,255,255,0.85)",
-        border: isWrong
+        overflow: "hidden",
+        border: isMatched
+          ? `2.5px solid ${dotColor}`
+          : isWrong
           ? "2.5px solid #FF6B6B"
           : isSelected
           ? "2.5px solid #4A90C4"
-          : "2.5px solid rgba(168,208,230,0.6)",
-        boxShadow: isWrong
+          : "2.5px solid rgba(168,208,230,0.5)",
+        boxShadow: isMatched
+          ? `0 0 0 4px ${dotColor}44`
+          : isWrong
           ? "0 0 0 4px rgba(255,107,107,0.2)"
           : isSelected
           ? "0 0 0 4px rgba(74,144,196,0.22)"
           : "0 4px 14px rgba(0,0,0,0.09)",
         cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        background: "#f8f8f8",
+        position: "relative",
         touchAction: "manipulation",
         WebkitTapHighlightColor: "transparent",
-        transition: "border 0.18s, box-shadow 0.18s, background 0.18s",
+        transition: "border 0.18s, box-shadow 0.18s",
       }}
     >
-      <Volume2 size={28} color={isSelected ? "#4A90C4" : "#A8D8EA"} strokeWidth={2} />
-    </motion.div>
-  );
-}
-
-// Revealed letter tile (shown after correct match)
-function RevealedLetterTile({ letter, color, isWrong }) {
-  return (
-    <motion.div
-      initial={{ scale: 0.5, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 340, damping: 22 }}
-      style={{
-        width: "100%",
-        aspectRatio: "1/2",
-        borderRadius: 18,
-        background: color,
-        border: `2.5px solid ${color}`,
-        boxShadow: `0 0 0 4px ${color}44`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: "min(38px, 10vw)",
-        fontWeight: 700,
-        color: "#1E3A5F",
-      }}
-    >
-      {letter}
+      <img
+        src={sliceSrc || ""}
+        alt={letterAlt}
+        draggable={false}
+        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none", userSelect: "none" }}
+      />
     </motion.div>
   );
 }
@@ -200,8 +182,8 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
   const [shuffledOrder] = useState(() => buildShuffledOrder());
   const [selected, setSelected] = useState(null);
   const [matches, setMatches] = useState([]);
-  // revealedBotSlots: set of botSlot indices whose letter has been revealed
-  const [revealedBotSlots, setRevealedBotSlots] = useState(new Set());
+  // Get phoneme slice data
+  const wordData = useMemo(() => buildWordData(card.word), [card.word]);
   const [wrongFeedback, setWrongFeedback] = useState(null);
   const [locked, setLocked] = useState(false);
   const [won, setWon] = useState(false);
@@ -257,20 +239,12 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
     // Commit match to state so line draws immediately
     setMatches(newMatches);
 
-    // Step 1: match-end.mp3 (blob-cached), then reveal + play letter/word sounds
+    // Step 1: match-end.mp3 (blob-cached), then play letter/word sounds
     const audioSteps = [{ url: MATCH_END_URL, gain: 1 }];
     if (letterUrl) audioSteps.push({ url: letterUrl, gain: getLetterGain(letter) });
     if (card.audio) audioSteps.push({ url: card.audio, gain: 1 });
 
-    // Reveal letter after match-end finishes (i.e. when step index moves to 1)
-    const stepsWithReveal = audioSteps.map((step, i) =>
-      i === 1 ? { ...step, onStart: () => setRevealedBotSlots((prev) => new Set([...prev, botIdx])) } : step
-    );
-    // If no letter/word steps, reveal immediately after match-end via onDone
-    const revealOnDone = audioSteps.length === 1;
-
-    playAudioSequence(stepsWithReveal, () => {
-      if (revealOnDone) setRevealedBotSlots((prev) => new Set([...prev, botIdx]));
+    playAudioSequence(audioSteps, () => {
       setLocked(false);
       matchingInProgress.current.delete(topIdx);
       if (isFinal) {
@@ -337,12 +311,11 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
         </motion.button>
       </div>
 
-      {/* Row 3: Bottom dots + Row 4: Speaker icons or revealed letters */}
+      {/* Row 3: Bottom dots + Row 4: Picture slices */}
       <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 20, transform: "translateY(-25%)" }}>
         {[0, 1, 2].map((botSlot) => {
           const letterIdx = shuffledOrder[botSlot];
           const isMatched = matchedBotIdxs.has(botSlot);
-          const isRevealed = revealedBotSlots.has(botSlot);
           const isSelectedBot = selected === `bot-${botSlot}`;
           const isWrongBot = wrongFeedback?.botIdx === botSlot;
           const matchedTopIdx = isMatched ? matches.find((m) => m.botIdx === botSlot)?.topIdx : null;
@@ -358,24 +331,18 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
                 onTap={() => handleBotDot(botSlot)}
                 color={dotColor}
               />
-              <AnimatePresence mode="wait">
-                {isRevealed ? (
-                  <RevealedLetterTile
-                    key="revealed"
-                    letter={revealedLetter}
-                    color={dotColor}
-                    isWrong={isWrongBot}
-                  />
-                ) : (
-                  <SpeakerTile
-                    key="speaker"
-                    color={dotColor}
-                    isSelected={isSelectedBot}
-                    isWrong={isWrongBot}
-                    onHintTap={() => { if (card.audio) playAudio(card.audio); }}
-                  />
-                )}
-              </AnimatePresence>
+              <SliceTile
+                sliceSrc={wordData?.phonemes?.[letterIdx]?.sliceSrc || ""}
+                letterAlt={revealedLetter}
+                onTap={() => {
+                  const url = getLetterSoundUrl(revealedLetter);
+                  if (url) playAudio(url, getLetterGain(revealedLetter));
+                }}
+                isWrong={isWrongBot}
+                isSelected={isSelectedBot}
+                isMatched={isMatched}
+                dotColor={dotColor}
+              />
             </div>
           );
         })}
