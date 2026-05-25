@@ -24,33 +24,35 @@ const findWord = (w) => shortAWords.find((x) => x.word === w);
  * Each entry: { positionType, words: [{ word, targetLetter }] }
  * bottomLetters order is fixed (no shuffling) and matches the spec exactly.
  */
+// Each round has a hardcoded fixed shuffle: botSlot[i] maps to topCards[shuffleOrder[i]]
+// Orders are never identity [0,1,2] so bottom tokens are never directly below their top card.
 const ROUND_DEFS = [
-  // R1 ALL INITIAL — tokens: G, J, T
-  { positionType: "initial", words: [
+  // R1 ALL INITIAL — tokens: G, J, T — shuffle: [1,2,0]
+  { positionType: "initial", shuffleOrder: [1,2,0], words: [
     { word: "gas", targetLetter: "g" },
     { word: "jar", targetLetter: "j" },
     { word: "tag", targetLetter: "t" },
   ]},
-  // R2 ALL FINAL — tokens: P, G, T
-  { positionType: "final", words: [
+  // R2 ALL FINAL — tokens: P, G, T — shuffle: [2,0,1]
+  { positionType: "final", shuffleOrder: [2,0,1], words: [
     { word: "tap", targetLetter: "p" },
     { word: "bag", targetLetter: "g" },
     { word: "rat", targetLetter: "t" },
   ]},
-  // R3 ALL FINAL — tokens: N, T, D
-  { positionType: "final", words: [
+  // R3 ALL FINAL — tokens: N, T, D — shuffle: [1,2,0]
+  { positionType: "final", shuffleOrder: [1,2,0], words: [
     { word: "can", targetLetter: "n" },
     { word: "mat", targetLetter: "t" },
     { word: "sad", targetLetter: "d" },
   ]},
-  // R4 ALL INITIAL — tokens: H, P, P  (pan and pat both missing P — independent tokens)
-  { positionType: "initial", words: [
+  // R4 ALL INITIAL — tokens: H, P, P — shuffle: [2,0,1]
+  { positionType: "initial", shuffleOrder: [2,0,1], words: [
     { word: "hat", targetLetter: "h" },
     { word: "pan", targetLetter: "p" },
     { word: "pat", targetLetter: "p" },
   ]},
-  // R5 ALL FINAL — tokens: G, G, R  (bag and tag both missing G — independent tokens)
-  { positionType: "final", words: [
+  // R5 ALL FINAL — tokens: G, G, R — shuffle: [1,2,0]
+  { positionType: "final", shuffleOrder: [1,2,0], words: [
     { word: "bag", targetLetter: "g" },
     { word: "tag", targetLetter: "g" },
     { word: "jar", targetLetter: "r" },
@@ -65,8 +67,12 @@ function buildDrawLineRound(def) {
     positionType: def.positionType,
     id: `card-${i}-${w.word}-${w.targetLetter}`,
   }));
-  // bottomLetters order is fixed — each token at index i corresponds to topCards[i]
-  const bottomLetters = topCards.map((c, i) => ({ letter: c.targetLetter, topCardId: c.id, botIdx: i }));
+  // Apply fixed shuffle: bottomLetters[slot] = topCards[shuffleOrder[slot]]
+  const bottomLetters = def.shuffleOrder.map((topIdx, botSlot) => ({
+    letter: topCards[topIdx].targetLetter,
+    topCardId: topCards[topIdx].id,
+    botIdx: botSlot,
+  }));
   return { topCards, bottomLetters };
 }
 

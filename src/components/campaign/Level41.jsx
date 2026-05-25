@@ -34,10 +34,10 @@ const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
 const ALL_WORDS = [...shortAWords, ...shortEWords, ...shortIWords, ...shortOWords, ...shortUWords];
 const findWord = (w) => shortAWords.find((x) => x.word === w);
 
-// R4 drawline — ALL FINAL — tokens: G, M, G
-// bag and rag both missing G (independent tokens); dam missing M
+// R4 drawline — ALL FINAL — tokens: G, M, G — shuffle: [2,0,1]
 const R4_DRAW_DEF = {
   positionType: "final",
+  shuffleOrder: [2,0,1],
   words: [
     { word: "bag", targetLetter: "g" },
     { word: "dam", targetLetter: "m" },
@@ -74,7 +74,11 @@ function buildDrawLineRound(def) {
     positionType: def.positionType,
     id: `card-${i}-${w.word}-${w.targetLetter}`,
   }));
-  const bottomLetters = topCards.map((c, i) => ({ letter: c.targetLetter, topCardId: c.id, botIdx: i }));
+  const bottomLetters = def.shuffleOrder.map((topIdx, botSlot) => ({
+    letter: topCards[topIdx].targetLetter,
+    topCardId: topCards[topIdx].id,
+    botIdx: botSlot,
+  }));
   return { topCards, bottomLetters };
 }
 

@@ -3,22 +3,20 @@
  *
  * round shape:
  *   topCards: [{ id, word, image, audio, targetLetter, positionType: "initial"|"final" }]
- *   bottomLetters: [{ letter, topCardId, botIdx }]  — already in fixed order (not shuffled)
+ *   bottomLetters: [{ letter, topCardId, botIdx }]  — pre-shuffled order (not aligned with top)
  *
  * Layout:
  *   TOP    — 3 combined picture + partial-word cards (blank slot LEFT or RIGHT per positionType)
- *   BOTTOM — 3 letter tokens (connector dot above each)
+ *   BOTTOM — 3 speaker-icon tokens (connector dot above each)
  *
  * Matching: tap a top connector dot, then tap a bottom connector dot (or vice versa).
- *
- * Bottom tokens start as speaker icons (letter hidden).
- * Tapping a speaker icon plays the word hint audio for the matched top card.
+ * Tapping a speaker icon (unmatched) plays the letter sound for that token.
  *
  * On correct match — chained audio sequence (no overlaps):
- *   Step 1: match-end.mp3
- *   Step 2: letter revealed
- *   Step 3: letter sound
- *   Step 4: word sound
+ *   Step 1: match-end.mp3 plays
+ *   Step 2: letter revealed in bottom token AND in top card blank simultaneously (when match-end ends)
+ *   Step 3: letter sound plays
+ *   Step 4: word sound plays
  *
  * Wrong: shake + try-again sound + onMistake.
  */
@@ -31,19 +29,15 @@ import { useTryAgainSound } from "../../../lib/useTryAgainSound";
 
 const MATCH_END_URL = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3";
 
-// Card accent colours — one per card index
 const CARD_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 const CARD_BG     = ["#E8F7FC", "#FDEEF5", "#F3EFFE"];
 const LINE_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 
-// ── SVG line layer ────────────────────────────────────────────────────────────
+// ── SVG line layer ─────────────────────────────────────────────────────────────
 function LinesLayer({ matches, connectorRects, containerRect, topCards }) {
   if (!containerRect) return null;
   return (
-    <svg
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
-               pointerEvents: "none", zIndex: 5, overflow: "visible" }}
-    >
+    <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 5, overflow: "visible" }}>
       {matches.map((m) => {
         const topR = connectorRects[`top-${m.topCardId}`];
         const botR = connectorRects[`bot-${m.botIdx}`];
@@ -53,11 +47,10 @@ function LinesLayer({ matches, connectorRects, containerRect, topCards }) {
         const x2 = botR.left + botR.width / 2 - containerRect.left;
         const y2 = botR.top  + botR.height / 2 - containerRect.top;
         const ci = topCards.findIndex((c) => c.id === m.topCardId);
-        const lineColor = LINE_COLORS[ci >= 0 ? ci : 0];
         return (
           <motion.line key={m.topCardId}
             x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke={lineColor} strokeWidth={4} strokeLinecap="round"
+            stroke={LINE_COLORS[ci >= 0 ? ci : 0]} strokeWidth={4} strokeLinecap="round"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
@@ -79,27 +72,25 @@ function ConnectorDot({ selected, matched, onTap, dotRef, color }) {
         boxShadow: selected || matched ? "0 0 0 4px rgba(74,144,196,0.2)" : "0 2px 6px rgba(0,0,0,0.10)",
         cursor: matched ? "default" : "pointer",
         transition: "background 0.18s, border 0.18s",
-        flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+        flexShrink: 0,
       }}
     />
   );
 }
 
 // ── PartialWord — shows letters with a blank slot box ─────────────────────────
-function PartialWord({ word, targetLetter, positionType, isMatched, color, revealedLetter }) {
+function PartialWord({ word, positionType, isMatched, color, revealedLetter }) {
   const letters = word.toLowerCase().split("");
   const missingIdx = positionType === "initial" ? 0 : letters.length - 1;
 
   return (
-    <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center",
-                  padding: "4px 2px 6px" }}>
+    <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", padding: "4px 2px 6px" }}>
       {letters.map((ch, i) => {
         const isMissing = i === missingIdx;
         if (isMissing) {
           return (
             <div key={i} style={{
-              width: 28, height: 32,
-              borderRadius: 7,
+              width: 28, height: 32, borderRadius: 7,
               border: isMatched ? `2.5px solid ${color}` : "2.5px dashed #94A3B8",
               background: isMatched ? `${color}22` : "rgba(255,255,255,0.6)",
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -107,7 +98,15 @@ function PartialWord({ word, targetLetter, positionType, isMatched, color, revea
               fontFamily: "Fredoka, sans-serif",
               transition: "border 0.18s, background 0.18s",
             }}>
-              {isMatched ? revealedLetter?.toUpperCase() : ""}
+              {isMatched && revealedLetter ? (
+                <motion.span
+                  initial={{ scale: 0.4, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                >
+                  {revealedLetter.toUpperCase()}
+                </motion.span>
+              ) : null}
             </div>
           );
         }
@@ -131,14 +130,15 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
   const { topCards, bottomLetters } = round;
   const { play: playTryAgain } = useTryAgainSound();
 
-  const [selected, setSelected] = useState(null); // "top-<id>" | "bot-<idx>" | null
-  const [matches, setMatches] = useState([]);      // [{ topCardId, letter, botIdx }]
-  const [wrongFeedback, setWrongFeedback] = useState(null); // { topCardId, botIdx }
+  const [selected, setSelected] = useState(null);
+  const [matches, setMatches] = useState([]);
+  const [wrongFeedback, setWrongFeedback] = useState(null);
   const [locked, setLocked] = useState(false);
-  const [bounceTop, setBounceTop] = useState(null);
+  // revealedTopIds: top card IDs whose blank letter has been revealed
+  const [revealedTopIds, setRevealedTopIds] = useState(new Set());
+  // revealedBotIdxs: bottom slot indices whose letter has been revealed
   const [revealedBotIdxs, setRevealedBotIdxs] = useState(new Set());
 
-  // Deduplication: prevent the same match firing twice on touch devices
   const matchingInProgress = useRef(new Set());
 
   const connectorRefs = useRef({});
@@ -165,13 +165,12 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
   const matchedBotIdxs = new Set(matches.map((m) => m.botIdx));
 
   const triggerCorrectMatch = useCallback((topCardId, letter, botIdx, topCard) => {
-    // Deduplication guard
     if (matchingInProgress.current.has(topCardId)) return;
     matchingInProgress.current.add(topCardId);
 
     setSelected(null);
     setLocked(true);
-    // Commit match immediately so the line draws
+    // Commit match immediately so the connecting line draws
     setMatches((prev) => [...prev, { topCardId, letter, botIdx }]);
 
     const letterUrl = getLetterSoundUrl(letter);
@@ -181,26 +180,22 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
     sfx.volume = 1;
 
     const afterMatchEnd = () => {
-      // Step 2: reveal the letter in the bottom token
+      // Step 2: reveal letter in BOTH bottom token and top card blank simultaneously
       setRevealedBotIdxs((prev) => new Set([...prev, botIdx]));
+      setRevealedTopIds((prev) => new Set([...prev, topCardId]));
 
-      // Build steps 3 + 4
+      // Steps 3 + 4: letter sound then word sound
       const audioSteps = [];
       if (letterUrl) audioSteps.push({ url: letterUrl, gain: getLetterGain(letter) });
       if (topCard.audio) audioSteps.push({ url: topCard.audio, gain: 1 });
 
       const onAllDone = () => {
-        // Bounce the top card after word audio, then unlock
-        setBounceTop(topCardId);
-        setTimeout(() => {
-          setBounceTop(null);
-          setLocked(false);
-          matchingInProgress.current.delete(topCardId);
-          setMatches((prev) => {
-            if (prev.length === 3) setTimeout(() => onRoundComplete && onRoundComplete(), 400);
-            return prev;
-          });
-        }, 900);
+        setLocked(false);
+        matchingInProgress.current.delete(topCardId);
+        setMatches((prev) => {
+          if (prev.length === 3) setTimeout(() => onRoundComplete && onRoundComplete(), 400);
+          return prev;
+        });
       };
 
       if (audioSteps.length > 0) {
@@ -211,8 +206,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
     };
 
     sfx.onended = afterMatchEnd;
-    sfx.onerror = afterMatchEnd; // fallback: skip match-end but still run sequence
-
+    sfx.onerror = afterMatchEnd;
     sfx.play().catch(() => afterMatchEnd());
   }, [onRoundComplete]);
 
@@ -250,7 +244,6 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
     if (card.audio) playAudio(card.audio);
   }, [locked]);
 
-  // Tapping a speaker icon (unmatched bottom token) plays the letter sound
   const handleBotSpeakerTap = useCallback((botIdx) => {
     if (locked) return;
     const letter = bottomLetters[botIdx].letter;
@@ -273,27 +266,22 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
     >
       {locked && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
 
-      <LinesLayer matches={matches} connectorRects={connectorRects}
-                  containerRect={containerRect} topCards={topCards} />
+      <LinesLayer matches={matches} connectorRects={connectorRects} containerRect={containerRect} topCards={topCards} />
 
-      {/* ── TOP CARDS ─────────────────────────────────────────────────────── */}
+      {/* ── TOP CARDS ──────────────────────────────────────────────────────── */}
       <div style={{ display: "flex", justifyContent: "center", gap: 10, width: "100%", zIndex: 10 }}>
         {topCards.map((card, i) => {
           const isMatched     = matchedTopIds.has(card.id);
           const isSelectedTop = selected === `top-${card.id}`;
           const isWrongTop    = wrongFeedback?.topCardId === card.id;
-          const isBouncing    = bounceTop === card.id;
+          const isRevealed    = revealedTopIds.has(card.id);
           const color         = CARD_COLORS[i];
-          const matchedLetter = matches.find((m) => m.topCardId === card.id)?.letter;
+          const matchedLetter = isRevealed ? (matches.find((m) => m.topCardId === card.id)?.letter || null) : null;
 
           return (
-            <div key={card.id}
-              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: 1, maxWidth: 120 }}>
+            <div key={card.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: 1, maxWidth: 120 }}>
               <motion.div
-                animate={
-                  isBouncing ? { y: [0, -14, 0, -7, 0] } :
-                  isWrongTop ? { x: [0, -8, 8, -6, 6, 0] } : {}
-                }
+                animate={isWrongTop ? { x: [0, -8, 8, -6, 6, 0] } : {}}
                 transition={{ duration: 0.5 }}
                 onClick={() => handleTopCardTap(card)}
                 style={{
@@ -309,11 +297,9 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 }}
               >
                 <img src={card.image} alt={card.word}
-                  style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover",
-                           display: "block", pointerEvents: "none" }} />
+                  style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", display: "block", pointerEvents: "none" }} />
                 <PartialWord
                   word={card.word}
-                  targetLetter={card.targetLetter}
                   positionType={card.positionType}
                   isMatched={isMatched}
                   color={color}
@@ -332,10 +318,9 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
         })}
       </div>
 
-      {/* ── spacer ────────────────────────────────────────────────────────── */}
       <div style={{ flex: 1, minHeight: 12 }} />
 
-      {/* ── BOTTOM LETTER TOKENS ──────────────────────────────────────────── */}
+      {/* ── BOTTOM LETTER TOKENS ───────────────────────────────────────────── */}
       <div style={{ display: "flex", justifyContent: "center", gap: 10, width: "100%", zIndex: 10 }}>
         {bottomLetters.map((bl, botIdx) => {
           const isMatched     = matchedBotIdxs.has(botIdx);
@@ -356,7 +341,6 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 color={matchColor || "#7EC8E3"}
               />
 
-              {/* Letter token — speaker icon until revealed */}
               <motion.div
                 animate={isWrongBot ? { x: [0, -8, 8, -6, 6, 0] } : {}}
                 transition={{ duration: 0.5 }}
@@ -382,9 +366,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                       initial={{ scale: 0.4, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: "spring", stiffness: 300, damping: 18 }}
-                      style={{ fontSize: 36, fontWeight: 700,
-                               color: matchColor || "#A8D0E6",
-                               fontFamily: "Fredoka, sans-serif", lineHeight: 1 }}
+                      style={{ fontSize: 36, fontWeight: 700, color: matchColor || "#A8D0E6", fontFamily: "Fredoka, sans-serif", lineHeight: 1 }}
                     >
                       {bl.letter.toUpperCase()}
                     </motion.span>
@@ -395,11 +377,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                       exit={{ opacity: 0, scale: 0.5 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
-                      <Volume2
-                        size={32}
-                        color={isSelectedBot ? "#4A90C4" : "#A8D0E6"}
-                        strokeWidth={2}
-                      />
+                      <Volume2 size={32} color={isSelectedBot ? "#4A90C4" : "#A8D0E6"} strokeWidth={2} />
                     </motion.div>
                   )}
                 </AnimatePresence>
