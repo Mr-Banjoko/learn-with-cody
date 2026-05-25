@@ -335,7 +335,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       {/* ── WORD LABEL ─────────────────────────────────────────────────────── */}
       <motion.button
         whileTap={{ scale: 0.93 }}
-        onClick={() => { wd.audio && playAudio(wd.audio); }}
+        onPointerDown={(e) => { e.preventDefault(); wd.audio && playAudio(wd.audio); }}
         style={{
           width: "100%",
           maxWidth: 300,
@@ -406,7 +406,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                   <div
                     key={si}
                     ref={(el) => (dropZoneRefs.current[slotKey] = el)}
-                    onClick={() => placedPiece && handlePlacedTap(slotKey)}
+                    onPointerDown={() => placedPiece && handlePlacedTap(slotKey)}
                     style={{
                       flex: 1,
                       display: "flex",
@@ -461,7 +461,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
         {/* Reset button — bottom-right of the drop box */}
         {!state.wordComplete && (
           <button
-            onClick={(e) => { e.stopPropagation(); handleReset(); }}
+            onPointerDown={(e) => { e.stopPropagation(); handleReset(); }}
             style={{
               position: "absolute", bottom: 6, right: 6,
               width: 36, height: 36, borderRadius: 18,

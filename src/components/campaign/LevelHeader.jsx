@@ -26,8 +26,6 @@ export default function LevelHeader({ levelNum, mistakes, onBack, lang = "en", g
         borderBottom: "1.5px solid rgba(0,0,0,0.06)",
         background: "rgba(255,255,255,0.75)",
         backdropFilter: "blur(10px)",
-        position: "relative",
-        zIndex: 9999, // always above any in-game lock overlays
       }}
     >
       {/* Row: back arrow | spacer | hearts | hint button */}

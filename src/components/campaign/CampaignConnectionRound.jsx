@@ -179,19 +179,16 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
     const letter = letters[topIdx];
     const letterUrl = getLetterSoundUrl(letter);
     if (letterUrl) playAudio(letterUrl, getLetterGain(letter));
-    setMatches((prev) => {
-      const newMatches = [...prev, { topIdx, botIdx }];
+    const newMatches = [...matches, { topIdx, botIdx }];
+    setMatches(newMatches);
+    setTimeout(() => {
+      setLocked(false);
       if (newMatches.length === 3) {
-        setTimeout(() => {
-          setWon(true);
-          setTimeout(onComplete, 200);
-        }, 800);
-      } else {
-        setTimeout(() => setLocked(false), 800);
+        setWon(true);
+        setTimeout(onComplete, 200);
       }
-      return newMatches;
-    });
-  }, [letters, onComplete]);
+    }, 800);
+  }, [matches, letters, onComplete]);
 
   const handleTopDot = useCallback((topIdx) => {
     if (locked || matchedTopIdxs.has(topIdx)) return;
@@ -274,7 +271,7 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer }) {
               <motion.div
                 animate={isWrongBot ? { x: [0, -8, 8, -6, 6, 0] } : {}}
                 transition={{ duration: 0.4 }}
-                onClick={() => handleSliceTap(botSlot)}
+                onPointerDown={(e) => { e.preventDefault(); handleSliceTap(botSlot); }}
                 style={{ width: "100%", aspectRatio: "1/2", borderRadius: 18, overflow: "hidden", border: isMatched ? `2.5px solid ${dotColor}` : "2.5px solid rgba(168,208,230,0.5)", boxShadow: isMatched ? `0 0 0 4px ${dotColor}44` : "0 4px 14px rgba(0,0,0,0.09)", cursor: "pointer", background: "#f8f8f8", transition: "border 0.18s, box-shadow 0.18s", WebkitTapHighlightColor: "transparent", position: "relative", touchAction: "manipulation" }}
               >
                 <img
@@ -309,16 +306,16 @@ export default function CampaignConnectionRound({ card, onComplete, onMistake, l
       return;
     }
 
-    let innerTimer = null;
     const t = setTimeout(() => {
       if (card.audio) {
         playAudio(card.audio);
-        innerTimer = setTimeout(() => setAudioLocked(false), 1400);
+        const unlock = setTimeout(() => setAudioLocked(false), 1400);
+        return () => clearTimeout(unlock);
       } else {
         setAudioLocked(false);
       }
     }, 300);
-    return () => { clearTimeout(t); clearTimeout(innerTimer); };
+    return () => clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRoundComplete = useCallback(() => {

@@ -51,9 +51,6 @@ export const GAME_ROUNDS = {
     easy: [
       ["bed"], ["beg"], ["bet"], ["den"], ["fed"],
       ["gem"], ["get"], ["hem"], ["hen"], ["jet"],
-      ["keg"], ["leg"], ["men"], ["met"], ["net"],
-      ["peg"], ["pen"], ["pet"], ["red"], ["ten"],
-      ["vet"], ["wed"], ["wet"],
     ],
     difficult: [
       ["bed", "beg"],
@@ -61,22 +58,12 @@ export const GAME_ROUNDS = {
       ["fed", "gem"],
       ["get", "hem"],
       ["hen", "jet"],
-      ["keg", "leg"],
-      ["men", "met"],
-      ["net", "peg"],
-      ["pen", "pet"],
-      ["red", "ten"],
     ],
   },
   "short-i": {
     easy: [
       ["bib"], ["big"], ["bin"], ["bit"], ["dig"],
       ["dim"], ["dip"], ["fig"], ["fin"], ["fit"],
-      ["gig"], ["hid"], ["hip"], ["hit"], ["jig"],
-      ["kid"], ["kit"], ["lid"], ["lip"], ["mix"],
-      ["fix"], ["pig"], ["pin"], ["pit"], ["rib"],
-      ["rid"], ["rim"], ["rip"], ["sip"], ["sit"],
-      ["six"], ["tin"], ["tip"], ["wig"], ["win"], ["zip"],
     ],
     difficult: [
       ["bib", "big"],
@@ -84,11 +71,6 @@ export const GAME_ROUNDS = {
       ["dig", "dim"],
       ["dip", "fig"],
       ["fin", "fit"],
-      ["gig", "hid"],
-      ["hip", "hit"],
-      ["jig", "kid"],
-      ["lip", "mix"],
-      ["pin", "sit"],
     ],
   },
   "short-o": {

@@ -135,15 +135,15 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   const displayCards = phase === "success" && successCards ? successCards : round.shuffledCards;
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 16, overflow: "hidden", position: "relative" }}>
-      {(locked || phase === "success") && <div style={{ position: "absolute", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 16, overflowY: "auto", position: "relative" }}>
+      {(locked || phase === "success") && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
       {/* Word image */}
       <AnimatePresence mode="wait">
         <motion.div key={card.word} initial={{ opacity: 0, scale: 0.93 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }} style={{ position: "relative", width: "100%", maxWidth: 220 }}>
           <div style={{ position: "absolute", top: -12, right: -6, width: 100, height: 85, borderRadius: 28, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -12, left: -6, width: 85, height: 85, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
-          <div onClick={() => { if (!lockedRef.current && card.audio) { cancelAudio(); const cancel = playAudioSequence([{ url: card.audio, gain: 1 }], () => { cancelAudioRef.current = null; }); cancelAudioRef.current = cancel; } }}
+          <div onPointerDown={(e) => { e.preventDefault(); if (!lockedRef.current && card.audio) { cancelAudio(); const cancel = playAudioSequence([{ url: card.audio, gain: 1 }], () => { cancelAudioRef.current = null; }); cancelAudioRef.current = cancel; } }}
             style={{ position: "relative", zIndex: 1, background: "#E8FFFE", borderRadius: 22, padding: 10, boxShadow: "0 10px 32px rgba(30,58,95,0.15)", cursor: "pointer" }}>
             <img src={card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 14, display: "block" }} />
           </div>
@@ -180,11 +180,11 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
 
       {/* Buttons */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
-        <button onClick={handleRefresh}
+        <button onPointerDown={(e) => { e.preventDefault(); handleRefresh(); }}
           style={{ width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.14)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, touchAction: "manipulation", opacity: tracedCount > 0 && !locked && phase === "tracing" ? 1 : 0.35 }}>
           <RotateCcw size={22} color="#A8D0E6" strokeWidth={2.2} />
         </button>
-        <motion.button onClick={() => { if (canSubmit) handleSubmit(); }}
+        <motion.button onPointerDown={(e) => { e.preventDefault(); if (canSubmit) handleSubmit(); }}
           animate={submitError ? { x: [0,-10,10,-8,8,-4,4,0] } : canSubmit ? { scale: [1, 1.04, 1] } : {}}
           transition={submitError ? { duration: 0.5 } : { repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
           style={{ padding: "14px 52px", borderRadius: 999, border: "none", fontSize: 22, fontWeight: 700, fontFamily: "Fredoka, sans-serif", cursor: canSubmit ? "pointer" : "default", background: canSubmit ? "linear-gradient(135deg, #4A90C4, #22c55e)" : "#C5DCF0", color: canSubmit ? "white" : "#9CB8CC", boxShadow: canSubmit ? "0 6px 24px rgba(74,144,196,0.45)" : "none", transition: "background 0.3s, color 0.3s", touchAction: "manipulation" }}>

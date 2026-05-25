@@ -186,64 +186,6 @@ export const SHORT_A_SCORED_ROUNDS = {
   41: 8,
 };
 
-// ── Short E scored rounds ─────────────────────────────────────────────────────
-export const SHORT_E_SCORED_ROUNDS = {
-  1:  3,  // 3 drag = 3 scored
-  2:  6,  // drag×1 + missing01×4 = 5 scored (phonics not scored → 1 drag + 4 missing = 5, but R1 drag too) → 5
-  3:  3,  // 3 drag = 3 scored
-  4:  5,  // connection×3 + identifying×2 = 5 scored
-  5:  5,  // missing01×2 + drag×1 + connection×1 + identifying×1 = 5 scored
-  6:  3,  // 3 drag = 3 scored
-  7:  3,  // 3 drag = 3 scored
-  8:  5,  // catch×3 + rearrange_easy×2 = 5 scored
-  9:  1,  // 1 drawline round = 1 scored
-  10: 1,  // 1 drawline round = 1 scored
-  11: 1,  // 1 drag = 1 scored (5 phonics not scored)
-  12: 5,  // 5 writev2 = 5 scored
-  13: 5,  // dictation×3 + writev2×2 = 5 scored
-  14: 5,  // drawline×1 + catch×1 + rearrange_easy×1 + identifying×1 + missing01×1 = 5 scored
-  15: 1,  // 1 drag = 1 scored (5 phonics not scored)
-  16: 5,  // 5 rearrange_hard = 5 scored
-  17: 5,  // dictation×2 + writev2×3 = 5 scored
-  18: 5,  // 5 word_match = 5 scored
-  19: 5,  // 5 word_to_audio = 5 scored
-  20: 5,  // missing01×1 + catch×1 + drawline×1 + dictation×1 + rearrange_hard×1 = 5 scored
-  21: 5,  // writev2×1 + word_match×1 + word_to_audio×1 + connection×1 + identifying×1 = 5 scored
-  22: 6,  // all 6 rounds scored
-};
-
-// ── Short I scored rounds ─────────────────────────────────────────────────────
-export const SHORT_I_SCORED_ROUNDS = {
-  1:  2,  // drag×2 = 2 scored (2 phonics not scored)
-  2:  3,  // catch×2 + drag×1 = 3 scored (1 phonics not scored)
-  3:  2,  // drag×2 = 2 scored (2 phonics not scored)
-  4:  3,  // rearrange_easy×2 + catch×1 = 3 scored (1 phonics not scored)
-  5:  4,  // connection×2 + identifying×2 = 4 scored
-  6:  4,  // missing01×2 + drag×1 + connection×1 = 4 scored
-  7:  3,  // drawline×1 + identifying×1 + drag×1 = 3 scored
-  8:  4,  // missing01×1 + connection×1 + rearrange_easy×1 + catch×1 = 4 scored
-  9:  4,  // writev2×2 + drag×1 + identifying×1 = 4 scored
-  10: 4,  // drawline×1 + rearrange_easy×1 + catch×1 + phonics(not scored) = 3 scored → 3
-  11: 3,  // drag×1 + missing01×1 + connection×1 = 3 scored (1 phonics not scored)
-  12: 4,  // rearrange_easy×1 + identifying×1 + catch×1 + connection×1 = 4 scored
-  13: 4,  // writev2×2 + drag×1 + identifying×1 = 4 scored
-  14: 4,  // drawline×1 + missing01×1 + rearrange_easy×1 + connection×1 = 4 scored
-  15: 4,  // word_to_audio×1 + connection×1 + drag×1 + identifying×1 = 4 scored
-  16: 4,  // rearrange_hard×2 + rearrange_easy×1 + catch×1 = 4 scored
-  17: 4,  // word_to_audio×1 + writev2×1 + drag×1 + identifying×1 = 4 scored
-  18: 4,  // rearrange_hard×2 + catch×1 + connection×1 = 4 scored
-  19: 4,  // dictation×2 + writev2×2 = 4 scored
-  20: 4,  // word_to_audio×1 + rearrange_easy×1 + identifying×1 + drag×1 = 4 scored
-  21: 4,  // dictation×1 + writev2×1 + connection×1 + catch×1 = 4 scored
-  22: 4,  // word_match×4 = 4 scored
-  23: 4,  // word_to_audio×1 + rearrange_hard×1 + drawline×1 + connection×1 = 4 scored
-  24: 4,  // dictation×1 + writev2×1 + catch×1 + identifying×1 = 4 scored
-  25: 4,  // rearrange_hard×1 + word_to_audio×1 + drawline×1 + connection×1 = 4 scored
-  26: 4,  // dictation×1 + writev2×1 + catch×1 + identifying×1 = 4 scored
-  27: 4,  // word_to_audio×1 + rearrange_hard×1 + drawline×1 + writev2×1 = 4 scored
-  28: 6,  // all 6 rounds scored
-};
-
 /**
  * Get scored round count for a level.
  * @param {string} vowelKey
@@ -253,12 +195,6 @@ export const SHORT_I_SCORED_ROUNDS = {
 export function getScoredRounds(vowelKey, levelNum) {
   if (vowelKey === "short-a") {
     return SHORT_A_SCORED_ROUNDS[levelNum] ?? 5;
-  }
-  if (vowelKey === "short-e") {
-    return SHORT_E_SCORED_ROUNDS[levelNum] ?? 5;
-  }
-  if (vowelKey === "short-i") {
-    return SHORT_I_SCORED_ROUNDS[levelNum] ?? 4;
   }
   return 5; // safe fallback for future vowels
 }

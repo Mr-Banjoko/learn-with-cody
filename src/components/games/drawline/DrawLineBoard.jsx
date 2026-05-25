@@ -14,7 +14,6 @@
  * Wrong: shake + try-again sound + onMistake.
  */
 import { useState, useRef, useCallback, useLayoutEffect, useEffect } from "react";
-import { Volume2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
@@ -97,7 +96,7 @@ function PartialWord({ word, targetLetter, positionType, isMatched, color, revea
               fontFamily: "Fredoka, sans-serif",
               transition: "border 0.18s, background 0.18s",
             }}>
-              {isMatched ? revealedLetter?.toLowerCase() : ""}
+              {isMatched ? revealedLetter?.toUpperCase() : ""}
             </div>
           );
         }
@@ -109,7 +108,7 @@ function PartialWord({ word, targetLetter, positionType, isMatched, color, revea
             lineHeight: 1,
             transition: "color 0.18s",
           }}>
-            {ch.toLowerCase()}
+            {ch.toUpperCase()}
           </span>
         );
       })}
@@ -152,9 +151,6 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
   const matchedTopIds  = new Set(matches.map((m) => m.topCardId));
   const matchedBotIdxs = new Set(matches.map((m) => m.botIdx));
 
-  const onRoundCompleteRef = useRef(onRoundComplete);
-  useEffect(() => { onRoundCompleteRef.current = onRoundComplete; }, [onRoundComplete]);
-
   const triggerCorrectMatch = useCallback((topCardId, letter, botIdx, topCard) => {
     setSelected(null);
     setLocked(true);
@@ -172,13 +168,13 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
           setBounceTop(null);
           setLocked(false);
           setMatches((prev) => {
-            if (prev.length === 3) setTimeout(() => onRoundCompleteRef.current && onRoundCompleteRef.current(), 400);
+            if (prev.length === 3) setTimeout(() => onRoundComplete && onRoundComplete(), 400);
             return prev;
           });
         }, 900);
       }, 900);
     }, 120);
-  }, []);
+  }, [onRoundComplete]);
 
   const triggerWrong = useCallback((topCardId, botIdx) => {
     playTryAgain();
@@ -323,18 +319,18 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 color={matchColor || "#7EC8E3"}
               />
 
-              {/* Letter token — speaker icon until matched, then revealed letter */}
+              {/* Letter token */}
               <motion.div
                 animate={
                   isBouncing ? { y: [0, -14, 0, -7, 0] } :
                   isWrongBot ? { x: [0, -8, 8, -6, 6, 0] } : {}
                 }
                 transition={{ duration: 0.5 }}
-                onClick={() => !isRevealed && handleBotLetterTap(botIdx)}
+                onClick={() => handleBotLetterTap(botIdx)}
                 style={{
                   width: "100%", height: 80, borderRadius: 18,
                   background: isMatched ? matchBg : "white",
-                  border: isMatched     ? `2.5px solid ${matchColor}` :
+                  border: isMatched   ? `2.5px solid ${matchColor}` :
                           isSelectedBot ? "2.5px solid #4A90C4" :
                           "2.5px solid #CBD5E1",
                   boxShadow: isMatched    ? `0 0 0 5px ${matchColor}55` :
@@ -356,19 +352,19 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                                color: matchColor || "#A8D0E6",
                                fontFamily: "Fredoka, sans-serif", lineHeight: 1 }}
                     >
-                      {bl.letter.toLowerCase()}
+                      {bl.letter.toUpperCase()}
                     </motion.span>
                   ) : (
-                    <motion.div key="speaker"
-                      initial={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                      style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                    /* Always show the letter clearly — no hidden speaker icon */
+                    <motion.span key="token"
+                      initial={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      style={{ fontSize: 36, fontWeight: 700,
+                               color: isSelectedBot ? "#4A90C4" : "#64748B",
+                               fontFamily: "Fredoka, sans-serif", lineHeight: 1,
+                               transition: "color 0.18s" }}
                     >
-                      <Volume2
-                        size={34}
-                        color={isSelectedBot ? "#4A90C4" : "#94A3B8"}
-                        style={{ transition: "color 0.18s" }}
-                      />
-                    </motion.div>
+                      {bl.letter.toUpperCase()}
+                    </motion.span>
                   )}
                 </AnimatePresence>
               </motion.div>

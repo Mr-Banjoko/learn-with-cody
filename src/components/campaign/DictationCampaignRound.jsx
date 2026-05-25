@@ -41,8 +41,7 @@ function splitRows(tiles) {
 
 export default function DictationCampaignRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [round] = useState(() => buildRound(card));
-  const wordLen = round.letters.length;
-  const [placed, setPlaced] = useState(() => Array(round.letters.length).fill(null));
+  const [placed, setPlaced] = useState([null, null, null]);
   const [placedColors, setPlacedColors] = useState({});
   const [submitError, setSubmitError] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -54,7 +53,6 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
   const dropZoneRefs = useRef([]);
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
-  const [isActiveDrag, setIsActiveDrag] = useState(false);
   const { play: playTryAgain } = useTryAgainSound();
 
   useEffect(() => {
@@ -63,16 +61,16 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       return;
     }
     setAudioLocked(true);
-    let innerTimer = null;
     const t = setTimeout(() => {
       if (card.audio) {
         playAudio(card.audio);
-        innerTimer = setTimeout(() => setAudioLocked(false), 1400);
+        const u = setTimeout(() => setAudioLocked(false), 1400);
+        return () => clearTimeout(u);
       } else {
         setAudioLocked(false);
       }
     }, 300);
-    return () => { clearTimeout(t); clearTimeout(innerTimer); };
+    return () => clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const playCompletion = useCallback(() => {
@@ -106,10 +104,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
     const touch = e.touches[0];
     const dx = touch.clientX - dragState.startX;
     const dy = touch.clientY - dragState.startY;
-    if (!isDragging.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
-      isDragging.current = true;
-      setIsActiveDrag(true);
-    }
+    if (!isDragging.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) isDragging.current = true;
     setDragState((prev) => prev ? { ...prev, x: prev.originX + dx, y: prev.originY + dy } : null);
   }, [dragState]);
 
@@ -119,7 +114,6 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       const url = getLetterSoundUrl(dragState.letter);
       if (url) playAudio(url, getLetterGain(dragState.letter));
       setDragState(null);
-      setIsActiveDrag(false);
       return;
     }
     const touch = e.changedTouches[0];
@@ -141,11 +135,10 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
     }
     setDragState(null);
     isDragging.current = false;
-    setIsActiveDrag(false);
   }, [dragState, placed, round]);
 
   const handleSubmit = useCallback(() => {
-    if (completing || audioLocked || placed.some((p) => p === null) || placed.length !== round.letters.length) return;
+    if (completing || audioLocked || placed.some((p) => p === null)) return;
     const allCorrect = placed.every((tileId, boxIndex) => {
       const tile = round.tiles.find((t) => t.id === tileId);
       return tile && tile.letter === round.letters[boxIndex];
@@ -161,7 +154,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       setPulsatingIds(correctIds);
       setTimeout(() => {
         setSubmitError(false);
-        setPlaced(Array(round.letters.length).fill(null));
+        setPlaced([null, null, null]);
         setPlacedColors({});
       }, 600);
     }
@@ -169,9 +162,9 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
   const handleReset = useCallback(() => {
     if (completing) return;
-    setPlaced(Array(round.letters.length).fill(null));
+    setPlaced([null, null, null]);
     setPlacedColors({});
-  }, [completing, round.letters.length]);
+  }, [completing]);
 
   const allFilled = placed.every((p) => p !== null);
   const tileRows = splitRows(round.tiles);
@@ -192,7 +185,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
         {/* Drop boxes */}
         <div style={{ display: "flex", gap: "min(14px,3vw)", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          {Array.from({ length: wordLen }, (_, i) => i).map((i) => {
+          {[0, 1, 2].map((i) => {
             const placedTile = placed[i] ? round.tiles.find((t) => t.id === placed[i]) : null;
             const tileColor = placedColors[i];
             return (
@@ -235,12 +228,12 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
         {/* Submit + Reset */}
         <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <button onClick={(e) => { e.stopPropagation(); handleReset(); }}
+          <button onPointerDown={(e) => { e.stopPropagation(); handleReset(); }}
             style={{ width: 54, height: 54, borderRadius: 27, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, touchAction: "manipulation", opacity: placed.some(Boolean) && !completing ? 1 : 0.35 }}>
             <RotateCcw size={24} color="#A8D0E6" strokeWidth={2.2} />
           </button>
           {!completing && (
-            <motion.button whileTap={allFilled ? { scale: 0.93 } : {}} onClick={handleSubmit} disabled={!allFilled}
+            <motion.button whileTap={allFilled ? { scale: 0.93 } : {}} onPointerDown={(e) => { e.preventDefault(); handleSubmit(); }} disabled={!allFilled}
               style={{ padding: "14px 44px", borderRadius: 999, background: allFilled ? "#FF6B6B" : "rgba(255,107,107,0.28)", color: allFilled ? "white" : "rgba(255,107,107,0.55)", border: "none", fontSize: 20, fontWeight: 700, fontFamily: "Fredoka, sans-serif", cursor: allFilled ? "pointer" : "default", boxShadow: allFilled ? "0 4px 0 #cc4444" : "none", transition: "background 0.25s, color 0.25s", touchAction: "manipulation", flexShrink: 0 }}>
               {lang === "zh" ? "提交 ✓" : "Submit ✓"}
             </motion.button>
@@ -250,7 +243,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
 
       {/* Drag ghost */}
       <AnimatePresence>
-        {dragState && isActiveDrag && (
+        {dragState && isDragging.current && (
           <div style={{ position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%,-50%)", zIndex: 9999, pointerEvents: "none", width: "min(80px,20vw)", height: "min(80px,20vw)", borderRadius: 18, background: LETTER_COLORS[round.tiles.findIndex((t) => t.id === dragState.id) % LETTER_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px,11vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 12px 36px rgba(0,0,0,0.25)", border: "3px solid rgba(255,255,255,0.8)" }}>
             {dragState.letter}
           </div>

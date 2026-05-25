@@ -214,7 +214,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         }, 700);
       }
     },
-    [missingLetter, onComplete, onMistake]
+    [missingLetter, audio, onComplete, onMistake]
   );
 
   const handleCatchRef = useRef(handleCatch);
@@ -301,7 +301,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
           boxShadow: "0 4px 20px rgba(30,58,95,0.10)",
         }}>
           <button
-            onClick={() => playAudio(audio)}
+            onPointerDown={(e) => { e.preventDefault(); playAudio(audio); }}
             style={{
               width: 98, height: 98, borderRadius: 18, overflow: "hidden",
               flexShrink: 0, border: "2.5px solid #A8D0E6",
@@ -329,7 +329,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
                   key={i}
                   animate={isMissing && caughtVisible ? { scale: [1, 1.4, 1] } : {}}
                   transition={{ duration: 0.45 }}
-                  onClick={() => showLetter && playAudio(getLetterSoundUrl(letter), getLetterGain(letter))}
+                  onPointerDown={(e) => { e.preventDefault(); showLetter && playAudio(getLetterSoundUrl(letter), getLetterGain(letter)); }}
                   style={{
                     width: 74, height: 74, borderRadius: 18,
                     background: showLetter ? boxColor : "rgba(168,208,230,0.25)",

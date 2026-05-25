@@ -211,7 +211,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
               ref={isMissing ? dropZoneRef : null}
               animate={isWrong ? { x: [0, -10, 10, -7, 7, 0] } : isBouncing ? { y: [0, -20, 0, -10, 0, -4, 0] } : {}}
               transition={{ duration: isWrong ? 0.38 : 0.5 }}
-              onClick={!isMissing && !isCompleting && !audioLocked ? () => handleTopLetterTap(letter) : undefined}
+              onPointerDown={!isMissing && !isCompleting && !audioLocked ? (e) => { e.preventDefault(); handleTopLetterTap(letter); } : undefined}
               style={{ width: "min(108px, 27vw)", height: "min(108px, 27vw)", borderRadius: 26, background: isPlacedHere ? TOP_COLORS[i] : isMissing ? "rgba(255,255,255,0.5)" : TOP_COLORS[i], border: isMissing && !isPlacedHere ? `3px dashed ${accentColor}60` : "3px solid rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isMissing && !isPlacedHere ? "none" : "0 6px 20px rgba(0,0,0,0.10)", cursor: isMissing ? "default" : "pointer", touchAction: "manipulation", transition: "background 0.2s, border 0.2s", flexShrink: 0 }}
             >
               {isPlacedHere ? (
@@ -229,7 +229,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <motion.button
           whileTap={{ scale: 0.88 }}
-          onClick={() => { if (!isCompleting) { round.card.audio && playAudio(round.card.audio); } }}
+          onPointerDown={(e) => { e.preventDefault(); if (!isCompleting) { round.card.audio && playAudio(round.card.audio); } }}
           style={{ width: "min(64px, 16vw)", height: "min(64px, 16vw)", borderRadius: "50%", background: accentColor, border: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 24px ${accentColor}55`, cursor: "pointer", touchAction: "manipulation" }}
         >
           <Play size={26} color="white" fill="white" />
@@ -264,7 +264,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
 
       <motion.button
         whileTap={canSubmit ? { scale: 0.95 } : {}}
-        onClick={(e) => { e.stopPropagation(); handleSubmit(); }}
+        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); handleSubmit(); }}
         style={{ padding: "14px 52px", borderRadius: 99, border: "none", background: canSubmit ? accentColor : "rgba(168,208,230,0.35)", color: canSubmit ? "white" : "rgba(74,144,196,0.4)", fontSize: 20, fontWeight: 700, boxShadow: canSubmit ? `0 6px 24px ${accentColor}50` : "none", cursor: canSubmit ? "pointer" : "not-allowed", transition: "all 0.25s", flexShrink: 0, touchAction: "manipulation" }}
       >
         ✓

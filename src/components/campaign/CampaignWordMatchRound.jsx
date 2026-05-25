@@ -43,12 +43,12 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
     }
     if (autoPlayedRef.current) return;
     autoPlayedRef.current = true;
-    let innerTimer = null;
     const t = setTimeout(() => {
       if (card.audio) playAudio(card.audio);
-      innerTimer = setTimeout(() => setAudioLocked(false), 1400);
+      const u = setTimeout(() => setAudioLocked(false), 1400);
+      return () => clearTimeout(u);
     }, 300);
-    return () => { clearTimeout(t); clearTimeout(innerTimer); };
+    return () => clearTimeout(t);
   }, []); // eslint-disable-line
 
   const handleChoice = useCallback((choice) => {
@@ -76,8 +76,8 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
   const color = "#FF6B6B";
 
   return (
-    <div style={{ flex: 1, overflow: "hidden", padding: "20px 16px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16, fontFamily: "Fredoka, sans-serif", position: "relative" }}>
-      {(audioLocked || feedback === "correct") && <div style={{ position: "absolute", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
+    <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16, fontFamily: "Fredoka, sans-serif", position: "relative" }}>
+      {(audioLocked || feedback === "correct") && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
       {/* Picture card */}
       <AnimatePresence mode="wait">
@@ -113,7 +113,7 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
               whileTap={!feedback ? { scale: 0.93 } : {}}
               animate={isSelected && feedback === "wrong" ? { x: [0, -8, 8, -6, 6, 0] } : {}}
               transition={{ duration: 0.4 }}
-              onClick={() => handleChoice(choice)}
+              onPointerDown={(e) => { e.preventDefault(); handleChoice(choice); }}
               style={{ padding: "16px 8px", borderRadius: 20, background: bg, border, color: textColor, fontSize: 24, fontWeight: 700, fontFamily: "Fredoka, sans-serif", cursor: feedback ? "default" : "pointer", boxShadow: shadow, transition: "background 0.2s, border 0.2s", minHeight: 64, touchAction: "manipulation" }}
             >
               {choice.word}
