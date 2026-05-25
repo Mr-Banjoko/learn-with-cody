@@ -233,7 +233,7 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
       <LinesLayer matches={matches} connectorRects={connectorRects} containerRect={containerRect} />
 
       {/* Row 1: Letters + Row 2: Top dots */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 10, transform: "translateY(20px)" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 20, transform: "translateY(20px)" }}>
         {letters.map((letter, i) => (
           <div key={i} style={{ flex: 1, maxWidth: 100, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
             <motion.div
@@ -255,19 +255,19 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
         ))}
       </div>
 
-      {/* Spacer + Speaker button */}
-      <div style={{ flex: 1, minHeight: 16, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
+      {/* Spacer + Speaker button — pointerEvents only on the button itself, not the container */}
+      <div style={{ flex: 1, minHeight: 16, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 6, pointerEvents: "none" }}>
         <motion.button
           whileTap={{ scale: 0.88 }}
           onPointerDown={(e) => { e.preventDefault(); onSpeakerTap && onSpeakerTap(); }}
-          style={{ width: 73, height: 73, borderRadius: "50%", background: "white", border: "2.5px solid #A8D8EA", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(74,144,196,0.22)", cursor: "pointer", touchAction: "manipulation" }}
+          style={{ width: 73, height: 73, borderRadius: "50%", background: "white", border: "2.5px solid #A8D8EA", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(74,144,196,0.22)", cursor: "pointer", touchAction: "manipulation", pointerEvents: "auto" }}
         >
           <Volume2 size={36} color="#4A90C4" strokeWidth={2} />
         </motion.button>
       </div>
 
       {/* Row 3: Bottom dots + Row 4: Slices */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 10, transform: "translateY(-25%)" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 20, transform: "translateY(-25%)" }}>
         {[0, 1, 2].map((botSlot) => {
           const letterIdx = shuffledOrder[botSlot];
           const isMatched = matchedBotIdxs.has(botSlot);
