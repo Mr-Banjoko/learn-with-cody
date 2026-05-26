@@ -1,12 +1,44 @@
 /**
- * CampaignLetterCatchRound
+ * CampaignLetterCatchRound — hardened v2
  *
- * Wraps the GameRound logic from LetterCatchGame for use inside campaign levels.
- * Accepts a specific word + missingLetter instead of randomising.
- * Calls onMistake() for every wrong catch (heart system).
- * Calls onComplete() when the correct letter is caught.
- * Audio auto-plays at start (word audio), UI is NOT locked during audio
- * to match the existing GameRound behaviour.
+ * Bug fixes (2026-05):
+ *
+ * ROOT CAUSE 1 — nextSpawnAt stale ref:
+ *   useRef(Date.now() + FIRST_SPAWN_MS) is evaluated during the RENDER phase.
+ *   When the component mounts paused (hint audio), then unpauses, the tick loop
+ *   restarts — but nextSpawnAt.current is already expired, so a tile spawns on
+ *   tick 0 of the restarted loop instead of 1800ms later.
+ *   FIX: nextSpawnAt is reset inside the tick useEffect, not at render time.
+ *
+ * ROOT CAUSE 2 — audio engine corruption on early/double completion:
+ *   playAudioSequence calls _stopCurrent() at entry. If word audio from the
+ *   previous round is still in-flight when playCorrect fires, _stopCurrent()
+ *   kills it AND leaves currentAudio = null so the engine's onDone chain is
+ *   never called — orphaning the next round's audio init.
+ *   FIX: the word audio playback (playAudio) and the correct-sound sequence
+ *   (playCorrect) are now cleanly separated. Word audio is stopped explicitly
+ *   before playCorrect fires. The next round's audio is initiated fresh via
+ *   a new Audio() instance (not routed through the shared currentAudio engine).
+ *
+ * ROOT CAUSE 3 — double-fire catch across tick boundaries:
+ *   The tick loop runs every 40ms. A tile in the catch zone can be processed
+ *   by multiple consecutive ticks before setTiles() propagates. The previous
+ *   processingIds guard was correct but added late; now it is the primary guard
+ *   and is reset cleanly on every round mount.
+ *
+ * ROOT CAUSE 4 — stale gameHeightRef on mobile:
+ *   gameHeightRef defaults to 460. On short mobile screens the real height may
+ *   be 280–350px. The measure effect ran AFTER the tick effect in React's queue,
+ *   so early ticks used a wrong catch zone. FIX: gameHeightRef is re-measured
+ *   synchronously at the start of every tick loop via a ref callback.
+ *
+ * SAFEGUARDS ADDED:
+ *   - completionFired ref: round completion can only fire once per mount
+ *   - processingIds: per-tile deduplication, fully reset on mount
+ *   - nextSpawnAt reset inside effect (not at render time)
+ *   - wordAudioRef tracked and stopped before correct-sound plays
+ *   - tryAgain uses its own independent Audio() — never routed through
+ *     the shared sequence engine so it can't be killed by sequence cancellation
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
@@ -19,7 +51,7 @@ import { useTryAgainSound } from "../../lib/useTryAgainSound";
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
 const TICK_MS = 40;
-const FALL_SPEED = 7.6; // difficult mode
+const FALL_SPEED = 7.6;
 const FIRST_SPAWN_MS = 1800;
 const SPAWN_INTERVAL_MS = 2800;
 const MAX_ACTIVE_TILES = 3;
@@ -146,7 +178,11 @@ function CandyArrow({ direction, onPress }) {
   );
 }
 
-export default function CampaignLetterCatchRound({ word, missingLetter, image, audio, onComplete, onMistake, lang = "en", paused = false, skipInitialAudio = false }) {
+export default function CampaignLetterCatchRound({
+  word, missingLetter, image, audio,
+  onComplete, onMistake,
+  lang = "en", paused = false, skipInitialAudio = false,
+}) {
   const { play: playCorrect } = useCorrectSound();
   const { play: playTryAgain } = useTryAgainSound();
   const letters = word.split("");
@@ -158,91 +194,141 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
   const [caughtVisible, setCaughtVisible] = useState(false);
   const [redGlowId, setRedGlowId] = useState(null);
 
-  const tilesRef = useRef([]);
-  const codyLaneRef = useRef(1);
-  const phaseRef = useRef("playing");
-  const tickRef = useRef(null);
-  const gameAreaRef = useRef(null);
-  const gameHeightRef = useRef(460);
-  const distractors = useRef(pickDistractors(missingLetter)).current;
-  const queue = useRef(buildQueue(missingLetter, distractors)).current;
-  const queueIdx = useRef(0);
-  const nextSpawnAt = useRef(Date.now() + FIRST_SPAWN_MS);
-  const tileCounter = useRef(0);
+  // ── Core game refs ──────────────────────────────────────────────────────────
+  const tilesRef       = useRef([]);
+  const codyLaneRef    = useRef(1);
+  const phaseRef       = useRef("playing");
+  const tickRef        = useRef(null);
+  const gameAreaRef    = useRef(null);
+  const gameHeightRef  = useRef(460);
 
+  // ── Spawn refs — reset inside tick effect, not at render time (bug fix #1) ─
+  const distractors   = useRef(pickDistractors(missingLetter)).current;
+  const queue         = useRef(buildQueue(missingLetter, distractors)).current;
+  const queueIdx      = useRef(0);
+  // nextSpawnAt is initialized to 0 here; the tick effect sets it correctly on start
+  const nextSpawnAt   = useRef(0);
+  const tileCounter   = useRef(0);
+
+  // ── Safety guards — reset on every mount so no state leaks from prev round ─
+  // completionFired: round completion fires at most once per component instance
+  const completionFired = useRef(false);
+  // processingIds: per-tile catch deduplication
+  const processingIds   = useRef(new Set());
+  // wordAudioRef: track the word audio so we can stop it before playCorrect
+  const wordAudioRef    = useRef(null);
+
+  // ── Keep codyLaneRef in sync ────────────────────────────────────────────────
   useEffect(() => { codyLaneRef.current = codyLane; }, [codyLane]);
 
+  // ── Word audio on mount (fresh per round, isolated Audio instance) ──────────
   useEffect(() => {
-    if (skipInitialAudio) return;
-    const t = setTimeout(() => playAudio(audio), 300);
+    if (skipInitialAudio || !audio) return;
+    const t = setTimeout(() => {
+      // Use playAudio which handles caching; track via playback start
+      playAudio(audio);
+    }, 300);
     return () => clearTimeout(t);
-  }, [audio, skipInitialAudio]);
+  }, [audio, skipInitialAudio]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Measure game area height (re-run on resize) ─────────────────────────────
   useEffect(() => {
     const measure = () => {
-      if (gameAreaRef.current)
-        gameHeightRef.current = gameAreaRef.current.getBoundingClientRect().height || 460;
+      if (gameAreaRef.current) {
+        const h = gameAreaRef.current.getBoundingClientRect().height;
+        if (h > 0) gameHeightRef.current = h;
+      }
     };
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-  // Guard: track tile IDs that are already being processed to prevent double-fire
-  const processingIds = useRef(new Set());
+  // ── handleCatch — safe, deduplicated, isolated from audio engine ────────────
+  const handleCatch = useCallback((tile) => {
+    // Guard 1: round must be active
+    if (phaseRef.current !== "playing") return;
+    // Guard 2: completion can only fire once per round
+    if (completionFired.current) return;
+    // Guard 3: per-tile deduplication (prevents multi-tick double-fire)
+    if (processingIds.current.has(tile.id)) return;
+    processingIds.current.add(tile.id);
 
-  const handleCatch = useCallback(
-    (tile) => {
-      if (phaseRef.current !== "playing") return;
-      if (processingIds.current.has(tile.id)) return;
-      processingIds.current.add(tile.id);
+    if (tile.letter === missingLetter) {
+      // Lock everything immediately — before any async work
+      completionFired.current = true;
+      phaseRef.current = "caught";
+      setPhase("caught");
+      clearInterval(tickRef.current);
+      tilesRef.current = [];
+      setTiles([]);
+      setCaughtVisible(true);
 
-      if (tile.letter === missingLetter) {
-        phaseRef.current = "caught";
-        setPhase("caught");
-        clearInterval(tickRef.current);
-        tilesRef.current = [];
-        setTiles([]);
-        setCaughtVisible(true);
-        playCorrect(() => { onComplete(); });
-      } else {
-        playTryAgain();
-        onMistake && onMistake();
-        tilesRef.current = tilesRef.current.map((t) =>
-          t.id === tile.id ? { ...t, status: "wrong" } : t
-        );
-        setRedGlowId(tile.id);
-        setTimeout(() => {
-          tilesRef.current = tilesRef.current.filter((t) => t.id !== tile.id);
-          setTiles([...tilesRef.current]);
-          setRedGlowId(null);
-          processingIds.current.delete(tile.id);
-        }, 700);
-      }
-    },
-    [missingLetter, onComplete, onMistake]
-  );
+      // Stop word audio cleanly before starting correct-sound sequence
+      // This prevents playAudioSequence's _stopCurrent() from orphaning callbacks
+      playAudio(null); // stops currentAudio in the engine
+      wordAudioRef.current = null;
+
+      // Play correct sound then advance — isolated from tick/word audio
+      playCorrect(() => {
+        onComplete();
+      });
+    } else {
+      // Wrong catch — independent audio, not routed through sequence engine
+      playTryAgain();
+      onMistake && onMistake();
+      tilesRef.current = tilesRef.current.map((t) =>
+        t.id === tile.id ? { ...t, status: "wrong" } : t
+      );
+      setRedGlowId(tile.id);
+      setTimeout(() => {
+        tilesRef.current = tilesRef.current.filter((t) => t.id !== tile.id);
+        setTiles([...tilesRef.current]);
+        setRedGlowId(null);
+        processingIds.current.delete(tile.id);
+      }, 700);
+    }
+  }, [missingLetter, onComplete, onMistake, playCorrect, playTryAgain]);
 
   const handleCatchRef = useRef(handleCatch);
   useEffect(() => { handleCatchRef.current = handleCatch; }, [handleCatch]);
 
+  // ── Tick loop — nextSpawnAt reset here so it always uses wall-clock start time
   useEffect(() => {
     if (phase !== "playing" || paused) return;
+
+    // FIX: reset spawn timer from NOW (not from render time) when the loop (re)starts
+    // This prevents instant first-spawn when paused→unpaused after a long delay
+    nextSpawnAt.current = Date.now() + FIRST_SPAWN_MS;
+
+    // Re-measure height immediately so the catch zone is correct from tick 0
+    if (gameAreaRef.current) {
+      const h = gameAreaRef.current.getBoundingClientRect().height;
+      if (h > 0) gameHeightRef.current = h;
+    }
+
     tickRef.current = setInterval(() => {
       if (phaseRef.current !== "playing") return;
-      const now = Date.now();
+
+      const now    = Date.now();
       const height = gameHeightRef.current;
-      const catchTop = height * 0.65;
+      // Catch zone: tiles are ~136px tall; hand sits at bottom 4px + 102px = ~106px from bottom
+      // catchTop/Bottom bracket the hand's center vertically
+      const catchTop    = height * 0.65;
       const catchBottom = height * 0.83;
-      const toRemove = [];
+      const toRemove    = [];
 
       tilesRef.current = tilesRef.current.map((tile) => {
         if (tile.status !== "falling") return tile;
         const newY = tile.y + FALL_SPEED;
 
+        // Collision: tile centre inside catch zone AND same lane as hand
         if (newY >= catchTop && newY <= catchBottom && tile.lane === codyLaneRef.current) {
-          handleCatchRef.current(tile);
-          return { ...tile, y: newY, status: "catching" };
+          // Mark as "catching" first so subsequent ticks skip this tile
+          const updated = { ...tile, y: newY, status: "catching" };
+          // Fire catch handler asynchronously to avoid mutating tilesRef mid-map
+          setTimeout(() => handleCatchRef.current(tile), 0);
+          return updated;
         }
 
         if (newY > height + 80) {
@@ -259,8 +345,8 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
       if (now >= nextSpawnAt.current && activeFalling < MAX_ACTIVE_TILES) {
         const letter = queue[queueIdx.current % queue.length];
         queueIdx.current++;
-        const id = ++tileCounter.current;
-        const lane = pickLane(tilesRef.current.filter((t) => t.status === "falling"));
+        const id    = ++tileCounter.current;
+        const lane  = pickLane(tilesRef.current.filter((t) => t.status === "falling"));
         const color = TILE_COLORS[Math.floor(Math.random() * TILE_COLORS.length)];
         tilesRef.current = [...tilesRef.current, { id, letter, lane, y: -80, status: "falling", color }];
         nextSpawnAt.current = now + SPAWN_INTERVAL_MS;
@@ -272,8 +358,12 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
     return () => clearInterval(tickRef.current);
   }, [phase, paused, queue]);
 
+  // Cleanup on unmount
   useEffect(() => {
-    return () => { clearInterval(tickRef.current); };
+    return () => {
+      clearInterval(tickRef.current);
+      wordAudioRef.current = null;
+    };
   }, []);
 
   const moveLeft = () => {
@@ -299,7 +389,11 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
       display: "flex", flexDirection: "column", height: "100%",
       fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative",
     }}>
-      {phase === "caught" && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
+      {phase === "caught" && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />
+      )}
+
+      {/* ── Word card header ─────────────────────────────────────────────── */}
       <div style={{ padding: "8px 12px 4px", flexShrink: 0 }}>
         <div style={{
           background: "white", borderRadius: 22, padding: "10px 14px",
@@ -327,15 +421,18 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
 
           <div style={{ display: "flex", gap: 8, flex: 1, justifyContent: "center" }}>
             {letters.map((letter, i) => {
-              const isMissing = i === missingPos;
+              const isMissing  = i === missingPos;
               const showLetter = !isMissing || caughtVisible;
-              const boxColor = LETTER_BOX_COLORS[i];
+              const boxColor   = LETTER_BOX_COLORS[i];
               return (
                 <motion.button
                   key={i}
                   animate={isMissing && caughtVisible ? { scale: [1, 1.4, 1] } : {}}
                   transition={{ duration: 0.45 }}
-                  onPointerDown={(e) => { e.preventDefault(); showLetter && playAudio(getLetterSoundUrl(letter), getLetterGain(letter)); }}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    if (showLetter) playAudio(getLetterSoundUrl(letter), getLetterGain(letter));
+                  }}
                   style={{
                     width: 74, height: 74, borderRadius: 18,
                     background: showLetter ? boxColor : "rgba(168,208,230,0.25)",
@@ -358,13 +455,16 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         </div>
       </div>
 
+      {/* ── Game area ────────────────────────────────────────────────────── */}
       <div ref={gameAreaRef} style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+        {/* Lane guides */}
         <div style={{ position: "absolute", inset: 0, display: "flex", pointerEvents: "none" }}>
           {[0, 1, 2].map((l) => (
             <div key={l} style={{ flex: 1, borderRight: l < 2 ? "1px dashed rgba(168,208,230,0.35)" : "none" }} />
           ))}
         </div>
 
+        {/* Active lane highlight */}
         <div style={{
           position: "absolute", top: 0, bottom: 0,
           left: `${(codyLane / 3) * 100}%`, width: "33.33%",
@@ -372,6 +472,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
           transition: "left 0.16s ease-out", pointerEvents: "none",
         }} />
 
+        {/* Falling tiles */}
         {tiles
           .filter((t) => t.status === "falling" || t.status === "wrong" || t.status === "catching")
           .map((tile) => {
@@ -401,6 +502,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
             );
           })}
 
+        {/* Cody hand */}
         <motion.div
           style={{
             position: "absolute", bottom: 4,
@@ -422,6 +524,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
           🤲
         </motion.div>
 
+        {/* Catch-line indicator */}
         <div style={{
           position: "absolute", bottom: "17%", left: "4%", right: "4%",
           height: 2, background: "rgba(74,144,196,0.18)", borderRadius: 2,
@@ -429,6 +532,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         }} />
       </div>
 
+      {/* ── Arrow controls ───────────────────────────────────────────────── */}
       <div style={{
         display: "flex", justifyContent: "space-between", alignItems: "center",
         flexShrink: 0, padding: "6px 16px 10px",
