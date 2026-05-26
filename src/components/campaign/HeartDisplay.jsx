@@ -39,11 +39,15 @@ function HeartSlot({ slotIndex, mistakes, size }) {
   if (isOutline) {
     return (
       <div style={wrapStyle}>
-        <Lottie
-          animationData={heartOutlineData}
-          loop
-          style={{ width: size * 3.4, height: size * 3.4, transform: "scale(0.29)", transformOrigin: "center" }}
-        />
+        <svg width={size * 0.72} height={size * 0.72} viewBox="0 0 100 90" fill="none">
+          <path
+            d="M50 85 C50 85 5 55 5 28 C5 14 16 5 28 5 C36 5 44 10 50 18 C56 10 64 5 72 5 C84 5 95 14 95 28 C95 55 50 85 50 85Z"
+            fill="none"
+            stroke="#FF4444"
+            strokeWidth="7"
+            strokeLinejoin="round"
+          />
+        </svg>
       </div>
     );
   }
