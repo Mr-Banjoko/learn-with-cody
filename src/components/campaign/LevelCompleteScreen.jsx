@@ -269,13 +269,13 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
       fontFamily: "Fredoka, sans-serif",
       position: "relative", overflow: "hidden",
     }}>
-      {/* ── Phase 1: Full-screen trophy animation ───────────────────────── */}
+      {/* ── Trophy: animating overlay fades out, frozen in-flow fades in simultaneously ── */}
       <AnimatePresence>
         {phase === 1 && (
           <motion.div
-            key="trophy-phase"
+            key="trophy-anim"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.35 }}
             style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 20 }}
           >
             <Lottie
@@ -283,17 +283,31 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
               loop={false}
               autoplay={true}
               onComplete={() => {
-                // Trophy animation done → if sound also finished, advance to layout
                 trophyDone.current = true;
                 if (soundDone.current) setPhase(2);
               }}
-              style={{ width: 320, height: 320 }}
+              style={{ width: 360, height: 360 }}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Phase 2+: Static layout ──────────────────────────────────────── */}
+      {/* Phase 2+: frozen trophy in normal flow — fades in as animated one fades out */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: phase >= 2 ? 1 : 0 }}
+        transition={{ duration: 0.35 }}
+        style={{ width: 360, height: 360, marginBottom: 8, flexShrink: 0, pointerEvents: "none" }}
+      >
+        <Lottie
+          animationData={trophyData}
+          loop={false} autoplay={false}
+          initialSegment={[70, 71]}
+          style={{ width: "100%", height: "100%" }}
+        />
+      </motion.div>
+
+      {/* ── Phase 2+: Text + stars + button ──────────────────────────────── */}
       <AnimatePresence>
         {phase >= 2 && (
           <motion.div
@@ -302,17 +316,8 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
             transition={{ duration: 0.3 }}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}
           >
-            {/* Frozen trophy */}
-            <div style={{ width: 360, height: 360, marginBottom: 8 }}>
-              <Lottie
-                animationData={trophyData}
-                loop={false} autoplay={false}
-                initialSegment={[70, 71]}
-                style={{ width: "100%", height: "100%" }}
-              />
-            </div>
 
-            <h1 style={{ fontSize: 44, fontWeight: 700, color: "#1E293B", margin: "0 0 8px" }}>
+            <h1 style={{ fontSize: 44, fontWeight: 700, color: "#1E293B", margin: "0 0 8px", marginTop: 0 }}>
               {lang === "zh" ? "完成！" : "You did it!"}
             </h1>
             <p style={{ fontSize: 22, color: "#64748B", margin: "0 0 24px", maxWidth: 320 }}>
