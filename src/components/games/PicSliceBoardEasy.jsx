@@ -6,6 +6,40 @@ import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
+const LETTER_BLOCK_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#C4B5FD"];
+
+function LetterBlocks({ word, activeLetterIndex }) {
+  const letters = word.toLowerCase().split("");
+  return (
+    <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+      {letters.map((letter, i) => {
+        const isActive = activeLetterIndex === i;
+        return (
+          <motion.div
+            key={i}
+            animate={isActive ? { y: [0, -14, 0, -7, 0] } : { y: 0 }}
+            transition={isActive ? { duration: 0.45 } : {}}
+            style={{
+              width: "min(52px, 13vw)",
+              height: "min(52px, 13vw)",
+              borderRadius: 14,
+              background: LETTER_BLOCK_COLORS[i % LETTER_BLOCK_COLORS.length],
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "min(30px, 7.5vw)",
+              fontWeight: 700, color: "#1E3A5F",
+              boxShadow: isActive ? "0 6px 18px rgba(30,58,95,0.22)" : "0 3px 10px rgba(30,58,95,0.12)",
+              border: "2.5px solid rgba(255,255,255,0.8)",
+              transition: "box-shadow 0.15s",
+            }}
+          >
+            {letter}
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
 // Round color palette — one theme chosen randomly per round
 const ROUND_PALETTES = [
   { bg: "#FFD6E0", border: "#FFB3C6", shadow: "rgba(255,130,170,0.30)" },  // pink
@@ -71,6 +105,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
   const [state, setState] = useState(() => buildState(wordPair, orderedAudio));
   const [dragState, setDragState] = useState(null);
   const [playingSequence, setPlayingSequence] = useState(false);
+  const [activeLetterIndex, setActiveLetterIndex] = useState(null);
   // IDs of tray pieces that should currently be pulsating (hint glow)
   const [pulsatingIds, setPulsatingIds] = useState(new Set());
   // The slot index whose drop-box label should pulsate (null = none)
@@ -116,6 +151,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
     setState(buildState(wordPair, orderedAudio));
     setDragState(null);
     setPlayingSequence(false);
+    setActiveLetterIndex(null);
     setListenedIds(new Set());   // ← reset locks every round
     setPulsatingIds(new Set());
     setWordPulsating(null);
@@ -143,12 +179,12 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
 
     const orderedPhonemes = [0, 1, 2].map((slot) => {
       const piece = state.pieces.find((p) => p.wordIndex === 0 && p.targetSlot === slot);
-      return piece ? { url: piece.letterAudio, gain: getLetterGain(piece.phoneme) } : null;
+      return piece ? { url: piece.letterAudio, gain: getLetterGain(piece.phoneme), slot } : null;
     }).filter(Boolean);
 
     const steps = [
-      ...orderedPhonemes.map((p) => ({ url: p.url, gain: p.gain })),
-      { url: wd.audio, gain: 1 },
+      ...orderedPhonemes.map((p, i) => ({ url: p.url, gain: p.gain, onStart: () => setActiveLetterIndex(i) })),
+      { url: wd.audio, gain: 1, onStart: () => setActiveLetterIndex(null) },
     ];
 
     const advanceTimer = { id: null };
@@ -334,29 +370,35 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       {playingSequence && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
 
       {/* ── WORD LABEL ─────────────────────────────────────────────────────── */}
-      <motion.button
-        whileTap={{ scale: 0.93 }}
-        onPointerDown={(e) => { e.preventDefault(); wd.audio && playAudio(wd.audio); }}
-        style={{
-          width: "100%",
-          maxWidth: 300,
-          padding: "10px 16px",
-          background: bg,
-          border: `2.5px solid ${border}`,
-          borderRadius: 18,
-          fontSize: "clamp(26px, 7.5vw, 38px)",
-          fontWeight: 700,
-          color: "#1E3A5F",
-          letterSpacing: 4,
-          textAlign: "center",
-          cursor: "pointer",
-          fontFamily: "Fredoka, sans-serif",
-          boxShadow: `0 3px 14px ${shadow}`,
-          flexShrink: 0,
-        }}
-      >
-        {wd.word.toLowerCase()}
-      </motion.button>
+      {playingSequence ? (
+        <div style={{ width: "100%", maxWidth: 300, padding: "10px 16px", flexShrink: 0, display: "flex", justifyContent: "center" }}>
+          <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex} />
+        </div>
+      ) : (
+        <motion.button
+          whileTap={{ scale: 0.93 }}
+          onPointerDown={(e) => { e.preventDefault(); wd.audio && playAudio(wd.audio); }}
+          style={{
+            width: "100%",
+            maxWidth: 300,
+            padding: "10px 16px",
+            background: bg,
+            border: `2.5px solid ${border}`,
+            borderRadius: 18,
+            fontSize: "clamp(26px, 7.5vw, 38px)",
+            fontWeight: 700,
+            color: "#1E3A5F",
+            letterSpacing: 4,
+            textAlign: "center",
+            cursor: "pointer",
+            fontFamily: "Fredoka, sans-serif",
+            boxShadow: `0 3px 14px ${shadow}`,
+            flexShrink: 0,
+          }}
+        >
+          {wd.word.toLowerCase()}
+        </motion.button>
+      )}
 
       {/* ── DROP BOX ───────────────────────────────────────────────────────── */}
       <div style={{ flexShrink: 0, width: "100%", maxWidth: 280, position: "relative" }}>
