@@ -186,7 +186,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
                   border: isTraced ? "4px solid transparent" : "4px solid transparent",
                   background: isTraced
                     ? "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box"
-                    : "white",
+                    : "transparent",
                   boxShadow: isTraced ? "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)" : "none",
                   transition: "background 0.2s, box-shadow 0.2s",
                 }}>
