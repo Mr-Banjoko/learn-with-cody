@@ -153,7 +153,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
           <div style={{ position: "absolute", top: -12, right: -6, width: 100, height: 85, borderRadius: 28, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -12, left: -6, width: 85, height: 85, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
           <div onPointerDown={(e) => { e.preventDefault(); if (!lockedRef.current && card.audio) { cancelAudio(); const cancel = playAudioSequence([{ url: card.audio, gain: 1 }], () => { cancelAudioRef.current = null; }); cancelAudioRef.current = cancel; } }}
-            style={{ position: "relative", zIndex: 1, background: "#E8FFFE", borderRadius: 22, padding: 10, boxShadow: "0 10px 32px rgba(30,58,95,0.15)", cursor: "pointer" }}>
+            style={{ position: "relative", zIndex: 1, borderRadius: 22, padding: 10, boxShadow: "0 10px 32px rgba(30,58,95,0.15)", cursor: "pointer", border: phase === "success" ? "4px solid transparent" : "none", background: phase === "success" ? "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box" : "#E8FFFE", transition: "background 0.3s" }}>
             <img src={card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 14, display: "block" }} />
           </div>
         </motion.div>
