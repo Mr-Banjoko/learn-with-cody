@@ -359,40 +359,36 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
         />
       )}
 
-      {/* ── Two word sections stacked vertically ──────────────────────────── */}
+      {/* ── Layout: top area (labels + drop boxes) + bottom tray ──────────── */}
       <div style={{
         flex: 1,
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-evenly",
-        padding: "8px 14px 8px",
+        padding: "8px 14px 10px",
         gap: 10,
         minHeight: 0,
         overflow: "hidden",
       }}>
-        {wordPair.map((wd, wi) => {
-          const done = state.wordComplete[wi];
-          const color = wi === 0 ? "#FFB3C6" : "#A8D8F0";
-          const shadow = wi === 0 ? "rgba(255,130,170,0.30)" : "rgba(60,150,240,0.25)";
-          // Pieces for this word
-          const wordPieces = state.pieces.filter((p) => p.wordIndex === wi);
 
-          return (
-            <div key={wi} style={{ flex: 1, display: "flex", flexDirection: "row", gap: 10, minHeight: 0, alignItems: "stretch" }}>
+        {/* Top: two word sections side by side */}
+        <div style={{ display: "flex", flexDirection: "row", gap: 10, flex: "0 0 auto" }}>
+          {wordPair.map((wd, wi) => {
+            const done = state.wordComplete[wi];
+            const color = wi === 0 ? "#FFB3C6" : "#A8D8F0";
+            const shadow = wi === 0 ? "rgba(255,130,170,0.30)" : "rgba(60,150,240,0.25)";
+            return (
+              <div key={wi} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5, minWidth: 0 }}>
 
-              {/* Left: letter blocks + drop box stacked */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: "0 0 48%", minWidth: 0 }}>
-
-                {/* Letter blocks / word label */}
+                {/* Letter blocks */}
                 <div
-                  style={{ display: "flex", justifyContent: "flex-start", cursor: playbackLocked ? "default" : "pointer", flexShrink: 0 }}
+                  style={{ display: "flex", justifyContent: "center", cursor: playbackLocked ? "default" : "pointer" }}
                   onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
                 >
                   <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} color={color} />
                 </div>
 
-                {/* Drop box — square intrinsic */}
-                <div style={{ position: "relative", width: "100%", paddingBottom: "100%", height: 0, flex: "0 0 auto" }}>
+                {/* Drop box — square via paddingBottom trick */}
+                <div style={{ position: "relative", width: "100%", paddingBottom: "75%", height: 0 }}>
                   <div style={{ position: "absolute", inset: 0 }}>
                     <AnimatePresence mode="wait">
                       {done ? (
@@ -401,18 +397,9 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                           initial={{ scale: 0.85, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ type: "spring", stiffness: 260, damping: 18 }}
-                          style={{
-                            width: "100%", height: "100%",
-                            borderRadius: 18, overflow: "hidden",
-                            border: `3px solid ${color}`,
-                            boxShadow: `0 6px 28px ${shadow}`,
-                          }}
+                          style={{ width: "100%", height: "100%", borderRadius: 14, overflow: "hidden", border: `3px solid ${color}`, boxShadow: `0 6px 28px ${shadow}` }}
                         >
-                          <img
-                            src={wd.fullImage || wd.image || (wd.slices && wd.slices[0])}
-                            alt={wd.word}
-                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                          />
+                          <img src={wd.fullImage || wd.image || (wd.slices && wd.slices[0])} alt={wd.word} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         </motion.div>
                       ) : (
                         <motion.div
@@ -420,7 +407,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                           style={{
                             width: "100%", height: "100%",
                             display: "flex", flexDirection: "row",
-                            borderRadius: 18, overflow: "hidden",
+                            borderRadius: 14, overflow: "hidden",
                             border: `3px solid ${color}`,
                             background: playbackLocked ? "rgba(240,240,240,0.6)" : "rgba(255,255,255,0.75)",
                             boxShadow: "0 4px 16px rgba(30,58,95,0.08)",
@@ -439,8 +426,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                                 ref={(el) => (dropZoneRefs.current[slotKey] = el)}
                                 onPointerDown={() => !playbackLocked && placedPiece && handlePlacedTap(slotKey)}
                                 style={{
-                                  flex: 1,
-                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
                                   borderRight: si < 2 ? `2px dashed ${color}` : "none",
                                   animation: isRejected ? "psShake 0.4s ease" : "none",
                                   position: "relative", overflow: "hidden",
@@ -448,16 +434,11 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                                 }}
                               >
                                 {placedPiece ? (
-                                  <motion.div
-                                    initial={{ scale: 0.5, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    transition={{ type: "spring", stiffness: 380, damping: 18 }}
-                                    style={{ position: "absolute", inset: 0 }}
-                                  >
+                                  <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 380, damping: 18 }} style={{ position: "absolute", inset: 0 }}>
                                     <img src={placedPiece.sliceSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                                   </motion.div>
                                 ) : (
-                                  <span style={{ fontSize: "clamp(10px, 2.5vw, 14px)", color, fontWeight: 700 }}>
+                                  <span style={{ fontSize: "clamp(9px, 2vw, 13px)", color, fontWeight: 700 }}>
                                     {si === 0 ? tx("1st", "ordinal_1", lang) : si === 1 ? tx("2nd", "ordinal_2", lang) : tx("3rd", "ordinal_3", lang)}
                                   </span>
                                 )}
@@ -474,7 +455,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                         onPointerDown={(e) => { e.stopPropagation(); handleReset(wi); }}
                         style={{
                           position: "absolute", bottom: 4, right: 4,
-                          width: 30, height: 30, borderRadius: 15,
+                          width: 26, height: 26, borderRadius: 13,
                           background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
                           border: "none", cursor: playbackLocked ? "default" : "pointer",
                           display: "flex", alignItems: "center", justifyContent: "center",
@@ -483,52 +464,53 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                           pointerEvents: playbackLocked ? "none" : "auto",
                         }}
                       >
-                        <RotateCcw size={15} color="#A8D0E6" strokeWidth={2.2} />
+                        <RotateCcw size={13} color="#A8D0E6" strokeWidth={2.2} />
                       </button>
                     )}
                   </div>
                 </div>
-              </div>
 
-              {/* Right: 3 tall portrait slices spaced evenly in a column */}
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, justifyContent: "space-evenly", minWidth: 0 }}>
-                {wordPieces.map((piece) => {
-                  const isPlaced = !state.trayIds.includes(piece.id);
-                  const isDraggingThis = dragState?.piece.id === piece.id;
-                  if (isPlaced) {
-                    return <div key={piece.id} style={{ flex: 1, visibility: "hidden", borderRadius: 12 }} />;
-                  }
-                  return (
-                    <motion.div
-                      key={piece.id}
-                      animate={isDraggingThis ? { opacity: 0.25, scale: 1.04 } : { opacity: playbackLocked ? 0.4 : 1, scale: 1 }}
-                      onTouchStart={(e) => !playbackLocked && handleTouchStart(e, piece)}
-                      style={{
-                        flex: 1,
-                        borderRadius: 12, overflow: "hidden",
-                        boxShadow: "0 6px 18px rgba(30,58,95,0.18)",
-                        border: "2.5px solid rgba(255,255,255,0.85)",
-                        cursor: playbackLocked ? "default" : "grab",
-                        touchAction: "none",
-                        background: "white",
-                        pointerEvents: playbackLocked ? "none" : "auto",
-                        minHeight: 0,
-                      }}
-                    >
-                      <img
-                        src={piece.sliceSrc}
-                        alt=""
-                        draggable={false}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
-                      />
-                    </motion.div>
-                  );
-                })}
               </div>
+            );
+          })}
+        </div>
 
-            </div>
-          );
-        })}
+        {/* Bottom: all 6 portrait slices in one horizontal row */}
+        <div style={{ display: "flex", flexDirection: "row", gap: 7, flex: 1, minHeight: 0, alignItems: "stretch" }}>
+          {state.pieces.map((piece) => {
+            const isPlaced = !state.trayIds.includes(piece.id);
+            const isDraggingThis = dragState?.piece.id === piece.id;
+            if (isPlaced) {
+              return <div key={piece.id} style={{ flex: 1, visibility: "hidden" }} />;
+            }
+            return (
+              <motion.div
+                key={piece.id}
+                animate={isDraggingThis ? { opacity: 0.25, scale: 1.04 } : { opacity: playbackLocked ? 0.4 : 1, scale: 1 }}
+                onTouchStart={(e) => !playbackLocked && handleTouchStart(e, piece)}
+                style={{
+                  flex: 1,
+                  borderRadius: 12, overflow: "hidden",
+                  boxShadow: "0 5px 16px rgba(30,58,95,0.16)",
+                  border: "2.5px solid rgba(255,255,255,0.85)",
+                  cursor: playbackLocked ? "default" : "grab",
+                  touchAction: "none",
+                  background: "white",
+                  pointerEvents: playbackLocked ? "none" : "auto",
+                  minHeight: 0,
+                }}
+              >
+                <img
+                  src={piece.sliceSrc}
+                  alt=""
+                  draggable={false}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
+                />
+              </motion.div>
+            );
+          })}
+        </div>
+
       </div>
 
       {/* ── Drag ghost ─────────────────────────────────────────────────────── */}
