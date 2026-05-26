@@ -6,29 +6,27 @@ import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
-const LETTER_BLOCK_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#C4B5FD"];
-
-function LetterBlocks({ word, activeLetterIndex }) {
+function LetterBlocks({ word, activeLetterIndex, color }) {
   const letters = word.toLowerCase().split("");
   return (
-    <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+    <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
       {letters.map((letter, i) => {
         const isActive = activeLetterIndex === i;
         return (
           <motion.div
             key={i}
-            animate={isActive ? { y: [0, -14, 0, -7, 0] } : { y: 0 }}
+            animate={isActive ? { y: [0, -20, 0, -10, 0] } : { y: 0 }}
             transition={isActive ? { duration: 0.45 } : {}}
             style={{
-              width: "min(52px, 13vw)",
-              height: "min(52px, 13vw)",
-              borderRadius: 14,
-              background: LETTER_BLOCK_COLORS[i % LETTER_BLOCK_COLORS.length],
+              width: "min(104px, 26vw)",
+              height: "min(104px, 26vw)",
+              borderRadius: 18,
+              background: color,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "min(30px, 7.5vw)",
+              fontSize: "min(60px, 15vw)",
               fontWeight: 700, color: "#1E3A5F",
-              boxShadow: isActive ? "0 6px 18px rgba(30,58,95,0.22)" : "0 3px 10px rgba(30,58,95,0.12)",
-              border: "2.5px solid rgba(255,255,255,0.8)",
+              boxShadow: isActive ? "0 8px 24px rgba(30,58,95,0.28)" : "0 4px 14px rgba(30,58,95,0.14)",
+              border: "3px solid rgba(255,255,255,0.85)",
               transition: "box-shadow 0.15s",
             }}
           >
@@ -372,7 +370,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       {/* ── WORD LABEL ─────────────────────────────────────────────────────── */}
       {playingSequence ? (
         <div style={{ width: "100%", maxWidth: 300, padding: "10px 16px", flexShrink: 0, display: "flex", justifyContent: "center" }}>
-          <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex} />
+          <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex} color={bg} />
         </div>
       ) : (
         <motion.button
