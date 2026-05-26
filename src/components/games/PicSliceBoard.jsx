@@ -368,11 +368,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
             key={wi}
             style={{
               flex: 1, padding: "8px 6px",
-              background: wi === 0 ? "#FFD6E0" : "#D6F0FF",
-              border: `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
-              borderRadius: 18,
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 4px 16px rgba(30,58,95,0.10)",
               cursor: playbackLocked ? "default" : "pointer",
             }}
             onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
