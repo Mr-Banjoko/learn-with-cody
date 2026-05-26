@@ -420,7 +420,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                         key="slots"
                         style={{
                           height: "100%", aspectRatio: "1 / 1",
-                          display: "flex", flexDirection: "column",
+                          display: "flex", flexDirection: "row",
                           borderRadius: 18, overflow: "hidden",
                           border: `3px solid ${color}`,
                           background: playbackLocked ? "rgba(240,240,240,0.6)" : "rgba(255,255,255,0.75)",
@@ -442,7 +442,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                               style={{
                                 flex: 1,
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                borderBottom: si < 2 ? `2px dashed ${color}` : "none",
+                                borderRight: si < 2 ? `2px dashed ${color}` : "none",
                                 animation: isRejected ? "psShake 0.4s ease" : "none",
                                 position: "relative", overflow: "hidden",
                                 cursor: (playbackLocked || !placedPiece) ? "default" : "pointer",
