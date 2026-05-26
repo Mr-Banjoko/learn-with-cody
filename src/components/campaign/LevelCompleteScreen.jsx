@@ -302,7 +302,7 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
             style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}
           >
             {/* Frozen trophy */}
-            <div style={{ width: 180, height: 180, marginBottom: 4 }}>
+            <div style={{ width: 360, height: 360, marginBottom: 8 }}>
               <Lottie
                 animationData={trophyData}
                 loop={false} autoplay={false}
@@ -311,33 +311,32 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
               />
             </div>
 
-            <h1 style={{ fontSize: 34, fontWeight: 700, color: "#1E293B", margin: "0 0 4px" }}>
+            <h1 style={{ fontSize: 44, fontWeight: 700, color: "#1E293B", margin: "0 0 8px" }}>
               {lang === "zh" ? "完成！" : "You did it!"}
             </h1>
-            <p style={{ fontSize: 16, color: "#64748B", margin: "0 0 16px", maxWidth: 280 }}>
+            <p style={{ fontSize: 22, color: "#64748B", margin: "0 0 24px", maxWidth: 320 }}>
               {levelLabel} {lang === "zh" ? "完成！" : "Complete!"}
             </p>
 
             {/* ── Star row — earned stars pop in, unearned show as grey outlines ── */}
-            <div style={{ display: "flex", gap: 16, alignItems: "center", justifyContent: "center", marginBottom: 16, minHeight: 80 }}>
+            <div style={{ display: "flex", gap: 20, alignItems: "center", justifyContent: "center", marginBottom: 28, minHeight: 100 }}>
               {[1, 2, 3].map((starNum) => {
                 const isEarned = starNum <= clampedStars;
                 const isRevealed = visibleStars >= starNum;
-                // Grey stars reveal sequentially after earned ones
-                const greyIndex = starNum - clampedStars; // 1-based index among grey stars
+                const greyIndex = starNum - clampedStars;
                 const isGreyRevealed = !isEarned && visibleGreyStars >= greyIndex;
                 return (
-                  <div key={starNum} style={{ position: "relative", width: 72, height: 72 }}>
+                  <div key={starNum} style={{ position: "relative", width: 96, height: 96 }}>
                     {isEarned ? (
-                      <AnimatedStar visible={isRevealed} size={72} />
+                      <AnimatedStar visible={isRevealed} size={96} />
                     ) : (
                       <motion.div
                         initial={{ scale: 0, opacity: 0, rotate: -30 }}
                         animate={isGreyRevealed ? { scale: 1, opacity: 1, rotate: 0 } : { scale: 0, opacity: 0, rotate: -30 }}
                         transition={{ type: "spring", stiffness: 280, damping: 16 }}
-                        style={{ width: 72, height: 72 }}
+                        style={{ width: 96, height: 96 }}
                       >
-                        <svg width={72} height={72} viewBox="0 0 48 48" fill="none">
+                        <svg width={96} height={96} viewBox="0 0 48 48" fill="none">
                           <path
                             d="M24 4L29.8 16.26L43 17.9L33.5 27.14L35.96 40.1L24 33.77L12.04 40.1L14.5 27.14L5 17.9L18.2 16.26L24 4Z"
                             fill="rgba(200,200,200,0.25)"
@@ -372,9 +371,9 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
                     onBack();
                   }}
                   style={{
-                    marginTop: 4, padding: "16px 48px", borderRadius: 999,
+                    padding: "18px 56px", borderRadius: 999,
                     background: "linear-gradient(135deg, #FF6B6B, #FF9F43)",
-                    color: "white", border: "none", fontSize: 20, fontWeight: 700,
+                    color: "white", border: "none", fontSize: 24, fontWeight: 700,
                     fontFamily: "Fredoka, sans-serif", cursor: "pointer",
                     boxShadow: "0 6px 0 rgba(0,0,0,0.12)", touchAction: "manipulation",
                   }}
