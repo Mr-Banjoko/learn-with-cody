@@ -188,9 +188,14 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
     return () => window.removeEventListener("resize", measure);
   }, []);
 
+  // Guard: track tile IDs that are already being processed to prevent double-fire
+  const processingIds = useRef(new Set());
+
   const handleCatch = useCallback(
     (tile) => {
       if (phaseRef.current !== "playing") return;
+      if (processingIds.current.has(tile.id)) return;
+      processingIds.current.add(tile.id);
 
       if (tile.letter === missingLetter) {
         phaseRef.current = "caught";
@@ -211,10 +216,11 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
           tilesRef.current = tilesRef.current.filter((t) => t.id !== tile.id);
           setTiles([...tilesRef.current]);
           setRedGlowId(null);
+          processingIds.current.delete(tile.id);
         }, 700);
       }
     },
-    [missingLetter, audio, onComplete, onMistake]
+    [missingLetter, onComplete, onMistake]
   );
 
   const handleCatchRef = useRef(handleCatch);
