@@ -10,9 +10,11 @@ import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const CHOICE_COLORS = [
   { border: "#4ECDC4", shadow: "rgba(78,205,196,0.35)", ring: "rgba(78,205,196,0.28)" },
-  { border: "#FF6B6B", shadow: "rgba(255,107,107,0.35)", ring: "rgba(255,107,107,0.28)" },
+  { border: "#FF6B9D", shadow: "rgba(255,107,157,0.35)", ring: "rgba(255,107,157,0.28)" },
   { border: "#FFD93D", shadow: "rgba(255,217,61,0.35)", ring: "rgba(255,217,61,0.28)" },
 ];
+
+const RAINBOW_GRADIENT = "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box";
 
 function SpeakerIcon({ color = "#4ECDC4", size = 26 }) {
   return (
@@ -188,7 +190,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
                     whileTap={{ scale: 0.97 }}
                     animate={isWrong ? { x: [0, -10, 10, -7, 7, 0] } : {}}
                     transition={{ duration: 0.38 }}
-                    style={{ background: "white", borderRadius: 22, border: isSelected ? `3.5px solid ${colorSet.border}` : "3px solid rgba(168,208,230,0.25)", boxShadow: isSelected ? `0 8px 28px ${colorSet.shadow}, 0 0 0 5px ${colorSet.ring}` : "0 4px 18px rgba(30,58,95,0.09)", overflow: "hidden", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center", transition: "border 0.16s, box-shadow 0.16s", WebkitTapHighlightColor: "transparent", width: "100%", height: 130, flexShrink: 0 }}
+                    style={{ background: isSelected ? RAINBOW_GRADIENT : "white", borderRadius: 22, border: isSelected ? "4px solid transparent" : "3px solid rgba(168,208,230,0.25)", boxShadow: isSelected ? "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)" : "0 4px 18px rgba(30,58,95,0.09)", overflow: "hidden", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center", transition: "border 0.16s, box-shadow 0.16s", WebkitTapHighlightColor: "transparent", width: "100%", height: 130, flexShrink: 0 }}
                   >
                     <div style={{ width: "100%", height: "100%", backgroundImage: `url(${blobUrls[choice.image] || choice.image})`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none" }} />
                   </motion.button>
