@@ -378,21 +378,21 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
           const wordPieces = state.pieces.filter((p) => p.wordIndex === wi);
 
           return (
-            <div key={wi} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, minHeight: 0 }}>
+            <div key={wi} style={{ flex: 1, display: "flex", flexDirection: "row", gap: 10, minHeight: 0 }}>
 
-              {/* Letter blocks / word label */}
-              <div
-                style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 2, cursor: playbackLocked ? "default" : "pointer" }}
-                onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
-              >
-                <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} color={color} />
-              </div>
+              {/* Left column: label + drop box */}
+              <div style={{ flex: "0 0 65%", display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
 
-              {/* Drop box + tray pieces side by side */}
-              <div style={{ display: "flex", flex: 1, gap: 10, alignItems: "stretch", minHeight: 0, overflow: "hidden" }}>
+                {/* Letter blocks / word label */}
+                <div
+                  style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 2, cursor: playbackLocked ? "default" : "pointer" }}
+                  onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
+                >
+                  <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} color={color} />
+                </div>
 
                 {/* Drop box */}
-                <div style={{ position: "relative", flex: "0 0 65%", minWidth: 0 }}>
+                <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
                   <AnimatePresence mode="wait">
                     {done ? (
                       <motion.div
@@ -488,12 +488,13 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                   )}
                 </div>
 
-                {/* Tray pieces — 3 in a column */}
-                <div style={{
-                  display: "flex", flexDirection: "column",
-                  gap: 6, flex: 1, minWidth: 0,
-                  alignSelf: "stretch",
-                }}>
+              </div>{/* end left column */}
+
+              {/* Tray pieces — right column, full height of section */}
+              <div style={{
+                display: "flex", flexDirection: "column",
+                gap: 6, flex: 1, minWidth: 0,
+              }}>
                   {wordPieces.map((piece) => {
                     const isPlaced = !state.trayIds.includes(piece.id);
                     const isDraggingThis = dragState?.piece.id === piece.id;
@@ -527,7 +528,6 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                   })}
                 </div>
 
-              </div>
             </div>
           );
         })}
