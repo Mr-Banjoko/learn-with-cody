@@ -70,7 +70,13 @@ function buildCompletionSequence(wordData, onLetterStart, onWordStart) {
   return steps;
 }
 
-export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", onMistake }) {
+/**
+ * traySwapCount — number of pieces to swap between the two word trays (0 = no swap).
+ * When > 0, some pieces from word-0 appear in word-1's tray row and vice versa,
+ * making it harder to identify which slice belongs where.
+ * The swap is purely visual / positional in the tray — correctness logic is unchanged.
+ */
+export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", onMistake, traySwapCount = 0 }) {
   const { play: playTryAgain } = useTryAgainSound();
   const [state, setState] = useState(() => buildState(wordPair));
   const [dragState, setDragState] = useState(null);
@@ -323,6 +329,33 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
     });
   }, [playbackLocked, state.wordComplete]);
 
+  // ── Tray swap: build per-word display lists with some pieces interchanged ──
+  // We only swap pieces that are still in the tray (not yet placed).
+  // The swap is stable per render (based on piece IDs) so it doesn't flicker.
+  const trayDisplayPieces = (() => {
+    if (traySwapCount <= 0 || wordPair.length < 2) {
+      return {
+        0: state.pieces.filter((p) => p.wordIndex === 0),
+        1: state.pieces.filter((p) => p.wordIndex === 1),
+      };
+    }
+    const w0 = state.pieces.filter((p) => p.wordIndex === 0);
+    const w1 = state.pieces.filter((p) => p.wordIndex === 1);
+    const count = Math.min(traySwapCount, w0.length, w1.length);
+    // Use fixed indices (0, 1) so the swap is deterministic and stable
+    const swapIndices = [0, 1].slice(0, count);
+    const d0 = [...w0];
+    const d1 = [...w1];
+    swapIndices.forEach((idx) => {
+      if (d0[idx] && d1[idx]) {
+        const tmp = d0[idx];
+        d0[idx] = d1[idx];
+        d1[idx] = tmp;
+      }
+    });
+    return { 0: d0, 1: d1 };
+  })();
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
@@ -374,8 +407,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
           const done = state.wordComplete[wi];
           const color = wi === 0 ? "#FFB3C6" : "#A8D8F0";
           const shadow = wi === 0 ? "rgba(255,130,170,0.30)" : "rgba(60,150,240,0.25)";
-          // Pieces for this word
-          const wordPieces = state.pieces.filter((p) => p.wordIndex === wi);
+          // Pieces for this word's tray (may include swapped pieces from the other word)
+          const wordPieces = trayDisplayPieces[wi];
 
           return (
             <div key={wi} style={{ flex: 1, display: "flex", flexDirection: "row", gap: 10, minHeight: 0 }}>
@@ -490,10 +523,11 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
 
               </div>{/* end left column */}
 
-              {/* Tray pieces — right column, full height of section */}
+              {/* Tray pieces — right column, 90% of section height */}
+              <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "flex-start" }}>
               <div style={{
                 display: "flex", flexDirection: "column",
-                gap: 6, flex: 1, minWidth: 0,
+                gap: 6, width: "100%", height: "90%",
               }}>
                   {wordPieces.map((piece) => {
                     const isPlaced = !state.trayIds.includes(piece.id);
@@ -527,6 +561,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                     );
                   })}
                 </div>
+              </div>{/* end tray outer wrapper */}
 
             </div>
           );

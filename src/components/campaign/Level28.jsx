@@ -75,6 +75,12 @@ export default function Level28({ onBack, lang = "en" }) {
   }, [roundIndex, mistakes]);
 
   const wordPair = useMemo(() => ROUND_WORDS[roundIndex].map(buildShortASliceData), [roundIndex]); // eslint-disable-line
+  // Round 1 (index 0): no swap. Round 2+: randomly swap 1 or 2 pieces each round.
+  const traySwapCount = useMemo(() => {
+    if (roundIndex === 0) return 0;
+    // Use roundIndex as seed for stable value per round
+    return (roundIndex % 2 === 0) ? 2 : 1;
+  }, [roundIndex]);
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
@@ -92,7 +98,7 @@ export default function Level28({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <PicSliceBoard key={`hard-${roundIndex}`} wordPair={wordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />
+            <PicSliceBoard key={`hard-${roundIndex}`} wordPair={wordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} traySwapCount={traySwapCount} />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
