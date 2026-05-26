@@ -62,7 +62,6 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
     setFeedback(correct ? "correct" : "wrong");
     if (correct) {
       playCorrect(() => {
-        if (card.audio) playAudio(card.audio);
         setFeedback(null);
         setSelected(null);
         onComplete();
