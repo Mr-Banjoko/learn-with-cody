@@ -170,7 +170,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
   const nextSpawnAt = useRef(Date.now() + FIRST_SPAWN_MS);
   const tileCounter = useRef(0);
 
-  // codyLaneRef is kept in sync synchronously inside moveLeft/moveRight — no useEffect needed
+  useEffect(() => { codyLaneRef.current = codyLane; }, [codyLane]);
 
   useEffect(() => {
     if (skipInitialAudio) return;
@@ -278,16 +278,20 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
 
   const moveLeft = () => {
     if (phaseRef.current !== "playing") return;
-    const next = Math.max(0, codyLaneRef.current - 1);
-    codyLaneRef.current = next;
-    setCodyLane(next);
+    setCodyLane((prev) => {
+      const next = Math.max(0, prev - 1);
+      codyLaneRef.current = next;
+      return next;
+    });
   };
 
   const moveRight = () => {
     if (phaseRef.current !== "playing") return;
-    const next = Math.min(2, codyLaneRef.current + 1);
-    codyLaneRef.current = next;
-    setCodyLane(next);
+    setCodyLane((prev) => {
+      const next = Math.min(2, prev + 1);
+      codyLaneRef.current = next;
+      return next;
+    });
   };
 
   return (
