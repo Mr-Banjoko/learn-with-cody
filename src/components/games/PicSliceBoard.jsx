@@ -359,115 +359,113 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
         />
       )}
 
-      {/* ── Layout: top area (labels + drop boxes) + bottom tray ──────────── */}
+      {/* ── Layout: left column (word 1 then word 2 stacked) + right column (6 portrait slices) ── */}
       <div style={{
         flex: 1,
         display: "flex",
-        flexDirection: "column",
-        padding: "8px 14px 10px",
+        flexDirection: "row",
+        padding: "8px 10px 10px",
         gap: 10,
         minHeight: 0,
         overflow: "hidden",
       }}>
 
-        {/* Top: two word sections side by side */}
-        <div style={{ display: "flex", flexDirection: "row", gap: 10, flex: "0 0 auto" }}>
+        {/* LEFT: word 1 stacked above word 2 */}
+        <div style={{ flex: "0 0 58%", display: "flex", flexDirection: "column", gap: 8, minHeight: 0 }}>
           {wordPair.map((wd, wi) => {
             const done = state.wordComplete[wi];
             const color = wi === 0 ? "#FFB3C6" : "#A8D8F0";
             const shadow = wi === 0 ? "rgba(255,130,170,0.30)" : "rgba(60,150,240,0.25)";
             return (
-              <div key={wi} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 5, minWidth: 0 }}>
+              <div key={wi} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, minHeight: 0 }}>
 
                 {/* Letter blocks */}
                 <div
-                  style={{ display: "flex", justifyContent: "center", cursor: playbackLocked ? "default" : "pointer" }}
+                  style={{ display: "flex", justifyContent: "flex-start", cursor: playbackLocked ? "default" : "pointer", flexShrink: 0 }}
                   onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
                 >
                   <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} color={color} />
                 </div>
 
-                {/* Drop box — square via paddingBottom trick */}
-                <div style={{ position: "relative", width: "100%", paddingBottom: "75%", height: 0 }}>
-                  <div style={{ position: "absolute", inset: 0 }}>
-                    <AnimatePresence mode="wait">
-                      {done ? (
-                        <motion.div
-                          key="done"
-                          initial={{ scale: 0.85, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: "spring", stiffness: 260, damping: 18 }}
-                          style={{ width: "100%", height: "100%", borderRadius: 14, overflow: "hidden", border: `3px solid ${color}`, boxShadow: `0 6px 28px ${shadow}` }}
-                        >
-                          <img src={wd.fullImage || wd.image || (wd.slices && wd.slices[0])} alt={wd.word} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          key="slots"
-                          style={{
-                            width: "100%", height: "100%",
-                            display: "flex", flexDirection: "row",
-                            borderRadius: 14, overflow: "hidden",
-                            border: `3px solid ${color}`,
-                            background: playbackLocked ? "rgba(240,240,240,0.6)" : "rgba(255,255,255,0.75)",
-                            boxShadow: "0 4px 16px rgba(30,58,95,0.08)",
-                            opacity: playbackLocked ? 0.55 : 1,
-                            transition: "opacity 0.2s, background 0.2s",
-                          }}
-                        >
-                          {[0, 1, 2].map((si) => {
-                            const slotKey = `${wi}-${si}`;
-                            const placedId = state.placed[slotKey];
-                            const placedPiece = placedId ? state.pieces.find((p) => p.id === placedId) : null;
-                            const isRejected = state.rejectedSlot === slotKey;
-                            return (
-                              <div
-                                key={si}
-                                ref={(el) => (dropZoneRefs.current[slotKey] = el)}
-                                onPointerDown={() => !playbackLocked && placedPiece && handlePlacedTap(slotKey)}
-                                style={{
-                                  flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                                  borderRight: si < 2 ? `2px dashed ${color}` : "none",
-                                  animation: isRejected ? "psShake 0.4s ease" : "none",
-                                  position: "relative", overflow: "hidden",
-                                  cursor: (playbackLocked || !placedPiece) ? "default" : "pointer",
-                                }}
-                              >
-                                {placedPiece ? (
-                                  <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 380, damping: 18 }} style={{ position: "absolute", inset: 0 }}>
-                                    <img src={placedPiece.sliceSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                                  </motion.div>
-                                ) : (
-                                  <span style={{ fontSize: "clamp(9px, 2vw, 13px)", color, fontWeight: 700 }}>
-                                    {si === 0 ? tx("1st", "ordinal_1", lang) : si === 1 ? tx("2nd", "ordinal_2", lang) : tx("3rd", "ordinal_3", lang)}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Reset button */}
-                    {!done && (
-                      <button
-                        onPointerDown={(e) => { e.stopPropagation(); handleReset(wi); }}
+                {/* Drop box — fills remaining height of this half */}
+                <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
+                  <AnimatePresence mode="wait">
+                    {done ? (
+                      <motion.div
+                        key="done"
+                        initial={{ scale: 0.85, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                        style={{ position: "absolute", inset: 0, borderRadius: 14, overflow: "hidden", border: `3px solid ${color}`, boxShadow: `0 6px 28px ${shadow}` }}
+                      >
+                        <img src={wd.fullImage || wd.image || (wd.slices && wd.slices[0])} alt={wd.word} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="slots"
                         style={{
-                          position: "absolute", bottom: 4, right: 4,
-                          width: 26, height: 26, borderRadius: 13,
-                          background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
-                          border: "none", cursor: playbackLocked ? "default" : "pointer",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          zIndex: 10, touchAction: "manipulation",
-                          opacity: (playbackLocked || ![0,1,2].some((si) => state.placed[`${wi}-${si}`])) ? 0.25 : 0.85,
-                          pointerEvents: playbackLocked ? "none" : "auto",
+                          position: "absolute", inset: 0,
+                          display: "flex", flexDirection: "row",
+                          borderRadius: 14, overflow: "hidden",
+                          border: `3px solid ${color}`,
+                          background: playbackLocked ? "rgba(240,240,240,0.6)" : "rgba(255,255,255,0.75)",
+                          boxShadow: "0 4px 16px rgba(30,58,95,0.08)",
+                          opacity: playbackLocked ? 0.55 : 1,
+                          transition: "opacity 0.2s, background 0.2s",
                         }}
                       >
-                        <RotateCcw size={13} color="#A8D0E6" strokeWidth={2.2} />
-                      </button>
+                        {[0, 1, 2].map((si) => {
+                          const slotKey = `${wi}-${si}`;
+                          const placedId = state.placed[slotKey];
+                          const placedPiece = placedId ? state.pieces.find((p) => p.id === placedId) : null;
+                          const isRejected = state.rejectedSlot === slotKey;
+                          return (
+                            <div
+                              key={si}
+                              ref={(el) => (dropZoneRefs.current[slotKey] = el)}
+                              onPointerDown={() => !playbackLocked && placedPiece && handlePlacedTap(slotKey)}
+                              style={{
+                                flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+                                borderRight: si < 2 ? `2px dashed ${color}` : "none",
+                                animation: isRejected ? "psShake 0.4s ease" : "none",
+                                position: "relative", overflow: "hidden",
+                                cursor: (playbackLocked || !placedPiece) ? "default" : "pointer",
+                              }}
+                            >
+                              {placedPiece ? (
+                                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 380, damping: 18 }} style={{ position: "absolute", inset: 0 }}>
+                                  <img src={placedPiece.sliceSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                                </motion.div>
+                              ) : (
+                                <span style={{ fontSize: "clamp(9px, 2vw, 13px)", color, fontWeight: 700 }}>
+                                  {si === 0 ? tx("1st", "ordinal_1", lang) : si === 1 ? tx("2nd", "ordinal_2", lang) : tx("3rd", "ordinal_3", lang)}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </motion.div>
                     )}
-                  </div>
+                  </AnimatePresence>
+
+                  {/* Reset button */}
+                  {!done && (
+                    <button
+                      onPointerDown={(e) => { e.stopPropagation(); handleReset(wi); }}
+                      style={{
+                        position: "absolute", bottom: 4, right: 4,
+                        width: 26, height: 26, borderRadius: 13,
+                        background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+                        border: "none", cursor: playbackLocked ? "default" : "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        zIndex: 10, touchAction: "manipulation",
+                        opacity: (playbackLocked || ![0,1,2].some((si) => state.placed[`${wi}-${si}`])) ? 0.25 : 0.85,
+                        pointerEvents: playbackLocked ? "none" : "auto",
+                      }}
+                    >
+                      <RotateCcw size={13} color="#A8D0E6" strokeWidth={2.2} />
+                    </button>
+                  )}
                 </div>
 
               </div>
@@ -475,8 +473,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
           })}
         </div>
 
-        {/* Bottom: all 6 portrait slices in one horizontal row */}
-        <div style={{ display: "flex", flexDirection: "row", gap: 7, flex: 1, minHeight: 0, alignItems: "stretch" }}>
+        {/* RIGHT: all 6 portrait slices stacked vertically */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, minHeight: 0 }}>
           {state.pieces.map((piece) => {
             const isPlaced = !state.trayIds.includes(piece.id);
             const isDraggingThis = dragState?.piece.id === piece.id;
