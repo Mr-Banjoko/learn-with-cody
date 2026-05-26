@@ -261,23 +261,27 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
     return () => clearTimeout(safetyTimer);
   }, [matches, letters, onComplete]);
 
+  // A match is valid if the top letter equals the bottom slot's letter.
+  // When duplicate letters exist, any unmatched bottom slot carrying that letter is acceptable.
+  const isValidMatch = useCallback((topIdx, botIdx) => {
+    return letters[topIdx] === letters[shuffledOrder[botIdx]];
+  }, [letters, shuffledOrder]);
+
   const handleTopDot = useCallback((topIdx) => {
     if (locked || matchedTopIdxs.has(topIdx)) return;
     if (selected === null) { setSelected(`top-${topIdx}`); return; }
     if (selected.startsWith("top-")) { setSelected(`top-${topIdx}`); return; }
     const botIdx = parseInt(selected.replace("bot-", ""), 10);
-    const expectedLetter = letters[shuffledOrder[botIdx]];
-    if (letters[topIdx] === expectedLetter) { triggerMatch(topIdx, botIdx); } else { triggerWrong(topIdx, botIdx); }
-  }, [locked, selected, matchedTopIdxs, shuffledOrder, letters, triggerMatch, triggerWrong]);
+    if (isValidMatch(topIdx, botIdx)) { triggerMatch(topIdx, botIdx); } else { triggerWrong(topIdx, botIdx); }
+  }, [locked, selected, matchedTopIdxs, isValidMatch, triggerMatch, triggerWrong]);
 
   const handleBotDot = useCallback((botIdx) => {
     if (locked || matchedBotIdxs.has(botIdx)) return;
     if (selected === null) { setSelected(`bot-${botIdx}`); return; }
     if (selected.startsWith("bot-")) { setSelected(`bot-${botIdx}`); return; }
     const topIdx = parseInt(selected.replace("top-", ""), 10);
-    const expectedLetter = letters[shuffledOrder[botIdx]];
-    if (letters[topIdx] === expectedLetter) { triggerMatch(topIdx, botIdx); } else { triggerWrong(topIdx, botIdx); }
-  }, [locked, selected, matchedBotIdxs, shuffledOrder, letters, triggerMatch, triggerWrong]);
+    if (isValidMatch(topIdx, botIdx)) { triggerMatch(topIdx, botIdx); } else { triggerWrong(topIdx, botIdx); }
+  }, [locked, selected, matchedBotIdxs, isValidMatch, triggerMatch, triggerWrong]);
 
   if (won) return null;
 
