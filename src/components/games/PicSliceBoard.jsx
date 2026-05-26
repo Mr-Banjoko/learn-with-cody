@@ -7,6 +7,42 @@ import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
+const LETTER_BLOCK_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#C4B5FD"];
+
+function LetterBlocks({ word, activeLetterIndex }) {
+  const letters = word.toLowerCase().split("");
+  return (
+    <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+      {letters.map((letter, i) => {
+        const isActive = activeLetterIndex === i;
+        return (
+          <motion.div
+            key={i}
+            animate={isActive ? { y: [0, -14, 0, -7, 0] } : { y: 0 }}
+            transition={isActive ? { duration: 0.45 } : {}}
+            style={{
+              width: "min(52px, 13vw)",
+              height: "min(52px, 13vw)",
+              borderRadius: 14,
+              background: LETTER_BLOCK_COLORS[i % LETTER_BLOCK_COLORS.length],
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "min(30px, 7.5vw)",
+              fontWeight: 700, color: "#1E3A5F",
+              boxShadow: isActive
+                ? "0 6px 18px rgba(30,58,95,0.22)"
+                : "0 3px 10px rgba(30,58,95,0.12)",
+              border: "2.5px solid rgba(255,255,255,0.8)",
+              transition: "box-shadow 0.15s",
+            }}
+          >
+            {letter}
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
 function buildState(wordPair) {
   const pieces = buildRoundPieces(wordPair);
   return {
@@ -21,15 +57,17 @@ function buildState(wordPair) {
 /**
  * Build the audio sequence steps for a completed word:
  *   letter[0] → letter[1] → letter[2] → full word
+ * onLetterStart(i) is called when each letter sound begins.
+ * onWordStart is called when the full word sound begins.
  */
-function buildCompletionSequence(wordData) {
+function buildCompletionSequence(wordData, onLetterStart, onWordStart) {
   const letters = wordData.word.toLowerCase().split("");
-  const steps = letters.map((letter) => {
+  const steps = letters.map((letter, i) => {
     const url = getLetterSoundUrl(letter);
-    return url ? { url, gain: getLetterGain(letter) } : null;
+    return url ? { url, gain: getLetterGain(letter), onStart: () => onLetterStart && onLetterStart(i) } : null;
   }).filter(Boolean);
   if (wordData.audio) {
-    steps.push({ url: wordData.audio, gain: 1 });
+    steps.push({ url: wordData.audio, gain: 1, onStart: () => onWordStart && onWordStart() });
   }
   return steps;
 }
@@ -44,6 +82,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
   const [playbackLocked, setPlaybackLocked] = useState(false);
   // Which word index is currently playing its sequence (for visual highlight)
   const [playingWordIdx, setPlayingWordIdx] = useState(null);
+  // Active letter index per word during bounce animation: { 0: letterIdx, 1: letterIdx }
+  const [activeLetterIndex, setActiveLetterIndex] = useState({});
   // Track which word indices have had their completion sequence played
   const completionSequenceDone = useRef([false, false]);
   // Queue of word indices awaiting their completion sequence
@@ -68,6 +108,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
     setDragState(null);
     setPlaybackLocked(false);
     setPlayingWordIdx(null);
+    setActiveLetterIndex({});
+
     completionSequenceDone.current = [false, false];
     completionQueue.current = [];
     runningSequence.current = false;
@@ -113,7 +155,11 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
     setPlaybackLocked(true);
     setPlayingWordIdx(wi);
 
-    const steps = buildCompletionSequence(wordPair[wi]);
+    const steps = buildCompletionSequence(
+      wordPair[wi],
+      (letterIdx) => setActiveLetterIndex((prev) => ({ ...prev, [wi]: letterIdx })),
+      () => setActiveLetterIndex((prev) => ({ ...prev, [wi]: null })),
+    );
 
     if (steps.length === 0) {
       // No audio available — mark done and move on
@@ -126,6 +172,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
       // Sequence finished cleanly
       cancelSequence.current = null;
       completionSequenceDone.current[wi] = true;
+      setActiveLetterIndex((prev) => ({ ...prev, [wi]: null }));
       runNextInQueue();
     });
     cancelSequence.current = cancel;
@@ -314,35 +361,25 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
         />
       )}
 
-      {/* ── ROW 1: Word labels ─────────────────────────────────────────────── */}
+      {/* ── ROW 1: Letter blocks ───────────────────────────────────────────── */}
       <div style={{ display: "flex", gap: 12, padding: "10px 16px 4px", flexShrink: 0 }}>
-        {wordPair.map((wd, wi) => {
-          const isPlaying = playingWordIdx === wi;
-          return (
-            <motion.button
-              key={wi}
-              whileTap={playbackLocked ? {} : { scale: 0.93 }}
-              onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
-              animate={isPlaying ? { scale: [1, 1.06, 1.06, 1] } : {}}
-              transition={isPlaying ? { duration: 0.5, repeat: Infinity, repeatType: "loop" } : {}}
-              style={{
-                flex: 1, padding: "10px 8px",
-                background: wi === 0 ? "#FFD6E0" : "#D6F0FF",
-                border: `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
-                borderRadius: 18,
-                fontSize: "clamp(26px, 7.5vw, 40px)",
-                fontWeight: 700, color: "#1E3A5F",
-                letterSpacing: 2, textAlign: "center",
-                cursor: playbackLocked ? "default" : "pointer",
-                fontFamily: "Fredoka, sans-serif",
-                boxShadow: "0 4px 16px rgba(30,58,95,0.10)",
-                transition: "border 0.2s",
-              }}
-            >
-              {wd.word.toLowerCase()}
-            </motion.button>
-          );
-        })}
+        {wordPair.map((wd, wi) => (
+          <div
+            key={wi}
+            style={{
+              flex: 1, padding: "8px 6px",
+              background: wi === 0 ? "#FFD6E0" : "#D6F0FF",
+              border: `3px solid ${wi === 0 ? "#FFB3C6" : "#A8D8F0"}`,
+              borderRadius: 18,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 4px 16px rgba(30,58,95,0.10)",
+              cursor: playbackLocked ? "default" : "pointer",
+            }}
+            onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
+          >
+            <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} />
+          </div>
+        ))}
       </div>
 
       {/* ── ROW 2: Drop frames ─────────────────────────────────────────────── */}
