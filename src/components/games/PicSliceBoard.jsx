@@ -578,7 +578,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
           width: 90, height: 90,
           borderRadius: 14, overflow: "hidden",
           boxShadow: "0 16px 40px rgba(30,58,95,0.30)",
-          border: "3px solid #4ECDC4",
+          border: "none",
         }}>
           <img
             src={dragState.piece.sliceSrc}
