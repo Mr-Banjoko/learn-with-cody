@@ -7,9 +7,7 @@ import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
-const LETTER_BLOCK_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#C4B5FD"];
-
-function LetterBlocks({ word, activeLetterIndex }) {
+function LetterBlocks({ word, activeLetterIndex, color }) {
   const letters = word.toLowerCase().split("");
   return (
     <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
@@ -24,7 +22,7 @@ function LetterBlocks({ word, activeLetterIndex }) {
               width: "min(52px, 13vw)",
               height: "min(52px, 13vw)",
               borderRadius: 14,
-              background: LETTER_BLOCK_COLORS[i % LETTER_BLOCK_COLORS.length],
+              background: color,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: "min(30px, 7.5vw)",
               fontWeight: 700, color: "#1E3A5F",
@@ -387,7 +385,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                 style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 2, cursor: playbackLocked ? "default" : "pointer" }}
                 onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
               >
-                <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} />
+                <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} color={color} />
               </div>
 
               {/* Drop box + tray pieces side by side */}
