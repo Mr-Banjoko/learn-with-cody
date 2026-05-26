@@ -343,10 +343,23 @@ export default function CampaignLetterCatchRound({
 
       const activeFalling = tilesRef.current.filter((t) => t.status === "falling").length;
       if (now >= nextSpawnAt.current && activeFalling < MAX_ACTIVE_TILES) {
-        const letter = queue[queueIdx.current % queue.length];
+        const spawnCount = queueIdx.current; // how many tiles have been spawned so far
+        let letter = queue[spawnCount % queue.length];
+        let lane;
+
+        if (spawnCount === 0) {
+          // First tile: always a distractor, always in the middle lane
+          letter = distractors[0];
+          lane = 1;
+        } else if (spawnCount === 1 && letter === missingLetter) {
+          // Second tile: if it's the correct letter, force it off the middle lane
+          lane = Math.random() < 0.5 ? 0 : 2;
+        } else {
+          lane = pickLane(tilesRef.current.filter((t) => t.status === "falling"));
+        }
+
         queueIdx.current++;
         const id    = ++tileCounter.current;
-        const lane  = pickLane(tilesRef.current.filter((t) => t.status === "falling"));
         const color = TILE_COLORS[Math.floor(Math.random() * TILE_COLORS.length)];
         tilesRef.current = [...tilesRef.current, { id, letter, lane, y: -80, status: "falling", color }];
         nextSpawnAt.current = now + SPAWN_INTERVAL_MS;
