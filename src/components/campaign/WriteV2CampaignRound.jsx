@@ -162,12 +162,14 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         <motion.div key={`${roundKey}-${phase}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}
           style={{ display: "flex", flexDirection: "row", gap: 8, justifyContent: "center", width: "100%" }}>
           {displayCards.map((c, i) => {
+            const RAINBOW = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
+            const cardColor = RAINBOW[i % RAINBOW.length];
             const isTraced = tracedCardIds.has(c.id);
             const isBouncing = phase === "success" && bouncingCardIdx === i;
             if (phase === "success") {
               return (
                 <motion.div key={c.id} animate={isBouncing ? { y: [0, -18, 0, -10, 0] } : { y: 0 }} transition={isBouncing ? { duration: 0.5 } : {}}
-                  style={{ width: TILE_SIZE, height: Math.round(TILE_SIZE * 1.837), borderRadius: 16, background: "#E8FFFE", border: "2.5px solid rgba(168,208,230,0.6)", boxShadow: "0 6px 28px rgba(30,58,95,0.14)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: Math.round(TILE_SIZE * 0.55), fontWeight: 700, color: "#1E3A5F", fontFamily: "Fredoka, sans-serif" }}>
+                  style={{ width: TILE_SIZE, height: Math.round(TILE_SIZE * 1.837), borderRadius: 16, background: cardColor, border: "none", boxShadow: "0 6px 28px rgba(30,58,95,0.14)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: Math.round(TILE_SIZE * 0.55), fontWeight: 700, color: "#1E3A5F", fontFamily: "Fredoka, sans-serif" }}>
                   {c.letter}
                 </motion.div>
               );
@@ -177,15 +179,12 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
               <motion.div key={c.id}
                 animate={isPulsating ? { scale: [1, 1.1, 1] } : { scale: 1 }}
                 transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
-                style={{ position: "relative", opacity: isTraced ? 1 : 0.65, transition: "opacity 0.3s", outline: isPulsating ? "3px solid #22c55e" : isTraced ? "3px solid #22c55e" : "none", borderRadius: 18, boxShadow: isPulsating ? "0 0 0 3px #22c55e, 0 4px 16px rgba(34,197,94,0.45)" : "none" }}>
-                <LetterTrace letter={c.letter} size={TILE_SIZE} locked={locked || isTraced} transparent={isTraced} onComplete={() => handleCardComplete(c.id)} />
-                {/* Tap overlay on traced cards — sits on top so canvas doesn't capture the touch */}
-                {isTraced && (
-                  <div
-                    onPointerDown={(e) => { e.preventDefault(); playLetterSound(c.letter); }}
-                    style={{ position: "absolute", inset: 0, borderRadius: 18, cursor: "pointer", touchAction: "manipulation" }}
-                  />
-                )}
+                onPointerDown={(e) => {
+                  // Play letter sound on tap — canvas will also receive this event for tracing
+                  playLetterSound(c.letter);
+                }}
+                style={{ position: "relative", opacity: isTraced ? 1 : 0.75, transition: "opacity 0.3s", outline: isPulsating ? `3px solid ${cardColor}` : isTraced ? `3px solid ${cardColor}` : "none", borderRadius: 18, boxShadow: isPulsating ? `0 0 0 3px ${cardColor}, 0 4px 16px ${cardColor}88` : isTraced ? `0 0 0 3px ${cardColor}` : "none", cursor: "pointer", touchAction: "manipulation" }}>
+                <LetterTrace letter={c.letter} size={TILE_SIZE} locked={locked || isTraced} transparent={true} onComplete={() => handleCardComplete(c.id)} />
               </motion.div>
             );
           })}
