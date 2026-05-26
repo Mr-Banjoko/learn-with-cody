@@ -11,7 +11,8 @@ import { playAudioSequence } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
-const TILE_SIZE = 88;
+const TILE_SIZE = 76;
+const NUM_DISTRACTORS = 1; // 3 correct letters + 1 distractor = 4 cards in one row
 
 function createRound(card, key) {
   const word = card.word.toLowerCase();
@@ -22,7 +23,7 @@ function createRound(card, key) {
   }));
   const blocked = new Set(letters);
   const available = "abcdefghijklmnopqrstuvwxyz".split("").filter((l) => !blocked.has(l));
-  const distractors = [...available].sort(() => Math.random() - 0.5).slice(0, 3).map((letter, index) => ({
+  const distractors = [...available].sort(() => Math.random() - 0.5).slice(0, NUM_DISTRACTORS).map((letter, index) => ({
     id: `distractor-${index}-${letter}-${key}`,
     letter, isCorrect: false, correctIndex: null,
   }));
@@ -104,6 +105,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         setTracedCardIds(new Set());
         setRoundKey((k) => k + 1);
         setRound(createRound(card, Date.now()));
+      setPulsatingCardIds(new Set());
       }, 700);
       return;
     }
@@ -131,8 +133,13 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   }, [phase, round, tracedCardIds, cancelAudio, onComplete, onMistake, card, playTryAgain]);
 
   const tracedCount = tracedCardIds.size;
-  const canSubmit = tracedCount >= 3 && phase === "tracing" && !locked && !submitError;
+  const canSubmit = tracedCount >= round.correctCards.length && phase === "tracing" && !locked && !submitError;
   const displayCards = phase === "success" && successCards ? successCards : round.shuffledCards;
+
+  const playLetterSound = useCallback((letter) => {
+    const url = getLetterSoundUrl(letter);
+    if (url) playAudioSequence([{ url, gain: getLetterGain(letter) }], () => {});
+  }, []);
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 16, overflowY: "auto", position: "relative" }}>
@@ -150,10 +157,10 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         </motion.div>
       </AnimatePresence>
 
-      {/* Card grid */}
+      {/* Card grid — always 4 cards in one row */}
       <AnimatePresence mode="wait">
         <motion.div key={`${roundKey}-${phase}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}
-          style={{ display: "grid", gridTemplateColumns: phase === "success" ? `repeat(${displayCards.length}, ${TILE_SIZE}px)` : `repeat(3, ${TILE_SIZE}px)`, gap: 8, justifyContent: "center", width: "100%" }}>
+          style={{ display: "flex", flexDirection: "row", gap: 8, justifyContent: "center", width: "100%" }}>
           {displayCards.map((c, i) => {
             const isTraced = tracedCardIds.has(c.id);
             const isBouncing = phase === "success" && bouncingCardIdx === i;
@@ -170,7 +177,8 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
               <motion.div key={c.id}
                 animate={isPulsating ? { scale: [1, 1.1, 1] } : { scale: 1 }}
                 transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
-                style={{ opacity: isTraced ? 1 : 0.65, transition: "opacity 0.3s", outline: isPulsating ? "3px solid #22c55e" : isTraced ? "3px solid #22c55e" : "none", borderRadius: 18, boxShadow: isPulsating ? "0 0 0 3px #22c55e, 0 4px 16px rgba(34,197,94,0.45)" : "none" }}>
+                onPointerDown={(e) => { if (isTraced) { e.preventDefault(); playLetterSound(c.letter); } }}
+                style={{ opacity: isTraced ? 1 : 0.65, transition: "opacity 0.3s", outline: isPulsating ? "3px solid #22c55e" : isTraced ? "3px solid #22c55e" : "none", borderRadius: 18, boxShadow: isPulsating ? "0 0 0 3px #22c55e, 0 4px 16px rgba(34,197,94,0.45)" : "none", cursor: isTraced ? "pointer" : "default" }}>
                 <LetterTrace letter={c.letter} size={TILE_SIZE} locked={locked || isTraced} onComplete={() => handleCardComplete(c.id)} />
               </motion.div>
             );
