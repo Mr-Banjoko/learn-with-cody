@@ -263,8 +263,9 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   return (
     <div style={{
       display: "flex", flexDirection: "column", flex: 1,
-      alignItems: "center", justifyContent: "center",
-      padding: "32px 24px", textAlign: "center",
+      alignItems: "center", justifyContent: "flex-start",
+      paddingTop: "8%", paddingBottom: "32px", paddingLeft: "24px", paddingRight: "24px",
+      textAlign: "center",
       fontFamily: "Fredoka, sans-serif",
       position: "relative", overflow: "hidden",
     }}>
