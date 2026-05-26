@@ -269,43 +269,44 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
       fontFamily: "Fredoka, sans-serif",
       position: "relative", overflow: "hidden",
     }}>
-      {/* ── Trophy: animating overlay fades out, frozen in-flow fades in simultaneously ── */}
-      <AnimatePresence>
-        {phase === 1 && (
-          <motion.div
-            key="trophy-anim"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 20 }}
-          >
-            <Lottie
-              animationData={trophyData}
-              loop={false}
-              autoplay={true}
-              onComplete={() => {
-                trophyDone.current = true;
-                if (soundDone.current) setPhase(2);
-              }}
-              style={{ width: 360, height: 360 }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Phase 2+: frozen trophy in normal flow — fades in as animated one fades out */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: phase >= 2 ? 1 : 0 }}
-        transition={{ duration: 0.35 }}
-        style={{ width: 360, height: 360, marginBottom: 8, flexShrink: 0, pointerEvents: "none" }}
-      >
-        <Lottie
-          animationData={trophyData}
-          loop={false} autoplay={false}
-          initialSegment={[70, 71]}
-          style={{ width: "100%", height: "100%" }}
-        />
-      </motion.div>
+      {/* ── Trophy slot: always in-flow at same size, animated and frozen layer stacked ── */}
+      <div style={{ width: 360, height: 360, marginBottom: 8, flexShrink: 0, position: "relative" }}>
+        {/* Frozen trophy — always rendered, fades in when animation ends */}
+        <motion.div
+          animate={{ opacity: phase >= 2 ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+          style={{ position: "absolute", inset: 0 }}
+        >
+          <Lottie
+            animationData={trophyData}
+            loop={false} autoplay={false}
+            initialSegment={[70, 71]}
+            style={{ width: "100%", height: "100%" }}
+          />
+        </motion.div>
+        {/* Animating trophy — overlaid on top, fades out on complete */}
+        <AnimatePresence>
+          {phase === 1 && (
+            <motion.div
+              key="anim-trophy"
+              initial={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ position: "absolute", inset: 0 }}
+            >
+              <Lottie
+                animationData={trophyData}
+                loop={false}
+                autoplay={true}
+                onComplete={() => {
+                  trophyDone.current = true;
+                  if (soundDone.current) setPhase(2);
+                }}
+                style={{ width: "100%", height: "100%" }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* ── Phase 2+: Text + stars + button ──────────────────────────────── */}
       <AnimatePresence>
