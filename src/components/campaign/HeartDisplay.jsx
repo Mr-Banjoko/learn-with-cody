@@ -18,19 +18,34 @@ function HeartSlot({ slotIndex, mistakes, size }) {
     if (!isBroken) setBrokenDone(false);
   }, [isBroken]);
 
+  // Each animation has a different canvas size, so we correct with transform:scale
+  // BouncingHeart: 512×512 canvas — baseline, no scaling needed
+  // HeartOutline:  150×150 canvas but art is drawn at ~210% internal scale → appears ~3.4× too large → scale down to ~0.29
+  // BrokenHeart:  1000×1000 canvas → appears smaller relative to bouncing → scale up slightly to ~0.60
   const wrapStyle = {
     width: size, height: size, flexShrink: 0,
     display: "flex", alignItems: "center", justifyContent: "center",
     overflow: "hidden",
   };
-  const lottiStyle = { width: size, height: size, flexShrink: 0 };
 
   if (!isBroken && !isOutline) {
-    return <div style={wrapStyle}><Lottie animationData={bouncingHeartData} loop style={lottiStyle} /></div>;
+    return (
+      <div style={wrapStyle}>
+        <Lottie animationData={bouncingHeartData} loop style={{ width: size, height: size }} />
+      </div>
+    );
   }
 
   if (isOutline) {
-    return <div style={wrapStyle}><Lottie animationData={heartOutlineData} loop style={lottiStyle} /></div>;
+    return (
+      <div style={wrapStyle}>
+        <Lottie
+          animationData={heartOutlineData}
+          loop
+          style={{ width: size * 3.4, height: size * 3.4, transform: "scale(0.29)", transformOrigin: "center" }}
+        />
+      </div>
+    );
   }
 
   return (
@@ -41,7 +56,7 @@ function HeartSlot({ slotIndex, mistakes, size }) {
         loop={false}
         autoplay={!brokenDone}
         onComplete={() => setBrokenDone(true)}
-        style={lottiStyle}
+        style={{ width: size * 1.67, height: size * 1.67, transform: "scale(0.60)", transformOrigin: "center" }}
       />
     </div>
   );
