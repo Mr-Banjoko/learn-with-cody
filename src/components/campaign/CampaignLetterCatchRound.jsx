@@ -13,8 +13,6 @@ import { motion } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
-import { useCorrectSound } from "../../lib/useCorrectSound";
-import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
@@ -146,11 +144,61 @@ function CandyArrow({ direction, onPress }) {
   );
 }
 
+// Module-level AudioContext + decoded buffer cache for gesture-free playback
+let _audioCtx = null;
+const _decodedBuffers = {};
+
+function getAudioContext() {
+  if (!_audioCtx || _audioCtx.state === "closed") {
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return _audioCtx;
+}
+
+async function decodeAndCache(url) {
+  if (_decodedBuffers[url]) return _decodedBuffers[url];
+  const res = await fetch(url);
+  const arrayBuffer = await res.arrayBuffer();
+  const ctx = getAudioContext();
+  const decoded = await ctx.decodeAudioData(arrayBuffer);
+  _decodedBuffers[url] = decoded;
+  return decoded;
+}
+
+function playBuffered(buffer, onEnded) {
+  const ctx = getAudioContext();
+  if (ctx.state === "suspended") {
+    ctx.resume().then(() => _playBufferNow(ctx, buffer, onEnded)).catch(() => { onEnded && onEnded(); });
+  } else {
+    _playBufferNow(ctx, buffer, onEnded);
+  }
+}
+
+function _playBufferNow(ctx, buffer, onEnded) {
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(ctx.destination);
+  source.onended = () => { onEnded && onEnded(); };
+  source.start(0);
+}
+
+const CORRECT_URL = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/correct-sound.mp3";
+const TRY_AGAIN_URL_CATCH = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/Try%20again.mp3";
+
+// Unlock AudioContext on first user gesture so subsequent programmatic plays work
+function unlockAudioContext() {
+  const ctx = getAudioContext();
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+}
+
 export default function CampaignLetterCatchRound({ word, missingLetter, image, audio, onComplete, onMistake, lang = "en", paused = false, skipInitialAudio = false }) {
-  const { play: playCorrect } = useCorrectSound();
-  const { play: playTryAgain } = useTryAgainSound();
   const letters = word.split("");
   const missingPos = letters.indexOf(missingLetter);
+  // Pre-decode both sounds at mount so they're ready for gesture-free playback
+  useEffect(() => {
+    decodeAndCache(CORRECT_URL).catch(() => {});
+    decodeAndCache(TRY_AGAIN_URL_CATCH).catch(() => {});
+  }, []);
 
   const [tiles, setTiles] = useState([]);
   const [codyLane, setCodyLane] = useState(1);
@@ -204,9 +252,21 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
         tilesRef.current = [];
         setTiles([]);
         setCaughtVisible(true);
-        playCorrect(() => { onComplete(); });
+        const buf = _decodedBuffers[CORRECT_URL];
+        if (buf) {
+          playBuffered(buf, () => { onComplete(); });
+        } else {
+          decodeAndCache(CORRECT_URL)
+            .then((b) => playBuffered(b, () => { onComplete(); }))
+            .catch(() => { onComplete(); });
+        }
       } else {
-        playTryAgain();
+        const tryBuf = _decodedBuffers[TRY_AGAIN_URL_CATCH];
+        if (tryBuf) {
+          playBuffered(tryBuf, null);
+        } else {
+          decodeAndCache(TRY_AGAIN_URL_CATCH).then((b) => playBuffered(b, null)).catch(() => {});
+        }
         onMistake && onMistake();
         tilesRef.current = tilesRef.current.map((t) =>
           t.id === tile.id ? { ...t, status: "wrong" } : t
@@ -277,6 +337,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
   }, []);
 
   const moveLeft = () => {
+    unlockAudioContext();
     if (phaseRef.current !== "playing") return;
     const next = Math.max(0, codyLaneRef.current - 1);
     codyLaneRef.current = next;
@@ -284,6 +345,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
   };
 
   const moveRight = () => {
+    unlockAudioContext();
     if (phaseRef.current !== "playing") return;
     const next = Math.min(2, codyLaneRef.current + 1);
     codyLaneRef.current = next;
@@ -291,10 +353,12 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
   };
 
   return (
-    <div style={{
-      display: "flex", flexDirection: "column", height: "100%",
-      fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative",
-    }}>
+    <div
+      onPointerDown={() => unlockAudioContext()}
+      style={{
+        display: "flex", flexDirection: "column", height: "100%",
+        fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative",
+      }}>
       {phase === "caught" && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
       <div style={{ padding: "8px 12px 4px", flexShrink: 0 }}>
         <div style={{
@@ -303,7 +367,7 @@ export default function CampaignLetterCatchRound({ word, missingLetter, image, a
           boxShadow: "0 4px 20px rgba(30,58,95,0.10)",
         }}>
           <button
-            onPointerDown={(e) => { e.preventDefault(); playAudio(audio); }}
+            onPointerDown={(e) => { e.preventDefault(); unlockAudioContext(); playAudio(audio); }}
             style={{
               width: 98, height: 98, borderRadius: 18, overflow: "hidden",
               flexShrink: 0, border: "2.5px solid #A8D0E6",
