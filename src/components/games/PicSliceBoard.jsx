@@ -394,7 +394,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
               <div style={{ display: "flex", flex: 1, gap: 10, alignItems: "stretch", minHeight: 0 }}>
 
                 {/* Drop box */}
-                <div style={{ position: "relative", aspectRatio: "1 / 1", height: "100%" }}>
+                <div style={{ position: "relative", aspectRatio: "1 / 1", height: "100%", maxHeight: "100%", flex: "0 0 auto", width: "48%" }}>
                   <AnimatePresence mode="wait">
                     {done ? (
                       <motion.div
