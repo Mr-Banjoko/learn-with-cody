@@ -36,7 +36,7 @@ function buildRound(card) {
 }
 
 function splitRows(tiles) {
-  return [tiles.slice(0, 4), tiles.slice(4, 8), tiles.slice(8, 12)];
+  return [tiles.slice(0, 3), tiles.slice(3, 6), tiles.slice(6, 9), tiles.slice(9, 12)];
 }
 
 export default function DictationCampaignRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
@@ -206,18 +206,18 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
           {tileRows.map((row, rowIdx) => (
             <div key={rowIdx} style={{ display: "flex", gap: "min(10px,2.5vw)", justifyContent: "center" }}>
               {row.map((tile, colIdx) => {
-                const globalIdx = rowIdx * 4 + colIdx;
+                const globalIdx = rowIdx * 3 + colIdx;
                 const isPlaced = placed.includes(tile.id);
                 const isDraggingThis = dragState?.id === tile.id;
                 const isPulsating = pulsatingIds.has(tile.id) && !isPlaced;
                 const bgColor = LETTER_COLORS[globalIdx % LETTER_COLORS.length];
-                if (isPlaced) return <div key={tile.id} style={{ width: "min(72px,18vw)", height: "min(72px,18vw)", visibility: "hidden", flexShrink: 0 }} />;
+                if (isPlaced) return <div key={tile.id} style={{ width: "min(86px,21vw)", height: "min(86px,21vw)", visibility: "hidden", flexShrink: 0 }} />;
                 return (
                   <motion.div key={tile.id}
                     animate={isDraggingThis ? { scale: 1.08 } : isPulsating ? { scale: [1, 1.12, 1] } : { scale: 1 }}
                     transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
                     onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, tile); }}
-                    style={{ width: "min(72px,18vw)", height: "min(72px,18vw)", borderRadius: 18, background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(38px,9.5vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 12px rgba(0,0,0,0.10)", border: "3px solid rgba(255,255,255,0.75)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1, flexShrink: 0 }}>
+                    style={{ width: "min(86px,21vw)", height: "min(86px,21vw)", borderRadius: 20, background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(46px,11.5vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 12px rgba(0,0,0,0.10)", border: "3px solid rgba(255,255,255,0.75)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1, flexShrink: 0 }}>
                     {tile.letter}
                   </motion.div>
                 );
