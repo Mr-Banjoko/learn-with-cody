@@ -27,7 +27,7 @@ function buildRound(card) {
   const letters = card.word.split("");
   const used = new Set(letters);
   const pool = ALL_LETTERS.filter((l) => !used.has(l));
-  const distractors = shuffle(pool).slice(0, 9);
+  const distractors = shuffle(pool).slice(0, 6);
   const tiles = shuffle([
     ...letters.map((l, i) => ({ id: `correct-${i}`, letter: l, isCorrect: true })),
     ...distractors.map((l, i) => ({ id: `distractor-${i}`, letter: l, isCorrect: false })),
@@ -36,7 +36,7 @@ function buildRound(card) {
 }
 
 function splitRows(tiles) {
-  return [tiles.slice(0, 3), tiles.slice(3, 6), tiles.slice(6, 9), tiles.slice(9, 12)];
+  return [tiles.slice(0, 3), tiles.slice(3, 6), tiles.slice(6, 9)];
 }
 
 export default function DictationCampaignRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
