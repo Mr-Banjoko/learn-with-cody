@@ -232,26 +232,33 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
 
     const newMatches = [...matches, { topIdx, botIdx }];
     const isFinal = newMatches.length === letters.length;
-    const letter = letters[topIdx];
-    const letterUrl = getLetterSoundUrl(letter);
 
     // Commit match to state so line draws immediately
     setMatches(newMatches);
 
-    // Step 1: match-end.mp3 (blob-cached), then play letter sound, then word only on final match
-    const audioSteps = [{ url: MATCH_END_URL, gain: 1 }];
-    if (letterUrl) audioSteps.push({ url: letterUrl, gain: getLetterGain(letter) });
-
-
-    playAudioSequence(audioSteps, () => {
+    // Play match-end.mp3 only — guaranteed unlock via timeout fallback
+    const UNLOCK_AFTER = 1200; // ms safety fallback
+    let unlocked = false;
+    const unlock = () => {
+      if (unlocked) return;
+      unlocked = true;
       setLocked(false);
       matchingInProgress.current.delete(topIdx);
       if (isFinal) {
         setWon(true);
         setTimeout(onComplete, 200);
       }
-    });
-  }, [matches, letters, card, onComplete]);
+    };
+
+    const audio = new Audio(MATCH_END_URL);
+    audio.volume = 1;
+    audio.onended = unlock;
+    audio.onerror = unlock;
+    const safetyTimer = setTimeout(unlock, UNLOCK_AFTER);
+    audio.play().catch(() => { clearTimeout(safetyTimer); unlock(); });
+
+    return () => clearTimeout(safetyTimer);
+  }, [matches, letters, onComplete]);
 
   const handleTopDot = useCallback((topIdx) => {
     if (locked || matchedTopIdxs.has(topIdx)) return;
