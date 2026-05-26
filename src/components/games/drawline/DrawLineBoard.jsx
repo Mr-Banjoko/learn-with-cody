@@ -217,27 +217,32 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
     setTimeout(() => { setWrongFeedback(null); setSelected(null); }, 700);
   }, [onMistake, playTryAgain]);
 
+  // Match is valid if the top card's targetLetter equals the bottom token's letter.
+  // This handles duplicate letters (e.g. two "p" tokens) — any unmatched top with that letter is accepted.
+  const isValidMatch = useCallback((cardId, botIdx) => {
+    const topCard = topCards.find((c) => c.id === cardId);
+    return topCard && bottomLetters[botIdx].letter === topCard.targetLetter;
+  }, [topCards, bottomLetters]);
+
   const handleTopConnector = useCallback((cardId) => {
     if (locked) return;
     if (matchedTopIds.has(cardId)) return;
     if (!selected || selected.startsWith("top-")) { setSelected(`top-${cardId}`); return; }
     const botIdx = parseInt(selected.replace("bot-", ""), 10);
-    const bl = bottomLetters[botIdx];
     const topCard = topCards.find((c) => c.id === cardId);
-    if (bl.topCardId === cardId) triggerCorrectMatch(cardId, bl.letter, botIdx, topCard);
+    if (isValidMatch(cardId, botIdx)) triggerCorrectMatch(cardId, bottomLetters[botIdx].letter, botIdx, topCard);
     else triggerWrong(cardId, botIdx);
-  }, [locked, selected, matchedTopIds, bottomLetters, topCards, triggerCorrectMatch, triggerWrong]);
+  }, [locked, selected, matchedTopIds, bottomLetters, topCards, isValidMatch, triggerCorrectMatch, triggerWrong]);
 
   const handleBotConnector = useCallback((botIdx) => {
     if (locked) return;
     if (matchedBotIdxs.has(botIdx)) return;
     if (!selected || selected.startsWith("bot-")) { setSelected(`bot-${botIdx}`); return; }
     const topCardId = selected.replace("top-", "");
-    const bl = bottomLetters[botIdx];
     const topCard = topCards.find((c) => c.id === topCardId);
-    if (bl.topCardId === topCardId) triggerCorrectMatch(topCardId, bl.letter, botIdx, topCard);
+    if (isValidMatch(topCardId, botIdx)) triggerCorrectMatch(topCardId, bottomLetters[botIdx].letter, botIdx, topCard);
     else triggerWrong(topCardId, botIdx);
-  }, [locked, selected, matchedBotIdxs, bottomLetters, topCards, triggerCorrectMatch, triggerWrong]);
+  }, [locked, selected, matchedBotIdxs, bottomLetters, topCards, isValidMatch, triggerCorrectMatch, triggerWrong]);
 
   const handleTopCardTap = useCallback((card) => {
     if (locked) return;
