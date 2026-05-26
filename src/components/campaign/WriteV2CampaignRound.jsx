@@ -11,7 +11,7 @@ import { playAudioSequence } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
-const TILE_SIZE = 76;
+const TILE_SIZE = 84;
 const NUM_DISTRACTORS = 1; // 3 correct letters + 1 distractor = 4 cards in one row
 
 function createRound(card, key) {
@@ -142,12 +142,12 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   }, []);
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 16, overflowY: "auto", position: "relative" }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 24, overflowY: "auto", position: "relative" }}>
       {(locked || phase === "success") && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
       {/* Word image */}
       <AnimatePresence mode="wait">
-        <motion.div key={card.word} initial={{ opacity: 0, scale: 0.93 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }} style={{ position: "relative", width: "100%", maxWidth: 220 }}>
+        <motion.div key={card.word} initial={{ opacity: 0, scale: 0.93 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }} style={{ position: "relative", width: "100%", maxWidth: 330 }}>
           <div style={{ position: "absolute", top: -12, right: -6, width: 100, height: 85, borderRadius: 28, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -12, left: -6, width: 85, height: 85, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
           <div onPointerDown={(e) => { e.preventDefault(); if (!lockedRef.current && card.audio) { cancelAudio(); const cancel = playAudioSequence([{ url: card.audio, gain: 1 }], () => { cancelAudioRef.current = null; }); cancelAudioRef.current = cancel; } }}
@@ -168,9 +168,18 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
             const isBouncing = phase === "success" && bouncingCardIdx === i;
             if (phase === "success") {
               return (
-                <motion.div key={c.id} animate={isBouncing ? { y: [0, -18, 0, -10, 0] } : { y: 0 }} transition={isBouncing ? { duration: 0.5 } : {}}
-                  style={{ width: TILE_SIZE, height: Math.round(TILE_SIZE * 1.837), borderRadius: 16, background: cardColor, border: "none", boxShadow: "0 6px 28px rgba(30,58,95,0.14)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: Math.round(TILE_SIZE * 0.55), fontWeight: 700, color: "#1E3A5F", fontFamily: "Fredoka, sans-serif" }}>
-                  {c.letter}
+                <motion.div key={c.id}
+                  animate={isBouncing ? { y: [0, -18, 0, -10, 0] } : { y: 0 }}
+                  transition={isBouncing ? { duration: 0.5 } : {}}
+                  style={{ borderRadius: 18 }}>
+                  <div style={{
+                    borderRadius: 18, overflow: "hidden",
+                    border: "4px solid transparent",
+                    background: "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box",
+                    boxShadow: "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)",
+                  }}>
+                    <LetterTrace letter={c.letter} size={TILE_SIZE} locked={true} transparent={true} onComplete={() => {}} />
+                  </div>
                 </motion.div>
               );
             }
