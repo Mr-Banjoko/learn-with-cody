@@ -180,7 +180,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
                     background: "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box",
                     boxShadow: "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)",
                   }}>
-                    <LetterTrace letter={c.letter} size={TILE_SIZE} locked={true} transparent={true} onComplete={() => {}} />
+                    <LetterTrace letter={c.letter} size={TILE_SIZE} locked={true} transparent={true} forceCompleted={true} onComplete={() => {}} />
                   </div>
                 </motion.div>
               );

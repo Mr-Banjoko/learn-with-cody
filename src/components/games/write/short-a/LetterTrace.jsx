@@ -473,18 +473,18 @@ function drawFilledDotOutline(ctx, pt, w, h) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function LetterTrace({ letter = "a", onComplete, locked = false, size = 320, transparent = false }) {
+export default function LetterTrace({ letter = "a", onComplete, locked = false, size = 320, transparent = false, forceCompleted = false }) {
   const canvasRef = useRef(null);
 
-  const [currentStroke, setCurrentStroke] = useState(0);
-  const [completedStrokes, setCompletedStrokes] = useState([]);
+  const strokes = LETTER_STROKES[letter.toLowerCase()] || [];
+
+  const [currentStroke, setCurrentStroke] = useState(forceCompleted ? strokes.length : 0);
+  const [completedStrokes, setCompletedStrokes] = useState(() => forceCompleted ? strokes.map((_, i) => i) : []);
   const [isDrawing, setIsDrawing] = useState(false);
   const [userPoints, setUserPoints] = useState([]);
   const [feedback, setFeedback] = useState(null);
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(forceCompleted);
   const [shake, setShake] = useState(false);
-
-  const strokes = LETTER_STROKES[letter.toLowerCase()] || [];
 
   // Canvas is always 320 wide; height scales proportionally from 320×420 base
   const W = size;
