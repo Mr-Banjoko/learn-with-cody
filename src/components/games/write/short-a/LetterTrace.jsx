@@ -473,7 +473,7 @@ function drawFilledDotOutline(ctx, pt, w, h) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function LetterTrace({ letter = "a", onComplete, locked = false, size = 320 }) {
+export default function LetterTrace({ letter = "a", onComplete, locked = false, size = 320, transparent = false }) {
   const canvasRef = useRef(null);
 
   const [currentStroke, setCurrentStroke] = useState(0);
@@ -495,8 +495,10 @@ export default function LetterTrace({ letter = "a", onComplete, locked = false, 
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#E8FFFE";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (!transparent) {
+      ctx.fillStyle = "#E8FFFE";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     // ── Guide lines ─────────────────────────────────────────────────────────
     const topY  = canvas.height * T;

@@ -177,9 +177,15 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
               <motion.div key={c.id}
                 animate={isPulsating ? { scale: [1, 1.1, 1] } : { scale: 1 }}
                 transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
-                onPointerDown={(e) => { if (isTraced) { e.preventDefault(); playLetterSound(c.letter); } }}
-                style={{ opacity: isTraced ? 1 : 0.65, transition: "opacity 0.3s", outline: isPulsating ? "3px solid #22c55e" : isTraced ? "3px solid #22c55e" : "none", borderRadius: 18, boxShadow: isPulsating ? "0 0 0 3px #22c55e, 0 4px 16px rgba(34,197,94,0.45)" : "none", cursor: isTraced ? "pointer" : "default" }}>
-                <LetterTrace letter={c.letter} size={TILE_SIZE} locked={locked || isTraced} onComplete={() => handleCardComplete(c.id)} />
+                style={{ position: "relative", opacity: isTraced ? 1 : 0.65, transition: "opacity 0.3s", outline: isPulsating ? "3px solid #22c55e" : isTraced ? "3px solid #22c55e" : "none", borderRadius: 18, boxShadow: isPulsating ? "0 0 0 3px #22c55e, 0 4px 16px rgba(34,197,94,0.45)" : "none" }}>
+                <LetterTrace letter={c.letter} size={TILE_SIZE} locked={locked || isTraced} transparent={isTraced} onComplete={() => handleCardComplete(c.id)} />
+                {/* Tap overlay on traced cards — sits on top so canvas doesn't capture the touch */}
+                {isTraced && (
+                  <div
+                    onPointerDown={(e) => { e.preventDefault(); playLetterSound(c.letter); }}
+                    style={{ position: "absolute", inset: 0, borderRadius: 18, cursor: "pointer", touchAction: "manipulation" }}
+                  />
+                )}
               </motion.div>
             );
           })}
