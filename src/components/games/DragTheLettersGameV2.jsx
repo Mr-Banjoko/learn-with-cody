@@ -218,7 +218,7 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "8px 20px 10px", minHeight: 0 }}>
 
         {/* Picture */}
         <motion.div
@@ -228,7 +228,7 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
           transition={{ duration: 0.25 }}
           onPointerDown={(e) => { e.preventDefault(); card.audio && playAudio(card.audio); }}
           style={{
-            background: "white", borderRadius: 28, padding: 10,
+            background: "white", borderRadius: 32, padding: 10,
             boxShadow: "0 10px 40px rgba(30,58,95,0.15)",
             cursor: card.audio ? "pointer" : "default",
             touchAction: "manipulation", flexShrink: 0,
@@ -237,12 +237,12 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
           <img
             src={card.image}
             alt={card.word}
-            style={{ width: "min(220px, 48vw)", height: "min(220px, 48vw)", objectFit: "cover", borderRadius: 20, display: "block" }}
+            style={{ width: "min(330px, 68vw)", height: "min(330px, 68vw)", objectFit: "cover", borderRadius: 24, display: "block" }}
           />
         </motion.div>
 
         {/* Drop boxes + reset button */}
-        <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 8 }}>
           {round.letters.map((_, i) => {
             const placedId = placed[i];
             const placedOption = placedId ? round.options.find((o) => o.id === placedId) : null;
