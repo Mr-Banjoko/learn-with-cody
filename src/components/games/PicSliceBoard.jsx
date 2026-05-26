@@ -378,151 +378,154 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
           const wordPieces = state.pieces.filter((p) => p.wordIndex === wi);
 
           return (
-            <div key={wi} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, minHeight: 0 }}>
+            <div key={wi} style={{ flex: 1, display: "flex", flexDirection: "row", gap: 10, minHeight: 0, alignItems: "stretch" }}>
 
-              {/* Letter blocks / word label */}
-              <div
-                style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 2, cursor: playbackLocked ? "default" : "pointer" }}
-                onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
-              >
-                <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} color={color} />
-              </div>
+              {/* Left: letter blocks + drop box stacked */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: "0 0 48%", minWidth: 0 }}>
 
-              {/* Drop box — square, full width */}
-              <div style={{ position: "relative", width: "100%", paddingBottom: "55%", height: 0 }}>
-                <div style={{ position: "absolute", inset: 0 }}>
-                  <AnimatePresence mode="wait">
-                    {done ? (
-                      <motion.div
-                        key="done"
-                        initial={{ scale: 0.85, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                {/* Letter blocks / word label */}
+                <div
+                  style={{ display: "flex", justifyContent: "flex-start", cursor: playbackLocked ? "default" : "pointer", flexShrink: 0 }}
+                  onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
+                >
+                  <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} color={color} />
+                </div>
+
+                {/* Drop box — square intrinsic */}
+                <div style={{ position: "relative", width: "100%", paddingBottom: "100%", height: 0, flex: "0 0 auto" }}>
+                  <div style={{ position: "absolute", inset: 0 }}>
+                    <AnimatePresence mode="wait">
+                      {done ? (
+                        <motion.div
+                          key="done"
+                          initial={{ scale: 0.85, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                          style={{
+                            width: "100%", height: "100%",
+                            borderRadius: 18, overflow: "hidden",
+                            border: `3px solid ${color}`,
+                            boxShadow: `0 6px 28px ${shadow}`,
+                          }}
+                        >
+                          <img
+                            src={wd.fullImage || wd.image || (wd.slices && wd.slices[0])}
+                            alt={wd.word}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <motion.div
+                          key="slots"
+                          style={{
+                            width: "100%", height: "100%",
+                            display: "flex", flexDirection: "row",
+                            borderRadius: 18, overflow: "hidden",
+                            border: `3px solid ${color}`,
+                            background: playbackLocked ? "rgba(240,240,240,0.6)" : "rgba(255,255,255,0.75)",
+                            boxShadow: "0 4px 16px rgba(30,58,95,0.08)",
+                            opacity: playbackLocked ? 0.55 : 1,
+                            transition: "opacity 0.2s, background 0.2s",
+                          }}
+                        >
+                          {[0, 1, 2].map((si) => {
+                            const slotKey = `${wi}-${si}`;
+                            const placedId = state.placed[slotKey];
+                            const placedPiece = placedId ? state.pieces.find((p) => p.id === placedId) : null;
+                            const isRejected = state.rejectedSlot === slotKey;
+                            return (
+                              <div
+                                key={si}
+                                ref={(el) => (dropZoneRefs.current[slotKey] = el)}
+                                onPointerDown={() => !playbackLocked && placedPiece && handlePlacedTap(slotKey)}
+                                style={{
+                                  flex: 1,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  borderRight: si < 2 ? `2px dashed ${color}` : "none",
+                                  animation: isRejected ? "psShake 0.4s ease" : "none",
+                                  position: "relative", overflow: "hidden",
+                                  cursor: (playbackLocked || !placedPiece) ? "default" : "pointer",
+                                }}
+                              >
+                                {placedPiece ? (
+                                  <motion.div
+                                    initial={{ scale: 0.5, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ type: "spring", stiffness: 380, damping: 18 }}
+                                    style={{ position: "absolute", inset: 0 }}
+                                  >
+                                    <img src={placedPiece.sliceSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                                  </motion.div>
+                                ) : (
+                                  <span style={{ fontSize: "clamp(10px, 2.5vw, 14px)", color, fontWeight: 700 }}>
+                                    {si === 0 ? tx("1st", "ordinal_1", lang) : si === 1 ? tx("2nd", "ordinal_2", lang) : tx("3rd", "ordinal_3", lang)}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Reset button */}
+                    {!done && (
+                      <button
+                        onPointerDown={(e) => { e.stopPropagation(); handleReset(wi); }}
                         style={{
-                          width: "100%", height: "100%",
-                          borderRadius: 18, overflow: "hidden",
-                          border: `3px solid ${color}`,
-                          boxShadow: `0 6px 28px ${shadow}`,
+                          position: "absolute", bottom: 4, right: 4,
+                          width: 30, height: 30, borderRadius: 15,
+                          background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+                          border: "none", cursor: playbackLocked ? "default" : "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          zIndex: 10, touchAction: "manipulation",
+                          opacity: (playbackLocked || ![0,1,2].some((si) => state.placed[`${wi}-${si}`])) ? 0.25 : 0.85,
+                          pointerEvents: playbackLocked ? "none" : "auto",
                         }}
                       >
-                        <img
-                          src={wd.fullImage || wd.image || (wd.slices && wd.slices[0])}
-                          alt={wd.word}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="slots"
-                        style={{
-                          width: "100%", height: "100%",
-                          display: "flex", flexDirection: "row",
-                          borderRadius: 18, overflow: "hidden",
-                          border: `3px solid ${color}`,
-                          background: playbackLocked ? "rgba(240,240,240,0.6)" : "rgba(255,255,255,0.75)",
-                          boxShadow: "0 4px 16px rgba(30,58,95,0.08)",
-                          opacity: playbackLocked ? 0.55 : 1,
-                          transition: "opacity 0.2s, background 0.2s",
-                        }}
-                      >
-                        {[0, 1, 2].map((si) => {
-                          const slotKey = `${wi}-${si}`;
-                          const placedId = state.placed[slotKey];
-                          const placedPiece = placedId ? state.pieces.find((p) => p.id === placedId) : null;
-                          const isRejected = state.rejectedSlot === slotKey;
-                          return (
-                            <div
-                              key={si}
-                              ref={(el) => (dropZoneRefs.current[slotKey] = el)}
-                              onPointerDown={() => !playbackLocked && placedPiece && handlePlacedTap(slotKey)}
-                              style={{
-                                flex: 1,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                borderRight: si < 2 ? `2px dashed ${color}` : "none",
-                                animation: isRejected ? "psShake 0.4s ease" : "none",
-                                position: "relative", overflow: "hidden",
-                                cursor: (playbackLocked || !placedPiece) ? "default" : "pointer",
-                              }}
-                            >
-                              {placedPiece ? (
-                                <motion.div
-                                  initial={{ scale: 0.5, opacity: 0 }}
-                                  animate={{ scale: 1, opacity: 1 }}
-                                  transition={{ type: "spring", stiffness: 380, damping: 18 }}
-                                  style={{ position: "absolute", inset: 0 }}
-                                >
-                                  <img src={placedPiece.sliceSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                                </motion.div>
-                              ) : (
-                                <span style={{ fontSize: "clamp(10px, 2.5vw, 14px)", color, fontWeight: 700 }}>
-                                  {si === 0 ? tx("1st", "ordinal_1", lang) : si === 1 ? tx("2nd", "ordinal_2", lang) : tx("3rd", "ordinal_3", lang)}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </motion.div>
+                        <RotateCcw size={15} color="#A8D0E6" strokeWidth={2.2} />
+                      </button>
                     )}
-                  </AnimatePresence>
-
-                  {/* Reset button */}
-                  {!done && (
-                    <button
-                      onPointerDown={(e) => { e.stopPropagation(); handleReset(wi); }}
-                      style={{
-                        position: "absolute", bottom: 4, right: 4,
-                        width: 30, height: 30, borderRadius: 15,
-                        background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
-                        border: "none", cursor: playbackLocked ? "default" : "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        zIndex: 10, touchAction: "manipulation",
-                        opacity: (playbackLocked || ![0,1,2].some((si) => state.placed[`${wi}-${si}`])) ? 0.25 : 0.85,
-                        pointerEvents: playbackLocked ? "none" : "auto",
-                      }}
-                    >
-                      <RotateCcw size={15} color="#A8D0E6" strokeWidth={2.2} />
-                    </button>
-                  )}
+                  </div>
                 </div>
               </div>
 
-              {/* Tray pieces — 3 portrait slices in a horizontal row */}
-              <div style={{ display: "flex", flexDirection: "row", gap: 8 }}>
+              {/* Right: 3 tall portrait slices spaced evenly in a column */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, justifyContent: "space-evenly", minWidth: 0 }}>
                 {wordPieces.map((piece) => {
                   const isPlaced = !state.trayIds.includes(piece.id);
                   const isDraggingThis = dragState?.piece.id === piece.id;
                   if (isPlaced) {
-                    return (
-                      <div key={piece.id} style={{ flex: 1, paddingBottom: "55%", height: 0, visibility: "hidden" }} />
-                    );
+                    return <div key={piece.id} style={{ flex: 1, visibility: "hidden", borderRadius: 12 }} />;
                   }
                   return (
-                    <div key={piece.id} style={{ position: "relative", flex: 1, paddingBottom: "55%", height: 0 }}>
-                      <motion.div
-                        animate={isDraggingThis ? { opacity: 0.25, scale: 1.04 } : { opacity: playbackLocked ? 0.4 : 1, scale: 1 }}
-                        onTouchStart={(e) => !playbackLocked && handleTouchStart(e, piece)}
-                        style={{
-                          position: "absolute", inset: 0,
-                          borderRadius: 12, overflow: "hidden",
-                          boxShadow: "0 6px 18px rgba(30,58,95,0.18)",
-                          border: "2.5px solid rgba(255,255,255,0.85)",
-                          cursor: playbackLocked ? "default" : "grab",
-                          touchAction: "none",
-                          background: "white",
-                          pointerEvents: playbackLocked ? "none" : "auto",
-                        }}
-                      >
-                        <img
-                          src={piece.sliceSrc}
-                          alt=""
-                          draggable={false}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
-                        />
-                      </motion.div>
-                    </div>
+                    <motion.div
+                      key={piece.id}
+                      animate={isDraggingThis ? { opacity: 0.25, scale: 1.04 } : { opacity: playbackLocked ? 0.4 : 1, scale: 1 }}
+                      onTouchStart={(e) => !playbackLocked && handleTouchStart(e, piece)}
+                      style={{
+                        flex: 1,
+                        borderRadius: 12, overflow: "hidden",
+                        boxShadow: "0 6px 18px rgba(30,58,95,0.18)",
+                        border: "2.5px solid rgba(255,255,255,0.85)",
+                        cursor: playbackLocked ? "default" : "grab",
+                        touchAction: "none",
+                        background: "white",
+                        pointerEvents: playbackLocked ? "none" : "auto",
+                        minHeight: 0,
+                      }}
+                    >
+                      <img
+                        src={piece.sliceSrc}
+                        alt=""
+                        draggable={false}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
+                      />
+                    </motion.div>
                   );
                 })}
               </div>
+
             </div>
           );
         })}
