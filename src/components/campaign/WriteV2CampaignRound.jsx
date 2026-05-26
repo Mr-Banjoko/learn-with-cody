@@ -109,7 +109,9 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
       }, 700);
       return;
     }
-    const ordered = round.correctCards.slice().sort((a, b) => a.correctIndex - b.correctIndex);
+    const ordered = round.shuffledCards
+      .filter((c) => tracedCardIds.has(c.id) && c.isCorrect)
+      .sort((a, b) => a.correctIndex - b.correctIndex);
     setSuccessCards(ordered);
     setPhase("success");
     setLocked(true);
