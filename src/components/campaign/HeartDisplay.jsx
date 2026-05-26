@@ -18,23 +18,32 @@ function HeartSlot({ slotIndex, mistakes, size }) {
     if (!isBroken) setBrokenDone(false);
   }, [isBroken]);
 
+  const wrapStyle = {
+    width: size, height: size, flexShrink: 0,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    overflow: "hidden",
+  };
+  const lottiStyle = { width: size, height: size, flexShrink: 0 };
+
   if (!isBroken && !isOutline) {
-    return <Lottie animationData={bouncingHeartData} loop style={{ width: size, height: size }} />;
+    return <div style={wrapStyle}><Lottie animationData={bouncingHeartData} loop style={lottiStyle} /></div>;
   }
 
   if (isOutline) {
-    return <Lottie animationData={heartOutlineData} loop style={{ width: size, height: size }} />;
+    return <div style={wrapStyle}><Lottie animationData={heartOutlineData} loop style={lottiStyle} /></div>;
   }
 
   return (
-    <Lottie
-      lottieRef={brokenRef}
-      animationData={brokenHeartData}
-      loop={false}
-      autoplay={!brokenDone}
-      onComplete={() => setBrokenDone(true)}
-      style={{ width: size, height: size }}
-    />
+    <div style={wrapStyle}>
+      <Lottie
+        lottieRef={brokenRef}
+        animationData={brokenHeartData}
+        loop={false}
+        autoplay={!brokenDone}
+        onComplete={() => setBrokenDone(true)}
+        style={lottiStyle}
+      />
+    </div>
   );
 }
 
