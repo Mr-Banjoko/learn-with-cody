@@ -389,10 +389,10 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
               </div>
 
               {/* Drop box + tray pieces side by side */}
-              <div style={{ display: "flex", flex: 1, gap: 10, alignItems: "flex-start", minHeight: 0, overflow: "hidden" }}>
+              <div style={{ display: "flex", flex: 1, gap: 10, alignItems: "stretch", minHeight: 0, overflow: "hidden" }}>
 
                 {/* Drop box */}
-                <div style={{ position: "relative", flex: "0 0 65%", aspectRatio: "1 / 1" }}>
+                <div style={{ position: "relative", flex: "0 0 65%", minWidth: 0 }}>
                   <AnimatePresence mode="wait">
                     {done ? (
                       <motion.div
@@ -405,6 +405,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                           borderRadius: 18, overflow: "hidden",
                           border: `3px solid ${color}`,
                           boxShadow: `0 6px 28px ${shadow}`,
+                          display: "block",
                         }}
                       >
                         <img
@@ -490,14 +491,14 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                 {/* Tray pieces — 3 in a column */}
                 <div style={{
                   display: "flex", flexDirection: "column",
-                  gap: 6, flex: 1, minWidth: 0, minHeight: 0,
-                  overflow: "hidden",
+                  gap: 6, flex: 1, minWidth: 0,
+                  alignSelf: "stretch",
                 }}>
                   {wordPieces.map((piece) => {
                     const isPlaced = !state.trayIds.includes(piece.id);
                     const isDraggingThis = dragState?.piece.id === piece.id;
                     if (isPlaced) {
-                      return <div key={piece.id} style={{ flex: 1, visibility: "hidden" }} />;
+                      return <div key={piece.id} style={{ flex: 1, minHeight: 0, visibility: "hidden" }} />;
                     }
                     return (
                       <motion.div
@@ -505,7 +506,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                         animate={isDraggingThis ? { opacity: 0.25, scale: 1.04 } : { opacity: playbackLocked ? 0.4 : 1, scale: 1 }}
                         onTouchStart={(e) => !playbackLocked && handleTouchStart(e, piece)}
                         style={{
-                          flex: 1,
+                          flex: 1, minHeight: 0,
                           borderRadius: 12, overflow: "hidden",
                           boxShadow: "0 4px 14px rgba(30,58,95,0.14)",
                           border: "none",
