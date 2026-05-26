@@ -26,6 +26,10 @@ function buildRound(card, overrideChoices) {
   return { card, choices };
 }
 
+// Rainbow border matching IdentifyingRound style
+const RAINBOW_BORDER = "4px solid transparent";
+const RAINBOW_BG = "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box";
+
 export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [round] = useState(() => buildRound(card, overrideChoices));
   const [selected, setSelected] = useState(null);
@@ -73,13 +77,11 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
     }
   }, [feedback, audioLocked, round, card, onComplete, onMistake, playTryAgain]);
 
-  const color = "#FF6B6B";
-
   return (
-    <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16, fontFamily: "Fredoka, sans-serif", position: "relative" }}>
+    <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 24, fontFamily: "Fredoka, sans-serif", position: "relative" }}>
       {(audioLocked || feedback === "correct") && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
-      {/* Picture card */}
+      {/* Picture card — no colored border */}
       <AnimatePresence mode="wait">
         <motion.div
           key={round.card.word}
@@ -87,26 +89,25 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.88 }}
           transition={{ type: "spring", stiffness: 280, damping: 20 }}
-          style={{ width: "min(280px, calc(100vw - 48px))", background: "white", borderRadius: 28, padding: 12, boxShadow: "0 12px 48px rgba(30,58,95,0.14)", border: `3px solid ${color}44` }}
+          style={{ width: "min(280px, calc(100vw - 48px))", background: "white", borderRadius: 28, padding: 12, boxShadow: "0 12px 48px rgba(30,58,95,0.14)", border: "2px solid #E8E8E8" }}
         >
           <img src={round.card.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
           <button
             onClick={() => { if (!audioLocked && card.audio) playAudio(card.audio); }}
-            style={{ marginTop: 10, width: "100%", padding: "10px 0", borderRadius: 16, background: color + "18", border: `2px solid ${color}44`, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", fontFamily: "Fredoka, sans-serif", touchAction: "manipulation" }}
+            style={{ marginTop: 10, width: "100%", padding: "10px 0", borderRadius: 16, background: "#F0F0F0", border: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", fontFamily: "Fredoka, sans-serif", touchAction: "manipulation" }}
           >
-            <Volume2 size={20} color={color} />
+            <Volume2 size={20} color="#888" />
           </button>
         </motion.div>
       </AnimatePresence>
 
-      {/* 2×2 word choice grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%", maxWidth: "min(340px, calc(100vw - 32px))" }}>
+      {/* 2×2 word choice grid — bigger font, more spacing */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%", maxWidth: "min(360px, calc(100vw - 32px))" }}>
         {round.choices.map((choice) => {
           const isSelected = selected === choice.word;
           const isCorrect = choice.word === round.card.word;
-          let bg = "white", border = "2px solid #A8D0E6", textColor = "#1E3A5F", shadow = "0 4px 12px rgba(30,58,95,0.10)";
-          if (isSelected && feedback === "correct") { bg = "#E8FFF6"; border = "3px solid #4ECDC4"; shadow = "0 6px 24px rgba(78,205,196,0.35)"; }
-          else if (!isSelected && feedback === "correct" && isCorrect) { bg = "#E8FFF6"; border = "3px solid #4ECDC4"; }
+          const showRainbow = feedback === "correct" && (isSelected || isCorrect);
+
           return (
             <motion.button
               key={choice.word}
@@ -114,19 +115,29 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
               animate={isSelected && feedback === "wrong" ? { x: [0, -8, 8, -6, 6, 0] } : {}}
               transition={{ duration: 0.4 }}
               onPointerDown={(e) => { e.preventDefault(); handleChoice(choice); }}
-              style={{ padding: "16px 8px", borderRadius: 20, background: bg, border, color: textColor, fontSize: 24, fontWeight: 700, fontFamily: "Fredoka, sans-serif", cursor: feedback ? "default" : "pointer", boxShadow: shadow, transition: "background 0.2s, border 0.2s", minHeight: 64, touchAction: "manipulation" }}
+              style={{
+                padding: "20px 8px",
+                borderRadius: 20,
+                background: showRainbow ? RAINBOW_BG : "white",
+                border: showRainbow ? RAINBOW_BORDER : "2px solid #A8D0E6",
+                color: "#1E3A5F",
+                fontSize: 28,
+                fontWeight: 700,
+                fontFamily: "Fredoka, sans-serif",
+                cursor: feedback ? "default" : "pointer",
+                boxShadow: showRainbow
+                  ? "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)"
+                  : "0 4px 12px rgba(30,58,95,0.10)",
+                transition: "background 0.2s, border 0.2s, box-shadow 0.2s",
+                minHeight: 72,
+                touchAction: "manipulation",
+              }}
             >
               {choice.word}
             </motion.button>
           );
         })}
       </div>
-
-      <AnimatePresence>
-        {feedback === "correct" && (
-          <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }} style={{ fontSize: 52 }}>🎉</motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
