@@ -162,8 +162,8 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         <motion.div key={`${roundKey}-${phase}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}
           style={{ display: "flex", flexDirection: "row", gap: 8, justifyContent: "center", width: "100%" }}>
           {displayCards.map((c, i) => {
-            const RAINBOW = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
-            const cardColor = RAINBOW[i % RAINBOW.length];
+            const PULSATE_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
+            const cardColor = PULSATE_COLORS[i % PULSATE_COLORS.length];
             const isTraced = tracedCardIds.has(c.id);
             const isBouncing = phase === "success" && bouncingCardIdx === i;
             if (phase === "success") {
@@ -179,12 +179,16 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
               <motion.div key={c.id}
                 animate={isPulsating ? { scale: [1, 1.1, 1] } : { scale: 1 }}
                 transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
-                onPointerDown={(e) => {
-                  // Play letter sound on tap — canvas will also receive this event for tracing
-                  playLetterSound(c.letter);
-                }}
-                style={{ position: "relative", opacity: isTraced ? 1 : 0.75, transition: "opacity 0.3s", outline: isPulsating ? `3px solid ${cardColor}` : isTraced ? `3px solid ${cardColor}` : "none", borderRadius: 18, boxShadow: isPulsating ? `0 0 0 3px ${cardColor}, 0 4px 16px ${cardColor}88` : isTraced ? `0 0 0 3px ${cardColor}` : "none", cursor: "pointer", touchAction: "manipulation" }}>
-                <LetterTrace letter={c.letter} size={TILE_SIZE} locked={locked || isTraced} transparent={true} onComplete={() => handleCardComplete(c.id)} />
+                onPointerDown={() => playLetterSound(c.letter)}
+                style={{ position: "relative", opacity: isTraced ? 1 : 0.75, transition: "opacity 0.3s", borderRadius: 18, cursor: "pointer", touchAction: "manipulation",
+                  boxShadow: isPulsating && !isTraced ? `0 0 0 3px ${cardColor}, 0 4px 16px ${cardColor}88` : "none" }}>
+                {/* Rainbow border ring shown when traced */}
+                {isTraced && (
+                  <div style={{ position: "absolute", inset: -3, borderRadius: 21, background: "linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6)", zIndex: 0, boxShadow: "0 8px 24px rgba(155,89,182,0.3)" }} />
+                )}
+                <div style={{ position: "relative", zIndex: 1, borderRadius: 18, overflow: "hidden", background: "white" }}>
+                  <LetterTrace letter={c.letter} size={TILE_SIZE} locked={locked || isTraced} transparent={true} onComplete={() => handleCardComplete(c.id)} />
+                </div>
               </motion.div>
             );
           })}
