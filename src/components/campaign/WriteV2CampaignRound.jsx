@@ -180,13 +180,16 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
                 animate={isPulsating ? { scale: [1, 1.1, 1] } : { scale: 1 }}
                 transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
                 onPointerDown={() => playLetterSound(c.letter)}
-                style={{ position: "relative", opacity: isTraced ? 1 : 0.75, transition: "opacity 0.3s", borderRadius: 18, cursor: "pointer", touchAction: "manipulation",
-                  boxShadow: isPulsating && !isTraced ? `0 0 0 3px ${cardColor}, 0 4px 16px ${cardColor}88` : "none" }}>
-                {/* Rainbow border ring shown when traced */}
-                {isTraced && (
-                  <div style={{ position: "absolute", inset: -3, borderRadius: 21, background: "linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6)", zIndex: 0, boxShadow: "0 8px 24px rgba(155,89,182,0.3)" }} />
-                )}
-                <div style={{ position: "relative", zIndex: 1, borderRadius: 18, overflow: "hidden", background: "white" }}>
+                style={{ opacity: isTraced ? 1 : 0.75, transition: "opacity 0.3s", borderRadius: 18, cursor: "pointer", touchAction: "manipulation" }}>
+                <div style={{
+                  borderRadius: 18, overflow: "hidden",
+                  border: isTraced ? "4px solid transparent" : "4px solid transparent",
+                  background: isTraced
+                    ? "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box"
+                    : "white",
+                  boxShadow: isTraced ? "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)" : "none",
+                  transition: "background 0.2s, box-shadow 0.2s",
+                }}>
                   <LetterTrace letter={c.letter} size={TILE_SIZE} locked={locked || isTraced} transparent={true} onComplete={() => handleCardComplete(c.id)} />
                 </div>
               </motion.div>
