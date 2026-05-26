@@ -19,12 +19,12 @@ function LetterBlocks({ word, activeLetterIndex, color }) {
             animate={isActive ? { y: [0, -14, 0, -7, 0] } : { y: 0 }}
             transition={isActive ? { duration: 0.45 } : {}}
             style={{
-              width: "min(52px, 13vw)",
-              height: "min(52px, 13vw)",
+              width: "min(75px, 19vw)",
+              height: "min(75px, 19vw)",
               borderRadius: 14,
               background: color,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "min(30px, 7.5vw)",
+              fontSize: "min(43px, 11vw)",
               fontWeight: 700, color: "#1E3A5F",
               boxShadow: isActive
                 ? "0 6px 18px rgba(30,58,95,0.22)"
@@ -392,7 +392,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
               <div style={{ display: "flex", flex: 1, gap: 10, alignItems: "flex-start", minHeight: 0, overflow: "hidden" }}>
 
                 {/* Drop box */}
-                <div style={{ position: "relative", flex: "0 0 48%", aspectRatio: "1 / 1" }}>
+                <div style={{ position: "relative", flex: "0 0 65%", aspectRatio: "1 / 1" }}>
                   <AnimatePresence mode="wait">
                     {done ? (
                       <motion.div
@@ -508,7 +508,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                           flex: 1,
                           borderRadius: 12, overflow: "hidden",
                           boxShadow: "0 4px 14px rgba(30,58,95,0.14)",
-                          border: `2.5px solid ${color}`,
+                          border: "none",
                           cursor: playbackLocked ? "default" : "grab",
                           touchAction: "none",
                           background: "white",
