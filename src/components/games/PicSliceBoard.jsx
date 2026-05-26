@@ -389,10 +389,10 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
               </div>
 
               {/* Drop box + tray pieces side by side */}
-              <div style={{ display: "flex", flex: 1, gap: 10, alignItems: "stretch", minHeight: 0 }}>
+              <div style={{ display: "flex", flex: 1, gap: 10, alignItems: "flex-start", minHeight: 0, overflow: "hidden" }}>
 
                 {/* Drop box */}
-                <div style={{ position: "relative", aspectRatio: "1 / 1", height: "100%", maxHeight: "100%", flex: "0 0 auto", width: "48%" }}>
+                <div style={{ position: "relative", flex: "0 0 48%", aspectRatio: "1 / 1" }}>
                   <AnimatePresence mode="wait">
                     {done ? (
                       <motion.div
@@ -401,7 +401,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", stiffness: 260, damping: 18 }}
                         style={{
-                          height: "100%", aspectRatio: "1 / 1",
+                          width: "100%", aspectRatio: "1 / 1",
                           borderRadius: 18, overflow: "hidden",
                           border: `3px solid ${color}`,
                           boxShadow: `0 6px 28px ${shadow}`,
@@ -417,7 +417,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                       <motion.div
                         key="slots"
                         style={{
-                          height: "100%", aspectRatio: "1 / 1",
+                          width: "100%", aspectRatio: "1 / 1",
                           display: "flex", flexDirection: "row",
                           borderRadius: 18, overflow: "hidden",
                           border: `3px solid ${color}`,
@@ -490,7 +490,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                 {/* Tray pieces — 3 in a column */}
                 <div style={{
                   display: "flex", flexDirection: "column",
-                  gap: 6, flex: 1, minWidth: 0,
+                  gap: 6, flex: 1, minWidth: 0, minHeight: 0,
+                  overflow: "hidden",
                 }}>
                   {wordPieces.map((piece) => {
                     const isPlaced = !state.trayIds.includes(piece.id);
