@@ -97,6 +97,7 @@ function WinScreen({ card, onDone }) {
       const url = getLetterSoundUrl(letter);
       return url ? { url, gain: getLetterGain(letter), onStart: () => setActiveLetterIndex(i) } : null;
     }).filter(Boolean);
+    if (card.audio) steps.push({ url: card.audio, gain: 1, onStart: () => setActiveLetterIndex(null) });
 
     const t = setTimeout(() => {
       seqRef.current = playAudioSequence(steps, () => {
