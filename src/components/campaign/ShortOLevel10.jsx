@@ -49,7 +49,18 @@ export default function ShortOLevel10({ onBack, lang = "en" }) {
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const hintUrl = getShortOHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
+  const r1WordAudio = roundIndex === 0 ? (findWord(ROUND_DEFS[0].target)?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!r1WordAudio) { unlock(); return; }
+    const audio = new Audio(r1WordAudio);
+    audio.onended = unlock; audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [r1WordAudio]);
+
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -87,7 +98,7 @@ export default function ShortOLevel10({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {targetCard && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={targetCard} overrideChoices={overrideChoices} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {targetCard && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={targetCard} overrideChoices={overrideChoices} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={roundIndex === 0} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
