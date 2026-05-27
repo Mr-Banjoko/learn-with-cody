@@ -65,6 +65,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   const [completing, setCompleting] = useState(false);
   const wrongTimeout = useRef(null);
   const advanceTimeout = useRef(null);
+  const processingRef = useRef(false);
   const { play: playTryAgain } = useTryAgainSound();
 
   useEffect(() => {
@@ -74,6 +75,9 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   // Check match when both selected
   useEffect(() => {
     if (!selectedLeft || !selectedRight) return;
+    if (processingRef.current) return;
+    processingRef.current = true;
+
     const leftWord = leftItems.find((it) => it.id === selectedLeft)?.word;
     const rightWord = rightItems.find((it) => it.id === selectedRight)?.word;
     if (leftWord && rightWord) {
@@ -82,6 +86,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
         setMatchedPairs(newMatched);
         setSelectedLeft(null);
         setSelectedRight(null);
+        processingRef.current = false;
         const wordObj = leftItems.find((it) => it.word === leftWord);
         if (wordObj?.audio) playAudio(wordObj.audio);
         if (newMatched.length === 3) {
@@ -97,22 +102,25 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
           setWrongFlash(false);
           setSelectedLeft(null);
           setSelectedRight(null);
-        }, 500);
+          processingRef.current = false;
+        }, 600);
       }
+    } else {
+      processingRef.current = false;
     }
-  }, [selectedLeft, selectedRight, playTryAgain]); // eslint-disable-line
+  }, [selectedLeft, selectedRight]); // eslint-disable-line
 
   const handleLeftTap = useCallback((item) => {
-    if (completing || matchedPairs.includes(item.word)) return;
+    if (completing || matchedPairs.includes(item.word) || processingRef.current) return;
     if (item.audio) playAudio(item.audio);
     setSelectedLeft((prev) => (prev === item.id ? null : item.id));
     setSelectedRight(null);
-  }, [matchedPairs]);
+  }, [completing, matchedPairs]);
 
   const handleRightTap = useCallback((item) => {
-    if (completing || matchedPairs.includes(item.word)) return;
+    if (completing || matchedPairs.includes(item.word) || processingRef.current) return;
     setSelectedRight(item.id);
-  }, [matchedPairs]);
+  }, [completing, matchedPairs]);
 
   const getMatchColor = (word) => {
     const idx = matchedPairs.indexOf(word);
