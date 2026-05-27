@@ -189,11 +189,18 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake,
                     : isBouncing
                     ? { y: [0, -16, 0, -8, 0, -4, 0] }
                     : !tileColor && dragGuideStep === i
-                    ? { boxShadow: ["inset 0 2px 8px rgba(0,0,0,0.06)", "inset 0 2px 8px rgba(0,0,0,0.06), 0 0 0 4px rgba(74,144,196,0.35)", "inset 0 2px 8px rgba(0,0,0,0.06)"] }
+                    ? { boxShadow: [
+                        "inset 0 2px 8px rgba(0,0,0,0.06), 0 0 0 0px rgba(255,107,107,0)",
+                        "inset 0 2px 8px rgba(0,0,0,0.06), 0 0 0 5px rgba(255,107,107,0.65)",
+                        "inset 0 2px 8px rgba(0,0,0,0.06), 0 0 0 5px rgba(255,217,61,0.65)",
+                        "inset 0 2px 8px rgba(0,0,0,0.06), 0 0 0 5px rgba(78,205,196,0.65)",
+                        "inset 0 2px 8px rgba(0,0,0,0.06), 0 0 0 5px rgba(155,89,182,0.65)",
+                        "inset 0 2px 8px rgba(0,0,0,0.06), 0 0 0 0px rgba(155,89,182,0)",
+                      ] }
                     : {}
-                }
-                transition={!tileColor && dragGuideStep === i ? { duration: 1.6, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : { duration: 0.5 }}
-                style={{ width: "min(76px, 20vw)", height: "min(76px, 20vw)", borderRadius: 18, background: tileColor || "rgba(255,255,255,0.7)", border: `3px solid ${tileColor ? "rgba(255,255,255,0.85)" : (!tileColor && dragGuideStep === i ? "rgba(74,144,196,0.7)" : "rgba(74,144,196,0.4)")}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: tileColor ? "0 4px 16px rgba(0,0,0,0.12)" : "inset 0 2px 8px rgba(0,0,0,0.06)", transition: "background 0.2s, border 0.2s" }}
+                    }
+                    transition={!tileColor && dragGuideStep === i ? { duration: 2.2, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : { duration: 0.5 }}
+                    style={{ width: "min(76px, 20vw)", height: "min(76px, 20vw)", borderRadius: 18, background: tileColor || "rgba(255,255,255,0.7)", border: `3px solid ${tileColor ? "rgba(255,255,255,0.85)" : "rgba(74,144,196,0.4)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: tileColor ? "0 4px 16px rgba(0,0,0,0.12)" : "inset 0 2px 8px rgba(0,0,0,0.06)", transition: "background 0.2s, border 0.2s" }}
               >
                 {placedOption ? (
                   <motion.span key={placedOption.id} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F" }}>
@@ -241,7 +248,14 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake,
                   isDraggingThis
                     ? { scale: 1.1 }
                     : isGuidedTile
-                    ? { boxShadow: ["0 4px 12px rgba(0,0,0,0.10)", "0 0 0 6px rgba(255,255,255,0.55), 0 4px 20px rgba(0,0,0,0.18)", "0 4px 12px rgba(0,0,0,0.10)"] }
+                    ? { boxShadow: [
+                        "0 4px 12px rgba(0,0,0,0.10), 0 0 0 0px rgba(255,107,107,0)",
+                        "0 4px 12px rgba(0,0,0,0.10), 0 0 0 7px rgba(255,107,107,0.7)",
+                        "0 4px 12px rgba(0,0,0,0.10), 0 0 0 7px rgba(255,217,61,0.7)",
+                        "0 4px 12px rgba(0,0,0,0.10), 0 0 0 7px rgba(78,205,196,0.7)",
+                        "0 4px 12px rgba(0,0,0,0.10), 0 0 0 7px rgba(155,89,182,0.7)",
+                        "0 4px 12px rgba(0,0,0,0.10), 0 0 0 0px rgba(155,89,182,0)",
+                      ] }
                     : { scale: 1, opacity: 1 }
                 }
                 transition={isGuidedTile ? { duration: 1.6, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : {}}
