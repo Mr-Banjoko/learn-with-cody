@@ -14,7 +14,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import { buildShortOSliceData } from "../../lib/buildShortOSliceData";
 import { shortOWords } from "../../lib/shortOWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useRoundHintAudio, getShortOHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
 const LEVEL_NUM = 13;
 const VOWEL_KEY = "short-o";
@@ -39,7 +39,7 @@ export default function ShortOLevel13({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  const hintUrl = getHintAudioUrl("short-o", LEVEL_NUM, roundIndex, lang);
+  const hintUrl = getShortOHintAudioUrl(LEVEL_NUM, roundIndex, lang);
   const r1WordAudio = roundIndex === 0 ? (findWord(WORD_ORDER[0])?.audio || null) : null;
   const onHintComplete = useCallback((unlock) => {
     if (!r1WordAudio) { unlock(); return; }

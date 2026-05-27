@@ -8,6 +8,27 @@ import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
 import CampaignHome from "./campaign/CampaignHome.jsx";
 import ShortALevels from "./campaign/ShortALevels.jsx";
+import ShortOLevels from "./campaign/ShortOLevels.jsx";
+import ShortOLevel1 from "./campaign/ShortOLevel1.jsx";
+import ShortOLevel2 from "./campaign/ShortOLevel2.jsx";
+import ShortOLevel3 from "./campaign/ShortOLevel3.jsx";
+import ShortOLevel4 from "./campaign/ShortOLevel4.jsx";
+import ShortOLevel5 from "./campaign/ShortOLevel5.jsx";
+import ShortOLevel6 from "./campaign/ShortOLevel6.jsx";
+import ShortOLevel7 from "./campaign/ShortOLevel7.jsx";
+import ShortOLevel8 from "./campaign/ShortOLevel8.jsx";
+import ShortOLevel9 from "./campaign/ShortOLevel9.jsx";
+import ShortOLevel10 from "./campaign/ShortOLevel10.jsx";
+import ShortOLevel11 from "./campaign/ShortOLevel11.jsx";
+import ShortOLevel12 from "./campaign/ShortOLevel12.jsx";
+import ShortOLevel13 from "./campaign/ShortOLevel13.jsx";
+import ShortOLevel14 from "./campaign/ShortOLevel14.jsx";
+import ShortOLevel15 from "./campaign/ShortOLevel15.jsx";
+import ShortOLevel16 from "./campaign/ShortOLevel16.jsx";
+import ShortOLevel17 from "./campaign/ShortOLevel17.jsx";
+import ShortOLevel18 from "./campaign/ShortOLevel18.jsx";
+import ShortOLevel19 from "./campaign/ShortOLevel19.jsx";
+import ShortOLevel20 from "./campaign/ShortOLevel20.jsx";
 import Level1 from "./campaign/Level1.jsx";
 import Level2 from "./campaign/Level2.jsx";
 import Level3 from "./campaign/Level3.jsx";
@@ -49,30 +70,9 @@ import Level38 from "./campaign/Level38";
 import Level39 from "./campaign/Level39";
 import Level40 from "./campaign/Level40";
 import Level41 from "./campaign/Level41";
-import ShortOLevels from "./campaign/ShortOLevels";
-import ShortOLevel1 from "./campaign/ShortOLevel1";
-import ShortOLevel2 from "./campaign/ShortOLevel2";
-import ShortOLevel3 from "./campaign/ShortOLevel3";
-import ShortOLevel4 from "./campaign/ShortOLevel4";
-import ShortOLevel5 from "./campaign/ShortOLevel5";
-import ShortOLevel6 from "./campaign/ShortOLevel6";
-import ShortOLevel7 from "./campaign/ShortOLevel7";
-import ShortOLevel8 from "./campaign/ShortOLevel8";
-import ShortOLevel9 from "./campaign/ShortOLevel9";
-import ShortOLevel10 from "./campaign/ShortOLevel10";
-import ShortOLevel11 from "./campaign/ShortOLevel11";
-import ShortOLevel12 from "./campaign/ShortOLevel12";
-import ShortOLevel13 from "./campaign/ShortOLevel13";
-import ShortOLevel14 from "./campaign/ShortOLevel14";
-import ShortOLevel15 from "./campaign/ShortOLevel15";
-import ShortOLevel16 from "./campaign/ShortOLevel16";
-import ShortOLevel17 from "./campaign/ShortOLevel17";
-import ShortOLevel18 from "./campaign/ShortOLevel18";
-import ShortOLevel19 from "./campaign/ShortOLevel19";
-import ShortOLevel20 from "./campaign/ShortOLevel20";
 
 // Screens that hide the tab bar and language toggle
-const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-o", "campaign-short-o-level-1", "campaign-short-o-level-2", "campaign-short-o-level-3", "campaign-short-o-level-4", "campaign-short-o-level-5", "campaign-short-o-level-6", "campaign-short-o-level-7", "campaign-short-o-level-8", "campaign-short-o-level-9", "campaign-short-o-level-10", "campaign-short-o-level-11", "campaign-short-o-level-12", "campaign-short-o-level-13", "campaign-short-o-level-14", "campaign-short-o-level-15", "campaign-short-o-level-16", "campaign-short-o-level-17", "campaign-short-o-level-18", "campaign-short-o-level-19", "campaign-short-o-level-20", "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15", "campaign-short-a-level-16", "campaign-short-a-level-17", "campaign-short-a-level-18", "campaign-short-a-level-19", "campaign-short-a-level-20", "campaign-short-a-level-21", "campaign-short-a-level-22", "campaign-short-a-level-23", "campaign-short-a-level-24", "campaign-short-a-level-25", "campaign-short-a-level-26", "campaign-short-a-level-27", "campaign-short-a-level-28", "campaign-short-a-level-29", "campaign-short-a-level-30", "campaign-short-a-level-31", "campaign-short-a-level-32", "campaign-short-a-level-33", "campaign-short-a-level-34", "campaign-short-a-level-35", "campaign-short-a-level-36", "campaign-short-a-level-37", "campaign-short-a-level-38", "campaign-short-a-level-39", "campaign-short-a-level-40", "campaign-short-a-level-41"]);
+const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15", "campaign-short-a-level-16", "campaign-short-a-level-17", "campaign-short-a-level-18", "campaign-short-a-level-19", "campaign-short-a-level-20", "campaign-short-a-level-21", "campaign-short-a-level-22", "campaign-short-a-level-23", "campaign-short-a-level-24", "campaign-short-a-level-25", "campaign-short-a-level-26", "campaign-short-a-level-27", "campaign-short-a-level-28", "campaign-short-a-level-29", "campaign-short-a-level-30", "campaign-short-a-level-31", "campaign-short-a-level-32", "campaign-short-a-level-33", "campaign-short-a-level-34", "campaign-short-a-level-35", "campaign-short-a-level-36", "campaign-short-a-level-37", "campaign-short-a-level-38", "campaign-short-a-level-39", "campaign-short-a-level-40", "campaign-short-a-level-41", "campaign-short-o", "campaign-short-o-level-1", "campaign-short-o-level-2", "campaign-short-o-level-3", "campaign-short-o-level-4", "campaign-short-o-level-5", "campaign-short-o-level-6", "campaign-short-o-level-7", "campaign-short-o-level-8", "campaign-short-o-level-9", "campaign-short-o-level-10", "campaign-short-o-level-11", "campaign-short-o-level-12", "campaign-short-o-level-13", "campaign-short-o-level-14", "campaign-short-o-level-15", "campaign-short-o-level-16", "campaign-short-o-level-17", "campaign-short-o-level-18", "campaign-short-o-level-19", "campaign-short-o-level-20"]);
 
 export default function AppShell() {
   useBuildGuard();
@@ -102,56 +102,6 @@ export default function AppShell() {
 
   const renderHomeScreen = () => {
     switch (homeSubScreen) {
-      case "campaign-short-o-level-20":
-        return <ShortOLevel20 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-19":
-        return <ShortOLevel19 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-18":
-        return <ShortOLevel18 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-17":
-        return <ShortOLevel17 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-16":
-        return <ShortOLevel16 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-15":
-        return <ShortOLevel15 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-14":
-        return <ShortOLevel14 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-13":
-        return <ShortOLevel13 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-12":
-        return <ShortOLevel12 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-11":
-        return <ShortOLevel11 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-10":
-        return <ShortOLevel10 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-9":
-        return <ShortOLevel9 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-8":
-        return <ShortOLevel8 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-7":
-        return <ShortOLevel7 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-6":
-        return <ShortOLevel6 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-5":
-        return <ShortOLevel5 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-4":
-        return <ShortOLevel4 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-3":
-        return <ShortOLevel3 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-2":
-        return <ShortOLevel2 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o-level-1":
-        return <ShortOLevel1 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
-      case "campaign-short-o":
-        return (
-          <ShortOLevels
-            onBack={() => setHomeSubScreen("campaign")}
-            onSelectLevel={(lvl) => {
-              if (lvl >= 1 && lvl <= 20) setHomeSubScreen(`campaign-short-o-level-${lvl}`);
-            }}
-            lang={language}
-          />
-        );
       case "campaign-short-a-level-41":
         return <Level41 onBack={() => setHomeSubScreen("campaign-short-a")} lang={language} />;
       case "campaign-short-a-level-40":
@@ -380,6 +330,36 @@ export default function AppShell() {
         return (
           <Level1
             onBack={() => setHomeSubScreen("campaign-short-a")}
+            lang={language}
+          />
+        );
+
+      case "campaign-short-o-level-20": return <ShortOLevel20 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-19": return <ShortOLevel19 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-18": return <ShortOLevel18 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-17": return <ShortOLevel17 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-16": return <ShortOLevel16 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-15": return <ShortOLevel15 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-14": return <ShortOLevel14 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-13": return <ShortOLevel13 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-12": return <ShortOLevel12 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-11": return <ShortOLevel11 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-10": return <ShortOLevel10 onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-9":  return <ShortOLevel9  onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-8":  return <ShortOLevel8  onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-7":  return <ShortOLevel7  onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-6":  return <ShortOLevel6  onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-5":  return <ShortOLevel5  onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-4":  return <ShortOLevel4  onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-3":  return <ShortOLevel3  onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-2":  return <ShortOLevel2  onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+      case "campaign-short-o-level-1":  return <ShortOLevel1  onBack={() => setHomeSubScreen("campaign-short-o")} lang={language} />;
+
+      case "campaign-short-o":
+        return (
+          <ShortOLevels
+            onBack={() => setHomeSubScreen("campaign")}
+            onSelectLevel={(lvl) => setHomeSubScreen(`campaign-short-o-level-${lvl}`)}
             lang={language}
           />
         );

@@ -8,7 +8,7 @@ import DrawLineBoard from "../games/drawline/DrawLineBoard";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortOWords } from "../../lib/shortOWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useRoundHintAudio, getShortOHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
 const LEVEL_NUM = 14;
 const VOWEL_KEY = "short-o";
@@ -87,7 +87,7 @@ export default function ShortOLevel14({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  const hintUrl = getHintAudioUrl("short-o", LEVEL_NUM, roundIndex, lang);
+  const hintUrl = getShortOHintAudioUrl(LEVEL_NUM, roundIndex, lang);
   const onHintComplete = useCallback((unlock) => { unlock(); }, []);
   const { locked: hintLocked } = useRoundHintAudio({
     url: hintUrl,
