@@ -8,6 +8,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../lib/useAudio";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
+import { useCorrectSound } from "../../lib/useCorrectSound";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -68,6 +69,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
   const advanceTimeout = useRef(null);
   const processingRef = useRef(false);
   const { play: playTryAgain } = useTryAgainSound();
+  const { play: playCorrect } = useCorrectSound();
 
   useEffect(() => {
     return () => { clearTimeout(wrongTimeout.current); clearTimeout(advanceTimeout.current); };
@@ -88,8 +90,7 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
         setSelectedLeft(null);
         setSelectedRight(null);
         processingRef.current = false;
-        const wordObj = leftItems.find((it) => it.word === leftWord);
-        if (wordObj?.audio) playAudio(wordObj.audio);
+        playCorrect();
         if (newMatched.length === 3) {
           setCompleting(true);
           advanceTimeout.current = setTimeout(() => onComplete(), 900);
