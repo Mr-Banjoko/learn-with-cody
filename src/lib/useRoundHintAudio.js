@@ -196,10 +196,20 @@ export function getHintAudioUrl(levelNum, roundIndex, lang) {
 export function getShortOHintAudioUrl(levelNum, roundIndex, lang) {
   const zh = lang === "zh";
 
+  // L1 R2 (index 1): connection first appearance in Short O
+  if (levelNum === 1 && roundIndex === 1) {
+    const folder = zh ? "chinese" : "english%20";
+    return `${GH}/letter_to_sound_hint/${folder}/hint.mp3`;
+  }
   // L2 R1 (index 0): catch first appearance
   if (levelNum === 2 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/catch_the_letter_hint/${folder}/hint.mp3`;
+  }
+  // L3 R1 (index 0): missing01 (drag+missing01) first appearance
+  if (levelNum === 3 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/missing_sound_hint/${folder}/hint.mp3`;
   }
   // L5 R2 (index 1): rearrange_easy first appearance
   if (levelNum === 5 && roundIndex === 1) {
@@ -216,7 +226,12 @@ export function getShortOHintAudioUrl(levelNum, roundIndex, lang) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/write_hint%20/${folder}/hint.mp3`;
   }
-  // L13 R1 (index 0): rearrange_easy (second campaign, no new hint needed but keep consistent)
+  // L10 R1 (index 0): word_match first appearance
+  if (levelNum === 10 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/word%20match/${folder}/hint.mp3`;
+  }
+  // L13 R1 (index 0): rearrange_easy reinforcement
   if (levelNum === 13 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english%20";
     return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
@@ -235,6 +250,11 @@ export function getShortOHintAudioUrl(levelNum, roundIndex, lang) {
   if (levelNum === 18 && roundIndex === 0) {
     const folder = zh ? "chinese" : "english";
     return `${GH}/write_v2_hint/${folder}/hint.mp3`;
+  }
+  // L19 R1 (index 0): word_to_audio first appearance
+  if (levelNum === 19 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/word%20match/${folder}/hint.mp3`;
   }
 
   return null;

@@ -11,7 +11,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import { buildShortOSliceData } from "../../lib/buildShortOSliceData";
 import { shortOWords } from "../../lib/shortOWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
-import { useRoundHintAudio, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useRoundHintAudio, getShortOHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
 const LEVEL_NUM = 1;
 const VOWEL_KEY = "short-o";
@@ -49,7 +49,8 @@ export default function ShortOLevel1({ onBack, lang = "en" }) {
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   // R2 (index 1): connection first appearance in Short O — audio guide
-  const { locked: hintLocked } = useRoundHintAudio({ url: null });
+  const hintUrl = getShortOHintAudioUrl(LEVEL_NUM, roundIndex, lang);
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
