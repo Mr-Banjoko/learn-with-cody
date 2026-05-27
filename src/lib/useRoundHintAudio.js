@@ -260,6 +260,57 @@ export function getShortOHintAudioUrl(levelNum, roundIndex, lang) {
   return null;
 }
 
+/**
+ * Returns hint audio URL for Short I levels.
+ * First appearance of each game type gets a hint.
+ */
+export function getShortIHintAudioUrl(levelNum, roundIndex, lang) {
+  const zh = lang === "zh";
+
+  // L1 R1 (index 0): phonics/missing01 intro — no special hint needed (handled by Level1Phonics)
+
+  // L3 R1 (index 0): catch first appearance in Short I
+  if (levelNum === 3 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/catch_the_letter_hint/${folder}/hint.mp3`;
+  }
+  // L5 R1 (index 0): phonics first appearance in Short I Batch B
+  // no special hint needed
+
+  // L6 R5 (index 4): rearrange_hard first appearance in Short I
+  if (levelNum === 6 && roundIndex === 4) {
+    const folder = zh ? "chinese" : "english%20";
+    return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
+  }
+  // L7 R1 (index 0): dictation first appearance in Short I
+  if (levelNum === 7 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/dictation_hint/${folder}/hint.mp3`;
+  }
+  // L8 R5 (index 4): writev2 first appearance in Short I
+  if (levelNum === 8 && roundIndex === 4) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/write_v2_hint/${folder}/hint.mp3`;
+  }
+  // L11 R2 (index 1): write first appearance in Short I
+  if (levelNum === 11 && roundIndex === 1) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/write_hint%20/${folder}/hint.mp3`;
+  }
+  // L13 R1 (index 0): draw-a-line block 1 first appearance in Short I
+  if (levelNum === 13 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/draw_a_line_hint/${folder}/hint.mp3`;
+  }
+  // L4 R2 (index 1): word_match first appearance in Short I
+  if (levelNum === 4 && roundIndex === 1) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/word%20match/${folder}/hint.mp3`;
+  }
+
+  return null;
+}
+
 // Full-screen lock overlay style — paste this div when `locked === true`
 export const LOCK_OVERLAY_STYLE = {
   position: "absolute",
