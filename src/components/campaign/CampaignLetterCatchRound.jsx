@@ -68,9 +68,18 @@ function pickDistractors(correct) {
 }
 
 function buildQueue(correct, distractors) {
-  return Array.from({ length: 12 }, (_, i) =>
-    i % 3 === 1 ? correct : distractors[i % 2]
-  );
+  // Correct letter appears at positions 1, 3, 5... (never first — index 0, 2, 4 are always distractors)
+  // We randomize whether it appears at slot 1 or slot 2 within each group of 3
+  return Array.from({ length: 12 }, (_, i) => {
+    const groupPos = i % 3;
+    if (groupPos === 0) return distractors[i % 2]; // always distractor first in each group
+    // slots 1 and 2: randomly assign correct vs distractor per group
+    const group = Math.floor(i / 3);
+    // seed a consistent decision per group (alternating + random offset)
+    const correctInSlot1 = (group % 2 === 0) ? (group % 4 < 2) : (group % 4 >= 2);
+    if (groupPos === 1) return correctInSlot1 ? correct : distractors[(i + 1) % 2];
+    return correctInSlot1 ? distractors[(i + 1) % 2] : correct;
+  });
 }
 
 function pickLane(activeTiles) {
@@ -351,8 +360,8 @@ export default function CampaignLetterCatchRound({
           // First tile: always a distractor, always in the middle lane
           letter = distractors[0];
           lane = 1;
-        } else if (spawnCount === 1 && letter === missingLetter) {
-          // Second tile: if it's the correct letter, force it off the middle lane
+        } else if (letter === missingLetter) {
+          // Correct letter: never in the middle lane (lane 1), randomize left (0) or right (2)
           lane = Math.random() < 0.5 ? 0 : 2;
         } else {
           lane = pickLane(tilesRef.current.filter((t) => t.status === "falling"));

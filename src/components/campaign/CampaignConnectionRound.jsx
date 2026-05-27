@@ -18,6 +18,16 @@ import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 import { buildWordData } from "../../lib/picSliceGameData";
+import { buildShortOSliceData } from "../../lib/buildShortOSliceData";
+
+function buildWordDataWithFallback(word) {
+  const data = buildWordData(word);
+  // If phonemes have no sliceSrc, try buildShortOSliceData (Short O words not in slice registry)
+  if (data.phonemes && data.phonemes.every((p) => !p.sliceSrc)) {
+    try { return buildShortOSliceData(word); } catch (_) {}
+  }
+  return data;
+}
 
 const MATCH_END_URL = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3";
 
@@ -183,7 +193,7 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
   const [selected, setSelected] = useState(null);
   const [matches, setMatches] = useState([]);
   // Get phoneme slice data
-  const wordData = useMemo(() => buildWordData(card.word), [card.word]);
+  const wordData = useMemo(() => buildWordDataWithFallback(card.word), [card.word]);
   const [wrongFeedback, setWrongFeedback] = useState(null);
   const [locked, setLocked] = useState(false);
   const [won, setWon] = useState(false);
