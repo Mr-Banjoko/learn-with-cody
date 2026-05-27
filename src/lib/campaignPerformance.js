@@ -192,9 +192,36 @@ export const SHORT_A_SCORED_ROUNDS = {
  * @param {number} levelNum
  * @returns {number}
  */
+// Short O scored rounds map
+export const SHORT_O_SCORED_ROUNDS = {
+  1:  5,  // 5 connection rounds (phonics not scored)
+  2:  5,  // 5 catch rounds
+  3:  5,  // missing01×3 + drag×2
+  4:  8,  // all 8 scored
+  5:  5,  // rearrange_easy×5 (phonics not scored)
+  6:  5,  // drag×3 + identifying×2
+  7:  5,  // 5 drawline rounds
+  8:  8,  // all 8 scored
+  9:  5,  // write×5 (phonics not scored)
+  10: 5,  // 5 word_match rounds
+  11: 9,  // all 9 scored
+  12: 5,  // drag×5 (phonics not scored)
+  13: 5,  // 5 rearrange_easy rounds
+  14: 5,  // 5 drawline rounds
+  15: 9,  // all 9 scored
+  16: 5,  // connection×5 (phonics not scored)
+  17: 5,  // 5 dictation rounds
+  18: 5,  // 5 writev2 rounds
+  19: 5,  // 5 word_to_audio rounds
+  20: 9,  // all 9 scored
+};
+
 export function getScoredRounds(vowelKey, levelNum) {
   if (vowelKey === "short-a") {
     return SHORT_A_SCORED_ROUNDS[levelNum] ?? 5;
+  }
+  if (vowelKey === "short-o") {
+    return SHORT_O_SCORED_ROUNDS[levelNum] ?? 5;
   }
   return 5; // safe fallback for future vowels
 }

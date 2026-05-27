@@ -1,0 +1,88 @@
+/**
+ * ShortOLevel3 — Batch A Reinforcement
+ * R1: missing01 — mom
+ * R2: drag — dog
+ * R3: missing01 — hot
+ * R4: drag — top
+ * R5: missing01 — pop
+ */
+import { useState, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import LevelHeader from "./LevelHeader";
+import Level1DragV2 from "./Level1DragV2";
+import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
+import LevelCompleteScreen from "./LevelCompleteScreen";
+import { shortOWords } from "../../lib/shortOWords";
+import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+
+const LEVEL_NUM = 3;
+const VOWEL_KEY = "short-o";
+const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
+const findWord = (w) => shortOWords.find((x) => x.word === w);
+
+const ROUND_SEQUENCE = [
+  { type: "missing01", word: "mom", missingPos: 0 },
+  { type: "drag",      word: "dog" },
+  { type: "missing01", word: "hot", missingPos: 1 },
+  { type: "drag",      word: "top" },
+  { type: "missing01", word: "pop", missingPos: 2 },
+];
+const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
+
+function markComplete() {
+  try {
+    const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
+    if (!data[VOWEL_KEY]) data[VOWEL_KEY] = {};
+    data[VOWEL_KEY][LEVEL_NUM] = { completed: true, completedAt: new Date().toISOString() };
+    localStorage.setItem("campaign_progress", JSON.stringify(data));
+  } catch (_) {}
+}
+
+export default function ShortOLevel3({ onBack, lang = "en" }) {
+  const [roundIndex, setRoundIndex] = useState(0);
+  const [done, setDone] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [earnedStars, setEarnedStars] = useState(0);
+  const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
+
+  const advance = useCallback(() => {
+    const next = roundIndex + 1;
+    if (next >= TOTAL_ROUNDS) {
+      markComplete();
+      const stars = calcStars(mistakes, SCORED_ROUNDS);
+      saveLevelResult(VOWEL_KEY, LEVEL_NUM, stars, mistakes);
+      setEarnedStars(stars);
+      setDone(true);
+    } else {
+      setRoundIndex(next);
+    }
+  }, [roundIndex, mistakes]);
+
+  const roundDef = ROUND_SEQUENCE[roundIndex];
+  const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
+  const dragCard = useMemo(() => roundDef.type === "drag" ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const missingCard = useMemo(() => roundDef.type === "missing01" ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #FFF6E8 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} gameType={roundDef.type} />
+      {!done && (
+        <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
+          <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #FF9F43, #FFD93D)" }} />
+        </div>
+      )}
+      <AnimatePresence mode="wait">
+        {done ? (
+          <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <LevelCompleteScreen levelNum={LEVEL_NUM} stars={earnedStars} mistakes={mistakes} onBack={onBack} lang={lang} />
+          </motion.div>
+        ) : (
+          <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            {roundDef.type === "drag" && dragCard && <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "missing01" && missingCard && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={missingCard} forcedMissingPos={roundDef.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} />}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

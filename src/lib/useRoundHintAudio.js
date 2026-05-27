@@ -189,6 +189,57 @@ export function getHintAudioUrl(levelNum, roundIndex, lang) {
   return null;
 }
 
+/**
+ * Returns hint audio URL for Short O levels.
+ * First appearance of each game type gets a hint.
+ */
+export function getShortOHintAudioUrl(levelNum, roundIndex, lang) {
+  const zh = lang === "zh";
+
+  // L2 R1 (index 0): catch first appearance
+  if (levelNum === 2 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/catch_the_letter_hint/${folder}/hint.mp3`;
+  }
+  // L5 R2 (index 1): rearrange_easy first appearance
+  if (levelNum === 5 && roundIndex === 1) {
+    const folder = zh ? "chinese" : "english%20";
+    return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
+  }
+  // L7 R1 (index 0): drawline first appearance
+  if (levelNum === 7 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/draw_a_line_hint/${folder}/hint.mp3`;
+  }
+  // L9 R2 (index 1): write first appearance
+  if (levelNum === 9 && roundIndex === 1) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/write_hint%20/${folder}/hint.mp3`;
+  }
+  // L13 R1 (index 0): rearrange_easy (second campaign, no new hint needed but keep consistent)
+  if (levelNum === 13 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english%20";
+    return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
+  }
+  // L14 R1 (index 0): drawline again
+  if (levelNum === 14 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/draw_a_line_hint/${folder}/hint.mp3`;
+  }
+  // L17 R1 (index 0): dictation first appearance
+  if (levelNum === 17 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/dictation_hint/${folder}/hint.mp3`;
+  }
+  // L18 R1 (index 0): writev2 first appearance
+  if (levelNum === 18 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/write_v2_hint/${folder}/hint.mp3`;
+  }
+
+  return null;
+}
+
 // Full-screen lock overlay style — paste this div when `locked === true`
 export const LOCK_OVERLAY_STYLE = {
   position: "absolute",
