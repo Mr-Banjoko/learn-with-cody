@@ -1,9 +1,10 @@
 /**
  * ShortILevels — Level map for the Short I campaign (31 levels)
+ * Level 1 at top, level 31 at bottom. All levels visible; completed ones shown with stars.
  */
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Star, Lock } from "lucide-react";
+import BackArrow from "../BackArrow";
 import ShortILevel1 from "./ShortILevel1";
 import ShortILevel2 from "./ShortILevel2";
 import ShortILevel3 from "./ShortILevel3";
@@ -39,6 +40,8 @@ import { getBestStars } from "../../lib/campaignPerformance";
 
 const VOWEL_KEY = "short-i";
 const TOTAL_LEVELS = 31;
+const NODE_SPACING = 114;
+const TOP_OFFSET = 36;
 
 const LEVEL_COMPONENTS = {
   1: ShortILevel1, 2: ShortILevel2, 3: ShortILevel3, 4: ShortILevel4,
@@ -62,106 +65,124 @@ const LEVEL_TAGS = {
   29: "Match", 30: "Catch", 31: "Final",
 };
 
-const NODE_X = [160, 220, 120, 180, 240, 140, 200, 160, 220, 130,
-               180, 240, 150, 200, 120, 170, 230, 160, 200, 140,
-               190, 240, 130, 180, 220, 160, 200, 140, 190, 230, 170];
+const TAG_STYLES = {
+  Learn:    { bg: "#D1FAE5", color: "#065F46" },
+  Practice: { bg: "#DBEAFE", color: "#1E40AF" },
+  Review:   { bg: "#FEF3C7", color: "#92400E" },
+  Draw:     { bg: "#EDE9FE", color: "#5B21B6" },
+  Write:    { bg: "#FCE7F3", color: "#9D174D" },
+  Listen:   { bg: "#E0F2FE", color: "#0369A1" },
+  Match:    { bg: "#FEF9C3", color: "#854D0E" },
+  Catch:    { bg: "#DCFCE7", color: "#166534" },
+  Final:    { bg: "#FEF2F2", color: "#991B1B" },
+};
 
-function getProgress() {
-  try {
-    const data = JSON.parse(localStorage.getItem("campaign_progress") || "{}");
-    return data[VOWEL_KEY] || {};
-  } catch (_) { return {}; }
-}
+const PATH_OFFSETS = [-38, -32, -18, 0, 18, 32, 38, 32, 18, 0, -18, -32];
 
-function getFirstUnlocked(progress) {
-  for (let i = 1; i <= TOTAL_LEVELS; i++) {
-    if (!progress[i]?.completed) return i;
-  }
-  return TOTAL_LEVELS;
-}
+const NODE_COLORS = [
+  "#4D96FF", "#6BCB77", "#FF9F43", "#4ECDC4", "#C77DFF",
+  "#FF6B6B", "#FFD93D", "#4D96FF", "#6BCB77", "#FF9F43",
+];
+function nodeColor(n) { return NODE_COLORS[(n - 1) % NODE_COLORS.length]; }
+function getLeftPct(idx) { return 50 + PATH_OFFSETS[idx % PATH_OFFSETS.length]; }
 
-function StarRow({ count }) {
+function StarStrip({ stars }) {
   return (
-    <div style={{ display: "flex", gap: 2, justifyContent: "center" }}>
+    <div style={{ display: "flex", gap: 3, marginTop: 5, justifyContent: "center" }}>
       {[1, 2, 3].map((s) => (
-        <Star key={s} size={11} fill={s <= count ? "#FFD93D" : "none"} stroke={s <= count ? "#FFD93D" : "#ccc"} />
+        <svg key={s} width="14" height="14" viewBox="0 0 24 24"
+          fill={stars >= s ? "#FFD93D" : "none"}
+          stroke={stars >= s ? "#F59E0B" : "#CBD5E1"}
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
       ))}
     </div>
   );
 }
 
-function LevelNode({ levelNum, progress, isUnlocked, onClick }) {
-  const bestStars = getBestStars(VOWEL_KEY, levelNum);
-  const completed = !!progress[levelNum]?.completed;
-  const isFinal = levelNum === TOTAL_LEVELS;
-  const isMilestone = levelNum % 5 === 0;
-  const tag = LEVEL_TAGS[levelNum] || "Practice";
-
-  const bgColor = completed
-    ? isFinal ? "linear-gradient(135deg, #6BCB77, #4ECDC4)"
-    : isMilestone ? "linear-gradient(135deg, #4ECDC4, #45B7D1)"
-    : "linear-gradient(135deg, #6BCB77, #95E7A0)"
-    : isUnlocked ? "linear-gradient(135deg, #b8f0e0, #d4f5ff)"
-    : "linear-gradient(135deg, #e8e8e8, #f0f0f0)";
-
-  const size = isFinal ? 72 : isMilestone ? 60 : 52;
+function LevelNode({ num, stars, onTap, lang }) {
+  const color = nodeColor(num);
+  const isFinal = num === TOTAL_LEVELS;
+  const isMilestone = num % 10 === 0 && !isFinal;
+  const size = isFinal ? 82 : isMilestone ? 76 : 68;
+  const tag = LEVEL_TAGS[num] || "Practice";
+  const tagStyle = TAG_STYLES[tag] || TAG_STYLES.Practice;
 
   return (
-    <motion.div
-      whileTap={{ scale: isUnlocked ? 0.92 : 1 }}
-      whileHover={{ scale: isUnlocked ? 1.06 : 1 }}
-      onClick={isUnlocked ? onClick : undefined}
-      style={{
-        position: "absolute",
-        left: NODE_X[levelNum - 1] - size / 2,
-        top: (TOTAL_LEVELS - levelNum) * 88 + 20,
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        background: bgColor,
-        boxShadow: isUnlocked ? "0 4px 12px rgba(0,0,0,0.15)" : "0 2px 6px rgba(0,0,0,0.08)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: isUnlocked ? "pointer" : "default",
-        border: completed ? "3px solid #4ECDC4" : isUnlocked ? "2px dashed #4ECDC4" : "2px solid #ddd",
-        opacity: isUnlocked ? 1 : 0.55,
-        zIndex: 2,
-      }}
-    >
-      {!isUnlocked ? (
-        <Lock size={16} color="#aaa" />
-      ) : (
-        <>
-          <span style={{ fontSize: isFinal ? 16 : 14, fontWeight: 700, color: completed ? "#fff" : "#2c7a7b", lineHeight: 1 }}>{levelNum}</span>
-          {completed && <StarRow count={bestStars} />}
-          <span style={{ fontSize: 9, color: completed ? "rgba(255,255,255,0.85)" : "#4ECDC4", fontWeight: 600, marginTop: 1 }}>{tag}</span>
-        </>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {!isFinal && (
+        <div style={{
+          background: tagStyle.bg, color: tagStyle.color,
+          fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
+          borderRadius: 99, padding: "2px 8px", marginBottom: 4,
+          textTransform: "uppercase", fontFamily: "Fredoka, sans-serif",
+        }}>
+          {tag}
+        </div>
       )}
-    </motion.div>
+      <motion.div
+        whileTap={{ scale: 0.85 }}
+        onClick={() => onTap(num)}
+        style={{
+          width: size, height: size, borderRadius: "50%",
+          background: isFinal
+            ? "linear-gradient(145deg, #FFD700, #FFA500)"
+            : `linear-gradient(145deg, ${color} 0%, ${color}CC 100%)`,
+          border: isFinal ? "4px solid white" : "3px solid white",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          cursor: "pointer",
+          boxShadow: isFinal
+            ? "0 7px 0 #cc8800, 0 12px 28px rgba(255,165,0,0.55)"
+            : `0 6px 0 ${color}99, 0 10px 22px ${color}44`,
+          WebkitTapHighlightColor: "transparent",
+          position: "relative", flexShrink: 0,
+        }}
+      >
+        {isFinal ? (
+          <span style={{ fontSize: 36, pointerEvents: "none", lineHeight: 1 }}>🏆</span>
+        ) : (
+          <>
+            {isMilestone && <span style={{ position: "absolute", top: -18, fontSize: 18, pointerEvents: "none" }}>⭐</span>}
+            <span style={{ fontSize: num >= 10 ? 20 : 24, fontWeight: 700, color: "white", textShadow: "0 1px 4px rgba(0,0,0,0.20)", userSelect: "none", lineHeight: 1, pointerEvents: "none" }}>{num}</span>
+            {isMilestone && <span style={{ fontSize: 9, color: "rgba(255,255,255,0.9)", pointerEvents: "none", lineHeight: 1, marginTop: 2, letterSpacing: 0.5 }}>BOSS</span>}
+          </>
+        )}
+      </motion.div>
+      {isFinal ? (
+        <span style={{ color: "#F59E0B", fontSize: 13, fontWeight: 700, marginTop: 6 }}>{lang === "zh" ? "完成！" : "Complete!"}</span>
+      ) : (
+        <StarStrip stars={stars} />
+      )}
+    </div>
   );
 }
 
 export default function ShortILevels({ onBack, lang = "en" }) {
   const [activeLevel, setActiveLevel] = useState(null);
-  const [progress, setProgress] = useState({});
+  const [starMap, setStarMap] = useState(() => {
+    const map = {};
+    for (let i = 1; i <= TOTAL_LEVELS; i++) map[i] = getBestStars(VOWEL_KEY, i);
+    return map;
+  });
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    const p = getProgress();
-    setProgress(p);
-    const firstUnlocked = getFirstUnlocked(p);
-    setTimeout(() => {
-      if (scrollRef.current) {
-        const nodeTop = (TOTAL_LEVELS - firstUnlocked) * 88 + 20;
-        const scrollTarget = nodeTop - scrollRef.current.clientHeight / 2 + 36;
-        scrollRef.current.scrollTop = Math.max(0, scrollTarget);
-      }
-    }, 100);
-  }, [activeLevel]);
+    const map = {};
+    for (let i = 1; i <= TOTAL_LEVELS; i++) map[i] = getBestStars(VOWEL_KEY, i);
+    setStarMap(map);
 
-  const firstUnlocked = getFirstUnlocked(progress);
+    const lastCompleted = Object.keys(map).map(Number).filter((lvl) => map[lvl] > 0).reduce((max, lvl) => Math.max(max, lvl), 0);
+    const activeIdx = Math.max(lastCompleted, 0); // 0-indexed
+    const nodeTopPx = TOP_OFFSET + activeIdx * NODE_SPACING;
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+    const viewportHeight = scrollContainer.clientHeight;
+    const targetScrollTop = nodeTopPx - viewportHeight / 2 + NODE_SPACING / 2;
+    requestAnimationFrame(() => {
+      scrollContainer.scrollTo({ top: Math.max(0, targetScrollTop), behavior: "smooth" });
+    });
+  }, [activeLevel]);
 
   if (activeLevel) {
     const LevelComponent = LEVEL_COMPONENTS[activeLevel];
@@ -170,64 +191,42 @@ export default function ShortILevels({ onBack, lang = "en" }) {
       <LevelComponent
         onBack={() => {
           setActiveLevel(null);
-          setProgress(getProgress());
         }}
         lang={lang}
       />
     );
   }
 
-  const totalHeight = TOTAL_LEVELS * 88 + 80;
+  const levels = Array.from({ length: TOTAL_LEVELS }, (_, i) => i + 1);
+  const totalHeight = TOP_OFFSET + TOTAL_LEVELS * NODE_SPACING + 80;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "linear-gradient(160deg, #F0F8FF 0%, #E8FFF5 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #F0F8FF 0%, #E8FFF5 60%, #F5F0FF 100%)", overflow: "hidden" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", gap: 12, flexShrink: 0, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(78,205,196,0.2)" }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-          <ArrowLeft size={22} color="#2c7a7b" />
-        </button>
-        <div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#2c7a7b" }}>Short I</div>
-          <div style={{ fontSize: 12, color: "#6bcb77" }}>
-            {Object.keys(progress).filter(k => progress[k]?.completed).length}/{TOTAL_LEVELS} completed
-          </div>
+      <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4, padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)" }}>
+        <BackArrow onPress={onBack} />
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#1E293B" }}>🐛 {lang === "zh" ? "短元音 I" : "Short i"}</p>
+          <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>{lang === "zh" ? "31 关卡冒险" : "31-level adventure"}</p>
         </div>
-        <div style={{ marginLeft: "auto", background: "linear-gradient(135deg, #6BCB77, #4ECDC4)", borderRadius: 20, padding: "4px 14px" }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Short I 🐝</span>
+        <div style={{ background: "#EFF6FF", border: "1.5px solid #4D96FF", borderRadius: 99, padding: "5px 13px", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          <span style={{ fontSize: 13 }}>⚡</span>
+          <span style={{ color: "#1D4ED8", fontWeight: 700, fontSize: 13 }}>
+            {Object.values(starMap).filter(s => s > 0).length}/{TOTAL_LEVELS}
+          </span>
         </div>
       </div>
 
       {/* Scrollable map */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", position: "relative" }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", position: "relative" }}>
         <div style={{ position: "relative", width: "100%", height: totalHeight }}>
-          {/* Path line */}
-          <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: totalHeight, pointerEvents: "none" }} viewBox={`0 0 380 ${totalHeight}`} preserveAspectRatio="none">
-            {Array.from({ length: TOTAL_LEVELS - 1 }, (_, i) => {
-              const fromLevel = TOTAL_LEVELS - i;
-              const toLevel = fromLevel - 1;
-              const x1 = NODE_X[fromLevel - 1];
-              const y1 = i * 88 + 46;
-              const x2 = NODE_X[toLevel - 1];
-              const y2 = (i + 1) * 88 + 46;
-              const completed = !!progress[fromLevel]?.completed;
-              return (
-                <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
-                  stroke={completed ? "#6BCB77" : "#ddd"} strokeWidth={3} strokeDasharray={completed ? "none" : "6 4"} />
-              );
-            })}
-          </svg>
-
-          {Array.from({ length: TOTAL_LEVELS }, (_, i) => {
-            const levelNum = TOTAL_LEVELS - i;
-            const isUnlocked = levelNum <= firstUnlocked;
+          {levels.map((lvl, idx) => {
+            const leftPct = getLeftPct(idx);
+            const topPx = TOP_OFFSET + idx * NODE_SPACING;
             return (
-              <LevelNode
-                key={levelNum}
-                levelNum={levelNum}
-                progress={progress}
-                isUnlocked={isUnlocked}
-                onClick={() => setActiveLevel(levelNum)}
-              />
+              <div key={lvl} style={{ position: "absolute", top: topPx, left: `${leftPct}%`, transform: "translateX(-50%)", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <LevelNode num={lvl} stars={starMap[lvl] ?? 0} onTap={setActiveLevel} lang={lang} />
+              </div>
             );
           })}
         </div>
