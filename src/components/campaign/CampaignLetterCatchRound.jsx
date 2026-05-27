@@ -67,19 +67,27 @@ function pickDistractors(correct) {
   return [shuffled[0], shuffled[1]];
 }
 
+// Hardcoded rotation of correct-letter positions within each group of 4.
+// Correct never appears at position 0 (1st). Rotates through 2nd, 3rd, 4th across groups.
+// Pattern: [1,2,3, 2,3,1, 3,1,2, ...] (0-indexed within group of 4)
+const CORRECT_SLOT_PATTERN = [1, 2, 3, 2, 3, 1, 3, 1, 2];
+
 function buildQueue(correct, distractors) {
-  // Correct letter appears at positions 1, 3, 5... (never first — index 0, 2, 4 are always distractors)
-  // We randomize whether it appears at slot 1 or slot 2 within each group of 3
-  return Array.from({ length: 12 }, (_, i) => {
-    const groupPos = i % 3;
-    if (groupPos === 0) return distractors[i % 2]; // always distractor first in each group
-    // slots 1 and 2: randomly assign correct vs distractor per group
-    const group = Math.floor(i / 3);
-    // seed a consistent decision per group (alternating + random offset)
-    const correctInSlot1 = (group % 2 === 0) ? (group % 4 < 2) : (group % 4 >= 2);
-    if (groupPos === 1) return correctInSlot1 ? correct : distractors[(i + 1) % 2];
-    return correctInSlot1 ? distractors[(i + 1) % 2] : correct;
-  });
+  // Each group is 4 tiles: 3 distractors + 1 correct, correct at rotated position (never 0).
+  // We build 3 groups = 12 tiles total.
+  const result = [];
+  for (let group = 0; group < 3; group++) {
+    const correctSlot = CORRECT_SLOT_PATTERN[group % CORRECT_SLOT_PATTERN.length];
+    for (let pos = 0; pos < 4; pos++) {
+      if (pos === correctSlot) {
+        result.push(correct);
+      } else {
+        // Fill with distractors, alternating between the two
+        result.push(distractors[result.filter((l) => l !== correct).length % 2]);
+      }
+    }
+  }
+  return result;
 }
 
 function pickLane(activeTiles) {
@@ -356,11 +364,7 @@ export default function CampaignLetterCatchRound({
         let letter = queue[spawnCount % queue.length];
         let lane;
 
-        if (spawnCount === 0) {
-          // First tile: always a distractor, always in the middle lane
-          letter = distractors[0];
-          lane = 1;
-        } else if (letter === missingLetter) {
+        if (letter === missingLetter) {
           // Correct letter: never in the middle lane (lane 1), randomize left (0) or right (2)
           lane = Math.random() < 0.5 ? 0 : 2;
         } else {
