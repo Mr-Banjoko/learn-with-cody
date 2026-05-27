@@ -39,31 +39,6 @@ function buildRound(card) {
   return { card, letters, options };
 }
 
-const RAINBOW_STYLE = `
-  @keyframes rainbowRotate {
-    0%   { --angle: 0deg; }
-    100% { --angle: 360deg; }
-  }
-  @property --angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-  }
-  .rainbow-border {
-    border: 3px solid transparent !important;
-    background-image: linear-gradient(white, white), conic-gradient(from var(--angle), #FF6B6B, #FFD93D, #4ECDC4, #9B59B6, #FF6B6B) !important;
-    background-clip: padding-box, border-box !important;
-    background-origin: padding-box, border-box !important;
-    animation: rainbowRotate 2s linear infinite !important;
-  }
-  .rainbow-border-colored {
-    border: 3px solid transparent !important;
-    background-clip: padding-box, border-box !important;
-    background-origin: padding-box, border-box !important;
-    animation: rainbowRotate 2s linear infinite !important;
-  }
-`;
-
 export default function Level1DragV2({ card, onComplete, lang = "en", onMistake, dragGuideStep = -1, onDragGuideAdvance }) {
   const [round] = useState(() => buildRound(card));
   const [placed, setPlaced] = useState(Array(card.word.length).fill(null));
@@ -180,7 +155,6 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake,
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <style>{RAINBOW_STYLE}</style>
       {completing && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "10px 20px 14px", minHeight: 0 }}>
 
@@ -209,16 +183,17 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake,
               <motion.div
                 key={i}
                 ref={(el) => (dropZoneRefs.current[i] = el)}
-                className={!tileColor && dragGuideStep === i ? "rainbow-border" : ""}
                 animate={
                   submitError
                     ? { x: [0, -10, 10, -8, 8, -4, 4, 0] }
                     : isBouncing
                     ? { y: [0, -16, 0, -8, 0, -4, 0] }
+                    : !tileColor && dragGuideStep === i
+                    ? { boxShadow: ["inset 0 2px 8px rgba(0,0,0,0.06)", "inset 0 2px 8px rgba(0,0,0,0.06), 0 0 0 4px rgba(74,144,196,0.35)", "inset 0 2px 8px rgba(0,0,0,0.06)"] }
                     : {}
                 }
-                transition={{ duration: 0.5 }}
-                style={{ width: "min(76px, 20vw)", height: "min(76px, 20vw)", borderRadius: 18, background: tileColor || "rgba(255,255,255,0.7)", border: `3px solid ${tileColor ? "rgba(255,255,255,0.85)" : "rgba(74,144,196,0.4)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: tileColor ? "0 4px 16px rgba(0,0,0,0.12)" : "inset 0 2px 8px rgba(0,0,0,0.06)", transition: "background 0.2s, border 0.2s" }}
+                transition={!tileColor && dragGuideStep === i ? { duration: 1.6, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : { duration: 0.5 }}
+                style={{ width: "min(76px, 20vw)", height: "min(76px, 20vw)", borderRadius: 18, background: tileColor || "rgba(255,255,255,0.7)", border: `3px solid ${tileColor ? "rgba(255,255,255,0.85)" : (!tileColor && dragGuideStep === i ? "rgba(74,144,196,0.7)" : "rgba(74,144,196,0.4)")}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: tileColor ? "0 4px 16px rgba(0,0,0,0.12)" : "inset 0 2px 8px rgba(0,0,0,0.06)", transition: "background 0.2s, border 0.2s" }}
               >
                 {placedOption ? (
                   <motion.span key={placedOption.id} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F" }}>
@@ -262,11 +237,16 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake,
             return (
               <motion.div
                 key={option.id}
-                className={isGuidedTile ? "rainbow-border-colored" : ""}
-                animate={isDraggingThis ? { scale: 1.1 } : { scale: 1, opacity: 1 }}
-                transition={{}}
+                animate={
+                  isDraggingThis
+                    ? { scale: 1.1 }
+                    : isGuidedTile
+                    ? { boxShadow: ["0 4px 12px rgba(0,0,0,0.10)", "0 0 0 6px rgba(255,255,255,0.55), 0 4px 20px rgba(0,0,0,0.18)", "0 4px 12px rgba(0,0,0,0.10)"] }
+                    : { scale: 1, opacity: 1 }
+                }
+                transition={isGuidedTile ? { duration: 1.6, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : {}}
                 onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, option); }}
-                style={{ width: "min(74px, 18vw)", height: "min(74px, 18vw)", borderRadius: 18, backgroundImage: isGuidedTile ? `linear-gradient(${bgColor}, ${bgColor}), conic-gradient(from 0deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6, #FF6B6B)` : "none", background: isGuidedTile ? "none" : bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 12px rgba(0,0,0,0.10)", border: "3px solid transparent", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1 }}
+                style={{ width: "min(74px, 18vw)", height: "min(74px, 18vw)", borderRadius: 18, background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 12px rgba(0,0,0,0.10)", border: isGuidedTile ? "3px solid rgba(255,255,255,0.95)" : "3px solid rgba(255,255,255,0.7)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1 }}
               >
                 {option.letter}
               </motion.div>
