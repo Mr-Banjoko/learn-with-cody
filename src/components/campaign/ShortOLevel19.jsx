@@ -48,6 +48,7 @@ export default function ShortOLevel19({ onBack, lang = "en" }) {
   const hintUrl = getShortOHintAudioUrl(LEVEL_NUM, roundIndex, lang);
   const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
+
   const advance = useCallback(() => {
     const next = roundIndex + 1;
     if (next >= TOTAL_ROUNDS) {

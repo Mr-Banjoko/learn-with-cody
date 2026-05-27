@@ -7,18 +7,16 @@
  * R5: nap  — choices: nap, sap, nab
  * R6: fat  — choices: fat, bat, mat
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback } from "react"; // useCallback kept for onMistake/advance
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
 import CampaignWordToAudioRound from "./CampaignWordToAudioRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
-import { shortAWords } from "../../lib/shortAWords";
 
 const LEVEL_NUM = 38;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
-const findWord = (w) => shortAWords.find((x) => x.word === w);
 
 // Hardcoded choices: first word = target
 const ROUND_DEFS = [
@@ -47,21 +45,8 @@ export default function Level38({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // R1 (index 0): word_to_audio first appearance — audio guide + chain target word audio
   const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const r1WordAudio = roundIndex === 0 ? (findWord(ROUND_DEFS[0][0])?.audio || null) : null;
-  const onHintComplete = useCallback((unlock) => {
-    if (!r1WordAudio) { unlock(); return; }
-    const audio = new Audio(r1WordAudio);
-    audio.onended = unlock;
-    audio.onerror = unlock;
-    audio.play().catch(unlock);
-  }, [r1WordAudio]);
-
-  const { locked: hintLocked } = useRoundHintAudio({
-    url: hintUrl,
-    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
-  });
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;

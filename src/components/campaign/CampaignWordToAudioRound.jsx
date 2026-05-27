@@ -131,13 +131,6 @@ export default function CampaignWordToAudioRound({ words, onComplete, onMistake,
     <div style={{ flex: 1, display: "flex", flexDirection: "column", fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative" }}>
       {completing && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
 
-      {/* Hint */}
-      <div style={{ flexShrink: 0, textAlign: "center", padding: "10px 24px 4px" }}>
-        <p style={{ fontSize: 15, color: "#7BACC8", margin: 0, fontWeight: 600 }}>
-          {lang === "zh" ? "点击喇叭，再匹配单词" : "Tap a speaker, then match the word"}
-        </p>
-      </div>
-
       {/* Progress dots */}
       <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", gap: 8, padding: "8px 0 4px" }}>
         {[0, 1, 2].map((i) => (
