@@ -13,8 +13,8 @@ import HeartDisplay from "./HeartDisplay";
 import HintButton from "./HintButton";
 import { getLevelLabel } from "../../lib/levelLabel";
 
-export default function LevelHeader({ levelNum, mistakes, onBack, lang = "en", gameType }) {
-  const label = getLevelLabel(levelNum, lang);
+export default function LevelHeader({ levelNum, mistakes, onBack, lang = "en", gameType, vowelKey = "short-a" }) {
+  const label = getLevelLabel(levelNum, lang, vowelKey);
 
   return (
     <div
