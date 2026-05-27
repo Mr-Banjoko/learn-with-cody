@@ -6,6 +6,20 @@ import { getBestStars } from "../../lib/campaignPerformance";
 const TOTAL_LEVELS = 20;
 const PATH_OFFSETS = [-38, -32, -18, 0, 18, 32, 38, 32, 18, 0, -18, -32];
 
+// Learn / Practice / Review tags per level (from the lesson plan)
+const LEVEL_TAGS = {
+  1: "learn", 5: "learn", 9: "learn", 12: "learn", 16: "learn",
+  4: "review", 8: "review", 11: "review", 15: "review", 20: "review",
+};
+function getLevelTag(n) {
+  return LEVEL_TAGS[n] || "practice";
+}
+const TAG_STYLES = {
+  learn:    { bg: "#D1FAE5", color: "#065F46", label: "Learn" },
+  practice: { bg: "#DBEAFE", color: "#1E40AF", label: "Practice" },
+  review:   { bg: "#FEF3C7", color: "#92400E", label: "Review" },
+};
+
 function getLeftPct(idx) {
   return 50 + PATH_OFFSETS[idx % PATH_OFFSETS.length];
 }
@@ -33,8 +47,20 @@ function StarStrip({ stars }) {
 
 function LevelNode({ num, color, onTap, isMilestone, stars, isFinal, lang = "en" }) {
   const size = isFinal ? 82 : isMilestone ? 76 : 68;
+  const tag = isFinal ? null : getLevelTag(num);
+  const tagStyle = tag ? TAG_STYLES[tag] : null;
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {tagStyle && (
+        <div style={{
+          background: tagStyle.bg, color: tagStyle.color,
+          fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
+          borderRadius: 99, padding: "2px 8px", marginBottom: 4,
+          textTransform: "uppercase", fontFamily: "Fredoka, sans-serif",
+        }}>
+          {tagStyle.label}
+        </div>
+      )}
       <motion.div
         whileTap={{ scale: 0.85 }}
         onClick={() => onTap(num)}
@@ -74,7 +100,7 @@ function LevelNode({ num, color, onTap, isMilestone, stars, isFinal, lang = "en"
 
 export default function ShortOLevels({ onBack, onSelectLevel, lang = "en" }) {
   const levels = Array.from({ length: TOTAL_LEVELS }, (_, i) => i + 1);
-  const NODE_SPACING = 100;
+  const NODE_SPACING = 114;
   const TOP_OFFSET = 36;
   const scrollRef = useRef(null);
 
