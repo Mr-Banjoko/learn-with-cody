@@ -477,12 +477,12 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                       <>
                         {isSlotPulsating && (
                           <motion.div
-                            animate={{ opacity: [0, 0.45, 0] }}
+                            animate={{ opacity: [0, 0.35, 0] }}
                             transition={{ duration: 1.8, repeat: Infinity, repeatType: "loop", ease: "easeInOut" }}
                             style={{
                               position: "absolute",
                               inset: 0,
-                              background: "linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6)",
+                              background: border,
                               pointerEvents: "none",
                             }}
                           />
@@ -549,17 +549,10 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
                 isDraggingThis
                   ? { opacity: 0.22, scale: 1.04 }
                   : isPulsating
-                  ? { boxShadow: [
-                      "0 4px 14px rgba(30,58,95,0.14), 0 0 0 0px rgba(255,107,107,0)",
-                      "0 4px 14px rgba(30,58,95,0.14), 0 0 0 7px rgba(255,107,107,0.55)",
-                      "0 4px 14px rgba(30,58,95,0.14), 0 0 0 7px rgba(255,217,61,0.55)",
-                      "0 4px 14px rgba(30,58,95,0.14), 0 0 0 7px rgba(78,205,196,0.55)",
-                      "0 4px 14px rgba(30,58,95,0.14), 0 0 0 7px rgba(155,89,182,0.55)",
-                      "0 4px 14px rgba(30,58,95,0.14), 0 0 0 0px rgba(155,89,182,0)",
-                    ] }
+                  ? { boxShadow: [`0 4px 14px ${shadow}`, `0 0 0 6px ${shadow}`, `0 4px 14px ${shadow}`] }
                   : { opacity: 1, scale: 1 }
               }
-              transition={isPulsating ? { duration: 2.2, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : {}}
+              transition={isPulsating ? { duration: 1.8, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : {}}
               onTouchStart={(e) => handleTouchStart(e, piece)}
               style={{
                 aspectRatio: "2 / 3",
