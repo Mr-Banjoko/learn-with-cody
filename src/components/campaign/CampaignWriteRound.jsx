@@ -23,7 +23,7 @@ function createRound(card, key) {
     id: `letter-${index}-${letter}-${key}`,
     letter, correctIndex: index,
   }));
-  return { cards, shuffledCards: [...cards].sort(() => Math.random() - 0.5) };
+  return { cards, shuffledCards: [...cards] };
 }
 
 export default function CampaignWriteRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
