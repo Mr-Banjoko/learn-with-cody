@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RotateCcw } from "lucide-react";
 import LetterTrace from "./LetterTrace";
 import BackArrow from "../../../BackArrow";
 import { shortAWords } from "../../../../lib/shortAWords";
@@ -28,6 +29,8 @@ function ProgressBar({ value, max }) {
   );
 }
 
+const TILE_SIZE = 96;
+
 export default function ShortAGame({ onBack }) {
   const [wordIdx, setWordIdx] = useState(0);
   const [completedLetters, setCompletedLetters] = useState([]); // indices of traced letters
@@ -35,6 +38,7 @@ export default function ShortAGame({ onBack }) {
   const [wordKey, setWordKey] = useState(0);
   const [audioReady, setAudioReady] = useState(false);
   const [bouncingIdx, setBouncingIdx] = useState(null); // which letter is bouncing during submit
+  const [phase, setPhase] = useState("tracing"); // "tracing" | "success"
 
   const wordIdxRef = useRef(0);
   const lockedRef = useRef(true);
@@ -89,8 +93,15 @@ export default function ShortAGame({ onBack }) {
     setWordIdx(next);
     setCompletedLetters([]);
     setBouncingIdx(null);
+    setPhase("tracing");
     setWordKey(k => k + 1);
   }, [cancelAudio]);
+
+  const handleRefresh = useCallback(() => {
+    if (locked || phase !== "tracing") return;
+    setCompletedLetters([]);
+    setWordKey(k => k + 1);
+  }, [locked, phase]);
 
   // Called by LetterTrace when a letter is successfully traced
   const handleLetterComplete = useCallback((idx) => {
@@ -103,17 +114,17 @@ export default function ShortAGame({ onBack }) {
     });
   }, []);
 
-  // Submit: lock everything, play bounce+sound per letter then whole word, then advance
+  // Submit: show success state, play bounce+sound per letter then whole word, then advance
   const handleSubmit = useCallback(() => {
     if (lockedRef.current) return;
     const currentWord = WORD_LIST[wordIdxRef.current].word;
     const currentWordData = WORD_LIST[wordIdxRef.current];
 
+    setPhase("success");
     setLocked(true);
     lockedRef.current = true;
     cancelAudio();
 
-    // Build steps with onStart to trigger bounce per letter
     const steps = currentWord.split("").map((l, i) => {
       const url = getLetterSoundUrl(l);
       return url ? { url, gain: getLetterGain(l), onStart: () => setBouncingIdx(i) } : null;
@@ -134,10 +145,12 @@ export default function ShortAGame({ onBack }) {
   const wordData = WORD_LIST[wordIdx];
   const word = wordData.word;
   const allTraced = completedLetters.length >= word.length;
+  const canSubmit = allTraced && !locked && phase === "tracing";
 
-  const letterCount = word.length;
-  const maxSize = Math.min(160, Math.floor((360 - (letterCount - 1) * 8) / letterCount));
-  const tileSize = Math.max(80, maxSize);
+  const playLetterSound = useCallback((letter) => {
+    const url = getLetterSoundUrl(letter);
+    if (url) playAudioSequence([{ url, gain: getLetterGain(letter) }], () => {});
+  }, []);
 
   return (
     <div style={{ minHeight: "100%", background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", display: "flex", flexDirection: "column" }}>
@@ -161,79 +174,65 @@ export default function ShortAGame({ onBack }) {
       )}
 
       {/* Body */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 20px 32px", gap: 20, overflowY: "auto" }}>
-        {/* Interaction lock overlay */}
-        {locked && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 16px 32px", gap: 24, overflowY: "auto", position: "relative" }}>
+        {(locked || phase === "success") && <div style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
 
-        {/* Word picture */}
+        {/* Word picture — rainbow border */}
         <AnimatePresence mode="wait">
-          <motion.div
-            key={wordIdx}
-            initial={{ opacity: 0, scale: 0.93 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.93 }}
-            transition={{ duration: 0.22 }}
-            style={{ position: "relative", width: "100%", maxWidth: 300 }}
-          >
-            <div style={{ position: "absolute", top: -16, right: -8, width: 130, height: 110, borderRadius: 36, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
-            <div style={{ position: "absolute", bottom: -16, left: -8, width: 110, height: 110, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
+          <motion.div key={wordIdx} initial={{ opacity: 0, scale: 0.93 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.22 }} style={{ position: "relative", width: "100%", maxWidth: 330 }}>
+            <div style={{ position: "absolute", top: -12, right: -6, width: 100, height: 85, borderRadius: 28, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
+            <div style={{ position: "absolute", bottom: -12, left: -6, width: 85, height: 85, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
             <div
               onPointerDown={(e) => { e.preventDefault(); if (!lockedRef.current) { cancelAudio(); const cancel = playAudioSequence([{ url: wordData.audio, gain: 1 }], () => { cancelAudioRef.current = null; }); cancelAudioRef.current = cancel; } }}
-              style={{ position: "relative", zIndex: 1, background: "#E8FFFE", borderRadius: 28, padding: 12, boxShadow: "0 12px 40px rgba(30,58,95,0.15)", cursor: "pointer" }}
+              style={{ position: "relative", zIndex: 1, borderRadius: 22, padding: 10, boxShadow: "0 10px 32px rgba(30,58,95,0.15)", cursor: "pointer", border: "4px solid transparent", background: "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box" }}
             >
-              <img src={wordData.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
+              <img src={wordData.image} alt={word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 14, display: "block" }} />
             </div>
           </motion.div>
         </AnimatePresence>
 
-        {/* Letter tiles — all visible, all traceable (not sequential) */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 8, width: "100%" }}>
-          {word.split("").map((ch, i) => {
-            const isDone = completedLetters.includes(i);
-            const isBouncing = bouncingIdx === i;
-            return (
-              <motion.div
-                key={`${wordKey}-${i}`}
-                animate={isBouncing ? { y: [0, -18, 0, -10, 0] } : { y: 0 }}
-                transition={isBouncing ? { duration: 0.5, ease: "easeInOut" } : {}}
-                style={{ opacity: isDone ? 1 : 0.6, transition: "opacity 0.3s" }}
-              >
-                <LetterTrace
-                  letter={ch}
-                  size={tileSize}
-                  locked={locked || isDone}
-                  onComplete={() => handleLetterComplete(i)}
-                />
-              </motion.div>
-            );
-          })}
-        </div>
+        {/* Letter tiles */}
+        <AnimatePresence mode="wait">
+          <motion.div key={`${wordKey}-${phase}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}
+            style={{ display: "flex", flexDirection: "row", gap: 10, justifyContent: "center", width: "100%" }}>
+            {word.split("").map((ch, i) => {
+              const isTraced = completedLetters.includes(i);
+              const isBouncing = phase === "success" && bouncingIdx === i;
+              if (phase === "success") {
+                return (
+                  <motion.div key={`${wordKey}-${i}`} animate={isBouncing ? { y: [0, -18, 0, -10, 0] } : { y: 0 }} transition={isBouncing ? { duration: 0.5 } : {}} style={{ borderRadius: 18 }}>
+                    <div style={{ borderRadius: 18, overflow: "hidden", border: "4px solid transparent", background: "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box", boxShadow: "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)" }}>
+                      <LetterTrace letter={ch} size={TILE_SIZE} locked={true} transparent={true} forceCompleted={true} onComplete={() => {}} />
+                    </div>
+                  </motion.div>
+                );
+              }
+              return (
+                <motion.div key={`${wordKey}-${i}`} onPointerDown={() => playLetterSound(ch)}
+                  style={{ opacity: isTraced ? 1 : 0.75, transition: "opacity 0.3s", borderRadius: 18, cursor: "pointer", touchAction: "manipulation" }}>
+                  <div style={{ borderRadius: 18, overflow: "hidden", border: "4px solid transparent", background: isTraced ? "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box" : "transparent", boxShadow: isTraced ? "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)" : "none", transition: "background 0.2s, box-shadow 0.2s" }}>
+                    <LetterTrace letter={ch} size={TILE_SIZE} locked={locked || isTraced} transparent={true} onComplete={() => handleLetterComplete(i)} />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
 
-        {/* Submit button */}
-        <motion.button
-          onPointerDown={(e) => { e.preventDefault(); if (allTraced && !locked) handleSubmit(); }}
-          animate={allTraced && !locked ? { scale: [1, 1.04, 1] } : {}}
-          transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-          style={{
-            marginTop: 8,
-            padding: "16px 56px",
-            borderRadius: 999,
-            border: "none",
-            fontSize: 22,
-            fontWeight: 700,
-            fontFamily: "Fredoka, sans-serif",
-            cursor: allTraced && !locked ? "pointer" : "default",
-            background: allTraced && !locked
-              ? "linear-gradient(135deg, #4A90C4, #22c55e)"
-              : "#C5DCF0",
-            color: allTraced && !locked ? "white" : "#9CB8CC",
-            boxShadow: allTraced && !locked ? "0 6px 24px rgba(74,144,196,0.45)" : "none",
-            transition: "background 0.3s, color 0.3s, box-shadow 0.3s",
-            touchAction: "manipulation",
-          }}
-        >
-          ✓
-        </motion.button>
+        {/* Buttons */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
+          <button onPointerDown={(e) => { e.preventDefault(); handleRefresh(); }}
+            style={{ width: 48, height: 48, borderRadius: 24, background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.14)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, touchAction: "manipulation", opacity: completedLetters.length > 0 && !locked && phase === "tracing" ? 1 : 0.35 }}>
+            <RotateCcw size={22} color="#A8D0E6" strokeWidth={2.2} />
+          </button>
+          <motion.button
+            onPointerDown={(e) => { e.preventDefault(); if (canSubmit) handleSubmit(); }}
+            animate={canSubmit ? { scale: [1, 1.04, 1] } : {}}
+            transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
+            style={{ padding: "14px 52px", borderRadius: 999, border: "none", fontSize: 22, fontWeight: 700, fontFamily: "Fredoka, sans-serif", cursor: canSubmit ? "pointer" : "default", background: canSubmit ? "linear-gradient(135deg, #4A90C4, #22c55e)" : "#C5DCF0", color: canSubmit ? "white" : "#9CB8CC", boxShadow: canSubmit ? "0 6px 24px rgba(74,144,196,0.45)" : "none", transition: "background 0.3s, color 0.3s", touchAction: "manipulation" }}>
+            ✓
+          </motion.button>
+        </div>
       </div>
     </div>
   );
