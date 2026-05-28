@@ -4,7 +4,7 @@
  * R2: write — kid
  * R3: catch — kit — k (initial)
  * R4: word_to_audio — hit — options: hit, hot, hat
- * R5: identifying — his
+ * R5: identifying — rib
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,7 +32,7 @@ const ROUND_SEQUENCE = [
   { type: "write",          word: "kid" },
   { type: "catch",          word: "kit",  missingLetter: "k" },
   { type: "word_to_audio",  words: ["hit", "hot", "hat"] },
-  { type: "identifying",    word: "his" },
+  { type: "identifying",    word: "rib" },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 

@@ -1,6 +1,6 @@
 /**
  * ShortILevel7 — Practice Batch B
- * R1: drag_v2 — him
+ * R1: drag_v2 — sip
  * R2: catch — hip — p (final)
  * R3: rearrange_hard — fix [pair: fix + fig]
  * R4: dictation — fig
@@ -26,7 +26,7 @@ const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
 const findWord = (w) => shortIWords.find((x) => x.word === w);
 
 const ROUND_SEQUENCE = [
-  { type: "drag_v2",       word: "him" },
+  { type: "drag_v2",       word: "sip" },
   { type: "catch",         word: "hip", missingLetter: "p" },
   { type: "rearrange_hard", words: ["fix", "fig"] },
   { type: "dictation",     word: "fig" },
@@ -51,7 +51,7 @@ export default function ShortILevel7({ onBack, lang = "en" }) {
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const hintUrl = getShortIHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const r1WordAudio = roundIndex === 0 ? (findWord("him")?.audio || null) : null;
+  const r1WordAudio = roundIndex === 0 ? (findWord("sip")?.audio || null) : null;
   const onHintComplete = useCallback((unlock) => {
     if (!r1WordAudio) { unlock(); return; }
     const audio = new Audio(r1WordAudio);

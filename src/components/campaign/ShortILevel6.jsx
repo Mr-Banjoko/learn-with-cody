@@ -1,7 +1,7 @@
 /**
- * ShortILevel6 — Intro Batch B continued (him, hip) + Difficulty Ramps
- * R1: phonics — him
- * R2: missing01 — him — final (m) pos 2
+ * ShortILevel6 — Intro Batch B continued (sip, hip) + Difficulty Ramps
+ * R1: phonics — sip
+ * R2: missing01 — sip — final (p) pos 2
  * R3: phonics — hip
  * R4: missing01 — hip — medial (i) pos 1
  * R5: rearrange_hard — fig [word pair: fig + fit]
@@ -26,8 +26,8 @@ const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
 const findWord = (w) => shortIWords.find((x) => x.word === w);
 
 const ROUNDS = [
-  { type: "phonics",        word: "him" },
-  { type: "missing01",      word: "him", missingPos: 2 },
+  { type: "phonics",        word: "sip" },
+  { type: "missing01",      word: "sip", missingPos: 2 },
   { type: "phonics",        word: "hip" },
   { type: "missing01",      word: "hip", missingPos: 1 },
   { type: "rearrange_hard", words: ["fig", "fit"] },
@@ -64,6 +64,7 @@ export default function ShortILevel6({ onBack, lang = "en" }) {
     url: hintUrl,
     onHintComplete: roundIndex === 4 ? onHintComplete : undefined,
   });
+
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;

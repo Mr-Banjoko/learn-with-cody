@@ -2,7 +2,7 @@
  * ShortILevel13 — Draw-a-Line Block 1
  * R1: big, dig, jig — initial — bottom: j, b, d (shuffleOrder[0]=jig→idx2, [1]=big→idx0, [2]=dig→idx1)
  * R2: bit, fit, hit — initial — bottom: h, f, b (shuffleOrder[0]=hit→idx2, [1]=fit→idx1, [2]=bit→idx0)
- * R3: hip, lip, nip — initial — bottom: n, l, h (shuffleOrder[0]=nip→idx2, [1]=lip→idx1, [2]=hip→idx0)
+ * R3: hip, lip, rip — initial — bottom: r, l, h (shuffleOrder[0]=rip→idx2, [1]=lip→idx1, [2]=hip→idx0)
  * R4: lid, hid, dim — initial — bottom: d, h, l (shuffleOrder[0]=dim→idx2, [1]=hid→idx1, [2]=lid→idx0)
  * R5: pin, pig, pit — final — bottom: t, g, n (shuffleOrder[0]=pit→idx2, [1]=pig→idx1, [2]=pin→idx0)
  */
@@ -33,11 +33,11 @@ const ROUND_DEFS = [
     { word: "fit", targetLetter: "f" },
     { word: "hit", targetLetter: "h" },
   ]},
-  // R3: hip(h), lip(l), nip(n) — initial — bottom: n,l,h → botSlot0=nip(idx2), botSlot1=lip(idx1), botSlot2=hip(idx0)
+  // R3: hip(h), lip(l), rip(r) — initial — bottom: r,l,h → botSlot0=rip(idx2), botSlot1=lip(idx1), botSlot2=hip(idx0)
   { positionType: "initial", shuffleOrder: [2, 1, 0], words: [
     { word: "hip", targetLetter: "h" },
     { word: "lip", targetLetter: "l" },
-    { word: "nip", targetLetter: "n" },
+    { word: "rip", targetLetter: "r" },
   ]},
   // R4: lid(l), hid(h), did(d) — initial — bottom: d,h,l → botSlot0=did(idx2→"did" 3rd word), wait: did is not in shortIWords directly
   // lid(idx0), hid(idx1), did(idx2) — bottom: d,h,l → botSlot0→l→lid(idx0)? Let me recalc:

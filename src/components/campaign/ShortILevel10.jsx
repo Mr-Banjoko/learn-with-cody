@@ -4,7 +4,7 @@
  * R2: missing01 — kid — initial (k) pos 0
  * R3: phonics — kit
  * R4: missing01 — kit — final (t) pos 2
- * R5: rearrange_hard — his [pair: his + hit]
+ * R5: rearrange_hard — rib [pair: rib + rip]
  * R6: dictation — hit
  */
 import { useState, useCallback, useMemo } from "react";
@@ -30,7 +30,7 @@ const ROUNDS = [
   { type: "missing01",      word: "kid", missingPos: 0 },
   { type: "phonics",        word: "kit" },
   { type: "missing01",      word: "kit", missingPos: 2 },
-  { type: "rearrange_hard", words: ["his", "hit"] },
+  { type: "rearrange_hard", words: ["rib", "rip"] },
   { type: "dictation",      word: "hit" },
 ];
 const TOTAL_ROUNDS = ROUNDS.length;

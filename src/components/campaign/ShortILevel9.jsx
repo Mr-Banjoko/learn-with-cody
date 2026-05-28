@@ -1,7 +1,7 @@
 /**
- * ShortILevel9 — Intro Batch C (his, hit, hid)
- * R1: phonics — his
- * R2: missing01 — his — final (s) pos 2
+ * ShortILevel9 — Intro Batch C (rib, hit, hid)
+ * R1: phonics — rib
+ * R2: missing01 — rib — final (b) pos 2
  * R3: phonics — hit
  * R4: missing01 — hit — medial (i) pos 1
  * R5: phonics — hid
@@ -23,8 +23,8 @@ const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
 const findWord = (w) => shortIWords.find((x) => x.word === w);
 
 const ROUNDS = [
-  { type: "phonics",   word: "his" },
-  { type: "missing01", word: "his", missingPos: 2 },
+  { type: "phonics",   word: "rib" },
+  { type: "missing01", word: "rib", missingPos: 2 },
   { type: "phonics",   word: "hit" },
   { type: "missing01", word: "hit", missingPos: 1 },
   { type: "phonics",   word: "hid" },
