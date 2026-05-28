@@ -38,4 +38,7 @@ export const shortIWords = [
   { word: "jig", image: `${BASE}/jig.webp`, audio: `${AUDIO}/jig.mp3` },
   { word: "gig", image: `${BASE}/gig.webp`, audio: `${AUDIO}/gig.mp3` },
   { word: "bib", image: `${BASE}/bib.webp`, audio: `${AUDIO}/bib.mp3` },
+  { word: "him", image: `${BASE}/him.webp`, audio: `${AUDIO}/him.mp3` },
+  { word: "his", image: `${BASE}/his.webp`, audio: `${AUDIO}/his.mp3` },
+  { word: "nip", image: `${BASE}/nip.webp`, audio: `${AUDIO}/nip.mp3` },
 ];
