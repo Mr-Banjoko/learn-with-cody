@@ -86,6 +86,7 @@ export default function EasyGame({ rounds, onBack }) {
     const required = round[wi]?.word[si];
     if (!required || slice.phoneme !== required) return; // reject → dnd animates back
 
+    playAudio("https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3");
     setSlots(prev => ({ ...prev, [slotId]: slice }));
     setPool(prev => prev.filter(s => s.id !== draggableId));
   }, [pool, slots, round]);
