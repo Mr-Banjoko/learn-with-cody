@@ -2,7 +2,7 @@
  * ShortILevel3 — Practice Batch A
  * R1: catch — big — b (initial)
  * R2: drag — bit
- * R3: identifying — did
+ * R3: identifying — dim
  * R4: rearrange_easy — dig
  * R5: write — dip
  */
@@ -31,7 +31,7 @@ const findWord = (w) => shortIWords.find((x) => x.word === w);
 const ROUND_SEQUENCE = [
   { type: "catch",          word: "big",  missingLetter: "b" },
   { type: "drag",           word: "bit" },
-  { type: "identifying",    word: "did" },
+  { type: "identifying",    word: "dim" },
   { type: "rearrange_easy", word: "dig" },
   { type: "write",          word: "dip" },
 ];

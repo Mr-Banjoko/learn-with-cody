@@ -2,7 +2,7 @@
  * ShortILevel4 — Review Batch A
  * R1: drag_v2 — big
  * R2: word_match — bit — distractors: bat, bot, but
- * R3: catch — did — i (medial)
+ * R3: catch — dim — i (medial)
  * R4: rearrange_easy — dip
  * R5: dictation — dig
  */
@@ -29,7 +29,7 @@ function fakeCard(word) { return { word, audio: null, image: null }; }
 const ROUND_SEQUENCE = [
   { type: "drag_v2",    word: "big" },
   { type: "word_match", word: "bit",  distractors: ["bat", "bot", "but"] },
-  { type: "catch",      word: "did",  missingLetter: "i" },
+  { type: "catch",      word: "dim",  missingLetter: "i" },
   { type: "rearrange_easy", word: "dip" },
   { type: "dictation",  word: "dig" },
 ];
