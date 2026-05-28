@@ -63,7 +63,18 @@ export default function ShortILevel8({ onBack, lang = "en" }) {
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const hintUrl = getShortIHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
+  const r5WordAudio = roundIndex === 4 ? (findI("big")?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!r5WordAudio) { unlock(); return; }
+    const audio = new Audio(r5WordAudio);
+    audio.onended = unlock; audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [r5WordAudio]);
+
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 4 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
