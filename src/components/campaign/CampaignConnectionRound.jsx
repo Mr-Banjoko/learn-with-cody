@@ -19,12 +19,16 @@ import RainbowLetterBlock from "../RainbowLetterBlock";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { buildShortOSliceData } from "../../lib/buildShortOSliceData";
+import { buildShortISliceData } from "../../lib/buildShortISliceData";
+import { buildShortASliceData } from "../../lib/buildShortASliceData";
 
 function buildWordDataWithFallback(word) {
   const data = buildWordData(word);
-  // If phonemes have no sliceSrc, try buildShortOSliceData (Short O words not in slice registry)
+  // If phonemes have no sliceSrc, try vowel-specific builders
   if (data.phonemes && data.phonemes.every((p) => !p.sliceSrc)) {
+    try { return buildShortISliceData(word); } catch (_) {}
     try { return buildShortOSliceData(word); } catch (_) {}
+    try { return buildShortASliceData(word); } catch (_) {}
   }
   return data;
 }
