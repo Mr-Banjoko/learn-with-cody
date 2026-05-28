@@ -3,7 +3,7 @@
  * R1: identifying — fit
  * R2: dictation — hot (Short O)
  * R3: letter_to_sound — i (connection using hip)
- * R4: word_match — him — distractors: ham, hom, hum
+ * R4: word_match — hid — distractors: had, hod, hud
  * R5: writev2 — big — distractors: a, o
  */
 import { useState, useCallback, useMemo } from "react";
@@ -34,7 +34,7 @@ const ROUND_SEQUENCE = [
   { type: "identifying",    word: "fit",  source: "i" },
   { type: "dictation",      word: "hot",  source: "o" },
   { type: "letter_to_sound", word: "hip", source: "i" },
-  { type: "word_match",     word: "him",  source: "i", distractors: ["ham", "hom", "hum"] },
+  { type: "word_match",     word: "hid",  source: "i", distractors: ["had", "hod", "hud"] },
   { type: "writev2",        word: "big",  source: "i" },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
