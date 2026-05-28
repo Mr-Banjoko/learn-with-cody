@@ -3,7 +3,7 @@
  * R1: big, dig, jig — initial — bottom: j, b, d (shuffleOrder[0]=jig→idx2, [1]=big→idx0, [2]=dig→idx1)
  * R2: bit, fit, hit — initial — bottom: h, f, b (shuffleOrder[0]=hit→idx2, [1]=fit→idx1, [2]=bit→idx0)
  * R3: hip, lip, nip — initial — bottom: n, l, h (shuffleOrder[0]=nip→idx2, [1]=lip→idx1, [2]=hip→idx0)
- * R4: lid, hid, did — initial — bottom: d, h, l (shuffleOrder[0]=did→idx2, [1]=hid→idx1, [2]=lid→idx0)
+ * R4: lid, hid, dim — initial — bottom: d, h, l (shuffleOrder[0]=dim→idx2, [1]=hid→idx1, [2]=lid→idx0)
  * R5: pin, pig, pit — final — bottom: t, g, n (shuffleOrder[0]=pit→idx2, [1]=pig→idx1, [2]=pin→idx0)
  */
 import { useState, useCallback, useMemo } from "react";
@@ -46,7 +46,7 @@ const ROUND_DEFS = [
   { positionType: "initial", shuffleOrder: [2, 1, 0], words: [
     { word: "lid", targetLetter: "l" },
     { word: "hid", targetLetter: "h" },
-    { word: "did", targetLetter: "d" },
+    { word: "dim", targetLetter: "d" },
   ]},
   // R5: pin(n), pig(g), pit(t) — final — bottom: t,g,n → botSlot0=pit(idx2), botSlot1=pig(idx1), botSlot2=pin(idx0)
   { positionType: "final", shuffleOrder: [2, 1, 0], words: [
