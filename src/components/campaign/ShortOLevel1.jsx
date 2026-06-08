@@ -48,9 +48,20 @@ export default function ShortOLevel1({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // R2 (index 1): connection first appearance in Short O — audio guide
+  // R2 (index 1): connection first appearance in Short O — audio guide plays first, then word audio
   const hintUrl = getShortOHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
+  const connectionWordAudio = roundIndex === 1 ? (findWord(ROUNDS[1].word)?.audio || null) : null;
+  const onHintComplete = useCallback((unlock) => {
+    if (!connectionWordAudio) { unlock(); return; }
+    const audio = new Audio(connectionWordAudio);
+    audio.onended = unlock; audio.onerror = unlock;
+    audio.play().catch(unlock);
+  }, [connectionWordAudio]);
+
+  const { locked: hintLocked } = useRoundHintAudio({
+    url: hintUrl,
+    onHintComplete: roundIndex === 1 ? onHintComplete : undefined,
+  });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -86,7 +97,7 @@ export default function ShortOLevel1({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "phonics" && card && <Level1Phonics card={card} onNext={advance} lang={lang} isFirstCard={roundIndex === 0} />}
-            {round.type === "connection" && connectionCard && <CampaignConnectionRound key={`conn-${roundIndex}`} card={connectionCard} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {round.type === "connection" && connectionCard && <CampaignConnectionRound key={`conn-${roundIndex}`} card={connectionCard} onComplete={advance} lang={lang} onMistake={onMistake} suppressAutoPlay={roundIndex === 1} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}

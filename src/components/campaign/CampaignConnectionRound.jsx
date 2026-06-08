@@ -196,8 +196,13 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
   const [shuffledOrder] = useState(() => buildShuffledOrder());
   const [selected, setSelected] = useState(null);
   const [matches, setMatches] = useState([]);
-  // Get phoneme slice data
-  const wordData = useMemo(() => buildWordDataWithFallback(card.word), [card.word]);
+  // Use pre-built phoneme data from card if available (set by vowel-specific builders in parent),
+  // otherwise fall back to rebuilding internally. This prevents the "missing slices" bug where
+  // buildWordData returns partial data and the fallback never triggers.
+  const wordData = useMemo(() => {
+    if (card.phonemes && card.phonemes.some((p) => p.sliceSrc)) return card;
+    return buildWordDataWithFallback(card.word);
+  }, [card]);
   const [wrongFeedback, setWrongFeedback] = useState(null);
   const [locked, setLocked] = useState(false);
   const [won, setWon] = useState(false);
