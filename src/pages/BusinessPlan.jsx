@@ -260,6 +260,224 @@ export default function BusinessPlan() {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadGamesDoc = () => {
+    const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/8ba99d679_ElevenLabs_image_nano-banana_iwantjust_2026-03-26T06_51_27.png";
+    const CODY_TRANSPARENT = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
+
+    const gameBoxStyle = `
+      display:inline-block; width:100%; padding:0; margin:0;
+      border:2px solid #e0e0e0; border-radius:12px; overflow:hidden;
+      background:#f9f9f9; page-break-inside:avoid;
+    `;
+    const headerStyle = `background:#1a3a5c; color:white; padding:10px 16px; font-size:13pt; font-weight:700; font-family:Calibri,sans-serif;`;
+    const bodyStyle = `padding:14px 16px; font-family:Calibri,sans-serif; font-size:11pt; color:#333;`;
+    const aimStyle = `margin-top:8px; padding:8px 12px; background:#EFF6FF; border-left:4px solid #1a3a5c; font-size:10pt; color:#1a3a5c;`;
+
+    const games = [
+      {
+        emoji: "🖼️",
+        name: "Rearrange the Pictures",
+        color: "#FF6B6B",
+        bg: "#FFF0F0",
+        desc: "Students are shown picture slices of a CVC word displayed in scrambled order. They drag and drop each slice into the correct position to reconstruct the full image in the right phoneme sequence.",
+        aim: "Aim: Develops phoneme sequencing and phonological awareness — children internalise the left-to-right letter order of spoken sounds as they reassemble each word.",
+      },
+      {
+        emoji: "🎯",
+        name: "Word Match",
+        color: "#4D96FF",
+        bg: "#EFF6FF",
+        desc: "A spoken word and its illustration are presented. The child selects the correct written word from a set of visually similar options (e.g., 'cat', 'bat', 'hat'). Audio reinforcement confirms the correct answer.",
+        aim: "Aim: Builds sight-word recognition and orthographic mapping — connecting spoken words to their printed forms under auditory support.",
+      },
+      {
+        emoji: "✋",
+        name: "Drag the Letters",
+        color: "#6BCB77",
+        bg: "#F0FFF4",
+        desc: "A word image and its audio are presented. Individual letter tiles are scattered on screen. The student drags each letter into the correct empty box to spell the word, with audio feedback on correct placement.",
+        aim: "Aim: Practises phoneme-grapheme correspondence and word construction — children must decode each sound and match it to its written letter.",
+      },
+      {
+        emoji: "✍️",
+        name: "Drag the Letters V2",
+        color: "#FFD93D",
+        bg: "#FFFDE7",
+        desc: "An enhanced drag-and-drop spelling activity. Students arrange all letter tiles to spell the word, then press 'Submit' to check their complete answer. This reinforces self-checking and whole-word encoding.",
+        aim: "Aim: Strengthens full word encoding and self-correction skills — students commit to a complete spelling before receiving feedback.",
+      },
+      {
+        emoji: "❓",
+        name: "Missing Sound",
+        color: "#C77DFF",
+        bg: "#FAF0FF",
+        desc: "A word image is shown with one letter missing (shown as a blank). A set of letter options is displayed. The student taps the correct letter to complete the word. Audio confirms the choice.",
+        aim: "Aim: Targets phonemic segmentation — students must identify and isolate a specific phoneme (initial, medial, or final) within a word.",
+      },
+      {
+        emoji: "🔤",
+        name: "Missing Sound 0.1",
+        color: "#FF9F43",
+        bg: "#FFF5E6",
+        desc: "Similar to Missing Sound, but with an additional interactive layer: students can first tap any letter tile to hear its sound before dragging it into the blank. This supports learners who need auditory scaffolding.",
+        aim: "Aim: Provides supported phoneme identification — the tap-to-hear feature helps children who are still building letter-sound associations make accurate decisions.",
+      },
+      {
+        emoji: "🧩",
+        name: "Letter Catch",
+        color: "#4ECDC4",
+        bg: "#E8FFFE",
+        desc: "Letters fall from the top of the screen. The word to be built is shown with one letter blank. The student must tap the correct falling letter before it reaches the bottom. Wrong taps are penalised.",
+        aim: "Aim: Develops rapid phoneme recognition under time pressure — a gamified way to reinforce letter-sound knowledge and build automatic recall.",
+      },
+      {
+        emoji: "〰️",
+        name: "Draw a Line",
+        color: "#FF6B6B",
+        bg: "#FFF0F0",
+        desc: "A set of pictures is shown on the left and a set of letters on the right (or vice versa). The student hears audio cues and draws lines between matching picture-sound pairs by swiping across the screen.",
+        aim: "Aim: Reinforces phoneme-grapheme correspondence in a kinesthetic way — the drawing action deepens the association between a sound and its written letter.",
+      },
+      {
+        emoji: "🔗",
+        name: "Letter-to-Sound Connection",
+        color: "#4D96FF",
+        bg: "#EFF6FF",
+        desc: "Letters of a word are displayed across the top row. Picture slices (phoneme images) are shown in a shuffled bottom row. The student draws connecting lines between each letter and its corresponding picture slice.",
+        aim: "Aim: Deepens grapheme-phoneme correspondence at the phoneme level — each letter is individually matched to its sound picture, reinforcing sub-word sound awareness.",
+      },
+      {
+        emoji: "🎙️",
+        name: "Dictation",
+        color: "#FF6B6B",
+        bg: "#FFF0F5",
+        desc: "A word is spoken aloud (audio-only — no image shown). The student must spell the word by dragging the correct letter tiles into the blank spaces. No visual word cue is given.",
+        aim: "Aim: Tests phonemic encoding (spelling from sound alone) — the highest-level phonics skill, requiring the student to convert heard sounds directly into written letters without visual support.",
+      },
+      {
+        emoji: "✏️",
+        name: "Write / Handwriting Trace",
+        color: "#C77DFF",
+        bg: "#FAF0FF",
+        desc: "A letter is displayed with a dotted guided tracing path. The student traces the letter on the touchscreen with their finger. The app provides stroke recognition feedback, confirming correct pen direction and form.",
+        aim: "Aim: Develops fine motor skills and letter formation — combining the visual, auditory, and motor memory pathways (VAK learning) to reinforce letter shapes alongside their sounds.",
+      },
+      {
+        emoji: "✏️",
+        name: "Write V2",
+        color: "#C77DFF",
+        bg: "#FAF0FF",
+        desc: "Six letter tiles are presented. The student must identify and trace the 3 correct letters that spell the target word. Combines letter identification with handwriting in a single interactive challenge.",
+        aim: "Aim: Bridges letter recognition and handwriting — students decode the word, select the correct letters, and practise writing them in sequence.",
+      },
+      {
+        emoji: "🗺️",
+        name: "Campaign Mode",
+        color: "#1a3a5c",
+        bg: "#E8F0FB",
+        desc: "The Campaign is the core structured learning journey of Learn With Cody. Students select a vowel sound (Short A, Short I, Short O, etc.) and progress through up to 31 graded levels. Each level contains 5–6 rounds mixing different game types in a deliberate pedagogical sequence: Introduction → Practice → Review → Assessment.",
+        aim: "Aim: Provides a complete, curriculum-aligned phonics programme — the campaign ensures systematic coverage of each vowel sound using spaced repetition, varied practice, and escalating challenge.",
+      },
+    ];
+
+    const gamesHtml = games.map((g) => `
+      <table width="100%" style="margin-bottom:24px; border-collapse:collapse; border:2px solid #ddd; border-radius:10px; overflow:hidden; page-break-inside:avoid;">
+        <tr>
+          <td style="background:${g.color}; padding:10px 16px; width:50px; text-align:center; font-size:22pt; vertical-align:middle;">${g.emoji}</td>
+          <td style="background:${g.color}; padding:10px 16px; font-size:14pt; font-weight:700; color:white; font-family:Calibri,sans-serif; vertical-align:middle;">${g.name}</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="background:${g.bg}; padding:14px 16px; font-family:Calibri,sans-serif; font-size:11pt; color:#333; line-height:1.7;">${g.desc}</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="background:#1a3a5c; padding:10px 16px; font-family:Calibri,sans-serif; font-size:10pt; color:white; font-style:italic;">${g.aim}</td>
+        </tr>
+      </table>
+    `).join("");
+
+    const html = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="utf-8"><title>Learn With Cody — Games Overview</title>
+<style>
+  body { font-family:Calibri,sans-serif; margin:2cm; font-size:11pt; color:#1a1a1a; line-height:1.6; }
+  h1 { font-size:26pt; color:#1a3a5c; text-align:center; margin-bottom:4px; }
+  h2 { font-size:16pt; color:#1a3a5c; border-bottom:2px solid #c07a00; padding-bottom:4px; margin:32px 0 16px; }
+  p { margin:6px 0; }
+  .cover { text-align:center; padding:30px 0 40px; border-bottom:3px solid #1a3a5c; margin-bottom:36px; }
+  .cover .sub { font-size:13pt; color:#c07a00; font-style:italic; margin-top:6px; }
+  .cover .meta { font-size:10pt; color:#666; margin-top:18px; line-height:2; }
+  .footer { margin-top:48px; padding-top:14px; border-top:2px solid #1a3a5c; text-align:center; font-size:9pt; color:#888; }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <p style="font-size:9pt;letter-spacing:3px;color:#888;text-transform:uppercase;margin-bottom:12px;">Product Overview Document</p>
+  <p style="font-size:12pt;color:#555;">ShenZhen Horizon Education Technology Co., Ltd.</p>
+  <h1>Learn With Cody</h1>
+  <p class="sub">Meet Cody &amp; Game Descriptions</p>
+  <div style="width:60px;height:3px;background:#c07a00;margin:16px auto;"></div>
+  <div class="meta">
+    <p><strong>Document Date:</strong> June 2026</p>
+    <p><strong>Classification:</strong> Confidential — For Investor &amp; Partner Use</p>
+  </div>
+</div>
+
+<!-- SECTION 1: WHO IS CODY? -->
+<h2>1. Meet Cody — Your Phonics Learning Companion</h2>
+<table width="100%" style="border-collapse:collapse; margin-bottom:24px;">
+  <tr>
+    <td style="width:260px; text-align:center; vertical-align:top; padding-right:24px;">
+      <img src="${CODY_IMG}" width="240" style="border-radius:16px;" alt="Cody the Phonics Monster" />
+      <p style="font-size:10pt; color:#888; font-style:italic; margin-top:6px;">Cody — Learn With Cody's mascot</p>
+    </td>
+    <td style="vertical-align:top; padding-top:8px;">
+      <p style="font-size:14pt; font-weight:700; color:#1a3a5c; margin-bottom:12px;">Who is Cody?</p>
+      <p>Cody is the friendly, colourful monster mascot of <em>Learn With Cody</em>. Covered in rainbow fur and wearing a vest covered in alphabet letters, Cody embodies the joy of learning to read.</p>
+      <br/>
+      <p>Cody serves as the child's guide throughout the entire phonics learning journey — celebrating correct answers, encouraging persistence after mistakes, and introducing each new game type with audio instructions in both <strong>English and Mandarin Chinese</strong>.</p>
+      <br/>
+      <p>Designed to appeal to children aged 4 to 9, Cody's warm, approachable appearance and playful personality make the often-challenging task of learning phonics feel like a fun adventure rather than a chore.</p>
+      <br/>
+      <p>Cody appears across the app in the <strong>Campaign Map, Games Hub, Flashcards</strong>, and as an animated companion on the Tab Bar — always present, always encouraging.</p>
+      <br/>
+      <table width="100%" style="border-collapse:collapse;">
+        <tr>
+          <td style="background:#1a3a5c; color:white; padding:8px 12px; font-weight:700; font-size:10pt; border-radius:6px 6px 0 0;">Cody's Key Traits</td>
+        </tr>
+        <tr style="background:#EFF6FF;"><td style="padding:7px 12px; font-size:10pt; border-bottom:1px solid #ddd;">🌈 Rainbow-coloured fur — warm, welcoming, and fun</td></tr>
+        <tr><td style="padding:7px 12px; font-size:10pt; border-bottom:1px solid #ddd;">🔤 Alphabet vest — signals learning and literacy</td></tr>
+        <tr style="background:#EFF6FF;"><td style="padding:7px 12px; font-size:10pt; border-bottom:1px solid #ddd;">👋 Always waving — friendly and approachable for young learners</td></tr>
+        <tr><td style="padding:7px 12px; font-size:10pt; border-bottom:1px solid #ddd;">🔊 Bilingual voice — speaks English and Mandarin Chinese</td></tr>
+        <tr style="background:#EFF6FF;"><td style="padding:7px 12px; font-size:10pt;">🏆 Celebrates every win — star ratings, encouragement, completion screens</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- SECTION 2: THE GAMES -->
+<h2>2. Game Types — Descriptions &amp; Learning Aims</h2>
+<p style="color:#555; font-size:10pt; margin-bottom:20px;"><em>Learn With Cody</em> features 12+ distinct game types, each designed to target a specific phonics skill. Games appear both in the independent Games Hub and woven into the structured Campaign levels.</p>
+
+${gamesHtml}
+
+<div class="footer">
+  <p>© 2026 ShenZhen Horizon Education Technology Co., Ltd. | All Rights Reserved</p>
+  <p>This document is confidential and intended for authorised recipients only.</p>
+  <p style="font-style:italic; margin-top:4px;">Learn With Cody — Empowering Every Child to Read</p>
+</div>
+</body></html>`;
+
+    const blob = new Blob([html], { type: "application/msword;charset=utf-8" });
+    const url2 = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url2;
+    a.download = "LearnWithCody_Games_Overview.doc";
+    a.click();
+    URL.revokeObjectURL(url2);
+  };
+
   return (
     <div style={{ fontFamily: "Georgia, 'Times New Roman', serif", background: "#f4f1eb", minHeight: "100vh", padding: "20px" }}>
       {/* Print button - hidden in print */}
@@ -275,6 +493,12 @@ export default function BusinessPlan() {
           style={{ background: "#2e7d32", color: "white", border: "none", padding: "12px 32px", fontSize: 15, borderRadius: 6, cursor: "pointer", fontFamily: "Georgia, serif", letterSpacing: 0.5 }}
         >
           📄 Download as Word (.doc)
+        </button>
+        <button
+          onClick={handleDownloadGamesDoc}
+          style={{ background: "#6a1b9a", color: "white", border: "none", padding: "12px 32px", fontSize: 15, borderRadius: 6, cursor: "pointer", fontFamily: "Georgia, serif", letterSpacing: 0.5 }}
+        >
+          🎮 Download Games Overview (.doc)
         </button>
       </div>
 
