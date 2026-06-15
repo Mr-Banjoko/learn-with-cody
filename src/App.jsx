@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Launch from './pages/Launch';
+import BusinessPlan from './pages/BusinessPlan';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -34,6 +35,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/" element={<Launch />} />
+      <Route path="/business-plan" element={<BusinessPlan />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
