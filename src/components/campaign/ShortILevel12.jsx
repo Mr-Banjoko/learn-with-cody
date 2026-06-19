@@ -4,7 +4,7 @@
  * R2: dictation — dog (Short O)
  * R3: word_match — kit — distractors: kat, kot, kut
  * R4: rearrange_hard — hit [pair: hit + hid]
- * R5: word_to_audio — map (Short A) — options: map, mop, mip
+ * R5: word_to_audio — hat (Short A) — options: hat, hot, hit
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,7 +33,7 @@ const ROUND_SEQUENCE = [
   { type: "dictation",      word: "dog",  source: "o" },
   { type: "word_match",     word: "kit",  source: "i", distractors: ["kat", "kot", "kut"] },
   { type: "rearrange_hard", words: ["hit", "hid"] },
-  { type: "word_to_audio",  words: ["map", "mop", "mip"] },
+  { type: "word_to_audio",  words: ["hat", "hot", "hit"] },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 
