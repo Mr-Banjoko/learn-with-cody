@@ -2,9 +2,9 @@
  * ShortILevel18 — WriteV2 Batch D
  * R1: writev2 — lid
  * R2: writev2 — lip
- * R3: writev2 — lit
+ * R3: writev2 — tin
  * R4: writev2 — mix
- * R5: writev2 — nip
+ * R5: writev2 — tip
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,7 +18,7 @@ import { useRoundHintAudio, getShortIHintAudioUrl, LOCK_OVERLAY_STYLE } from "..
 const LEVEL_NUM = 18;
 const VOWEL_KEY = "short-i";
 const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
-const WORD_ORDER = ["lid", "lip", "lit", "mix", "nip"];
+const WORD_ORDER = ["lid", "lip", "tin", "mix", "tip"];
 const TOTAL_ROUNDS = WORD_ORDER.length;
 const findWord = (w) => shortIWords.find((x) => x.word === w);
 

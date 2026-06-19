@@ -2,8 +2,8 @@
  * ShortILevel16 — Practice Batch D
  * R1: drag — lid
  * R2: catch — mix — x (final)
- * R3: write — nip
- * R4: word_match — lit — distractors: lat, lot, lut
+ * R3: write — tip
+ * R4: word_match — tin — distractors: tan, ton, tun
  * R5: identifying — lip
  */
 import { useState, useCallback, useMemo } from "react";
@@ -31,8 +31,8 @@ function fakeCard(word) { return { word, audio: null, image: null }; }
 const ROUND_SEQUENCE = [
   { type: "drag",       word: "lid" },
   { type: "catch",      word: "mix", missingLetter: "x" },
-  { type: "write",      word: "nip" },
-  { type: "word_match", word: "lit", distractors: ["lat", "lot", "lut"] },
+  { type: "write",      word: "tip" },
+  { type: "word_match", word: "tin", distractors: ["tan", "ton", "tun"] },
   { type: "identifying", word: "lip" },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;

@@ -1,39 +1,26 @@
 /**
- * ShortILevel15 — Intro Batch D continued (mix, tip)
- * R1: phonics — mix
- * R2: missing01 — mix — final (x) pos 2
- * R3: phonics — tip
- * R4: missing01 — tip — medial (i) pos 1
- * R5: rearrange_hard — lid [pair: lid + lip]
- * R6: dictation — lip
+ * ShortILevel37 — Dictation Batch F
+ * R1: dictation — sit
+ * R2: dictation — tin
+ * R3: dictation — tip
+ * R4: dictation — rid
+ * R5: dictation — bin
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import Level1Phonics from "./Level1Phonics";
-import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import DictationCampaignRound from "./DictationCampaignRound";
-import PicSliceBoard from "../games/PicSliceBoard";
 import LevelCompleteScreen from "./LevelCompleteScreen";
-import { buildShortISliceData } from "../../lib/buildShortISliceData";
 import { shortIWords } from "../../lib/shortIWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getShortIHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
-const LEVEL_NUM = 15;
+const LEVEL_NUM = 37;
 const VOWEL_KEY = "short-i";
 const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
+const WORD_ORDER = ["sit", "tin", "tip", "rid", "bin"];
+const TOTAL_ROUNDS = WORD_ORDER.length;
 const findWord = (w) => shortIWords.find((x) => x.word === w);
-
-const ROUNDS = [
-  { type: "phonics",        word: "mix" },
-  { type: "missing01",      word: "mix", missingPos: 2 },
-  { type: "phonics",        word: "tip" },
-  { type: "missing01",      word: "tip", missingPos: 1 },
-  { type: "rearrange_hard", words: ["lid", "lip"] },
-  { type: "dictation",      word: "lip" },
-];
-const TOTAL_ROUNDS = ROUNDS.length;
 
 function markComplete() {
   try {
@@ -44,7 +31,7 @@ function markComplete() {
   } catch (_) {}
 }
 
-export default function ShortILevel15({ onBack, lang = "en" }) {
+export default function ShortILevel37({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
@@ -67,14 +54,12 @@ export default function ShortILevel15({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
-  const round = ROUNDS[roundIndex];
+  const card = useMemo(() => findWord(WORD_ORDER[roundIndex]), [roundIndex]); // eslint-disable-line
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-  const card = useMemo(() => round.word ? findWord(round.word) : null, [roundIndex]); // eslint-disable-line
-  const rearrangeHardPair = useMemo(() => round.type === "rearrange_hard" ? round.words.map(buildShortISliceData) : null, [roundIndex]); // eslint-disable-line
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #F0F8FF 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} vowelKey="short-i" gameType={round.type} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} vowelKey="short-i" gameType="dictation" />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #6BCB77, #4ECDC4)" }} />
@@ -87,10 +72,7 @@ export default function ShortILevel15({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {round.type === "phonics" && card && <Level1Phonics card={card} onNext={advance} lang={lang} isFirstCard={false} />}
-            {round.type === "missing01" && card && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={card} forcedMissingPos={round.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} />}
-            {round.type === "rearrange_hard" && rearrangeHardPair && <PicSliceBoard key={`hard-${roundIndex}`} wordPair={rearrangeHardPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} suppressAutoPlay />}
-            {round.type === "dictation" && card && <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {card && <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}

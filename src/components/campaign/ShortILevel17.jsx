@@ -2,9 +2,9 @@
  * ShortILevel17 — Dictation Batch D
  * R1: dictation — lid
  * R2: dictation — lip
- * R3: dictation — lit
+ * R3: dictation — tin
  * R4: dictation — mix
- * R5: dictation — nip
+ * R5: dictation — tip
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,7 +18,7 @@ import { useRoundHintAudio, getShortIHintAudioUrl, LOCK_OVERLAY_STYLE } from "..
 const LEVEL_NUM = 17;
 const VOWEL_KEY = "short-i";
 const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
-const WORD_ORDER = ["lid", "lip", "lit", "mix", "nip"];
+const WORD_ORDER = ["lid", "lip", "tin", "mix", "tip"];
 const TOTAL_ROUNDS = WORD_ORDER.length;
 const findWord = (w) => shortIWords.find((x) => x.word === w);
 

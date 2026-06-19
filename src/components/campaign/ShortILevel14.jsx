@@ -1,11 +1,11 @@
 /**
- * ShortILevel14 — Intro Batch D (lid, lip, lit)
+ * ShortILevel14 — Intro Batch D (lid, lip, tin)
  * R1: phonics — lid
  * R2: missing01 — lid — initial (l) pos 0
  * R3: phonics — lip
  * R4: missing01 — lip — final (p) pos 2
- * R5: phonics — lit
- * R6: missing01 — lit — medial (i) pos 1
+ * R5: phonics — tin
+ * R6: missing01 — tin — final (n) pos 2
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,8 +27,8 @@ const ROUNDS = [
   { type: "missing01", word: "lid", missingPos: 0 },
   { type: "phonics",   word: "lip" },
   { type: "missing01", word: "lip", missingPos: 2 },
-  { type: "phonics",   word: "lit" },
-  { type: "missing01", word: "lit", missingPos: 1 },
+  { type: "phonics",   word: "tin" },
+  { type: "missing01", word: "tin", missingPos: 2 },
 ];
 const TOTAL_ROUNDS = ROUNDS.length;
 

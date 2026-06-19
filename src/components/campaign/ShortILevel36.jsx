@@ -1,39 +1,49 @@
 /**
- * ShortILevel15 — Intro Batch D continued (mix, tip)
- * R1: phonics — mix
- * R2: missing01 — mix — final (x) pos 2
- * R3: phonics — tip
- * R4: missing01 — tip — medial (i) pos 1
- * R5: rearrange_hard — lid [pair: lid + lip]
- * R6: dictation — lip
+ * ShortILevel36 — Practice Batch F
+ * R1: drag — sit
+ * R2: catch — tin — n (final)
+ * R3: word_match — tip — distractors: tap, top, tup
+ * R4: rearrange_easy — rip
+ * R5: identifying — bin
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
-import Level1Phonics from "./Level1Phonics";
-import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
-import DictationCampaignRound from "./DictationCampaignRound";
-import PicSliceBoard from "../games/PicSliceBoard";
+import Level1DragV2 from "./Level1DragV2";
+import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
+import CampaignWordMatchRound from "./CampaignWordMatchRound";
+import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
+import IdentifyingRound from "../games/IdentifyingRound";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import { buildShortISliceData } from "../../lib/buildShortISliceData";
 import { shortIWords } from "../../lib/shortIWords";
+import { shortAWords } from "../../lib/shortAWords";
+import { shortOWords } from "../../lib/shortOWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getShortIHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
 
-const LEVEL_NUM = 15;
+const LEVEL_NUM = 36;
 const VOWEL_KEY = "short-i";
 const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
+const ALL_WORDS = [...shortAWords, ...shortOWords, ...shortIWords];
 const findWord = (w) => shortIWords.find((x) => x.word === w);
+function fakeCard(word) { return { word, audio: null, image: null }; }
 
-const ROUNDS = [
-  { type: "phonics",        word: "mix" },
-  { type: "missing01",      word: "mix", missingPos: 2 },
-  { type: "phonics",        word: "tip" },
-  { type: "missing01",      word: "tip", missingPos: 1 },
-  { type: "rearrange_hard", words: ["lid", "lip"] },
-  { type: "dictation",      word: "lip" },
+const ROUND_SEQUENCE = [
+  { type: "drag",        word: "sit" },
+  { type: "catch",       word: "tin", missingLetter: "n" },
+  { type: "word_match",  word: "tip", distractors: ["tap", "top", "tup"] },
+  { type: "rearrange_easy", word: "rip" },
+  { type: "identifying", word: "bin" },
 ];
-const TOTAL_ROUNDS = ROUNDS.length;
+const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
+
+function buildIdentifyingRound(word) {
+  const target = findWord(word);
+  const pool = ALL_WORDS.filter((w) => w.word !== word);
+  const choices = [target, ...[...pool].sort(() => Math.random() - 0.5).slice(0, 2)].sort(() => Math.random() - 0.5);
+  return { target, choices };
+}
 
 function markComplete() {
   try {
@@ -44,7 +54,7 @@ function markComplete() {
   } catch (_) {}
 }
 
-export default function ShortILevel15({ onBack, lang = "en" }) {
+export default function ShortILevel36({ onBack, lang = "en" }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [mistakes, setMistakes] = useState(0);
@@ -67,14 +77,16 @@ export default function ShortILevel15({ onBack, lang = "en" }) {
     }
   }, [roundIndex, mistakes]);
 
-  const round = ROUNDS[roundIndex];
+  const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
-  const card = useMemo(() => round.word ? findWord(round.word) : null, [roundIndex]); // eslint-disable-line
-  const rearrangeHardPair = useMemo(() => round.type === "rearrange_hard" ? round.words.map(buildShortISliceData) : null, [roundIndex]); // eslint-disable-line
+  const card = useMemo(() => findWord(roundDef.word), [roundIndex]); // eslint-disable-line
+  const wordMatchChoices = useMemo(() => roundDef.type === "word_match" && card ? [card, ...roundDef.distractors.map(fakeCard)].sort(() => Math.random() - 0.5) : null, [roundIndex]); // eslint-disable-line
+  const rearrangeEasyPair = useMemo(() => roundDef.type === "rearrange_easy" ? [buildShortISliceData(roundDef.word)] : null, [roundIndex]); // eslint-disable-line
+  const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #F0F8FF 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
-      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} vowelKey="short-i" gameType={round.type} />
+      <LevelHeader levelNum={LEVEL_NUM} mistakes={mistakes} onBack={onBack} lang={lang} vowelKey="short-i" gameType={roundDef.type} />
       {!done && (
         <div style={{ height: 6, background: "rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #6BCB77, #4ECDC4)" }} />
@@ -87,10 +99,11 @@ export default function ShortILevel15({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {round.type === "phonics" && card && <Level1Phonics card={card} onNext={advance} lang={lang} isFirstCard={false} />}
-            {round.type === "missing01" && card && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={card} forcedMissingPos={round.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} />}
-            {round.type === "rearrange_hard" && rearrangeHardPair && <PicSliceBoard key={`hard-${roundIndex}`} wordPair={rearrangeHardPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} suppressAutoPlay />}
-            {round.type === "dictation" && card && <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "drag" && card && <Level1DragV2 key={`drag-${roundIndex}`} card={card} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "catch" && card && <CampaignLetterCatchRound key={`catch-${roundIndex}`} word={card.word} missingLetter={roundDef.missingLetter} image={card.image} audio={card.audio} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "word_match" && card && wordMatchChoices && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={card} overrideChoices={wordMatchChoices} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {roundDef.type === "rearrange_easy" && rearrangeEasyPair && <PicSliceBoardEasy key={`re-${roundIndex}`} wordPair={rearrangeEasyPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "identifying" && identifyingRound && <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}

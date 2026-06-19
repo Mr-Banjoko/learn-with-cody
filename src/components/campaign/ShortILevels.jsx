@@ -36,10 +36,17 @@ import ShortILevel28 from "./ShortILevel28";
 import ShortILevel29 from "./ShortILevel29";
 import ShortILevel30 from "./ShortILevel30";
 import ShortILevel31 from "./ShortILevel31";
+import ShortILevel32 from "./ShortILevel32";
+import ShortILevel33 from "./ShortILevel33";
+import ShortILevel34 from "./ShortILevel34";
+import ShortILevel35 from "./ShortILevel35";
+import ShortILevel36 from "./ShortILevel36";
+import ShortILevel37 from "./ShortILevel37";
+import ShortILevel38 from "./ShortILevel38";
 import { getBestStars } from "../../lib/campaignPerformance";
 
 const VOWEL_KEY = "short-i";
-const TOTAL_LEVELS = 31;
+const TOTAL_LEVELS = 38;
 const NODE_SPACING = 114;
 const TOP_OFFSET = 36;
 
@@ -52,6 +59,8 @@ const LEVEL_COMPONENTS = {
   21: ShortILevel21, 22: ShortILevel22, 23: ShortILevel23, 24: ShortILevel24,
   25: ShortILevel25, 26: ShortILevel26, 27: ShortILevel27, 28: ShortILevel28,
   29: ShortILevel29, 30: ShortILevel30, 31: ShortILevel31,
+  32: ShortILevel32, 33: ShortILevel33, 34: ShortILevel34, 35: ShortILevel35,
+  36: ShortILevel36, 37: ShortILevel37, 38: ShortILevel38,
 };
 
 const LEVEL_TAGS = {
@@ -63,6 +72,8 @@ const LEVEL_TAGS = {
   21: "Learn", 22: "Learn", 23: "Practice", 24: "Draw",
   25: "Write", 26: "Write", 27: "Review", 28: "Practice",
   29: "Match", 30: "Catch", 31: "Final",
+  32: "Learn", 33: "Learn", 34: "Learn", 35: "Learn",
+  36: "Practice", 37: "Write", 38: "Write",
 };
 
 const TAG_STYLES = {
@@ -207,7 +218,7 @@ export default function ShortILevels({ onBack, lang = "en" }) {
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }}>
           <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#1E293B" }}>🐛 {lang === "zh" ? "短元音 I" : "Short i"}</p>
-          <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>{lang === "zh" ? "31 关卡冒险" : "31-level adventure"}</p>
+          <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>{lang === "zh" ? "38 关卡冒险" : "38-level adventure"}</p>
         </div>
         <div style={{ background: "#EFF6FF", border: "1.5px solid #4D96FF", borderRadius: 99, padding: "5px 13px", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
           <span style={{ fontSize: 13 }}>⚡</span>
