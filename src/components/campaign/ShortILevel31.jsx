@@ -1,6 +1,6 @@
 /**
  * ShortILevel31 — Grand Final Review (Short I complete mastery)
- * R1: word_to_audio — sit — options: sit, sat, sot
+ * R1: word_to_audio — rib — options: rib, rob, rub
  * R2: rearrange_hard — pig [pair: pig + pit]
  * R3: dictation — win
  * R4: drawline — {big,dig,jig} initial: j,b,d
@@ -60,7 +60,7 @@ function buildIdentifyingRound(word) {
 }
 
 const ROUND_SEQUENCE = [
-  { type: "word_to_audio", words: ["sit", "sat", "sot"] },
+  { type: "word_to_audio", words: ["rib", "rob", "rub"] },
   { type: "rearrange_hard", words: ["pig", "pit"] },
   { type: "dictation",     word: "win" },
   { type: "drawline" },

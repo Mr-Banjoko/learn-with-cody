@@ -1,10 +1,10 @@
 /**
  * ShortILevel19 — Word-to-Audio Contrast (Short A vs Short O vs Short I)
- * R1: word_to_audio — sit — options: sit, sat, sot
- * R2: word_to_audio — pin — options: pin, pan, pon
+ * R1: word_to_audio — tip — options: tip, tap, top
+ * R2: word_to_audio — pit — options: pit, pat, pot
  * R3: word_to_audio — hit — options: hit, hat, hot
  * R4: word_to_audio — big — options: big, bag, bog
- * R5: word_to_audio — lip — options: lip, lap, lop
+ * R5: word_to_audio — fin — options: fin, fan, fun
  */
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,11 +19,11 @@ const VOWEL_KEY = "short-i";
 const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
 
 const ROUNDS = [
-  { words: ["sit", "sat", "sot"] },
-  { words: ["pin", "pan", "pon"] },
+  { words: ["tip", "tap", "top"] },
+  { words: ["pit", "pat", "pot"] },
   { words: ["hit", "hat", "hot"] },
   { words: ["big", "bag", "bog"] },
-  { words: ["lip", "lap", "lop"] },
+  { words: ["fin", "fan", "fun"] },
 ];
 const TOTAL_ROUNDS = ROUNDS.length;
 
