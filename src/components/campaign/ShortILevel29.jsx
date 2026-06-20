@@ -1,6 +1,6 @@
 /**
  * ShortILevel29 — Word Match Block (all batches)
- * R1: word_match — sit — distractors: sat, sot, sut
+ * R1: word_match — kit — distractors: kat, kot, kut
  * R2: word_match — big — distractors: bag, bog, bug
  * R3: word_match — hid — distractors: had, hod, hud
  * R4: word_match — pin — distractors: pan, pon, pun
@@ -22,7 +22,7 @@ const findWord = (w) => shortIWords.find((x) => x.word === w);
 function fakeCard(word) { return { word, audio: null, image: null }; }
 
 const ROUNDS = [
-  { word: "sit", distractors: ["sat", "sot", "sut"] },
+  { word: "kit", distractors: ["kat", "kot", "kut"] },
   { word: "big", distractors: ["bag", "bog", "bug"] },
   { word: "hid", distractors: ["had", "hod", "hud"] },
   { word: "pin", distractors: ["pan", "pon", "pun"] },

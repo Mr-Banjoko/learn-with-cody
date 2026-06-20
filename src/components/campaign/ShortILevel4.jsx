@@ -29,7 +29,7 @@ function fakeCard(word) { return { word, audio: null, image: null }; }
 const ROUND_SEQUENCE = [
   { type: "drag_v2",    word: "big" },
   { type: "word_match", word: "bit",  distractors: ["bat", "bot", "but"] },
-  { type: "catch",      word: "dim",  missingLetter: "i" },
+  { type: "catch",      word: "dip",  missingLetter: "i" },
   { type: "rearrange_easy", word: "dip" },
   { type: "dictation",  word: "dig" },
 ];

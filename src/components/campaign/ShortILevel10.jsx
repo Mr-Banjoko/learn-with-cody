@@ -30,7 +30,7 @@ const ROUNDS = [
   { type: "missing01",      word: "kid", missingPos: 0 },
   { type: "phonics",        word: "kit" },
   { type: "missing01",      word: "kit", missingPos: 2 },
-  { type: "rearrange_hard", words: ["rib", "rip"] },
+  { type: "rearrange_hard", words: ["hit", "hid"] },
   { type: "dictation",      word: "hit" },
 ];
 const TOTAL_ROUNDS = ROUNDS.length;

@@ -22,7 +22,7 @@ const findWord = (w) => shortIWords.find((x) => x.word === w);
 
 const ROUND_DEFS = [
   { word: "big", missingLetter: "b" },
-  { word: "sit", missingLetter: "t" },
+  { word: "kit", missingLetter: "t" },
   { word: "hid", missingLetter: "i" },
   { word: "pig", missingLetter: "p" },
   { word: "win", missingLetter: "n" },

@@ -18,7 +18,7 @@ import { useRoundHintAudio, getShortIHintAudioUrl, LOCK_OVERLAY_STYLE } from "..
 const LEVEL_NUM = 28;
 const VOWEL_KEY = "short-i";
 const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
-const WORD_ORDER = ["big", "sit", "hid", "pig", "win"];
+const WORD_ORDER = ["big", "kit", "hid", "pig", "win"];
 const TOTAL_ROUNDS = WORD_ORDER.length;
 
 function markComplete() {

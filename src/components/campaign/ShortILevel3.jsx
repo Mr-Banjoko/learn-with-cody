@@ -31,7 +31,7 @@ const findWord = (w) => shortIWords.find((x) => x.word === w);
 const ROUND_SEQUENCE = [
   { type: "catch",          word: "big",  missingLetter: "b" },
   { type: "drag",           word: "bit" },
-  { type: "identifying",    word: "dim" },
+  { type: "identifying",    word: "dip" },
   { type: "rearrange_easy", word: "dig" },
   { type: "write",          word: "dip" },
 ];

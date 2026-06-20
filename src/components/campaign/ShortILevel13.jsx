@@ -21,11 +21,11 @@ const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
 const findWord = (w) => shortIWords.find((x) => x.word === w);
 
 const ROUND_DEFS = [
-  // R1: big(b), dig(d), jig(j) — initial — bottom: j,b,d → botSlot0=jig(idx2), botSlot1=big(idx0), botSlot2=dig(idx1)
+  // R1: big(b), dig(d), kid(k) — initial — bottom: k,b,d → botSlot0=kid(idx2), botSlot1=big(idx0), botSlot2=dig(idx1)
   { positionType: "initial", shuffleOrder: [2, 0, 1], words: [
     { word: "big", targetLetter: "b" },
     { word: "dig", targetLetter: "d" },
-    { word: "jig", targetLetter: "j" },
+    { word: "kid", targetLetter: "k" },
   ]},
   // R2: bit(b), fit(f), hit(h) — initial — bottom: h,f,b → botSlot0=hit(idx2), botSlot1=fit(idx1), botSlot2=bit(idx0)
   { positionType: "initial", shuffleOrder: [2, 1, 0], words: [
@@ -48,11 +48,11 @@ const ROUND_DEFS = [
     { word: "hid", targetLetter: "h" },
     { word: "dim", targetLetter: "d" },
   ]},
-  // R5: pin(n), pig(g), pit(t) — final — bottom: t,g,n → botSlot0=pit(idx2), botSlot1=pig(idx1), botSlot2=pin(idx0)
+  // R5: hid(d), rib(b), hip(p) — final — bottom: p,b,d → botSlot0=hip(idx2), botSlot1=rib(idx1), botSlot2=hid(idx0)
   { positionType: "final", shuffleOrder: [2, 1, 0], words: [
-    { word: "pin", targetLetter: "n" },
-    { word: "pig", targetLetter: "g" },
-    { word: "pit", targetLetter: "t" },
+    { word: "hid", targetLetter: "d" },
+    { word: "rib", targetLetter: "b" },
+    { word: "hip", targetLetter: "p" },
   ]},
 ];
 const TOTAL_ROUNDS = ROUND_DEFS.length;

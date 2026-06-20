@@ -41,11 +41,11 @@ function buildDrawLineRound() {
   const words = [
     { word: "big", targetLetter: "b", positionType: "initial" },
     { word: "dig", targetLetter: "d", positionType: "initial" },
-    { word: "jig", targetLetter: "j", positionType: "initial" },
+    { word: "kid", targetLetter: "k", positionType: "initial" },
   ];
   const topCards = words.map((w, i) => ({ ...findI(w.word), targetLetter: w.targetLetter, positionType: w.positionType, id: `card-${i}-${w.word}` }));
   const bottomLetters = [
-    { letter: "j", topCardId: topCards[2].id, botIdx: 0 },
+    { letter: "k", topCardId: topCards[2].id, botIdx: 0 },
     { letter: "b", topCardId: topCards[0].id, botIdx: 1 },
     { letter: "d", topCardId: topCards[1].id, botIdx: 2 },
   ];
