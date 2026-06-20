@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw } from "lucide-react";
 import LetterTrace from "../games/write/short-a/LetterTrace";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
-import { playAudioSequence } from "../../lib/useAudio";
+import { playAudioSequence, stopAllSequences } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
@@ -55,6 +55,8 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   }, []);
 
   useEffect(() => {
+    // Stop any lingering sequences from a previous round before starting this one
+    stopAllSequences();
     if (suppressAutoPlay) {
       setLocked(false);
       lockedRef.current = false;
@@ -75,7 +77,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         lockedRef.current = false;
       }
     }, 300);
-    return () => { clearTimeout(t); cancelAudio(); };
+    return () => { clearTimeout(t); cancelAudio(); stopAllSequences(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRefresh = useCallback(() => {
