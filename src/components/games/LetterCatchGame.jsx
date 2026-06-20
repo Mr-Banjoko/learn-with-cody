@@ -28,17 +28,22 @@ function pickDistractors(correct) {
 }
 
 function buildQueue(correct, distractors) {
-  return Array.from({ length: 12 }, (_, i) =>
-    i % 3 === 1 ? correct : distractors[i % 2]
-  );
+  // Each group of 3 has the correct letter at a random position within the group
+  return Array.from({ length: 4 }, () => {
+    const pos = Math.floor(Math.random() * 3);
+    return [0, 1, 2].map((i) => (i === pos ? correct : distractors[i < pos ? i : i - 1]));
+  }).flat();
 }
 
-function pickLane(activeTiles) {
+function pickLane(activeTiles, excludeLane = null) {
   const counts = [0, 0, 0];
   activeTiles.forEach((t) => counts[t.lane]++);
   const min = Math.min(...counts);
-  const opts = [0, 1, 2].filter((l) => counts[l] === min);
-  return opts[Math.floor(Math.random() * opts.length)];
+  const opts = [0, 1, 2].filter((l) => counts[l] === min && l !== excludeLane);
+  // Fall back to any lane (except excluded) if all are equal and excludeLane filtered them all
+  const fallback = [0, 1, 2].filter((l) => l !== excludeLane);
+  const choices = opts.length > 0 ? opts : fallback;
+  return choices[Math.floor(Math.random() * choices.length)];
 }
 
 // ── Candy Arrow Button ────────────────────────────────────────────────────────
@@ -278,7 +283,8 @@ function GameRound({ wordData, roundNum, totalRounds, onSuccess, onExit, fallSpe
         const letter = queue[queueIdx.current % queue.length];
         queueIdx.current++;
         const id = ++tileCounter.current;
-        const lane = pickLane(tilesRef.current.filter((t) => t.status === "falling"));
+        const isFirstSpawn = tileCounter.current === 1;
+        const lane = pickLane(tilesRef.current.filter((t) => t.status === "falling"), isFirstSpawn ? 1 : null);
         const color = TILE_COLORS[Math.floor(Math.random() * TILE_COLORS.length)];
         tilesRef.current = [...tilesRef.current, { id, letter, lane, y: -80, status: "falling", color }];
         nextSpawnAt.current = now + SPAWN_INTERVAL_MS;
