@@ -39,8 +39,8 @@ const ROUND_DEFS = [
     { word: "six", targetLetter: "x" },
   ]},
   { positionType: "final", shuffleOrder: [2, 0, 1], words: [
-    { word: "fig", targetLetter: "g" },
-    { word: "fin", targetLetter: "n" },
+    { word: "dig", targetLetter: "g" },
+    { word: "tin", targetLetter: "n" },
     { word: "fit", targetLetter: "t" },
   ]},
   { positionType: "final", shuffleOrder: [2, 0, 1], words: [
