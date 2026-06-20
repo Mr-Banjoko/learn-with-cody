@@ -311,6 +311,53 @@ export function getShortIHintAudioUrl(levelNum, roundIndex, lang) {
   return null;
 }
 
+/**
+ * Returns hint audio URL for Short E levels.
+ * First appearance of each game type gets a hint.
+ */
+export function getShortEHintAudioUrl(levelNum, roundIndex, lang) {
+  const zh = lang === "zh";
+
+  // L1 R1 (index 0): phonics/missing01 intro — handled by Level1Phonics, no special hint
+  // L3 R1 (index 0): catch first appearance in Short E
+  if (levelNum === 3 && roundIndex === 3) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/catch_the_letter_hint/${folder}/hint.mp3`;
+  }
+  // L4 R1 (index 0): word_match first appearance in Short E
+  if (levelNum === 4 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/word%20match/${folder}/hint.mp3`;
+  }
+  // L4 R3 (index 2): rearrange_hard first appearance in Short E
+  if (levelNum === 4 && roundIndex === 2) {
+    const folder = zh ? "chinese" : "english%20";
+    return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
+  }
+  // L4 R5 (index 4): writev2 first appearance in Short E
+  if (levelNum === 4 && roundIndex === 4) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/write_v2_hint/${folder}/hint.mp3`;
+  }
+  // L8 R1 (index 0): drawline first appearance in Short E
+  if (levelNum === 8 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/draw_a_line_hint/${folder}/hint.mp3`;
+  }
+  // L9 R2 (index 1): dictation first appearance in Short E
+  if (levelNum === 9 && roundIndex === 1) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/dictation_hint/${folder}/hint.mp3`;
+  }
+  // L9 R3 (index 2): word_to_audio first appearance in Short E
+  if (levelNum === 9 && roundIndex === 2) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/word%20match/${folder}/hint.mp3`;
+  }
+
+  return null;
+}
+
 // Full-screen lock overlay style — paste this div when `locked === true`
 export const LOCK_OVERLAY_STYLE = {
   position: "absolute",
