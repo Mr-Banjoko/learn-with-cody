@@ -48,6 +48,8 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   const { play: playTryAgain } = useTryAgainSound();
   useEffect(() => { lockedRef.current = locked; }, [locked]);
 
+  const completedRef = useRef(false);
+
   const cancelAudio = useCallback(() => {
     if (cancelAudioRef.current) { cancelAudioRef.current(); cancelAudioRef.current = null; }
   }, []);
@@ -87,7 +89,10 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
   const handleCardComplete = useCallback((cardId) => {
     if (lockedRef.current || phase !== "tracing") return;
     setPulsatingCardIds(new Set());
-    setTracedCardIds((prev) => { const next = new Set(prev); next.add(cardId); return next; });
+    setTracedCardIds((prev) => {
+      if (prev.has(cardId)) return prev;
+      const next = new Set(prev); next.add(cardId); return next;
+    });
   }, [phase]);
 
   const handleSubmit = useCallback(() => {
@@ -105,7 +110,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         setTracedCardIds(new Set());
         setRoundKey((k) => k + 1);
         setRound(createRound(card, Date.now()));
-      setPulsatingCardIds(new Set());
+        setPulsatingCardIds(new Set());
       }, 700);
       return;
     }
@@ -127,7 +132,7 @@ export default function WriteV2CampaignRound({ card, onComplete, onMistake, lang
         const cancel = playAudioSequence(steps, () => {
           cancelAudioRef.current = null;
           setBouncingCardIdx(null);
-          onComplete();
+          if (!completedRef.current) { completedRef.current = true; onComplete(); }
         });
         cancelAudioRef.current = cancel;
       }, 10);
