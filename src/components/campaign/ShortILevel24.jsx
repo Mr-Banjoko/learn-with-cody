@@ -26,7 +26,7 @@ const ROUND_DEFS = [
   { positionType: "final", shuffleOrder: [2, 0, 1], words: [
     { word: "wig", targetLetter: "g" },
     { word: "win", targetLetter: "n" },
-    { word: "wit", targetLetter: "t" },
+    { word: "bit", targetLetter: "t" },
   ]},
   { positionType: "final", shuffleOrder: [2, 0, 1], words: [
     { word: "pig", targetLetter: "g" },
