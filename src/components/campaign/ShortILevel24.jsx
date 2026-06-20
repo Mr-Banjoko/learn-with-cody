@@ -6,7 +6,7 @@
  * R2: pig(p),pit(t),pin(n) — final — bottom: n,p,t → botSlot0=pin(idx2), botSlot1=pig(idx0), botSlot2=pit(idx1)
  * R3: sit(s),sip(s),six(s) — final — s,i,p,t,x: final t,p,x — bottom: x,p,t → botSlot0=six(idx2), botSlot1=sip(idx1), botSlot2=sit(idx0)
  * R4: fig(f),fin(f),fit(f) — final — g,n,t — bottom: t,g,n → botSlot0=fit(idx2), botSlot1=fig(idx0), botSlot2=fin(idx1)
- * R5: rip(r),rid(r),rim(r) — final — p,d,m — bottom: m,p,d → botSlot0=rim(idx2), botSlot1=rip(idx0), botSlot2=rid(idx1)
+ * R5: rip(r),rib(r),hit(h) — final — p,b,t — bottom: t,p,b → botSlot0=hit(idx2), botSlot1=rip(idx0), botSlot2=rib(idx1)
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,8 +45,8 @@ const ROUND_DEFS = [
   ]},
   { positionType: "final", shuffleOrder: [2, 0, 1], words: [
     { word: "rip", targetLetter: "p" },
-    { word: "rid", targetLetter: "d" },
-    { word: "rim", targetLetter: "m" },
+    { word: "rib", targetLetter: "b" },
+    { word: "hit", targetLetter: "t" },
   ]},
 ];
 const TOTAL_ROUNDS = ROUND_DEFS.length;
