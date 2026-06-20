@@ -97,7 +97,7 @@ export function useRoundHintAudio({ url, onHintComplete }) {
     };
   }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { locked };
+  return { locked, ready: !locked };
 }
 
 // ── Verified raw GitHub URLs ────────────────────────────────────────────────

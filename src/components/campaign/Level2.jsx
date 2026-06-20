@@ -105,7 +105,7 @@ export default function Level2({ onBack, lang = "en" }) {
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "phonics" && <Level1Phonics card={round.card} onNext={advance} lang={lang} isFirstCard={false} />}
             {round.type === "drag" && <Level1DragV2 key={`drag-${roundIndex}`} card={round.card} onComplete={advance} lang={lang} onMistake={onMistake} />}
-            {round.type === "missing01" && (
+            {!hintLocked && round.type === "missing01" && (
               <CampaignMissingSound01Round
                 key={`missing-${roundIndex}`}
                 card={round.card}
@@ -113,8 +113,6 @@ export default function Level2({ onBack, lang = "en" }) {
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
-                suppressAutoPlay={roundIndex === 4}
-                pulseCorrectLetter={roundIndex === 4 && r5HintDone}
               />
             )}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
