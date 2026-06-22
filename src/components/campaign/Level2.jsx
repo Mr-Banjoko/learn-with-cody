@@ -113,6 +113,8 @@ export default function Level2({ onBack, lang = "en" }) {
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
+                suppressAutoPlay={roundIndex === 4}
+                pulseCorrectLetter={roundIndex === 4 && r5HintDone}
               />
             )}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}

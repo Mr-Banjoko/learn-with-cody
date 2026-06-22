@@ -101,6 +101,8 @@ export default function Level9({ onBack, lang = "en" }) {
               onComplete={advance}
               onMistake={onMistake}
               lang={lang}
+              paused={hintLocked}
+              skipInitialAudio={roundIndex === 0}
             />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>

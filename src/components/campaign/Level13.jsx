@@ -91,6 +91,8 @@ export default function Level13({ onBack, lang = "en" }) {
               onRoundComplete={advance}
               lang={lang}
               onMistake={onMistake}
+              suppressAutoPlay={roundIndex === 0}
+              mistakeGuide={roundIndex === 0 ? [0, 1, 2] : null}
             />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>

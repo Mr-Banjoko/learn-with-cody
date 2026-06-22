@@ -102,8 +102,8 @@ export default function ShortILevel6({ onBack, lang = "en" }) {
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "phonics" && card && <Level1Phonics card={card} onNext={advance} lang={lang} isFirstCard={false} />}
             {round.type === "missing01" && card && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={card} forcedMissingPos={round.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} />}
-            {!hintLocked && round.type === "rearrange_hard" && rearrangeHardPair && <PicSliceBoard key={`hard-${roundIndex}`} wordPair={rearrangeHardPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} traySwapCount={traySwapCount} />}
-            {!hintLocked && round.type === "word_to_audio" && <CampaignWordToAudioRound key={`wta-${roundIndex}`} words={round.words} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {round.type === "rearrange_hard" && rearrangeHardPair && <PicSliceBoard key={`hard-${roundIndex}`} wordPair={rearrangeHardPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} traySwapCount={traySwapCount} suppressAutoPlay={roundIndex === 4} />}
+            {round.type === "word_to_audio" && <CampaignWordToAudioRound key={`wta-${roundIndex}`} words={round.words} onComplete={advance} onMistake={onMistake} lang={lang} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
