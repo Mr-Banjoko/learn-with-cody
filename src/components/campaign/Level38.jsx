@@ -78,7 +78,7 @@ export default function Level38({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {!hintLocked && <CampaignWordToAudioRound key={`audio-${roundIndex}`} words={ROUND_DEFS[roundIndex]} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            <CampaignWordToAudioRound key={`audio-${roundIndex}`} words={ROUND_DEFS[roundIndex]} onComplete={advance} onMistake={onMistake} lang={lang} />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
