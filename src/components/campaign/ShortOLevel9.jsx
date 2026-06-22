@@ -47,20 +47,8 @@ export default function ShortOLevel9({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // First write round (index 1) — write hint audio
   const hintUrl = getShortOHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const r1WordAudio = roundIndex === 1 ? (findWord("pot")?.audio || null) : null;
-  const onHintComplete = useCallback((unlock) => {
-    if (!r1WordAudio) { unlock(); return; }
-    const audio = new Audio(r1WordAudio);
-    audio.onended = unlock; audio.onerror = unlock;
-    audio.play().catch(unlock);
-  }, [r1WordAudio]);
-
-  const { locked: hintLocked } = useRoundHintAudio({
-    url: hintUrl,
-    onHintComplete: roundIndex === 1 ? onHintComplete : undefined,
-  });
+  const { locked: hintLocked, suppressAutoPlay } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -95,7 +83,7 @@ export default function ShortOLevel9({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "phonics" && card && <Level1Phonics card={card} onNext={advance} lang={lang} isFirstCard={false} />}
-            {round.type === "write" && card && <CampaignWriteRound key={`write-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={roundIndex === 1} />}
+            {round.type === "write" && card && <CampaignWriteRound key={`write-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={suppressAutoPlay} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}

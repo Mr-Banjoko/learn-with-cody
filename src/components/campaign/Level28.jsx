@@ -45,21 +45,8 @@ export default function Level28({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // R1 (index 0): rearrange_hard first appearance — audio guide + chain first word audio
   const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const r1WordAudio = roundIndex === 0 ? (findWord(ROUND_WORDS[0][0])?.audio || null) : null;
-  const onHintComplete = useCallback((unlock) => {
-    if (!r1WordAudio) { unlock(); return; }
-    const audio = new Audio(r1WordAudio);
-    audio.onended = unlock;
-    audio.onerror = unlock;
-    audio.play().catch(unlock);
-  }, [r1WordAudio]);
-
-  const { locked: hintLocked } = useRoundHintAudio({
-    url: hintUrl,
-    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
-  });
+  const { locked: hintLocked, suppressAutoPlay } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -98,7 +85,7 @@ export default function Level28({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <PicSliceBoard key={`hard-${roundIndex}`} wordPair={wordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} traySwapCount={traySwapCount} />
+            <PicSliceBoard key={`hard-${roundIndex}`} wordPair={wordPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} traySwapCount={traySwapCount} suppressAutoPlay={suppressAutoPlay} />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}

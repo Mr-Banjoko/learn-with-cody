@@ -92,14 +92,8 @@ export default function Level18({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // R1 (index 0): drawline first appearance — audio guide, then unlock (no single word audio for drawline)
   const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const onHintComplete = useCallback((unlock) => { unlock(); }, []);
-
-  const { locked: hintLocked } = useRoundHintAudio({
-    url: hintUrl,
-    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
-  });
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;

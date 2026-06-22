@@ -48,29 +48,9 @@ export default function Level2({ onBack, lang = "en" }) {
   const [earnedStars, setEarnedStars] = useState(0);
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
-  // R5 (index 4): missing01 first appearance — audio guide + chain word audio
   const hintUrl = getHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const r5WordAudio = roundIndex === 4 ? (findWord("cat")?.audio || null) : null;
-  const onHintComplete = useCallback((unlock) => {
-    if (!r5WordAudio) { unlock(); return; }
-    const audio = new Audio(r5WordAudio);
-    audio.onended = unlock;
-    audio.onerror = unlock;
-    audio.play().catch(unlock);
-  }, [r5WordAudio]);
-
-  const [r5HintDone, setR5HintDone] = useState(false);
-  const onHintCompleteWrapped = useCallback((unlock) => {
-    onHintComplete((...args) => {
-      setR5HintDone(true);
-      unlock(...args);
-    });
-  }, [onHintComplete]);
-
-  const { locked: hintLocked } = useRoundHintAudio({
-    url: hintUrl,
-    onHintComplete: roundIndex === 4 ? onHintCompleteWrapped : undefined,
-  });
+  const { locked: hintLocked, suppressAutoPlay } = useRoundHintAudio({ url: hintUrl });
+  const r5HintDone = !suppressAutoPlay; // hint is done once unlock fires (suppressAutoPlay becomes false)
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
@@ -113,7 +93,7 @@ export default function Level2({ onBack, lang = "en" }) {
                 onComplete={advance}
                 onMistake={onMistake}
                 lang={lang}
-                suppressAutoPlay={roundIndex === 4}
+                suppressAutoPlay={suppressAutoPlay}
                 pulseCorrectLetter={roundIndex === 4 && r5HintDone}
               />
             )}

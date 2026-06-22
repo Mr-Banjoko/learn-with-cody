@@ -89,11 +89,7 @@ export default function ShortILevel13({ onBack, lang = "en" }) {
   const onMistake = useCallback(() => setMistakes((m) => m + 1), []);
 
   const hintUrl = getShortIHintAudioUrl(LEVEL_NUM, roundIndex, lang);
-  const onHintComplete = useCallback((unlock) => { unlock(); }, []);
-  const { locked: hintLocked } = useRoundHintAudio({
-    url: hintUrl,
-    onHintComplete: roundIndex === 0 ? onHintComplete : undefined,
-  });
+  const { locked: hintLocked } = useRoundHintAudio({ url: hintUrl });
 
   const advance = useCallback(() => {
     const next = roundIndex + 1;
