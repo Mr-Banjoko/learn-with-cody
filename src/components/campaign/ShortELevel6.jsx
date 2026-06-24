@@ -1,9 +1,9 @@
 /**
  * ShortELevel6 — Intro Batch B continued (met, net, pet, vet, wet)
  * R1: phonics — met
- * R2: missing01 — met — initial (m) pos 0
+ * R2: missing01 — met — vowel (e) pos 1
  * R3: phonics — net
- * R4: missing01 — net — initial (n) pos 0
+ * R4: missing01 — net — final (t) pos 2
  * R5: phonics — pet
  * R6: missing01 — pet — initial (p) pos 0
  */
@@ -24,9 +24,9 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 
 const ROUNDS = [
   { type: "phonics",   word: "met" },
-  { type: "missing01", word: "met", missingPos: 0 },
+  { type: "missing01", word: "met", missingPos: 1 },
   { type: "phonics",   word: "net" },
-  { type: "missing01", word: "net", missingPos: 0 },
+  { type: "missing01", word: "net", missingPos: 2 },
   { type: "phonics",   word: "pet" },
   { type: "missing01", word: "pet", missingPos: 0 },
 ];

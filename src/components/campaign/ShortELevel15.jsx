@@ -3,9 +3,9 @@
  * R1: phonics — keg
  * R2: missing01 — keg — initial (k) pos 0
  * R3: phonics — gem
- * R4: missing01 — gem — initial (g) pos 0
+ * R4: missing01 — gem — final (m) pos 2
  * R5: phonics — hem
- * R6: missing01 — hem — initial (h) pos 0
+ * R6: missing01 — hem — vowel (e) pos 1
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,9 +26,9 @@ const ROUNDS = [
   { type: "phonics",   word: "keg" },
   { type: "missing01", word: "keg", missingPos: 0 },
   { type: "phonics",   word: "gem" },
-  { type: "missing01", word: "gem", missingPos: 0 },
+  { type: "missing01", word: "gem", missingPos: 2 },
   { type: "phonics",   word: "hem" },
-  { type: "missing01", word: "hem", missingPos: 0 },
+  { type: "missing01", word: "hem", missingPos: 1 },
 ];
 const TOTAL_ROUNDS = ROUNDS.length;
 

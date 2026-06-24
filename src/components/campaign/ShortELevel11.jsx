@@ -1,7 +1,7 @@
 /**
  * ShortELevel11 — Intro Batch C continued (pen, ten)
  * R1: phonics — pen
- * R2: missing01 — pen — initial (p) pos 0
+ * R2: missing01 — pen — vowel (e) pos 1
  * R3: phonics — ten
  * R4: missing01 — ten — initial (t) pos 0
  * R5: letter_to_sound — hen
@@ -27,7 +27,7 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 
 const ROUNDS = [
   { type: "phonics",         word: "pen" },
-  { type: "missing01",       word: "pen", missingPos: 0 },
+  { type: "missing01",       word: "pen", missingPos: 1 },
   { type: "phonics",         word: "ten" },
   { type: "missing01",       word: "ten", missingPos: 2 },
   { type: "letter_to_sound", word: "hen" },

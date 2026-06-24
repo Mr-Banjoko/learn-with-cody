@@ -1,9 +1,9 @@
 /**
  * ShortELevel14 — Intro Batch D: -eg family (beg, keg, leg, peg)
  * R1: phonics — beg
- * R2: missing01 — beg — initial (b) pos 0
+ * R2: missing01 — beg — vowel (e) pos 1
  * R3: phonics — leg
- * R4: missing01 — leg — initial (l) pos 0
+ * R4: missing01 — leg — final (g) pos 2
  * R5: phonics — peg
  * R6: missing01 — peg — initial (p) pos 0
  */
@@ -24,9 +24,9 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 
 const ROUNDS = [
   { type: "phonics",   word: "beg" },
-  { type: "missing01", word: "beg", missingPos: 0 },
+  { type: "missing01", word: "beg", missingPos: 1 },
   { type: "phonics",   word: "leg" },
-  { type: "missing01", word: "leg", missingPos: 0 },
+  { type: "missing01", word: "leg", missingPos: 2 },
   { type: "phonics",   word: "peg" },
   { type: "missing01", word: "peg", missingPos: 0 },
 ];

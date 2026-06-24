@@ -1,9 +1,9 @@
 /**
  * ShortELevel2 — Intro Batch A continued (red, wed)
  * R1: phonics — red
- * R2: missing01 — red — initial (r) pos 0
+ * R2: missing01 — red — final (d) pos 2
  * R3: phonics — wed
- * R4: missing01 — wed — initial (w) pos 0
+ * R4: missing01 — wed — vowel (e) pos 1
  * R5: letter_to_sound — red
  * R6: catch — red — d (final)
  */
@@ -27,9 +27,9 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 
 const ROUNDS = [
   { type: "phonics",         word: "red" },
-  { type: "missing01",       word: "red", missingPos: 0 },
+  { type: "missing01",       word: "red", missingPos: 2 },
   { type: "phonics",         word: "wed" },
-  { type: "missing01",       word: "wed", missingPos: 0 },
+  { type: "missing01",       word: "wed", missingPos: 1 },
   { type: "letter_to_sound", word: "red" },
   { type: "catch",           word: "red", missingLetter: "d" },
 ];

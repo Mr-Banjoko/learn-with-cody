@@ -1,9 +1,9 @@
 /**
  * ShortELevel1 — Intro Batch A: -ed family (bed, fed)
  * R1: phonics — bed
- * R2: missing01 — bed — initial (b) pos 0
+ * R2: missing01 — bed — vowel (e) pos 1
  * R3: phonics — fed
- * R4: missing01 — fed — initial (f) pos 0
+ * R4: missing01 — fed — final (d) pos 2
  * R5: letter_to_sound — bed
  * R6: catch — bed — b (initial)
  */
@@ -27,9 +27,9 @@ const findWord = (w) => shortEWords.find((x) => x.word === w);
 
 const ROUNDS = [
   { type: "phonics",         word: "bed" },
-  { type: "missing01",       word: "bed", missingPos: 0 },
+  { type: "missing01",       word: "bed", missingPos: 1 },
   { type: "phonics",         word: "fed" },
-  { type: "missing01",       word: "fed", missingPos: 0 },
+  { type: "missing01",       word: "fed", missingPos: 2 },
   { type: "letter_to_sound", word: "bed" },
   { type: "catch",           word: "bed", missingLetter: "b" },
 ];
