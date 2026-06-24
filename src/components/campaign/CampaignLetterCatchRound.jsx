@@ -67,22 +67,32 @@ function pickDistractors(correct) {
   return [shuffled[0], shuffled[1]];
 }
 
-// Hardcoded rotation of correct-letter positions within each group of 4.
-// Correct never appears at position 0 (1st). Rotates through 2nd, 3rd, 4th across groups.
-// Pattern: [1,2,3, 2,3,1, 3,1,2, ...] (0-indexed within group of 4)
-const CORRECT_SLOT_PATTERN = [1, 2, 3, 2, 3, 1, 3, 1, 2];
+// Correct letter position within each group of 4 tiles (0-indexed).
+// Group 0: correct never in first 2 slots (positions 2 or 3 only) — ensures correct never drops first or second.
+// Groups 1+: correct at positions 1, 2, or 3 (never 0 = never first in group).
+const CORRECT_SLOT_PATTERN = [
+  // group 0: late in the group (3rd or 4th tile)
+  2, 3,
+  // groups 1–4: any non-first position, rotating
+  1, 2, 3, 1, 3, 2,
+];
 
 function buildQueue(correct, distractors) {
-  // Each group is 4 tiles: 3 distractors + 1 correct, correct at rotated position (never 0).
+  // Each group is 4 tiles: 3 distractors + 1 correct.
+  // Group 0 places correct at slot 2 or 3 (never first or second tile overall).
+  // Subsequent groups rotate through slots 1–3.
   // We build 3 groups = 12 tiles total.
   const result = [];
   for (let group = 0; group < 3; group++) {
-    const correctSlot = CORRECT_SLOT_PATTERN[group % CORRECT_SLOT_PATTERN.length];
+    // Alternate between the two pattern values for group 0, then cycle rest
+    const patternIdx = group === 0
+      ? Math.floor(Math.random() * 2)          // slot 2 or 3 randomly for first group
+      : 2 + ((group - 1) % (CORRECT_SLOT_PATTERN.length - 2)); // slots 1,2,3 rotating for rest
+    const correctSlot = CORRECT_SLOT_PATTERN[patternIdx];
     for (let pos = 0; pos < 4; pos++) {
       if (pos === correctSlot) {
         result.push(correct);
       } else {
-        // Fill with distractors, alternating between the two
         result.push(distractors[result.filter((l) => l !== correct).length % 2]);
       }
     }
