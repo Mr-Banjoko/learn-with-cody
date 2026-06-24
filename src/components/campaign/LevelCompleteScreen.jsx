@@ -131,8 +131,9 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [trophyData, setTrophyData] = useState(null);
   const [completionBlobUrl, setCompletionBlobUrl] = useState(null);
   const [starsBlobUrl, setStarsBlobUrl] = useState(null);
-  // Only the trophy Lottie is required to show the screen; audio is best-effort
-  const assetsReady = !!trophyData;
+  const [audioReady, setAudioReady] = useState(false);
+  // Wait for trophy + both critical audio blobs before starting the sequence
+  const assetsReady = !!trophyData && audioReady;
 
   // 3-star celebration audio
   const threeStarsBlobUrlRef = useRef(null);
@@ -158,8 +159,18 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   // ── Preload all assets before showing anything ────────────────────────────
   useEffect(() => {
     fetch(TROPHY_URL).then((r) => r.json()).then(setTrophyData).catch(() => {});
-    preloadAudio(COMPLETION_SOUND_URL).then(setCompletionBlobUrl).catch(() => {});
-    preloadAudio(STARS_SOUND_URL).then(setStarsBlobUrl).catch(() => {});
+
+    // Load both critical audio files together; mark audioReady when both settle
+    // Hard 4s timeout so a slow network never hangs the screen forever
+    const timeout = setTimeout(() => setAudioReady(true), 4000);
+    Promise.allSettled([
+      preloadAudio(COMPLETION_SOUND_URL).then(setCompletionBlobUrl),
+      preloadAudio(STARS_SOUND_URL).then(setStarsBlobUrl),
+    ]).finally(() => {
+      clearTimeout(timeout);
+      setAudioReady(true);
+    });
+
     preloadAudio(THREE_STARS_SOUND_URL)
       .then((blobUrl) => { threeStarsBlobUrlRef.current = blobUrl; })
       .catch(() => {});
