@@ -131,7 +131,8 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   const [trophyData, setTrophyData] = useState(null);
   const [completionBlobUrl, setCompletionBlobUrl] = useState(null);
   const [starsBlobUrl, setStarsBlobUrl] = useState(null);
-  const assetsReady = trophyData && completionBlobUrl && starsBlobUrl;
+  // Only the trophy Lottie is required to show the screen; audio is best-effort
+  const assetsReady = !!trophyData;
 
   // 3-star celebration audio
   const threeStarsBlobUrlRef = useRef(null);
@@ -173,16 +174,20 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
   }, []);
 
   // ── Phase 1 → play completion sound the moment trophy animation starts ────
-  // Triggered when phase becomes 1 AND assets are ready (trophy Lottie autoplay fires immediately)
   useEffect(() => {
     if (phase !== 1 || !assetsReady) return;
     if (completionSoundStarted.current) return;
     completionSoundStarted.current = true;
-    // Play completion sound — when it ends, check if trophy also done
-    playOnce(completionBlobUrl).then(() => {
+    if (completionBlobUrl) {
+      playOnce(completionBlobUrl).then(() => {
+        soundDone.current = true;
+        if (trophyDone.current) setPhase(2);
+      });
+    } else {
+      // No audio available — mark sound as done immediately
       soundDone.current = true;
       if (trophyDone.current) setPhase(2);
-    });
+    }
   }, [phase, assetsReady, completionBlobUrl]);
 
   // ── Phase 2 → trophy Lottie onComplete fires, layout appears.
@@ -212,7 +217,11 @@ export default function LevelCompleteScreen({ levelNum, stars = 3, onBack, lang 
       for (let i = 1; i <= clampedStars; i++) {
         if (cancelled) return;
         setVisibleStars(i);
-        await playOnce(starsBlobUrl);
+        if (starsBlobUrl) {
+          await playOnce(starsBlobUrl);
+        } else {
+          await new Promise((res) => setTimeout(res, 400));
+        }
         if (cancelled) return;
       }
 
