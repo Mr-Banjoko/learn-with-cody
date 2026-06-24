@@ -1,7 +1,7 @@
 /**
  * ShortELevel13 — Review Batch C (cross-vowel -en vs -an/-in/-on)
  * R1: word_match — hen — distractors: han, hin, hon
- * R2: word_to_audio — men / man / min
+ * R2: word_to_audio — men / man / mom
  * R3: rearrange_hard — pen + ten
  * R4: dictation — den
  * R5: writev2 — hen
@@ -28,7 +28,7 @@ function fakeCard(word) { return { word, audio: null, image: null }; }
 
 const ROUND_SEQUENCE = [
   { type: "word_match",     word: "hen",  distractors: ["han", "hin", "hon"] },
-  { type: "word_to_audio",  words: ["men", "man", "min"] },
+  { type: "word_to_audio",  words: ["men", "man", "mom"] },
   { type: "rearrange_hard", words: ["pen", "ten"] },
   { type: "dictation",      word: "den" },
   { type: "writev2",        word: "hen" },
