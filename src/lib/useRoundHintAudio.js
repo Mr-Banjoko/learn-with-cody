@@ -358,6 +358,67 @@ export function getShortEHintAudioUrl(levelNum, roundIndex, lang) {
   return null;
 }
 
+/**
+ * Returns hint audio URL for Short U levels.
+ * First appearance of each game type gets a hint.
+ */
+export function getShortUHintAudioUrl(levelNum, roundIndex, lang) {
+  const zh = lang === "zh";
+
+  // L2 R1 (index 0): missing01 first appearance in Short U
+  if (levelNum === 2 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/missing_sound_hint/${folder}/hint.mp3`;
+  }
+  // L2 R2 (index 1): identifying first appearance in Short U
+  if (levelNum === 2 && roundIndex === 1) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/identifying_hint/${folder}/hint.mp3`;
+  }
+  // L2 R3 (index 2): letter_to_sound/connection first appearance in Short U
+  if (levelNum === 2 && roundIndex === 2) {
+    const folder = zh ? "chinese" : "english%20";
+    return `${GH}/letter_to_sound_hint/${folder}/hint.mp3`;
+  }
+  // L2 R4 (index 3): word_match first appearance in Short U
+  if (levelNum === 2 && roundIndex === 3) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/word%20match/${folder}/hint.mp3`;
+  }
+  // L4 R2 (index 1): dictation first appearance in Short U
+  if (levelNum === 4 && roundIndex === 1) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/dictation_hint/${folder}/hint.mp3`;
+  }
+  // L6 R4 (index 3): rearrange_easy first appearance in Short U
+  if (levelNum === 6 && roundIndex === 3) {
+    const folder = zh ? "chinese" : "english%20";
+    return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
+  }
+  // L8 R4 (index 3): rearrange_hard first appearance in Short U
+  if (levelNum === 8 && roundIndex === 3) {
+    const folder = zh ? "chinese" : "english%20";
+    return `${GH}/rearrange_the_picture_hint/${folder}/hint.mp3`;
+  }
+  // L8 R5 (index 4): writev2 first appearance in Short U
+  if (levelNum === 8 && roundIndex === 4) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/write_v2_hint/${folder}/hint.mp3`;
+  }
+  // L12 R4 (index 3): catch first appearance in Short U
+  if (levelNum === 12 && roundIndex === 3) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/catch_the_letter_hint/${folder}/hint.mp3`;
+  }
+  // L17 R1 (index 0): draw-a-line first appearance in Short U
+  if (levelNum === 17 && roundIndex === 0) {
+    const folder = zh ? "chinese" : "english";
+    return `${GH}/draw_a_line_hint/${folder}/hint.mp3`;
+  }
+
+  return null;
+}
+
 // Full-screen lock overlay style — paste this div when `locked === true`
 export const LOCK_OVERLAY_STYLE = {
   position: "absolute",

@@ -225,9 +225,37 @@ export const SHORT_E_SCORED_ROUNDS = {
   21: 5,  22: 5,  23: 5,  24: 9,
 };
 
+// Short U scored rounds map
+// phonics = not scored; drag_v2, missing01, identifying, word_match,
+// letter_to_sound/connection, dictation, rearrange_easy/hard, writev2, catch,
+// word_to_audio, draw-a-line = scored
+export const SHORT_U_SCORED_ROUNDS = {
+  1:  3,  // 6 rounds: 3 phonics (not scored) + 3 drag = 3 scored
+  2:  5,  // 5 rounds: missing01 + identifying + connection + word_match + missing01 = 5 scored
+  3:  3,  // 6 rounds: 3 phonics + 3 drag = 3 scored
+  4:  5,  // 5 rounds: missing01 + dictation + identifying + word_match + missing01 = 5 scored
+  5:  3,  // 6 rounds: 3 phonics + 3 drag = 3 scored
+  6:  5,  // 5 rounds: missing01 + connection + dictation + rearrange_easy + word_to_audio = 5 scored
+  7:  3,  // 6 rounds: 3 phonics + 3 drag = 3 scored
+  8:  5,  // 5 rounds: missing01 + identifying + dictation + rearrange_hard + writev2 = 5 scored
+  9:  3,  // 6 rounds: 3 phonics + 3 drag = 3 scored
+  10: 5,  // 5 rounds: missing01 + word_match + connection + dictation + writev2 = 5 scored
+  11: 3,  // 6 rounds: 3 phonics + 3 drag = 3 scored
+  12: 5,  // 5 rounds: missing01 + identifying + word_to_audio + catch + rearrange_hard = 5 scored
+  13: 3,  // 6 rounds: 3 phonics + 3 drag = 3 scored
+  14: 5,  // 5 rounds: missing01 + connection + dictation + word_match + connection = 5 scored
+  15: 2,  // 4 rounds: 2 phonics + 2 drag = 2 scored
+  16: 5,  // 5 rounds: drag + identifying + dictation + writev2 + word_to_audio = 5 scored
+  17: 5,  // 5 draw-a-line rounds = 5 scored
+  18: 5,  // 5 rounds: connection + word_to_audio + dictation + word_to_audio + missing01 = 5 scored
+  19: 5,  // 5 rounds: drag + rearrange_hard + writev2 + writev2 + catch = 5 scored
+  20: 5,  // 5 rounds: word_match + dictation + word_to_audio + connection + identifying = 5 scored
+};
+
 export function getScoredRounds(vowelKey, levelNum) {
   if (vowelKey === "short-a") return SHORT_A_SCORED_ROUNDS[levelNum] ?? 5;
   if (vowelKey === "short-o") return SHORT_O_SCORED_ROUNDS[levelNum] ?? 5;
   if (vowelKey === "short-e") return SHORT_E_SCORED_ROUNDS[levelNum] ?? 5;
+  if (vowelKey === "short-u") return SHORT_U_SCORED_ROUNDS[levelNum] ?? 5;
   return 5;
 }
