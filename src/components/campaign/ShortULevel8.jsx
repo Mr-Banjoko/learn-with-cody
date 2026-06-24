@@ -13,7 +13,7 @@ import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import DictationCampaignRound from "./DictationCampaignRound";
 import WriteV2CampaignRound from "./WriteV2CampaignRound";
 import IdentifyingRound from "../games/IdentifyingRound";
-import PicSliceBoard from "../games/PicSliceBoard";
+import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import { buildShortUSliceData } from "../../lib/buildShortUSliceData";
 import { shortUWords } from "../../lib/shortUWords";
@@ -85,7 +85,7 @@ export default function ShortULevel8({ onBack, lang = "en" }) {
     return roundDef.isU ? findU(roundDef.word) : findO(roundDef.word);
   }, [roundIndex]); // eslint-disable-line
   const identifyingRound = useMemo(() => roundDef.type === "identifying" ? buildIdentifyingRound(roundDef.word) : null, [roundIndex]); // eslint-disable-line
-  const rearrangeHardPair = useMemo(() => roundDef.type === "rearrange_hard" ? roundDef.words.map(buildShortUSliceData) : null, [roundIndex]); // eslint-disable-line
+  const rearrangeEasyData = useMemo(() => roundDef.type === "rearrange_hard" ? roundDef.words.map(buildShortUSliceData) : null, [roundIndex]); // eslint-disable-line
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #F5F0FF 0%, #FFF9E6 60%, #E8F4FF 100%)", overflow: "hidden" }}>
@@ -105,7 +105,7 @@ export default function ShortULevel8({ onBack, lang = "en" }) {
             {roundDef.type === "missing01" && card && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={card} forcedMissingPos={roundDef.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={suppressAutoPlay} />}
             {roundDef.type === "identifying" && identifyingRound && <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} lang={lang} onMistake={onMistake} suppressAutoPlay={suppressAutoPlay} />}
             {roundDef.type === "dictation" && card && <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={suppressAutoPlay} />}
-            {roundDef.type === "rearrange_hard" && rearrangeHardPair && <PicSliceBoard key={`hard-${roundIndex}`} wordPair={rearrangeHardPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "rearrange_hard" && rearrangeEasyData && <PicSliceBoardEasy key={`hard-${roundIndex}`} wordPair={rearrangeEasyData} onRoundComplete={advance} lang={lang} onMistake={onMistake} suppressAutoPlay={suppressAutoPlay} />}
             {roundDef.type === "writev2" && card && <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={suppressAutoPlay} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
