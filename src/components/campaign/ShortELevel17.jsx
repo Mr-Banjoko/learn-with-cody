@@ -1,7 +1,7 @@
 /**
  * ShortELevel17 — Review Batch D (cross-vowel -eg/-em)
  * R1: word_match — leg — distractors: lag, lig, log
- * R2: word_to_audio — gem / gam / gim
+ * R2: word_to_audio — gem / got / gut
  * R3: rearrange_hard — beg + leg
  * R4: dictation — peg
  * R5: writev2 — keg
@@ -28,7 +28,7 @@ function fakeCard(word) { return { word, audio: null, image: null }; }
 
 const ROUND_SEQUENCE = [
   { type: "word_match",     word: "leg",  distractors: ["lag", "lig", "log"] },
-  { type: "word_to_audio",  words: ["gem", "gam", "gim"] },
+  { type: "word_to_audio",  words: ["gem", "got", "gut"] },
   { type: "rearrange_hard", words: ["beg", "leg"] },
   { type: "dictation",      word: "peg" },
   { type: "writev2",        word: "keg" },
