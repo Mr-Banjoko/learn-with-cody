@@ -8,7 +8,7 @@
  * R6: drag — wet
  * R7: identifying — vet
  * R8: writev2 — met
- * R9: word_to_audio — net / not / nat
+ * R9: word_to_audio — net / not / nap
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -74,7 +74,7 @@ const ROUND_SEQUENCE = [
   { type: "drag",           word: "wet" },
   { type: "identifying",    word: "vet" },
   { type: "writev2",        word: "met" },
-  { type: "word_to_audio",  words: ["net", "not", "nat"] },
+  { type: "word_to_audio",  words: ["net", "not", "nap"] },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 

@@ -8,7 +8,7 @@
  * R6: drag — ten
  * R7: identifying — gem
  * R8: writev2 — jet
- * R9: word_to_audio — fed / fad / fid
+ * R9: word_to_audio — fed / fat / fog
  */
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -74,7 +74,7 @@ const ROUND_SEQUENCE = [
   { type: "drag",           word: "ten" },
   { type: "identifying",    word: "gem" },
   { type: "writev2",        word: "jet" },
-  { type: "word_to_audio",  words: ["fed", "fad", "fid"] },
+  { type: "word_to_audio",  words: ["fed", "fat", "fog"] },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
 

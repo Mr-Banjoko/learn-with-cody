@@ -7,7 +7,7 @@
  * R5: drag — beg
  * R6: identifying — leg
  * R7: writev2 — peg
- * R8: word_to_audio — gem / gam / gim
+ * R8: word_to_audio — gem / get / hot
  * R9: dictation — hem
  */
 import { useState, useCallback, useMemo } from "react";
@@ -52,7 +52,7 @@ const ROUND_SEQUENCE = [
   { type: "drag",           word: "beg" },
   { type: "identifying",    word: "leg" },
   { type: "writev2",        word: "peg" },
-  { type: "word_to_audio",  words: ["gem", "gam", "gim"] },
+  { type: "word_to_audio",  words: ["gem", "get", "hot"] },
   { type: "dictation",      word: "hem" },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;

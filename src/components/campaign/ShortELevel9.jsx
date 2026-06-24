@@ -2,7 +2,7 @@
  * ShortELevel9 — Review Batch B (cross-vowel -et vs -at/-it/-ot)
  * R1: word_match — jet — distractors: jat, jit, jot
  * R2: dictation — bet
- * R3: word_to_audio — net / not / nat
+ * R3: word_to_audio — net / not / bet
  * R4: rearrange_hard — jet + pet
  * R5: writev2 — net
  */
@@ -29,7 +29,7 @@ function fakeCard(word) { return { word, audio: null, image: null }; }
 const ROUND_SEQUENCE = [
   { type: "word_match",     word: "jet",  distractors: ["jat", "jit", "jot"] },
   { type: "dictation",      word: "bet" },
-  { type: "word_to_audio",  words: ["net", "not", "nat"] },
+  { type: "word_to_audio",  words: ["net", "not", "bet"] },
   { type: "rearrange_hard", words: ["jet", "pet"] },
   { type: "writev2",        word: "net" },
 ];
