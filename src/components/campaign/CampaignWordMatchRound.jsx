@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Volume2 } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
-import WordImageWithCapture from "./WordImageWithCapture";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
@@ -91,7 +90,7 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
           transition={{ type: "spring", stiffness: 280, damping: 20 }}
           style={{ width: "min(280px, calc(100vw - 48px))", background: "white", borderRadius: 28, padding: 12, boxShadow: "0 12px 48px rgba(30,58,95,0.14)", border: "2px solid #E8E8E8" }}
         >
-          <WordImageWithCapture word={round.card.word} defaultImage={round.card.image} imgStyle={{ borderRadius: 18 }} />
+          <img src={round.card.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
           <button
             onClick={() => { if (!audioLocked && card.audio) playAudio(card.audio); }}
             style={{ marginTop: 10, width: "100%", padding: "10px 0", borderRadius: 16, background: "#F0F0F0", border: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", fontFamily: "Fredoka, sans-serif", touchAction: "manipulation" }}

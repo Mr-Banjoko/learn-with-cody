@@ -10,7 +10,6 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw } from "lucide-react";
 import LetterTrace from "../games/write/short-a/LetterTrace";
-import WordImageWithCapture from "./WordImageWithCapture";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudioSequence } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
@@ -124,7 +123,7 @@ export default function CampaignWriteRound({ card, onComplete, onMistake, lang =
             onPointerDown={(e) => { e.preventDefault(); if (!lockedRef.current && card.audio) { cancelAudio(); const cancel = playAudioSequence([{ url: card.audio, gain: 1 }], () => { cancelAudioRef.current = null; }); cancelAudioRef.current = cancel; } }}
             style={{ position: "relative", zIndex: 1, borderRadius: 22, padding: 10, boxShadow: "0 10px 32px rgba(30,58,95,0.15)", cursor: "pointer", border: "4px solid transparent", background: "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box" }}
           >
-            <WordImageWithCapture word={card.word} defaultImage={card.image} />
+            <img src={card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 14, display: "block" }} />
           </div>
         </motion.div>
       </AnimatePresence>

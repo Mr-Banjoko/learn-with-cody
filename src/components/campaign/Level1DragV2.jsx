@@ -10,7 +10,6 @@ import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
-import WordImageWithCapture from "./WordImageWithCapture";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#FFAFC5"];
@@ -167,10 +166,10 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake,
           onPointerDown={(e) => { e.preventDefault(); round.card.audio && playAudio(round.card.audio); }}
           style={{ background: "white", borderRadius: 32, padding: 10, boxShadow: "0 10px 40px rgba(30,58,95,0.15)", cursor: round.card.audio ? "pointer" : "default", touchAction: "manipulation", flexShrink: 0 }}
         >
-          <WordImageWithCapture
-            word={round.card.word}
-            defaultImage={round.card.image}
-            imgStyle={{ width: "min(330px, 68vw)", height: "min(330px, 68vw)", objectFit: "cover", borderRadius: 24, display: "block" }}
+          <img
+            src={round.card.image}
+            alt={round.card.word}
+            style={{ width: "min(330px, 68vw)", height: "min(330px, 68vw)", objectFit: "cover", borderRadius: 24, display: "block" }}
           />
         </motion.div>
 

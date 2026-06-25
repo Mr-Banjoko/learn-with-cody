@@ -6,7 +6,6 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
-import { useCustomWordImage } from "../../lib/useCustomWordImage";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
 
 const CHOICE_COLORS = [
@@ -53,17 +52,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
   const [imagesReady, setImagesReady] = useState(false);
   const [blobUrls, setBlobUrls] = useState({});
 
-  // Resolve custom images for each of the (always 3) choice slots.
-  // The choices array length is stable per round so hooks count is constant.
-  const c0 = useCustomWordImage(round.choices[0]?.word, round.choices[0]?.image);
-  const c1 = useCustomWordImage(round.choices[1]?.word, round.choices[1]?.image);
-  const c2 = useCustomWordImage(round.choices[2]?.word, round.choices[2]?.image);
-  const customImages = {
-    [round.choices[0]?.word]: c0.resolvedImage,
-    [round.choices[1]?.word]: c1.resolvedImage,
-    [round.choices[2]?.word]: c2.resolvedImage,
-  };
-
   const shakeTimeout = useRef(null);
   // Single-play guard: prevents double-triggering correct flow on repeated taps
   const correctFiredRef = useRef(false);
@@ -79,8 +67,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
     const key = round.target.word;
     roundKeyRef.current = key;
 
-    // Use custom-resolved images for preloading
-    const urls = round.choices.map((c) => customImages[c.word] || c.image);
+    const urls = round.choices.map((c) => c.image);
     preloadAll(urls).then((urlMap) => {
       if (roundKeyRef.current !== key) {
         Object.values(urlMap).forEach((u) => { if (u?.startsWith("blob:")) URL.revokeObjectURL(u); });
@@ -88,7 +75,6 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
       }
       prevBlobsRef.current.forEach((u) => { if (u?.startsWith("blob:")) URL.revokeObjectURL(u); });
       prevBlobsRef.current = Object.values(urlMap).filter((u) => u?.startsWith("blob:"));
-      // Store urlMap keyed by both original url and custom url for lookup
       setBlobUrls(urlMap);
       setImagesReady(true);
     });
@@ -206,7 +192,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
                     transition={{ duration: 0.38 }}
                     style={{ background: isSelected ? RAINBOW_GRADIENT : "white", borderRadius: 22, border: isSelected ? "4px solid transparent" : "3px solid rgba(168,208,230,0.25)", boxShadow: isSelected ? "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)" : "0 4px 18px rgba(30,58,95,0.09)", overflow: "hidden", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center", transition: "border 0.16s, box-shadow 0.16s", WebkitTapHighlightColor: "transparent", width: "100%", height: 130, flexShrink: 0 }}
                   >
-                    <div style={{ width: "100%", height: "100%", backgroundImage: `url(${blobUrls[customImages[choice.word] || choice.image] || customImages[choice.word] || choice.image})`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none" }} />
+                    <div style={{ width: "100%", height: "100%", backgroundImage: `url(${blobUrls[choice.image] || choice.image})`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none" }} />
                   </motion.button>
                 );
               })}

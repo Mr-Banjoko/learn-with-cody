@@ -3,7 +3,7 @@
  * R1: letter_to_sound — u (via bug)
  * R2: word_to_audio — bug / bag / big  (short-a / short-i contrast)
  * R3: dictation — gum
- * R4: word_to_audio — cup / cop / cat  (short-o / short-a contrast)
+ * R4: word_to_audio — cup / cop / cap  (short-o / short-a contrast)
  * R5: missing01 — cup — medial (u) pos 1
  */
 import { useState, useCallback, useMemo } from "react";
@@ -28,7 +28,7 @@ const ROUND_SEQUENCE = [
   { type: "letter_to_sound", word: "bug" },
   { type: "word_to_audio",   words: ["bug", "bag", "big"] },
   { type: "dictation",       word: "gum" },
-  { type: "word_to_audio",   words: ["cup", "cop", "cat"] },
+  { type: "word_to_audio",   words: ["cup", "cop", "cap"] },
   { type: "missing01",       word: "cup", missingPos: 1 },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;

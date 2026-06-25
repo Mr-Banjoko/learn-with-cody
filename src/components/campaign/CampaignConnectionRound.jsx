@@ -21,7 +21,6 @@ import { buildWordData } from "../../lib/picSliceGameData";
 import { buildShortOSliceData } from "../../lib/buildShortOSliceData";
 import { buildShortISliceData } from "../../lib/buildShortISliceData";
 import { buildShortASliceData } from "../../lib/buildShortASliceData";
-import { useCustomWordImage } from "../../lib/useCustomWordImage";
 
 function buildWordDataWithFallback(word) {
   const data = buildWordData(word);
@@ -105,7 +104,6 @@ function ConnectorDot({ dotRef, selected, matched, onTap, color }) {
 function WinScreen({ card, onDone }) {
   const seqRef = useRef(null);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
-  const { resolvedImage } = useCustomWordImage(card.word, card.fullImage || card.image);
 
   useEffect(() => {
     const letters = card.word.split("");
@@ -138,7 +136,7 @@ function WinScreen({ card, onDone }) {
       style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", gap: 20 }}
     >
       <div style={{ background: "white", borderRadius: 28, padding: 16, boxShadow: "0 12px 48px rgba(30,58,95,0.18)", width: "min(364px, calc(100vw - 48px))" }}>
-        <img src={resolvedImage} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
+        <img src={card.fullImage || card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
       </div>
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         {card.word.split("").map((letter, i) => (
