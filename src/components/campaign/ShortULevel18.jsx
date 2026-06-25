@@ -28,7 +28,7 @@ const ROUND_SEQUENCE = [
   { type: "letter_to_sound", word: "bug" },
   { type: "word_to_audio",   words: ["bug", "bag", "big"] },
   { type: "dictation",       word: "gum" },
-  { type: "word_to_audio",   words: ["cup", "cop", "cap"] },
+  { type: "word_to_audio",   words: ["cup", "cop", "bat"] },
   { type: "missing01",       word: "cup", missingPos: 1 },
 ];
 const TOTAL_ROUNDS = ROUND_SEQUENCE.length;
