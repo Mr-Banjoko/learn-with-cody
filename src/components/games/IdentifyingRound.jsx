@@ -4,6 +4,7 @@
  */
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RotateCcw } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
@@ -46,7 +47,7 @@ async function preloadAll(urls) {
   return Object.fromEntries(entries);
 }
 
-export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake, suppressAutoPlay = false }) {
+export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake, suppressAutoPlay = false, userPhotoUrl, onClearPhoto }) {
   const [selected, setSelected]     = useState(null);
   const [wrongShake, setWrongShake]  = useState(false);
   const [imagesReady, setImagesReady] = useState(false);
@@ -192,7 +193,18 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
                     transition={{ duration: 0.38 }}
                     style={{ background: isSelected ? RAINBOW_GRADIENT : "white", borderRadius: 22, border: isSelected ? "4px solid transparent" : "3px solid rgba(168,208,230,0.25)", boxShadow: isSelected ? "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)" : "0 4px 18px rgba(30,58,95,0.09)", overflow: "hidden", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", justifyContent: "center", transition: "border 0.16s, box-shadow 0.16s", WebkitTapHighlightColor: "transparent", width: "100%", height: 130, flexShrink: 0 }}
                   >
-                    <div style={{ width: "100%", height: "100%", backgroundImage: `url(${blobUrls[choice.image] || choice.image})`, backgroundSize: "cover", backgroundPosition: "center", pointerEvents: "none" }} />
+                    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+                      <div style={{ width: "100%", height: "100%", backgroundImage: `url(${choice.word === round.target.word && userPhotoUrl ? userPhotoUrl : (blobUrls[choice.image] || choice.image)})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+                      {choice.word === round.target.word && userPhotoUrl && onClearPhoto && (
+                        <button
+                          onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onClearPhoto(); }}
+                          style={{ position: "absolute", top: 6, right: 6, width: 32, height: 32, borderRadius: 16, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "manipulation" }}
+                          aria-label="Reset to original image"
+                        >
+                          <RotateCcw size={16} color="#A8D0E6" strokeWidth={2.2} />
+                        </button>
+                      )}
+                    </div>
                   </motion.button>
                 );
               })}

@@ -12,13 +12,7 @@ import RainbowLetterBlock from "../RainbowLetterBlock";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import handTapData from "../../lib/handTap.json";
-
-// ── Storage helpers ────────────────────────────────────────────────────────────
-const STORAGE_PREFIX = "cody_photo_";
-const storageKey = (word) => `${STORAGE_PREFIX}${word}`;
-const loadPhoto = (word) => { try { return localStorage.getItem(storageKey(word)) || null; } catch { return null; } };
-const savePhoto = (word, dataUrl) => { try { localStorage.setItem(storageKey(word), dataUrl); } catch {} };
-const clearPhoto = (word) => { try { localStorage.removeItem(storageKey(word)); } catch {} };
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 // ── Phase guide audio URLs (GitHub raw) ────────────────────────────────────────
 const GH_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main";
@@ -61,7 +55,7 @@ const PHASE_TEXTS = {
 // Hand is always visible during tutorial — it only hides when the user completes the action
 
 export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard = false }) {
-  const [customImage, setCustomImage] = useState(() => loadPhoto(card.word));
+  const { photoUrl: customImage, savePhoto, clearPhoto } = useUserPhoto(card.word);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
 
   // Tutorial state: 0 = no tutorial; 1-6 = active phase; 0 (done) = done
@@ -191,7 +185,6 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
     if (activeTimerRef.current) { clearTimeout(activeTimerRef.current); }
     setActiveLetterIndex(null);
-    setCustomImage(loadPhoto(card.word));
   }, [card.word]);
 
   useEffect(() => {
@@ -269,11 +262,9 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const word = card.word;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      savePhoto(word, ev.target.result);
-      setCustomImage(ev.target.result);
+    reader.onload = async (ev) => {
+      await savePhoto(ev.target.result);
       // Advance to phase 5 only after the photo has been saved
       if (tutPhaseRef.current === 4) setTimeout(() => advancePhase(), 400);
     };
@@ -284,10 +275,9 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
   const handleReset = useCallback(() => {
     if (audioLocked) return; // guide audio still playing
     if (isTutorial && tutPhase !== 5) return; // locked during tutorial except phase 5
-    clearPhoto(card.word);
-    setCustomImage(null);
+    clearPhoto();
     if (tutPhase === 5) setTimeout(() => advancePhase(), 400);
-  }, [isTutorial, tutPhase, card.word, advancePhase, audioLocked]);
+  }, [isTutorial, tutPhase, clearPhoto, advancePhase, audioLocked]);
 
   // ── Phase 6: next ──────────────────────────────────────────────────────────
   const handleNext = useCallback(() => {

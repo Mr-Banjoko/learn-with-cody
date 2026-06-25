@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Volume2 } from "lucide-react";
+import { Volume2, RotateCcw } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
@@ -30,7 +30,7 @@ function buildRound(card, overrideChoices) {
 const RAINBOW_BORDER = "4px solid transparent";
 const RAINBOW_BG = "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box";
 
-export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
+export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false, userPhotoUrl, onClearPhoto }) {
   const [round] = useState(() => buildRound(card, overrideChoices));
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -90,7 +90,18 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
           transition={{ type: "spring", stiffness: 280, damping: 20 }}
           style={{ width: "min(280px, calc(100vw - 48px))", background: "white", borderRadius: 28, padding: 12, boxShadow: "0 12px 48px rgba(30,58,95,0.14)", border: "2px solid #E8E8E8" }}
         >
-          <img src={round.card.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
+          <div style={{ position: "relative" }}>
+            <img src={userPhotoUrl || round.card.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
+            {userPhotoUrl && onClearPhoto && (
+              <button
+                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onClearPhoto(); }}
+                style={{ position: "absolute", top: 8, right: 8, width: 36, height: 36, borderRadius: 18, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "manipulation" }}
+                aria-label="Reset to original image"
+              >
+                <RotateCcw size={18} color="#A8D0E6" strokeWidth={2.2} />
+              </button>
+            )}
+          </div>
           <button
             onClick={() => { if (!audioLocked && card.audio) playAudio(card.audio); }}
             style={{ marginTop: 10, width: "100%", padding: "10px 0", borderRadius: 16, background: "#F0F0F0", border: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer", fontFamily: "Fredoka, sans-serif", touchAction: "manipulation" }}

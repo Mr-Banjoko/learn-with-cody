@@ -5,7 +5,7 @@
  */
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, RefreshCw } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
@@ -39,7 +39,7 @@ function buildRound(card) {
   return { card, letters, options };
 }
 
-export default function Level1DragV2({ card, onComplete, lang = "en", onMistake, dragGuideStep = -1, onDragGuideAdvance }) {
+export default function Level1DragV2({ card, onComplete, lang = "en", onMistake, dragGuideStep = -1, onDragGuideAdvance, userPhotoUrl, onClearPhoto }) {
   const [round] = useState(() => buildRound(card));
   const [placed, setPlaced] = useState(Array(card.word.length).fill(null));
   const [placedColors, setPlacedColors] = useState({});
@@ -164,13 +164,22 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake,
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.25 }}
           onPointerDown={(e) => { e.preventDefault(); round.card.audio && playAudio(round.card.audio); }}
-          style={{ background: "white", borderRadius: 32, padding: 10, boxShadow: "0 10px 40px rgba(30,58,95,0.15)", cursor: round.card.audio ? "pointer" : "default", touchAction: "manipulation", flexShrink: 0 }}
+          style={{ background: "white", borderRadius: 32, padding: 10, boxShadow: "0 10px 40px rgba(30,58,95,0.15)", cursor: round.card.audio ? "pointer" : "default", touchAction: "manipulation", flexShrink: 0, position: "relative" }}
         >
           <img
-            src={round.card.image}
+            src={userPhotoUrl || round.card.image}
             alt={round.card.word}
             style={{ width: "min(330px, 68vw)", height: "min(330px, 68vw)", objectFit: "cover", borderRadius: 24, display: "block" }}
           />
+          {userPhotoUrl && onClearPhoto && (
+            <button
+              onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onClearPhoto(); }}
+              style={{ position: "absolute", top: 18, right: 18, width: 36, height: 36, borderRadius: 18, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "manipulation" }}
+              aria-label="Reset to original image"
+            >
+              <RotateCcw size={18} color="#A8D0E6" strokeWidth={2.2} />
+            </button>
+          )}
         </motion.div>
 
         <div style={{ display: "flex", gap: 14, alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 8 }}>

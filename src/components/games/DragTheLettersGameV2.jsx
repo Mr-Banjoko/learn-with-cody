@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw } from "lucide-react";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 import BackArrow from "../BackArrow";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
@@ -33,7 +34,7 @@ function buildRound(card) {
   return { card, letters, options };
 }
 
-export default function DragTheLettersGameV2({ words, title, color, onBack, lang = "en" }) {
+export default function DragTheLettersGameV2({ words, title, color, onBack, lang = "en", userPhotos, onClearPhoto }) {
   const [roundIndex, setRoundIndex] = useState(0);
   const [round, setRound] = useState(() => buildRound(words[0]));
 
@@ -191,6 +192,7 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
   const progress = placed.filter(Boolean).length;
   const allFilled = placed.every((p) => p !== null);
   const card = round.card;
+  const { photoUrl: currentPhotoUrl, clearPhoto: clearCurrentPhoto } = useUserPhoto(card.word);
 
   return (
     <div
@@ -231,14 +233,23 @@ export default function DragTheLettersGameV2({ words, title, color, onBack, lang
             background: "white", borderRadius: 32, padding: 10,
             boxShadow: "0 10px 40px rgba(30,58,95,0.15)",
             cursor: card.audio ? "pointer" : "default",
-            touchAction: "manipulation", flexShrink: 0,
+            touchAction: "manipulation", flexShrink: 0, position: "relative",
           }}
         >
           <img
-            src={card.image}
+            src={currentPhotoUrl || card.image}
             alt={card.word}
             style={{ width: "min(330px, 68vw)", height: "min(330px, 68vw)", objectFit: "cover", borderRadius: 24, display: "block" }}
           />
+          {currentPhotoUrl && (
+            <button
+              onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); clearCurrentPhoto(); }}
+              style={{ position: "absolute", top: 18, right: 18, width: 36, height: 36, borderRadius: 18, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "manipulation" }}
+              aria-label="Reset to original image"
+            >
+              <RotateCcw size={18} color="#A8D0E6" strokeWidth={2.2} />
+            </button>
+          )}
         </motion.div>
 
         {/* Drop boxes + reset button */}
