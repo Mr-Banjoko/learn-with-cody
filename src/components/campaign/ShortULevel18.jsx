@@ -18,6 +18,7 @@ import { buildShortUSliceData } from "../../lib/buildShortUSliceData";
 import { shortUWords } from "../../lib/shortUWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getShortUHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 18;
 const VOWEL_KEY = "short-u";
@@ -68,6 +69,7 @@ export default function ShortULevel18({ onBack, lang = "en" }) {
   const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
   const card = useMemo(() => roundDef.word ? findU(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const { photoUrl: userPhotoUrl, clearPhoto: onClearPhoto } = useUserPhoto(roundDef.word);
   const connectionCard = useMemo(() => roundDef.type === "letter_to_sound" ? buildShortUSliceData(roundDef.word) : null, [roundIndex]); // eslint-disable-line
 
   return (
