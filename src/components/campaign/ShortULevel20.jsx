@@ -2,7 +2,7 @@
  * ShortULevel20 — Final Short U Review
  * R1: word_match — mug — distractors: mag, mig, mog
  * R2: dictation — bug
- * R3: word_to_audio — sun / sin / son  (short-i / short-o contrast)
+ * R3: word_to_audio — sun / sip / sob  (short-i / short-o contrast)
  * R4: connection — nut
  * R5: identifying — bus
  */
@@ -40,7 +40,7 @@ function buildIdentifyingRound(word) {
 const ROUND_SEQUENCE = [
   { type: "word_match",      word: "mug", distractors: ["mag", "mig", "mog"] },
   { type: "dictation",       word: "bug" },
-  { type: "word_to_audio",   words: ["sun", "sin", "son"] },
+  { type: "word_to_audio",   words: ["sun", "sip", "sob"] },
   { type: "connection",      word: "nut" },
   { type: "identifying",     word: "bus" },
 ];
