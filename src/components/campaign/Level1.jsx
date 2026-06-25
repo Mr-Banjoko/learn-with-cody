@@ -94,6 +94,7 @@ export default function Level1({ onBack, lang = "en" }) {
   }, [roundIndex, mistakes]);
 
   const round = ROUNDS[roundIndex];
+  const { photoUrl: userPhotoUrl, clearPhoto: onClearPhoto } = useUserPhoto(round?.card?.word);
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
@@ -122,6 +123,8 @@ export default function Level1({ onBack, lang = "en" }) {
                 suppressAutoPlay={roundIndex === 1}
                 dragGuideStep={roundIndex === 1 ? dragGuideStep : -1}
                 onDragGuideAdvance={roundIndex === 1 ? () => setDragGuideStep((s) => s + 1) : undefined}
+                userPhotoUrl={userPhotoUrl}
+                onClearPhoto={onClearPhoto}
               />
             )}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}

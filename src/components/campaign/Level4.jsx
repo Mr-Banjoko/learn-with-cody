@@ -68,6 +68,7 @@ export default function Level4({ onBack, lang = "en" }) {
   }, [roundIndex, mistakes]);
 
   const round = useMemo(() => buildRound(WORD_ORDER[roundIndex]), [roundIndex]); // eslint-disable-line
+  const { photoUrl: userPhotoUrl, clearPhoto: onClearPhoto } = useUserPhoto(WORD_ORDER[roundIndex]);
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
@@ -85,7 +86,7 @@ export default function Level4({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <IdentifyingRound key={roundIndex} round={round} onComplete={advance} lang={lang} onMistake={onMistake} suppressAutoPlay={suppressAutoPlay} />
+            <IdentifyingRound key={roundIndex} round={round} onComplete={advance} lang={lang} onMistake={onMistake} suppressAutoPlay={suppressAutoPlay} userPhotoUrl={userPhotoUrl} onClearPhoto={onClearPhoto} />
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}
