@@ -14,6 +14,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortOWords } from "../../lib/shortOWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getShortOHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 10;
 const VOWEL_KEY = "short-o";
@@ -67,6 +68,7 @@ export default function ShortOLevel10({ onBack, lang = "en" }) {
   const def = ROUND_DEFS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
   const targetCard = useMemo(() => findWord(def.target), [roundIndex]); // eslint-disable-line
+  const { photoUrl: userPhotoUrl, clearPhoto: onClearPhoto } = useUserPhoto(def.target);
   const overrideChoices = useMemo(() => {
     const choices = [targetCard, ...def.distractors.map(fakeCard)].sort(() => Math.random() - 0.5);
     return choices;
@@ -87,7 +89,7 @@ export default function ShortOLevel10({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {targetCard && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={targetCard} overrideChoices={overrideChoices} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={suppressAutoPlay} />}
+            {targetCard && <CampaignWordMatchRound key={`wm-${roundIndex}`} card={targetCard} overrideChoices={overrideChoices} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={suppressAutoPlay} userPhotoUrl={userPhotoUrl} onClearPhoto={onClearPhoto} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}

@@ -18,6 +18,7 @@ import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 4;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);

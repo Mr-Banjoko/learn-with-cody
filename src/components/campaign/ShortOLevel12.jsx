@@ -10,6 +10,7 @@ import Level1DragV2 from "./Level1DragV2";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortOWords } from "../../lib/shortOWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 12;
 const VOWEL_KEY = "short-o";
@@ -62,6 +63,7 @@ export default function ShortOLevel12({ onBack, lang = "en" }) {
   const round = ROUNDS[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
   const card = useMemo(() => findWord(round.word), [roundIndex]); // eslint-disable-line
+  const { photoUrl: userPhotoUrl, clearPhoto: onClearPhoto } = useUserPhoto(round.word);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #FFF6E8 0%, #FFF9E6 60%, #F5F0FF 100%)", overflow: "hidden" }}>
@@ -79,7 +81,7 @@ export default function ShortOLevel12({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "phonics" && card && <Level1Phonics card={card} onNext={advance} lang={lang} isFirstCard={false} />}
-            {round.type === "drag" && card && <Level1DragV2 key={`drag-${roundIndex}`} card={card} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {round.type === "drag" && card && <Level1DragV2 key={`drag-${roundIndex}`} card={card} onComplete={advance} lang={lang} onMistake={onMistake} userPhotoUrl={userPhotoUrl} onClearPhoto={onClearPhoto} />}
           </motion.div>
         )}
       </AnimatePresence>

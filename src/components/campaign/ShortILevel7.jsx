@@ -19,6 +19,7 @@ import { buildShortISliceData } from "../../lib/buildShortISliceData";
 import { shortIWords } from "../../lib/shortIWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getShortIHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 7;
 const VOWEL_KEY = "short-i";
@@ -69,6 +70,7 @@ export default function ShortILevel7({ onBack, lang = "en" }) {
   const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
   const card = useMemo(() => roundDef.word ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const { photoUrl: userPhotoUrl, clearPhoto: onClearPhoto } = useUserPhoto(roundDef.word);
   const rearrangeHardPair = useMemo(() => roundDef.type === "rearrange_hard" ? roundDef.words.map(buildShortISliceData) : null, [roundIndex]); // eslint-disable-line
   const traySwapCount = useMemo(() => (roundIndex % 2 === 0) ? 2 : 1, [roundIndex]);
 
@@ -87,7 +89,7 @@ export default function ShortILevel7({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {roundDef.type === "drag_v2" && card && <Level1DragV2 key={`drag-${roundIndex}`} card={card} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "drag_v2" && card && <Level1DragV2 key={`drag-${roundIndex}`} card={card} onComplete={advance} lang={lang} onMistake={onMistake} userPhotoUrl={userPhotoUrl} onClearPhoto={onClearPhoto} />}
             {roundDef.type === "catch" && card && <CampaignLetterCatchRound key={`catch-${roundIndex}`} word={card.word} missingLetter={roundDef.missingLetter} image={card.image} audio={card.audio} onComplete={advance} onMistake={onMistake} lang={lang} paused={hintLocked} skipInitialAudio={suppressAutoPlay} />}
             {roundDef.type === "rearrange_hard" && rearrangeHardPair && <PicSliceBoard key={`hard-${roundIndex}`} wordPair={rearrangeHardPair} onRoundComplete={advance} lang={lang} onMistake={onMistake} traySwapCount={traySwapCount} />}
             {roundDef.type === "dictation" && card && <DictationCampaignRound key={`dict-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}

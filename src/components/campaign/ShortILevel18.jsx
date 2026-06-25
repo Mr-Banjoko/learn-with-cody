@@ -14,6 +14,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortIWords } from "../../lib/shortIWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getShortIHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 18;
 const VOWEL_KEY = "short-i";
@@ -55,6 +56,7 @@ export default function ShortILevel18({ onBack, lang = "en" }) {
   }, [roundIndex, mistakes]);
 
   const card = useMemo(() => findWord(WORD_ORDER[roundIndex]), [roundIndex]); // eslint-disable-line
+  const { photoUrl: userPhotoUrl, clearPhoto: onClearPhoto } = useUserPhoto(WORD_ORDER[roundIndex]);
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
 
   return (
@@ -72,7 +74,7 @@ export default function ShortILevel18({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {card && <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} />}
+            {card && <WriteV2CampaignRound key={`writev2-${roundIndex}`} card={card} onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={userPhotoUrl} onClearPhoto={onClearPhoto} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>
         )}

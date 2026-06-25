@@ -14,6 +14,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 33;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);

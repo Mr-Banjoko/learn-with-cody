@@ -15,6 +15,7 @@ import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortOWords } from "../../lib/shortOWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
 import { useRoundHintAudio, getShortOHintAudioUrl, LOCK_OVERLAY_STYLE } from "../../lib/useRoundHintAudio";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 3;
 const VOWEL_KEY = "short-o";
@@ -65,6 +66,7 @@ export default function ShortOLevel3({ onBack, lang = "en" }) {
   const roundDef = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
   const dragCard = useMemo(() => roundDef.type === "drag" ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
+  const { photoUrl: userPhotoUrl, clearPhoto: onClearPhoto } = useUserPhoto(roundDef.word);
   const missingCard = useMemo(() => roundDef.type === "missing01" ? findWord(roundDef.word) : null, [roundIndex]); // eslint-disable-line
 
   return (
@@ -82,7 +84,7 @@ export default function ShortOLevel3({ onBack, lang = "en" }) {
           </motion.div>
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {roundDef.type === "drag" && dragCard && <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} />}
+            {roundDef.type === "drag" && dragCard && <Level1DragV2 key={`drag-${roundIndex}`} card={dragCard} onComplete={advance} lang={lang} onMistake={onMistake} userPhotoUrl={userPhotoUrl} onClearPhoto={onClearPhoto} />}
             {roundDef.type === "missing01" && missingCard && <CampaignMissingSound01Round key={`miss-${roundIndex}`} card={missingCard} forcedMissingPos={roundDef.missingPos} onComplete={advance} onMistake={onMistake} lang={lang} suppressAutoPlay={suppressAutoPlay} />}
             {hintLocked && <div style={LOCK_OVERLAY_STYLE} onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} />}
           </motion.div>

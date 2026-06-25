@@ -24,6 +24,7 @@ import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 35;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);

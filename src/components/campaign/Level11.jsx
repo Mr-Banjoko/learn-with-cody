@@ -15,6 +15,7 @@ import Level1DragV2 from "./Level1DragV2";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 11;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);

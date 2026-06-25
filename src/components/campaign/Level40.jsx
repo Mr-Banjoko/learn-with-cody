@@ -25,6 +25,7 @@ import { buildWordData } from "../../lib/picSliceGameData";
 import { buildShortASliceData } from "../../lib/buildShortASliceData";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 40;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);

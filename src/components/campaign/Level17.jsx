@@ -16,6 +16,7 @@ import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import LevelCompleteScreen from "./LevelCompleteScreen";
 import { shortAWords } from "../../lib/shortAWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 17;
 const SCORED_ROUNDS = getScoredRounds("short-a", LEVEL_NUM);
