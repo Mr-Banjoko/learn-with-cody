@@ -13,24 +13,16 @@
  *   imgStyle      — optional extra style for the <img>
  *   onPointerDown — forwarded to the image wrapper (e.g. audio replay)
  */
-import { useRef, useCallback } from "react";
+import { useCallback } from "react";
 import { Camera, X } from "lucide-react";
 import { useCustomWordImage } from "../../lib/useCustomWordImage";
 
 export default function WordImageWithCapture({ word, defaultImage, style, imgStyle, onPointerDown, alt }) {
   const { resolvedImage, hasCustom, saving, capture, reset } = useCustomWordImage(word, defaultImage);
-  const inputRef = useRef(null);
-
-  const handleCameraClick = useCallback((e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    inputRef.current?.click();
-  }, []);
 
   const handleFileChange = useCallback((e) => {
     const file = e.target.files?.[0];
     if (file) capture(file);
-    // reset value so the same file can be re-selected if needed
     e.target.value = "";
   }, [capture]);
 
@@ -58,20 +50,8 @@ export default function WordImageWithCapture({ word, defaultImage, style, imgSty
         }}
       />
 
-      {/* Hidden file input — accepts camera on mobile */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        style={{ display: "none" }}
-        onChange={handleFileChange}
-      />
-
-      {/* Camera button — bottom-right corner */}
-      <button
-        onPointerDown={handleCameraClick}
-        title="Take a photo for this word"
+      {/* Camera button — label wrapping the file input so it opens natively on mobile */}
+      <label
         style={{
           position: "absolute",
           bottom: 6,
@@ -90,12 +70,20 @@ export default function WordImageWithCapture({ word, defaultImage, style, imgSty
           zIndex: 10,
           transition: "background 0.2s",
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {saving
           ? <span style={{ fontSize: 11, color: "#4A90C4" }}>…</span>
           : <Camera size={16} color={hasCustom ? "white" : "#4A90C4"} strokeWidth={2} />
         }
-      </button>
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+        />
+      </label>
 
       {/* Reset button — top-right corner, only when custom image is active */}
       {hasCustom && (
