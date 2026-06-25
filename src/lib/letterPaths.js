@@ -317,17 +317,12 @@ export const LETTER_DEFS = {
   },
 
   // ── u ─────────────────────────────────────────────────────────────────────
-  // Stroke 1: down from midline, curve at bottom, back up to midline
-  // Stroke 2: back down to baseline with exit hook
+  // Single stroke: down from midline, curve at bottom, back up and down to baseline with exit hook
   u: {
     strokes: [
       {
-        d: "M 10,36 C 10,52 12,62 18,66 C 24,70 32,68 36,62 C 38,58 38,50 38,44",
+        d: "M 10,36 C 10,52 12,62 18,66 C 24,70 32,68 36,62 C 38,58 38,50 38,44 C 38,44 38,66 38,66 C 38,66 40,68 44,68",
         start: [10, 36],
-      },
-      {
-        d: "M 38,44 C 38,44 38,66 38,66 C 38,66 40,68 44,68",
-        start: [38, 44],
       },
     ],
   },
