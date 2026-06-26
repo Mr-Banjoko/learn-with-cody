@@ -252,10 +252,23 @@ export const SHORT_U_SCORED_ROUNDS = {
   20: 5,  // 5 rounds: word_match + dictation + word_to_audio + connection + identifying = 5 scored
 };
 
+// Final Mixed Campaign scored rounds
+// L2:  learn — 0 scored (no wrong answers possible); save as 0 → always 3 stars
+// L3:  guided_practice  — 6 rounds, 5 scored (wta not counted, all others scored)
+// L4:  intensive_practice — 7 rounds, 7 scored (all game types count)
+// L5:  cumulative_challenge — 7 rounds, 7 scored (all game types count)
+export const FINAL_MIX_SCORED_ROUNDS = {
+  2:  0,
+  3:  5,
+  4:  7,
+  5:  7,
+};
+
 export function getScoredRounds(vowelKey, levelNum) {
-  if (vowelKey === "short-a") return SHORT_A_SCORED_ROUNDS[levelNum] ?? 5;
-  if (vowelKey === "short-o") return SHORT_O_SCORED_ROUNDS[levelNum] ?? 5;
-  if (vowelKey === "short-e") return SHORT_E_SCORED_ROUNDS[levelNum] ?? 5;
-  if (vowelKey === "short-u") return SHORT_U_SCORED_ROUNDS[levelNum] ?? 5;
+  if (vowelKey === "short-a")   return SHORT_A_SCORED_ROUNDS[levelNum] ?? 5;
+  if (vowelKey === "short-o")   return SHORT_O_SCORED_ROUNDS[levelNum] ?? 5;
+  if (vowelKey === "short-e")   return SHORT_E_SCORED_ROUNDS[levelNum] ?? 5;
+  if (vowelKey === "short-u")   return SHORT_U_SCORED_ROUNDS[levelNum] ?? 5;
+  if (vowelKey === "final-mix") return FINAL_MIX_SCORED_ROUNDS[levelNum] ?? 6;
   return 5;
 }
