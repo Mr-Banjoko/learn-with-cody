@@ -100,7 +100,6 @@ export default function CampaignVowelSoundRound({ targetLetter, onComplete, onMi
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 1.2, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            onClick={() => { const url = getLetterSoundUrl(targetLetter); if (url) playAudio(url, getLetterGain(targetLetter)); }}
             style={{
               width: "min(220px, 55vw)", height: "min(220px, 55vw)",
               borderRadius: 56,
@@ -108,8 +107,7 @@ export default function CampaignVowelSoundRound({ targetLetter, onComplete, onMi
               boxShadow: "0 12px 40px rgba(78,205,196,0.22), 0 4px 16px rgba(30,58,95,0.10)",
               display: "flex", alignItems: "center", justifyContent: "center",
               border: "3px solid rgba(78,205,196,0.18)",
-              cursor: "pointer",
-              touchAction: "manipulation",
+              cursor: "default",
             }}
           >
             <span style={{ fontSize: "min(140px, 34vw)", fontWeight: 700, color: "#1E3A5F", lineHeight: 1, letterSpacing: "-2px" }}>
