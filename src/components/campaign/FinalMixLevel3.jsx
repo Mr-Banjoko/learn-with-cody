@@ -192,6 +192,7 @@ export default function FinalMixLevel3({ onBack, lang = "en" }) {
                 lang={lang}
                 userPhotoUrl={userPhotoUrl}
                 onClearPhoto={onClearPhoto}
+                distractorVowel={roundDef.distractorVowel}
               />
             )}
 
