@@ -12,7 +12,7 @@
  *   onMistake()   — called on each wrong submit
  *   lang          — "en" | "zh"
  */
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
 import { playAudio } from "../../../lib/useAudio";
@@ -60,14 +60,7 @@ export default function CampaignVowelSoundRound({ targetLetter, onComplete, onMi
   const { play: playCorrect } = useCorrectSound();
   const { play: playTryAgain } = useTryAgainSound();
 
-  // Auto-play the target letter sound on mount
-  useEffect(() => {
-    const url = getLetterSoundUrl(targetLetter);
-    if (url) {
-      const t = setTimeout(() => playAudio(url, getLetterGain(targetLetter)), 350);
-      return () => clearTimeout(t);
-    }
-  }, [targetLetter]);
+  // No auto-play — user must tap to hear the sound
 
   const handleSpeakerTap = useCallback((letter) => {
     if (completing) return;
@@ -97,13 +90,6 @@ export default function CampaignVowelSoundRound({ targetLetter, onComplete, onMi
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", fontFamily: "Fredoka, sans-serif", overflow: "hidden", position: "relative" }}>
       {completing && <div style={{ position: "absolute", inset: 0, zIndex: 100, pointerEvents: "all" }} />}
-
-      {/* Instruction */}
-      <div style={{ flexShrink: 0, textAlign: "center", padding: "16px 24px 4px" }}>
-        <p style={{ margin: 0, fontSize: 18, color: "#64748B", fontWeight: 600 }}>
-          {lang === "zh" ? "找出这个字母的声音" : "Tap the sound that matches this letter"}
-        </p>
-      </div>
 
       {/* Big letter display */}
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
