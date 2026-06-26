@@ -253,11 +253,13 @@ export const SHORT_U_SCORED_ROUNDS = {
 };
 
 // Final Mixed Campaign scored rounds
+// L1:  intro — 6 rounds, 3 drag = 3 scored (phonics not scored)
 // L2:  learn — 0 scored (no wrong answers possible); save as 0 → always 3 stars
 // L3:  guided_practice  — 6 rounds, 5 scored (wta not counted, all others scored)
 // L4:  intensive_practice — 7 rounds, 7 scored (all game types count)
 // L5:  cumulative_challenge — 7 rounds, 7 scored (all game types count)
 export const FINAL_MIX_SCORED_ROUNDS = {
+  1:  3,
   2:  0,
   3:  5,
   4:  7,

@@ -1,38 +1,112 @@
-/**
- * FinalMixLevels — level map for the Final Mixed Campaign (Levels 2-5 = Cycle 1).
- * Simple list layout consistent with the other vowel level screens.
- */
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { getBestStars } from "../../lib/campaignPerformance";
 
-const LEVELS = [
-  { num: 2, label: "Pack 1 — Learn",               emoji: "📖", tag: "Learn" },
-  { num: 3, label: "Pack 1 — Guided Practice",      emoji: "🎯", tag: "Practice" },
-  { num: 4, label: "Pack 1 — Intensive Practice",   emoji: "💪", tag: "Intensive" },
-  { num: 5, label: "Pack 1 — Challenge",            emoji: "🏆", tag: "Challenge" },
+const TOTAL_LEVELS = 5;
+const CAMPAIGN_KEY = "final-mix";
+
+const PATH_OFFSETS = [-38, -32, -18, 0, 18, 32, 38, 32, 18, 0, -18, -32];
+function getLeftPct(idx) {
+  return 50 + PATH_OFFSETS[idx % PATH_OFFSETS.length];
+}
+
+const NODE_COLORS = [
+  "#FF6B6B", "#FF9F43", "#FFD93D", "#6BCB77", "#4ECDC4",
+  "#4D96FF", "#C77DFF",
 ];
+function nodeColor(n) {
+  return NODE_COLORS[(n - 1) % NODE_COLORS.length];
+}
 
-const TAG_COLORS = {
-  Learn:     { bg: "#E8F9F4", border: "#4ECDC4", text: "#0D9B82" },
-  Practice:  { bg: "#EEF4FF", border: "#4D96FF", text: "#1D6FD8" },
-  Intensive: { bg: "#FFF4E8", border: "#FF9F43", text: "#C47200" },
-  Challenge: { bg: "#F5F0FF", border: "#C77DFF", text: "#8B3FC7" },
-};
-
-const STAR_COLOR = "#FFD700";
-
-function StarRow({ count }) {
+function StarStrip({ stars }) {
   return (
-    <div style={{ display: "flex", gap: 2 }}>
-      {[1, 2, 3].map((i) => (
-        <span key={i} style={{ fontSize: 14, opacity: i <= count ? 1 : 0.25 }}>★</span>
+    <div style={{ display: "flex", gap: 3, marginTop: 5, justifyContent: "center" }}>
+      {[1, 2, 3].map((s) => (
+        <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill={stars >= s ? "#FFD93D" : "none"} stroke={stars >= s ? "#F59E0B" : "#CBD5E1"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
       ))}
     </div>
   );
 }
 
+function LevelNode({ num, color, onTap, isMilestone, stars, isFinal, lang = "en" }) {
+  const size = isFinal ? 82 : isMilestone ? 76 : 68;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <motion.div
+        whileTap={{ scale: 0.85 }}
+        onClick={() => onTap(num)}
+        style={{
+          width: size, height: size, borderRadius: "50%",
+          background: isFinal
+            ? "linear-gradient(145deg, #FFD700, #FFA500)"
+            : `linear-gradient(145deg, ${color} 0%, ${color}CC 100%)`,
+          border: isFinal ? "4px solid white" : "3px solid white",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          cursor: "pointer",
+          boxShadow: isFinal
+            ? "0 7px 0 #cc8800, 0 12px 28px rgba(255,165,0,0.55)"
+            : `0 6px 0 ${color}99, 0 10px 22px ${color}44`,
+          WebkitTapHighlightColor: "transparent",
+          position: "relative", flexShrink: 0,
+        }}
+      >
+        {isFinal ? (
+          <span style={{ fontSize: 36, pointerEvents: "none", lineHeight: 1 }}>🏆</span>
+        ) : (
+          <>
+            {isMilestone && (
+              <span style={{ position: "absolute", top: -18, fontSize: 18, pointerEvents: "none", filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.15))" }}>⭐</span>
+            )}
+            <span style={{ fontSize: num >= 10 ? 20 : 24, fontWeight: 700, color: "white", textShadow: "0 1px 4px rgba(0,0,0,0.20)", userSelect: "none", lineHeight: 1, pointerEvents: "none" }}>
+              {num}
+            </span>
+            {isMilestone && (
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.9)", pointerEvents: "none", lineHeight: 1, marginTop: 2, letterSpacing: 0.5 }}>BOSS</span>
+            )}
+          </>
+        )}
+      </motion.div>
+      {isFinal ? (
+        <span style={{ color: "#F59E0B", fontSize: 13, fontWeight: 700, marginTop: 6 }}>{lang === "zh" ? "完成！" : "Complete!"}</span>
+      ) : (
+        <StarStrip stars={stars} />
+      )}
+    </div>
+  );
+}
+
 export default function FinalMixLevels({ onBack, onSelectLevel, lang = "en" }) {
+  const levels = Array.from({ length: TOTAL_LEVELS }, (_, i) => i + 1);
+  const NODE_SPACING = 100;
+  const TOP_OFFSET = 36;
+  const scrollRef = useRef(null);
+
+  const [starMap, setStarMap] = useState(() => {
+    const map = {};
+    for (let i = 1; i <= TOTAL_LEVELS; i++) map[i] = getBestStars(CAMPAIGN_KEY, i);
+    return map;
+  });
+
+  useEffect(() => {
+    const map = {};
+    for (let i = 1; i <= TOTAL_LEVELS; i++) map[i] = getBestStars(CAMPAIGN_KEY, i);
+    setStarMap(map);
+
+    const lastCompleted = Object.keys(map).map(Number).filter((lvl) => map[lvl] > 0).reduce((max, lvl) => Math.max(max, lvl), 0);
+    const activeLevel = Math.min(lastCompleted + 1, TOTAL_LEVELS);
+    const activeIdx = Math.max(activeLevel, 1) - 1;
+    const nodeTopPx = TOP_OFFSET + activeIdx * NODE_SPACING;
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+    const viewportHeight = scrollContainer.clientHeight;
+    requestAnimationFrame(() => {
+      scrollContainer.scrollTo({ top: Math.max(0, nodeTopPx - viewportHeight / 2 + NODE_SPACING / 2), behavior: "smooth" });
+    });
+  }, []);
+
   return (
     <div style={{
       display: "flex", flexDirection: "column", height: "100%",
@@ -40,88 +114,48 @@ export default function FinalMixLevels({ onBack, onSelectLevel, lang = "en" }) {
       background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
       overflow: "hidden",
     }}>
-      {/* Header */}
       <div style={{
-        flexShrink: 0,
-        display: "flex", alignItems: "center", gap: 8,
+        flexShrink: 0, display: "flex", alignItems: "center", gap: 4,
         padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px",
+        borderBottom: "1.5px solid rgba(0,0,0,0.06)",
+        background: "rgba(255,255,255,0.75)", backdropFilter: "blur(10px)",
       }}>
         <BackArrow onPress={onBack} />
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1E293B", margin: 0, lineHeight: 1.1 }}>
-            🌈 Final Mix
-          </h1>
-          <p style={{ fontSize: 12, color: "#64748B", margin: "2px 0 0" }}>
-            {lang === "zh" ? "混合元音挑战！" : "Mixed vowels — a, o, i"}
-          </p>
+          <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#1E293B" }}>🌈 {lang === "zh" ? "混合挑战" : "Final Mix"}</p>
+          <p style={{ margin: 0, fontSize: 12, color: "#64748B" }}>{lang === "zh" ? "5 关卡冒险" : "5-level adventure"}</p>
+        </div>
+        <div style={{ background: "#FFF9E6", border: "1.5px solid #FFD93D", borderRadius: 99, padding: "5px 13px", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          <span style={{ fontSize: 13 }}>⚡</span>
+          <span style={{ color: "#B45309", fontWeight: 700, fontSize: 13 }}>0 XP</span>
         </div>
       </div>
 
-      {/* Level list */}
-      <div style={{
-        flex: 1, overflowY: "auto",
-        padding: "8px 16px calc(24px + env(safe-area-inset-bottom, 0px))",
-        display: "flex", flexDirection: "column", gap: 12,
-      }}>
-        {LEVELS.map((lvl, i) => {
-          const stars = getBestStars("final-mix", lvl.num);
-          const tagStyle = TAG_COLORS[lvl.tag];
-          return (
-            <motion.div
-              key={lvl.num}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.06, type: "spring", stiffness: 260, damping: 22 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => onSelectLevel(lvl.num)}
+      <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", position: "relative" }}>
+        <div style={{ position: "relative", width: "100%", height: TOP_OFFSET + TOTAL_LEVELS * NODE_SPACING + 80 }}>
+          {levels.map((lvl, idx) => (
+            <div
+              key={lvl}
               style={{
-                display: "flex", alignItems: "center", gap: 14,
-                padding: "14px 16px", borderRadius: 22,
-                background: "white",
-                border: `2px solid ${tagStyle.border}55`,
-                boxShadow: `0 4px 18px ${tagStyle.border}20`,
-                cursor: "pointer",
-                WebkitTapHighlightColor: "transparent",
+                position: "absolute",
+                top: TOP_OFFSET + idx * NODE_SPACING,
+                left: `${getLeftPct(idx)}%`,
+                transform: "translateX(-50%)",
+                display: "flex", flexDirection: "column", alignItems: "center",
               }}
             >
-              {/* Emoji badge */}
-              <div style={{
-                width: 56, height: 56, borderRadius: 16,
-                background: `linear-gradient(145deg, ${tagStyle.border}, ${tagStyle.border}BB)`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, fontSize: 26,
-                boxShadow: `0 4px 0 ${tagStyle.border}55`,
-              }}>
-                {lvl.emoji}
-              </div>
-
-              {/* Text */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: "#1E293B" }}>{lvl.label}</span>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99,
-                    background: tagStyle.bg, border: `1.5px solid ${tagStyle.border}`,
-                    color: tagStyle.text,
-                  }}>{lvl.tag}</span>
-                </div>
-                <div style={{ marginTop: 4 }}>
-                  <StarRow count={stars} />
-                </div>
-              </div>
-
-              {/* Arrow */}
-              <div style={{
-                width: 32, height: 32, borderRadius: 16,
-                background: tagStyle.border,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, boxShadow: `0 3px 0 ${tagStyle.border}66`,
-              }}>
-                <span style={{ color: "white", fontSize: 20, lineHeight: 1 }}>›</span>
-              </div>
-            </motion.div>
-          );
-        })}
+              <LevelNode
+                num={lvl}
+                color={nodeColor(lvl)}
+                isMilestone={lvl % 10 === 0}
+                isFinal={lvl === TOTAL_LEVELS}
+                onTap={onSelectLevel || (() => {})}
+                stars={starMap[lvl] ?? 0}
+                lang={lang}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
