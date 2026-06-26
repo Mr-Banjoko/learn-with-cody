@@ -7,6 +7,7 @@ const VOWEL_FOLDERS = [
   { id: "short-i", vowel: "i", label: "Short i", labelZh: "短元音 i", color: "#4D96FF", emoji: "🐛", available: true,  levels: 31 },
   { id: "short-e", vowel: "e", label: "Short e", labelZh: "短元音 e", color: "#4ECDC4", emoji: "🥚", available: true,  levels: 24 },
   { id: "short-u", vowel: "u", label: "Short u", labelZh: "短元音 u", color: "#C77DFF", emoji: "☂️", available: true,  levels: 20 },
+  { id: "final-mix", vowel: "★", label: "Final Mix", labelZh: "混合挑战", color: "#FF6B9D", emoji: "🌈", available: true, levels: 4 },
 ];
 
 export default function CampaignHome({ onBack, onSelectVowel, lang = "en" }) {

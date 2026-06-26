@@ -12,6 +12,11 @@ import ShortOLevels from "./campaign/ShortOLevels.jsx";
 import ShortILevels from "./campaign/ShortILevels.jsx";
 import ShortELevels from "./campaign/ShortELevels.jsx";
 import ShortULevels from "./campaign/ShortULevels.jsx";
+import FinalMixLevels from "./campaign/FinalMixLevels.jsx";
+import FinalMixLevel2 from "./campaign/FinalMixLevel2.jsx";
+import FinalMixLevel3 from "./campaign/FinalMixLevel3.jsx";
+import FinalMixLevel4 from "./campaign/FinalMixLevel4.jsx";
+import FinalMixLevel5 from "./campaign/FinalMixLevel5.jsx";
 import ShortOLevel1 from "./campaign/ShortOLevel1.jsx";
 import ShortOLevel2 from "./campaign/ShortOLevel2.jsx";
 import ShortOLevel3 from "./campaign/ShortOLevel3.jsx";
@@ -78,7 +83,8 @@ import Level41 from "./campaign/Level41";
 const SHORT_I_DEEP = Array.from({ length: 38 }, (_, i) => `campaign-short-i-level-${i + 1}`);
 const SHORT_E_DEEP = Array.from({ length: 24 }, (_, i) => `campaign-short-e-level-${i + 1}`);
 const SHORT_U_DEEP = Array.from({ length: 20 }, (_, i) => `campaign-short-u-level-${i + 1}`);
-const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-short-i", ...SHORT_I_DEEP, "campaign-short-e", ...SHORT_E_DEEP, "campaign-short-u", ...SHORT_U_DEEP, "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15", "campaign-short-a-level-16", "campaign-short-a-level-17", "campaign-short-a-level-18", "campaign-short-a-level-19", "campaign-short-a-level-20", "campaign-short-a-level-21", "campaign-short-a-level-22", "campaign-short-a-level-23", "campaign-short-a-level-24", "campaign-short-a-level-25", "campaign-short-a-level-26", "campaign-short-a-level-27", "campaign-short-a-level-28", "campaign-short-a-level-29", "campaign-short-a-level-30", "campaign-short-a-level-31", "campaign-short-a-level-32", "campaign-short-a-level-33", "campaign-short-a-level-34", "campaign-short-a-level-35", "campaign-short-a-level-36", "campaign-short-a-level-37", "campaign-short-a-level-38", "campaign-short-a-level-39", "campaign-short-a-level-40", "campaign-short-a-level-41", "campaign-short-o", "campaign-short-o-level-1", "campaign-short-o-level-2", "campaign-short-o-level-3", "campaign-short-o-level-4", "campaign-short-o-level-5", "campaign-short-o-level-6", "campaign-short-o-level-7", "campaign-short-o-level-8", "campaign-short-o-level-9", "campaign-short-o-level-10", "campaign-short-o-level-11", "campaign-short-o-level-12", "campaign-short-o-level-13", "campaign-short-o-level-14", "campaign-short-o-level-15", "campaign-short-o-level-16", "campaign-short-o-level-17", "campaign-short-o-level-18", "campaign-short-o-level-19", "campaign-short-o-level-20"]);
+const FINAL_MIX_DEEP = ["campaign-final-mix-level-2", "campaign-final-mix-level-3", "campaign-final-mix-level-4", "campaign-final-mix-level-5"];
+const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-final-mix", ...FINAL_MIX_DEEP, "campaign-short-i", ...SHORT_I_DEEP, "campaign-short-e", ...SHORT_E_DEEP, "campaign-short-u", ...SHORT_U_DEEP, "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15", "campaign-short-a-level-16", "campaign-short-a-level-17", "campaign-short-a-level-18", "campaign-short-a-level-19", "campaign-short-a-level-20", "campaign-short-a-level-21", "campaign-short-a-level-22", "campaign-short-a-level-23", "campaign-short-a-level-24", "campaign-short-a-level-25", "campaign-short-a-level-26", "campaign-short-a-level-27", "campaign-short-a-level-28", "campaign-short-a-level-29", "campaign-short-a-level-30", "campaign-short-a-level-31", "campaign-short-a-level-32", "campaign-short-a-level-33", "campaign-short-a-level-34", "campaign-short-a-level-35", "campaign-short-a-level-36", "campaign-short-a-level-37", "campaign-short-a-level-38", "campaign-short-a-level-39", "campaign-short-a-level-40", "campaign-short-a-level-41", "campaign-short-o", "campaign-short-o-level-1", "campaign-short-o-level-2", "campaign-short-o-level-3", "campaign-short-o-level-4", "campaign-short-o-level-5", "campaign-short-o-level-6", "campaign-short-o-level-7", "campaign-short-o-level-8", "campaign-short-o-level-9", "campaign-short-o-level-10", "campaign-short-o-level-11", "campaign-short-o-level-12", "campaign-short-o-level-13", "campaign-short-o-level-14", "campaign-short-o-level-15", "campaign-short-o-level-16", "campaign-short-o-level-17", "campaign-short-o-level-18", "campaign-short-o-level-19", "campaign-short-o-level-20"]);
 
 export default function AppShell() {
   useBuildGuard();
@@ -108,6 +114,18 @@ export default function AppShell() {
 
   const renderHomeScreen = () => {
     switch (homeSubScreen) {
+      case "campaign-final-mix-level-5": return <FinalMixLevel5 onBack={() => setHomeSubScreen("campaign-final-mix")} lang={language} />;
+      case "campaign-final-mix-level-4": return <FinalMixLevel4 onBack={() => setHomeSubScreen("campaign-final-mix")} lang={language} />;
+      case "campaign-final-mix-level-3": return <FinalMixLevel3 onBack={() => setHomeSubScreen("campaign-final-mix")} lang={language} />;
+      case "campaign-final-mix-level-2": return <FinalMixLevel2 onBack={() => setHomeSubScreen("campaign-final-mix")} lang={language} />;
+      case "campaign-final-mix":
+        return (
+          <FinalMixLevels
+            onBack={() => setHomeSubScreen("campaign")}
+            onSelectLevel={(lvl) => setHomeSubScreen(`campaign-final-mix-level-${lvl}`)}
+            lang={language}
+          />
+        );
       case "campaign-short-a-level-41":
         return <Level41 onBack={() => setHomeSubScreen("campaign-short-a")} lang={language} />;
       case "campaign-short-a-level-40":
@@ -455,6 +473,7 @@ export default function AppShell() {
               if (id === "short-i") setHomeSubScreen("campaign-short-i");
               if (id === "short-e") setHomeSubScreen("campaign-short-e");
               if (id === "short-u") setHomeSubScreen("campaign-short-u");
+              if (id === "final-mix") setHomeSubScreen("campaign-final-mix");
             }}
             lang={language}
           />
