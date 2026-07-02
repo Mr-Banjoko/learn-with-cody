@@ -24,11 +24,11 @@ import { buildShortASliceData } from "../../lib/buildShortASliceData";
 
 function buildWordDataWithFallback(word) {
   const data = buildWordData(word);
-  // If phonemes have no sliceSrc, try vowel-specific builders
+  // If phonemes have no sliceSrc, use the vowel-specific builder that matches this word's vowel
   if (data.phonemes && data.phonemes.every((p) => !p.sliceSrc)) {
-    try { return buildShortISliceData(word); } catch (_) {}
-    try { return buildShortOSliceData(word); } catch (_) {}
-    try { return buildShortASliceData(word); } catch (_) {}
+    if (word.includes("i")) return buildShortISliceData(word);
+    if (word.includes("o")) return buildShortOSliceData(word);
+    if (word.includes("a")) return buildShortASliceData(word);
   }
   return data;
 }

@@ -132,7 +132,7 @@ export default function CVCChampionLevel3({ onBack, lang = "en" }) {
               <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("hit")} forcedDistractor="a" onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "connection" && (
-              <CampaignConnectionRound key={`conn-${roundIndex}`} card={findWord("cot")} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignConnectionRound key={`conn-${roundIndex}`} card={findWord("pot")} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "drawline" && drawLineRound && (
               <DrawLineBoard key={`dl-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
