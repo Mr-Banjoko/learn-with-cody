@@ -42,8 +42,7 @@ function buildRound(card, forcedMissingPos, forcedDistractors) {
   const ts = Date.now();
   const options = shuffle([
     { id: `correct-${ts}`, letter: letters[missingPos], isCorrect: true },
-    { id: `d0-${ts}`, letter: distractors[0], isCorrect: false },
-    { id: `d1-${ts}`, letter: distractors[1], isCorrect: false },
+    ...distractors.map((letter, i) => ({ id: `d${i}-${ts}`, letter, isCorrect: false })),
   ]);
   return { card, letters, missingPos, options };
 }
