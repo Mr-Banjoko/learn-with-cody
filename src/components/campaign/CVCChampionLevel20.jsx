@@ -105,7 +105,7 @@ export default function CVCChampionLevel20({ onBack, lang = "en" }) {
               <DictationCampaignRound key={`dict-${roundIndex}`} card={findWord("tip")} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "word_match" && (
-              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("tap")} overrideChoices={shuffle([findWord("tap"), { word: "tep" }, findWord("tip"), findWord("top"), { word: "tup" }])} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("tap")} overrideChoices={shuffle([findWord("tap"), { word: "tep" }, findWord("tip"), findWord("top")])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "writev2" && (
               <WriteV2CampaignRound key={`wv2-${roundIndex}`} card={findWord("tug")} onComplete={advance} onMistake={onMistake} lang={lang} />
