@@ -19,17 +19,7 @@ import { useTryAgainSound } from "../../lib/useTryAgainSound";
 const TOP_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 const DRAG_THRESHOLD = 6;
 
-const ALL_VOWELS = ["a", "e", "i", "o", "u"];
-
-function getDistractors(word, missingPos) {
-  // When the missing letter is the vowel (index 1 in a CVC word),
-  // distractors must be other vowels only — not consonants.
-  const missingLetter = word[missingPos];
-  const isVowel = ALL_VOWELS.includes(missingLetter);
-  if (isVowel) {
-    const pool = ALL_VOWELS.filter((v) => v !== missingLetter).sort(() => Math.random() - 0.5);
-    return pool.slice(0, 2);
-  }
+function getDistractors(word) {
   const all = "abcdefghijklmnoprstw".split("");
   const used = new Set(word.split(""));
   const pool = all.filter((l) => !used.has(l)).sort(() => Math.random() - 0.5);
@@ -48,7 +38,7 @@ function shuffle(arr) {
 function buildRound(card, forcedMissingPos) {
   const letters = card.word.split("");
   const missingPos = forcedMissingPos !== undefined ? forcedMissingPos : Math.floor(Math.random() * 3);
-  const distractors = getDistractors(card.word, missingPos);
+  const distractors = getDistractors(card.word);
   const ts = Date.now();
   const options = shuffle([
     { id: `correct-${ts}`, letter: letters[missingPos], isCorrect: true },

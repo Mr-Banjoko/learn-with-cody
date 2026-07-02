@@ -26,8 +26,9 @@ function buildRound(card, overrideChoices) {
   return { card, choices };
 }
 
-const CORRECT_BORDER = "2px solid #4ECDC4";
-const CORRECT_BG = "white";
+// Rainbow border matching IdentifyingRound style
+const RAINBOW_BORDER = "4px solid transparent";
+const RAINBOW_BG = "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box";
 
 export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false, userPhotoUrl, onClearPhoto }) {
   const [round] = useState(() => buildRound(card, overrideChoices));
@@ -127,15 +128,15 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
               style={{
                 padding: "20px 8px",
                 borderRadius: 20,
-                background: showRainbow ? CORRECT_BG : "white",
-                border: showRainbow ? CORRECT_BORDER : "2px solid #A8D0E6",
+                background: showRainbow ? RAINBOW_BG : "white",
+                border: showRainbow ? RAINBOW_BORDER : "2px solid #A8D0E6",
                 color: "#1E3A5F",
                 fontSize: 28,
                 fontWeight: 700,
                 fontFamily: "Fredoka, sans-serif",
                 cursor: feedback ? "default" : "pointer",
                 boxShadow: showRainbow
-                  ? "0 4px 18px rgba(78,205,196,0.35)"
+                  ? "0 8px 32px rgba(155,89,182,0.25), 0 4px 18px rgba(78,205,196,0.3)"
                   : "0 4px 12px rgba(30,58,95,0.10)",
                 transition: "background 0.2s, border 0.2s, box-shadow 0.2s",
                 minHeight: 72,
