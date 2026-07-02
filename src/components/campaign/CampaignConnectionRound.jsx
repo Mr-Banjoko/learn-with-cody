@@ -21,14 +21,25 @@ import { buildWordData } from "../../lib/picSliceGameData";
 import { buildShortOSliceData } from "../../lib/buildShortOSliceData";
 import { buildShortISliceData } from "../../lib/buildShortISliceData";
 import { buildShortASliceData } from "../../lib/buildShortASliceData";
+import { buildShortESliceData } from "../../lib/buildShortESliceData";
+import { buildShortUSliceData } from "../../lib/buildShortUSliceData";
+
+const VOWEL_BUILDERS = {
+  a: buildShortASliceData,
+  e: buildShortESliceData,
+  i: buildShortISliceData,
+  o: buildShortOSliceData,
+  u: buildShortUSliceData,
+};
 
 function buildWordDataWithFallback(word) {
   const data = buildWordData(word);
-  // If phonemes have no sliceSrc, use the vowel-specific builder that matches this word's vowel
+  // If phonemes have no sliceSrc, use the vowel-specific builder that matches this
+  // word's actual vowel (CVC middle letter) — never guess based on .includes().
   if (data.phonemes && data.phonemes.every((p) => !p.sliceSrc)) {
-    if (word.includes("i")) return buildShortISliceData(word);
-    if (word.includes("o")) return buildShortOSliceData(word);
-    if (word.includes("a")) return buildShortASliceData(word);
+    const vowel = word[1];
+    const builder = VOWEL_BUILDERS[vowel];
+    if (builder) return builder(word);
   }
   return data;
 }
