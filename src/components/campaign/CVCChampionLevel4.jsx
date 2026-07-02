@@ -31,6 +31,15 @@ const SCORED_ROUNDS = getScoredRounds(VOWEL_KEY, LEVEL_NUM);
 const ALL_WORDS = [...shortAWords, ...shortOWords, ...shortIWords];
 const findWord = (w) => ALL_WORDS.find((x) => x.word === w);
 
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 const ROUND_SEQUENCE = [
   { type: "dictation" },
   { type: "drag_v2" },
@@ -100,7 +109,7 @@ export default function CVCChampionLevel4({ onBack, lang = "en" }) {
               <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("sit")} forcedMissingPos={1} forcedDistractors={["a", "o"]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "word_match" && (
-              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("cat")} overrideChoices={[findWord("cat"), findWord("cot"), { word: "cit" }]} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("cat")} overrideChoices={shuffle([findWord("cat"), findWord("cot"), { word: "cit" }, { word: "cut" }])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "writev2" && (
               <WriteV2CampaignRound key={`wv2-${roundIndex}`} card={findWord("pot")} onComplete={advance} onMistake={onMistake} lang={lang} />

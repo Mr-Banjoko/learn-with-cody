@@ -117,7 +117,7 @@ export default function CVCChampionLevel5({ onBack, lang = "en" }) {
               <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("mat")} forcedMissingPos={1} forcedDistractors={["o", "i"]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "word_match" && (
-              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("cot")} overrideChoices={[findWord("cot"), findWord("cat"), { word: "cit" }]} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("cot")} overrideChoices={shuffle([findWord("cot"), findWord("cat"), { word: "cit" }, { word: "cut" }])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "catch" && (
               <CampaignLetterCatchRound key={`catch-${roundIndex}`} word="bat" missingLetter="a" image={findWord("bat").image} audio={findWord("bat").audio} forcedDistractorLetters={["o", "i"]} onComplete={advance} onMistake={onMistake} lang={lang} />
