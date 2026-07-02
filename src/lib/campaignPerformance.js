@@ -252,10 +252,16 @@ export const SHORT_U_SCORED_ROUNDS = {
   20: 5,  // 5 rounds: word_match + dictation + word_to_audio + connection + identifying = 5 scored
 };
 
+// CVC Champion scored rounds map
+export const CVC_CHAMPION_SCORED_ROUNDS = {
+  1: 5, // 5 rounds, all scored (no passive phonics steps)
+};
+
 export function getScoredRounds(vowelKey, levelNum) {
   if (vowelKey === "short-a") return SHORT_A_SCORED_ROUNDS[levelNum] ?? 5;
   if (vowelKey === "short-o") return SHORT_O_SCORED_ROUNDS[levelNum] ?? 5;
   if (vowelKey === "short-e") return SHORT_E_SCORED_ROUNDS[levelNum] ?? 5;
   if (vowelKey === "short-u") return SHORT_U_SCORED_ROUNDS[levelNum] ?? 5;
+  if (vowelKey === "cvc-champion") return CVC_CHAMPION_SCORED_ROUNDS[levelNum] ?? 5;
   return 5;
 }

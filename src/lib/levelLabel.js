@@ -12,6 +12,10 @@ const SHORT_A_LEARN  = new Set([1, 6, 11, 21, 26, 31, 36]);
 const SHORT_O_LEARN  = new Set([1, 5, 9, 12, 16]);
 const SHORT_O_REVIEW = new Set([4, 8, 11, 15, 20]);
 
+// CVC Champion tag sets
+const CVC_CHAMPION_LEARN  = new Set([1]);
+const CVC_CHAMPION_REVIEW = new Set([]);
+
 function getTag(levelNum, learnSet, reviewSet) {
   if (reviewSet.has(levelNum)) return "review";
   if (learnSet.has(levelNum))  return "learn";
@@ -23,6 +27,8 @@ export function getLevelLabel(levelNum, lang = "en", vowelKey = "short-a") {
   let tag;
   if (vowelKey === "short-o") {
     tag = getTag(levelNum, SHORT_O_LEARN, SHORT_O_REVIEW);
+  } else if (vowelKey === "cvc-champion") {
+    tag = getTag(levelNum, CVC_CHAMPION_LEARN, CVC_CHAMPION_REVIEW);
   } else {
     tag = getTag(levelNum, SHORT_A_LEARN, SHORT_A_REVIEW);
   }
