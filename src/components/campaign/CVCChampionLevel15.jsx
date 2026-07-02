@@ -41,7 +41,7 @@ function shuffle(arr) {
 
 // R2 draw-a-line — matches fan/fun/fin against their missing letters f/u/n
 const DRAW_LINE_WORDS = [
-  { word: "fan", letter: "f", positionType: "first" },
+  { word: "fan", letter: "f", positionType: "initial" },
   { word: "fun", letter: "u", positionType: "middle" },
   { word: "fin", letter: "n", positionType: "last" },
 ];
