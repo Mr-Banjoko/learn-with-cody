@@ -255,6 +255,10 @@ export const SHORT_U_SCORED_ROUNDS = {
 // CVC Champion scored rounds map
 export const CVC_CHAMPION_SCORED_ROUNDS = {
   1: 5, // 5 rounds, all scored (no passive phonics steps)
+  2: 8, // learn level — flashcards only
+  3: 6,
+  4: 7,
+  5: 7,
 };
 
 export function getScoredRounds(vowelKey, levelNum) {

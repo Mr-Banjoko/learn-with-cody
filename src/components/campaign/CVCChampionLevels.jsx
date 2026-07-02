@@ -7,6 +7,10 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import CVCChampionLevel1 from "./CVCChampionLevel1";
+import CVCChampionLevel2 from "./CVCChampionLevel2";
+import CVCChampionLevel3 from "./CVCChampionLevel3";
+import CVCChampionLevel4 from "./CVCChampionLevel4";
+import CVCChampionLevel5 from "./CVCChampionLevel5";
 import { getBestStars } from "../../lib/campaignPerformance";
 
 const VOWEL_KEY = "cvc-champion";
@@ -16,10 +20,18 @@ const TOP_OFFSET = 36;
 
 const LEVEL_COMPONENTS = {
   1: CVCChampionLevel1,
+  2: CVCChampionLevel2,
+  3: CVCChampionLevel3,
+  4: CVCChampionLevel4,
+  5: CVCChampionLevel5,
 };
 
 const LEVEL_TAGS = {
   1: "Learn",
+  2: "Learn",
+  3: "Practice",
+  4: "Practice",
+  5: "Review",
 };
 
 const TAG_STYLES = {

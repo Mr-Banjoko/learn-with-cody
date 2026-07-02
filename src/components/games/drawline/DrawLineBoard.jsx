@@ -81,7 +81,7 @@ function ConnectorDot({ selected, matched, onTap, dotRef, color }) {
 // ── PartialWord — shows letters with a blank slot box ─────────────────────────
 function PartialWord({ word, positionType, isMatched, color, revealedLetter }) {
   const letters = word.toLowerCase().split("");
-  const missingIdx = positionType === "initial" ? 0 : letters.length - 1;
+  const missingIdx = positionType === "initial" ? 0 : positionType === "middle" ? 1 : letters.length - 1;
 
   return (
     <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", padding: "4px 2px 6px" }}>

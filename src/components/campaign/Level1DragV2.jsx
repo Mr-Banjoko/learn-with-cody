@@ -29,9 +29,9 @@ function shuffle(arr) {
   return a;
 }
 
-function buildRound(card) {
+function buildRound(card, forcedDistractor) {
   const letters = card.word.split("");
-  const distractor = getDistractor(card.word);
+  const distractor = forcedDistractor || getDistractor(card.word);
   const options = shuffle([
     ...letters.map((l, i) => ({ id: `correct-${i}`, letter: l, correctPos: i })),
     { id: "distractor", letter: distractor, correctPos: -1 },
@@ -39,8 +39,8 @@ function buildRound(card) {
   return { card, letters, options };
 }
 
-export default function Level1DragV2({ card, onComplete, lang = "en", onMistake, dragGuideStep = -1, onDragGuideAdvance, userPhotoUrl, onClearPhoto }) {
-  const [round] = useState(() => buildRound(card));
+export default function Level1DragV2({ card, onComplete, lang = "en", onMistake, dragGuideStep = -1, onDragGuideAdvance, userPhotoUrl, onClearPhoto, forcedDistractor }) {
+  const [round] = useState(() => buildRound(card, forcedDistractor));
   const [placed, setPlaced] = useState(Array(card.word.length).fill(null));
   const [placedColors, setPlacedColors] = useState({});
   const [completing, setCompleting] = useState(false);

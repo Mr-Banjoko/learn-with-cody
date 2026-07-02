@@ -35,10 +35,10 @@ function shuffle(arr) {
   return a;
 }
 
-function buildRound(card, forcedMissingPos) {
+function buildRound(card, forcedMissingPos, forcedDistractors) {
   const letters = card.word.split("");
   const missingPos = forcedMissingPos !== undefined ? forcedMissingPos : Math.floor(Math.random() * 3);
-  const distractors = getDistractors(card.word);
+  const distractors = forcedDistractors || getDistractors(card.word);
   const ts = Date.now();
   const options = shuffle([
     { id: `correct-${ts}`, letter: letters[missingPos], isCorrect: true },
@@ -48,8 +48,8 @@ function buildRound(card, forcedMissingPos) {
   return { card, letters, missingPos, options };
 }
 
-export default function CampaignMissingSound01Round({ card, onComplete, onMistake, lang = "en", forcedMissingPos, suppressAutoPlay = false, pulseCorrectLetter = false }) {
-  const [round] = useState(() => buildRound(card, forcedMissingPos));
+export default function CampaignMissingSound01Round({ card, onComplete, onMistake, lang = "en", forcedMissingPos, forcedDistractors, suppressAutoPlay = false, pulseCorrectLetter = false }) {
+  const [round] = useState(() => buildRound(card, forcedMissingPos, forcedDistractors));
   const [placedOption, setPlacedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [bouncingIndex, setBouncingIndex] = useState(null);

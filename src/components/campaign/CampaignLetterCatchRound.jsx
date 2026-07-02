@@ -208,7 +208,7 @@ function CandyArrow({ direction, onPress }) {
 export default function CampaignLetterCatchRound({
   word, missingLetter, image, audio,
   onComplete, onMistake,
-  lang = "en", paused = false, skipInitialAudio = false,
+  lang = "en", paused = false, skipInitialAudio = false, forcedDistractorLetters,
 }) {
   const { play: playCorrect } = useCorrectSound();
   const { play: playTryAgain } = useTryAgainSound();
@@ -230,7 +230,7 @@ export default function CampaignLetterCatchRound({
   const gameHeightRef  = useRef(460);
 
   // ── Spawn refs — reset inside tick effect, not at render time (bug fix #1) ─
-  const distractors   = useRef(pickDistractors(missingLetter)).current;
+  const distractors   = useRef(forcedDistractorLetters || pickDistractors(missingLetter)).current;
   const queue         = useRef(buildQueue(missingLetter, distractors)).current;
   const queueIdx      = useRef(0);
   // nextSpawnAt is initialized to 0 here; the tick effect sets it correctly on start
