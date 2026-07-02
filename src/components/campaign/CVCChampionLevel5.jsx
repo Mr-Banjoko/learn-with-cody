@@ -102,7 +102,7 @@ export default function CVCChampionLevel5({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "word_to_audio" && (
-              <CampaignWordMatchRound key={`wta-${roundIndex}`} card={findWord("mop")} overrideChoices={[findWord("mop"), findWord("mat"), findWord("hit")]} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordMatchRound key={`wta-${roundIndex}`} card={findWord("mop")} overrideChoices={shuffle([findWord("mop"), findWord("map"), { word: "mip" }, { word: "mup" }])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "dictation" && (
               <DictationCampaignRound key={`dict-${roundIndex}`} card={findWord("cat")} onComplete={advance} onMistake={onMistake} lang={lang} />
