@@ -4,7 +4,7 @@
  * R2: word_to_audio  — tap [tap, top, tip, ten]
  * R3: dictation      — tin
  * R4: drag_v2        — tip (vowel distractor "e")
- * R5: rearrange_hard — tag + tap
+ * R5: rearrange_hard — top + tug
  * R6: word_match     — ten [ten, tan, tin, ton, tun]
  * R7: missing01      — tag (middle, missing "a", choices a/e/i/o)
  */
@@ -89,7 +89,7 @@ export default function CVCChampionLevel21({ onBack, lang = "en" }) {
     return { target: findWord("tug"), choices: shuffle([findWord("tug"), findWord("tag"), findWord("tip"), findWord("top")]) };
   }, [roundIndex]); // eslint-disable-line
 
-  const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("tag"), buildWordData("tap")] : null), [roundIndex]); // eslint-disable-line
+  const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("top"), buildWordData("tug")] : null), [roundIndex]); // eslint-disable-line
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFF8 0%, #FFF9E6 60%, #E8F4FF 100%)", overflow: "hidden" }}>

@@ -24,4 +24,5 @@ export const shortUSlices = [
   makeWord("gum"),
   makeWord("gun"),
   makeWord("hug"),
+  makeWord("tug"),
 ];
