@@ -5,6 +5,7 @@ import LetterTrace from "../write/short-a/LetterTrace";
 import BackArrow from "../../BackArrow";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
 import { playAudioSequence, preloadAudio, warmupAudio } from "../../../lib/useAudio";
+import { useUserPhoto } from "../../../lib/useUserPhoto";
 
 const WORD_LIST_SIZE = 10;
 // Tile size: 3 cols fit in ~360px screen with 16px side padding and 8px gaps
@@ -220,6 +221,7 @@ export default function WriteV2Game({ wordList, title, onBack }) {
   }, [phase, round, tracedCardIds, cancelAudio, goNextWord, WORD_LIST]);
 
   const wordData = WORD_LIST[wordIdx];
+  const { photoUrl: currentPhotoUrl, clearPhoto: clearCurrentPhoto } = useUserPhoto(wordData.word);
   const tracedCount = tracedCardIds.size;
   const allCorrectTraced = round.correctCards.every((c) => tracedCardIds.has(c.id));
   const noDistractorTraced = round.distractorCards.every((c) => !tracedCardIds.has(c.id));
@@ -280,7 +282,16 @@ export default function WriteV2Game({ wordList, title, onBack }) {
               }}
               style={{ position: "relative", zIndex: 1, background: "#E8FFFE", borderRadius: 22, padding: 10, boxShadow: "0 10px 32px rgba(30,58,95,0.15)", cursor: "pointer" }}
             >
-              <img src={wordData.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 14, display: "block" }} />
+              <img src={currentPhotoUrl || wordData.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 14, display: "block" }} />
+              {currentPhotoUrl && (
+                <button
+                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); clearCurrentPhoto(); }}
+                  style={{ position: "absolute", top: 8, right: 8, width: 36, height: 36, borderRadius: 18, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "manipulation" }}
+                  aria-label="Reset to original image"
+                >
+                  <RotateCcw size={18} color="#A8D0E6" strokeWidth={2.2} />
+                </button>
+              )}
             </div>
           </motion.div>
         </AnimatePresence>

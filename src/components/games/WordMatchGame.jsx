@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Volume2 } from "lucide-react";
+import { Volume2, RotateCcw } from "lucide-react";
 import BackArrow from "../BackArrow";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 // Pick 1 correct + 3 random distractors from the word pool
 function buildRound(words, excludeUsed, brokenImages) {
@@ -81,6 +82,8 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
     if (round?.target.audio) playAudio(round.target.audio);
   };
 
+  const { photoUrl: currentPhotoUrl, clearPhoto: clearCurrentPhoto } = useUserPhoto(round?.target?.word || "");
+
   // Handle broken image — exclude it and move on
   const handleImageError = useCallback(() => {
     if (!round) return;
@@ -127,12 +130,23 @@ export default function WordMatchGame({ words, title, color, onBack, lang = "en"
               border: `3px solid ${color}44`,
             }}
           >
-            <img
-              src={round.target.image}
-              alt=""
-              onError={handleImageError}
-              style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }}
-            />
+            <div style={{ position: "relative" }}>
+              <img
+                src={currentPhotoUrl || round.target.image}
+                alt=""
+                onError={handleImageError}
+                style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }}
+              />
+              {currentPhotoUrl && (
+                <button
+                  onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); clearCurrentPhoto(); }}
+                  style={{ position: "absolute", top: 8, right: 8, width: 36, height: 36, borderRadius: 18, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "manipulation" }}
+                  aria-label="Reset to original image"
+                >
+                  <RotateCcw size={18} color="#A8D0E6" strokeWidth={2.2} />
+                </button>
+              )}
+            </div>
             <button
               onClick={playTarget}
               style={{

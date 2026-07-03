@@ -26,7 +26,7 @@ function createRound(card, key) {
   return { cards, shuffledCards: [...cards] };
 }
 
-export default function CampaignWriteRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
+export default function CampaignWriteRound({ card, onComplete, onMistake, lang = "en", suppressAutoPlay = false, userPhotoUrl, onClearPhoto }) {
   const [roundKey, setRoundKey] = useState(0);
   const [round, setRound] = useState(() => createRound(card, 0));
   const [tracedCardIds, setTracedCardIds] = useState(new Set());
@@ -123,7 +123,16 @@ export default function CampaignWriteRound({ card, onComplete, onMistake, lang =
             onPointerDown={(e) => { e.preventDefault(); if (!lockedRef.current && card.audio) { cancelAudio(); const cancel = playAudioSequence([{ url: card.audio, gain: 1 }], () => { cancelAudioRef.current = null; }); cancelAudioRef.current = cancel; } }}
             style={{ position: "relative", zIndex: 1, borderRadius: 22, padding: 10, boxShadow: "0 10px 32px rgba(30,58,95,0.15)", cursor: "pointer", border: "4px solid transparent", background: "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box" }}
           >
-            <img src={card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 14, display: "block" }} />
+            <img src={userPhotoUrl || card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 14, display: "block" }} />
+            {userPhotoUrl && onClearPhoto && (
+              <button
+                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onClearPhoto(); }}
+                style={{ position: "absolute", top: 8, right: 8, width: 36, height: 36, borderRadius: 18, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "manipulation" }}
+                aria-label="Reset to original image"
+              >
+                <RotateCcw size={18} color="#A8D0E6" strokeWidth={2.2} />
+              </button>
+            )}
           </div>
         </motion.div>
       </AnimatePresence>
