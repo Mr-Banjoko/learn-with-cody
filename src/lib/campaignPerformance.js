@@ -275,6 +275,10 @@ export const CVC_CHAMPION_SCORED_ROUNDS = {
   19: 6,
   20: 7,
   21: 7,
+  22: 8, // learn level — flashcards only
+  23: 6,
+  24: 7,
+  25: 7,
 };
 
 export function getScoredRounds(vowelKey, levelNum) {
