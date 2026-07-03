@@ -5,7 +5,7 @@
  * R3: dictation      — tin
  * R4: drag_v2        — tip (vowel distractor "e")
  * R5: rearrange_hard — top + tug
- * R6: word_match     — ten [ten, tan, tin, ton, tun]
+ * R6: word_match     — ten [ten, tan, tin, ton]
  * R7: missing01      — tag (middle, missing "a", choices a/e/i/o)
  */
 import { useState, useCallback, useMemo } from "react";
@@ -122,7 +122,7 @@ export default function CVCChampionLevel21({ onBack, lang = "en" }) {
               <PicSliceBoard key={`re-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "word_match" && (
-              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("ten")} overrideChoices={shuffle([findWord("ten"), findWord("tan"), findWord("tin"), { word: "ton" }, { word: "tun" }])} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("ten")} overrideChoices={shuffle([findWord("ten"), findWord("tan"), findWord("tin"), { word: "ton" }])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "missing01" && (
               <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("tag")} forcedMissingPos={1} forcedDistractors={["e", "i", "o"]} onComplete={advance} onMistake={onMistake} lang={lang} />
