@@ -8,15 +8,10 @@ import { Camera, RotateCcw } from "lucide-react";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
-
-const STORAGE_PREFIX = "cody_photo_";
-const storageKey = (word) => `${STORAGE_PREFIX}${word}`;
-const loadPhoto = (word) => { try { return localStorage.getItem(storageKey(word)) || null; } catch { return null; } };
-const savePhoto = (word, dataUrl) => { try { localStorage.setItem(storageKey(word), dataUrl); } catch {} };
-const clearPhoto = (word) => { try { localStorage.removeItem(storageKey(word)); } catch {} };
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 export default function Level6Phonics({ card, onNext, lang = "en" }) {
-  const [customImage, setCustomImage] = useState(() => loadPhoto(card.word));
+  const { photoUrl: customImage, savePhoto: saveUserPhoto, clearPhoto: clearUserPhoto } = useUserPhoto(card.word);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
 
   const sequenceRef = useRef(null);
@@ -26,7 +21,6 @@ export default function Level6Phonics({ card, onNext, lang = "en" }) {
   useEffect(() => {
     cancelSequence();
     setActiveLetterIndex(null);
-    setCustomImage(loadPhoto(card.word));
   }, [card.word]);
 
   useEffect(() => {
@@ -74,18 +68,15 @@ export default function Level6Phonics({ card, onNext, lang = "en" }) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const word = card.word;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      savePhoto(word, ev.target.result);
-      setCustomImage(ev.target.result);
+      saveUserPhoto(ev.target.result);
     };
     reader.readAsDataURL(file);
   };
 
   const handleReset = () => {
-    clearPhoto(card.word);
-    setCustomImage(null);
+    clearUserPhoto();
   };
 
   const currentImage = customImage || card.image;

@@ -25,6 +25,7 @@ import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 25;
 const VOWEL_KEY = "cvc-champion";
@@ -90,6 +91,7 @@ export default function CVCChampionLevel25({ onBack, lang = "en" }) {
   }, [roundIndex]); // eslint-disable-line
 
   const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("dig"), buildWordData("dad")] : null), [roundIndex]); // eslint-disable-line
+  const { photoUrl: begPhotoUrl, clearPhoto: clearBegPhoto } = useUserPhoto("beg");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFF8 0%, #FFF9E6 60%, #E8F4FF 100%)", overflow: "hidden" }}>
@@ -122,7 +124,7 @@ export default function CVCChampionLevel25({ onBack, lang = "en" }) {
               <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("bug")} overrideChoices={shuffle([findWord("bug"), findWord("bag"), findWord("beg"), findWord("big")])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "drag_v2" && (
-              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("beg")} forcedDistractor="i" onComplete={advance} onMistake={onMistake} lang={lang} />
+              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("beg")} forcedDistractor="i" onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={begPhotoUrl} onClearPhoto={clearBegPhoto} />
             )}
             {round.type === "missing01" && (
               <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("dad")} forcedMissingPos={1} forcedDistractors={["e", "i", "o"]} onComplete={advance} onMistake={onMistake} lang={lang} />

@@ -26,6 +26,7 @@ import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 20;
 const VOWEL_KEY = "cvc-champion";
@@ -85,6 +86,8 @@ export default function CVCChampionLevel20({ onBack, lang = "en" }) {
   const round = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
   const rearrangeWordPair = useMemo(() => (round.type === "rearrange_easy" ? [buildWordData("tag")] : null), [roundIndex]); // eslint-disable-line
+  const { photoUrl: tugPhotoUrl, clearPhoto: clearTugPhoto } = useUserPhoto("tug");
+  const { photoUrl: tenPhotoUrl, clearPhoto: clearTenPhoto } = useUserPhoto("ten");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFF8 0%, #FFF9E6 60%, #E8F4FF 100%)", overflow: "hidden" }}>
@@ -108,7 +111,7 @@ export default function CVCChampionLevel20({ onBack, lang = "en" }) {
               <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("tap")} overrideChoices={shuffle([findWord("tap"), { word: "tep" }, findWord("tip"), findWord("top")])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "writev2" && (
-              <WriteV2CampaignRound key={`wv2-${roundIndex}`} card={findWord("tug")} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <WriteV2CampaignRound key={`wv2-${roundIndex}`} card={findWord("tug")} onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={tugPhotoUrl} onClearPhoto={clearTugPhoto} />
             )}
             {round.type === "rearrange_easy" && rearrangeWordPair && (
               <PicSliceBoardEasy key={`re-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
@@ -117,7 +120,7 @@ export default function CVCChampionLevel20({ onBack, lang = "en" }) {
               <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("top")} forcedMissingPos={1} forcedDistractors={["a", "i", "e"]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "drag_v2" && (
-              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("ten")} forcedDistractor="i" onComplete={advance} onMistake={onMistake} lang={lang} />
+              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("ten")} forcedDistractor="i" onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={tenPhotoUrl} onClearPhoto={clearTenPhoto} />
             )}
             {round.type === "catch" && (
               <CampaignLetterCatchRound key={`catch-${roundIndex}`} word="tan" missingLetter="a" image={findWord("tan").image} audio={findWord("tan").audio} forcedDistractorLetters={["e", "i", "o", "u"]} onComplete={advance} onMistake={onMistake} lang={lang} />

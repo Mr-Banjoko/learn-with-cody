@@ -23,6 +23,7 @@ import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 19;
 const VOWEL_KEY = "cvc-champion";
@@ -105,6 +106,7 @@ export default function CVCChampionLevel19({ onBack, lang = "en" }) {
   }, [roundIndex]); // eslint-disable-line
 
   const drawLineRound = useMemo(() => (round.type === "drawline" ? buildDrawLineRound() : null), [roundIndex]); // eslint-disable-line
+  const { photoUrl: tapPhotoUrl, clearPhoto: clearTapPhoto } = useUserPhoto("tap");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFF8 0%, #FFF9E6 60%, #E8F4FF 100%)", overflow: "hidden" }}>
@@ -125,7 +127,7 @@ export default function CVCChampionLevel19({ onBack, lang = "en" }) {
               <CampaignConnectionRound key={`conn-${roundIndex}`} card={findWord("top")} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "drag_v2" && (
-              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("tap")} forcedDistractor="o" onComplete={advance} onMistake={onMistake} lang={lang} />
+              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("tap")} forcedDistractor="o" onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={tapPhotoUrl} onClearPhoto={clearTapPhoto} />
             )}
             {round.type === "identifying" && identifyingRound && (
               <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} onMistake={onMistake} lang={lang} />

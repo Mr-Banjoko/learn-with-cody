@@ -26,6 +26,7 @@ import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 24;
 const VOWEL_KEY = "cvc-champion";
@@ -85,6 +86,8 @@ export default function CVCChampionLevel24({ onBack, lang = "en" }) {
   const round = ROUND_SEQUENCE[roundIndex];
   const progressPct = (roundIndex / TOTAL_ROUNDS) * 100;
   const rearrangeWordPair = useMemo(() => (round.type === "rearrange_easy" ? [buildWordData("beg")] : null), [roundIndex]); // eslint-disable-line
+  const { photoUrl: digPhotoUrl, clearPhoto: clearDigPhoto } = useUserPhoto("dig");
+  const { photoUrl: dadPhotoUrl, clearPhoto: clearDadPhoto } = useUserPhoto("dad");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFF8 0%, #FFF9E6 60%, #E8F4FF 100%)", overflow: "hidden" }}>
@@ -108,10 +111,10 @@ export default function CVCChampionLevel24({ onBack, lang = "en" }) {
               <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("bag")} overrideChoices={shuffle([findWord("bag"), findWord("beg"), findWord("big"), findWord("bog")])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "drag_v2" && (
-              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("dig")} forcedDistractor="o" onComplete={advance} onMistake={onMistake} lang={lang} />
+              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("dig")} forcedDistractor="o" onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={digPhotoUrl} onClearPhoto={clearDigPhoto} />
             )}
             {round.type === "writev2" && (
-              <WriteV2CampaignRound key={`wv2-${roundIndex}`} card={findWord("dad")} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <WriteV2CampaignRound key={`wv2-${roundIndex}`} card={findWord("dad")} onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={dadPhotoUrl} onClearPhoto={clearDadPhoto} />
             )}
             {round.type === "rearrange_easy" && rearrangeWordPair && (
               <PicSliceBoardEasy key={`re-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} onMistake={onMistake} lang={lang} />

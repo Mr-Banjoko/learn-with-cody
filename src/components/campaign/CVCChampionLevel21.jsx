@@ -25,6 +25,7 @@ import { shortIWords } from "../../lib/shortIWords";
 import { shortOWords } from "../../lib/shortOWords";
 import { shortUWords } from "../../lib/shortUWords";
 import { calcStars, saveLevelResult, getScoredRounds } from "../../lib/campaignPerformance";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 
 const LEVEL_NUM = 21;
 const VOWEL_KEY = "cvc-champion";
@@ -90,6 +91,7 @@ export default function CVCChampionLevel21({ onBack, lang = "en" }) {
   }, [roundIndex]); // eslint-disable-line
 
   const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("top"), buildWordData("tug")] : null), [roundIndex]); // eslint-disable-line
+  const { photoUrl: tipPhotoUrl, clearPhoto: clearTipPhoto } = useUserPhoto("tip");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: "linear-gradient(160deg, #E8FFF8 0%, #FFF9E6 60%, #E8F4FF 100%)", overflow: "hidden" }}>
@@ -116,7 +118,7 @@ export default function CVCChampionLevel21({ onBack, lang = "en" }) {
               <DictationCampaignRound key={`dict-${roundIndex}`} card={findWord("tin")} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "drag_v2" && (
-              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("tip")} forcedDistractor="e" onComplete={advance} onMistake={onMistake} lang={lang} />
+              <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("tip")} forcedDistractor="e" onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={tipPhotoUrl} onClearPhoto={clearTipPhoto} />
             )}
             {round.type === "rearrange_hard" && rearrangeWordPair && (
               <PicSliceBoard key={`re-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
