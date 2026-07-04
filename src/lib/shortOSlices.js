@@ -25,4 +25,5 @@ export const shortOSlices = [
   makeWord("fog"),
   makeWord("fox"),
   makeWord("top"),
+  makeWord("log"),
 ];
