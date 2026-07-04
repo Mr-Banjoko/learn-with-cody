@@ -122,7 +122,7 @@ export default function CVCChampionLevel32({ onBack, lang = "en" }) {
               <CampaignLetterCatchRound key={`catch-${roundIndex}`} word="log" missingLetter="o" image={findWord("log").image} audio={findWord("log").audio} forcedDistractorLetters={["a", "e", "i", "u"]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "missing01" && (
-              <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("pug")} forcedMissingPos={1} forcedDistractors={["a", "e", "i", "o"]} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("pug")} forcedMissingPos={1} forcedDistractors={["e", "i", "o"]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
           </motion.div>
         )}
