@@ -124,10 +124,10 @@ export default function CVCChampionLevel33({ onBack, lang = "en" }) {
               <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("lad")} forcedDistractor="e" onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={ladPhotoUrl} onClearPhoto={clearLadPhoto} />
             )}
             {round.type === "word_match" && (
-              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("lid")} overrideChoices={shuffle([findWord("lid"), findWord("lad"), { word: "led" }, { word: "lod" }, { word: "lud" }])} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordMatchRound key={`wm-${roundIndex}`} card={findWord("lid")} overrideChoices={shuffle([findWord("lid"), findWord("lad"), { word: "lod" }, { word: "lud" }])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "missing01" && (
-              <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("log")} forcedMissingPos={1} forcedDistractors={["a", "e", "i", "u"]} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("log")} forcedMissingPos={1} forcedDistractors={["e", "i", "u"]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
           </motion.div>
         )}
