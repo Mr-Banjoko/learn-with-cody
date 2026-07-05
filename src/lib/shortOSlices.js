@@ -26,4 +26,5 @@ export const shortOSlices = [
   makeWord("fox"),
   makeWord("top"),
   makeWord("log"),
+  makeWord("sob"),
 ];
