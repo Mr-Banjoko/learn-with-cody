@@ -29,4 +29,5 @@ export const shortUSlices = [
   makeWord("pug"),
   makeWord("sun"),
   makeWord("sum"),
+  makeWord("nut"),
 ];
