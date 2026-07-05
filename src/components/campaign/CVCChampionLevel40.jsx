@@ -119,7 +119,7 @@ export default function CVCChampionLevel40({ onBack, lang = "en" }) {
               <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("sun")} forcedDistractor="a" onComplete={advance} onMistake={onMistake} lang={lang} userPhotoUrl={sunPhotoUrl} onClearPhoto={clearSunPhoto} />
             )}
             {round.type === "missing01" && (
-              <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("sum")} forcedMissingPos={1} forcedDistractors={["a", "i", "o", "e"]} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("sum")} forcedMissingPos={1} forcedDistractors={["i", "o", "e"]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "catch" && (
               <CampaignLetterCatchRound key={`catch-${roundIndex}`} word="sad" missingLetter="a" image={findWord("sad").image} audio={findWord("sad").audio} forcedDistractorLetters={["e", "i", "o", "u"]} onComplete={advance} onMistake={onMistake} lang={lang} />
