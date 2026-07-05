@@ -43,6 +43,10 @@ import CVCChampionLevel34 from "./CVCChampionLevel34";
 import CVCChampionLevel35 from "./CVCChampionLevel35";
 import CVCChampionLevel36 from "./CVCChampionLevel36";
 import CVCChampionLevel37 from "./CVCChampionLevel37";
+import CVCChampionLevel38 from "./CVCChampionLevel38";
+import CVCChampionLevel39 from "./CVCChampionLevel39";
+import CVCChampionLevel40 from "./CVCChampionLevel40";
+import CVCChampionLevel41 from "./CVCChampionLevel41";
 import { getBestStars } from "../../lib/campaignPerformance";
 
 const VOWEL_KEY = "cvc-champion";
@@ -88,6 +92,10 @@ const LEVEL_COMPONENTS = {
   35: CVCChampionLevel35,
   36: CVCChampionLevel36,
   37: CVCChampionLevel37,
+  38: CVCChampionLevel38,
+  39: CVCChampionLevel39,
+  40: CVCChampionLevel40,
+  41: CVCChampionLevel41,
 };
 
 const LEVEL_TAGS = {
@@ -128,6 +136,10 @@ const LEVEL_TAGS = {
   35: "Practice",
   36: "Practice",
   37: "Review",
+  38: "Learn",
+  39: "Practice",
+  40: "Practice",
+  41: "Review",
 };
 
 const TAG_STYLES = {
