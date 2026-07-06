@@ -90,7 +90,7 @@ export default function CVCChampionLevel49({ onBack, lang = "en" }) {
     return { target: findWord("men"), choices: shuffle([findWord("men"), findWord("man"), findWord("met"), findWord("mat")]) };
   }, [roundIndex]); // eslint-disable-line
 
-  const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("map")] : null), [roundIndex]); // eslint-disable-line
+  const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("man"), buildWordData("men")] : null), [roundIndex]); // eslint-disable-line
   const { photoUrl: metPhotoUrl, clearPhoto: clearMetPhoto } = useUserPhoto("met");
 
   return (
