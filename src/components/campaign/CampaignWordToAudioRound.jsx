@@ -59,15 +59,14 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
     if (!leftWord || !rightWord) return;
 
     if (leftWord === rightWord) {
-      playCorrect(() => {
-        const newMatched = [...matchedPairs, leftWord];
-        setMatchedPairs(newMatched);
-        setSelectedLeft(null);
-        setSelectedRight(null);
-        if (newMatched.length === words.length) {
-          setTimeout(() => onComplete(), 400);
-        }
-      });
+      playCorrect();
+      const newMatched = [...matchedPairs, leftWord];
+      setMatchedPairs(newMatched);
+      setSelectedLeft(null);
+      setSelectedRight(null);
+      if (newMatched.length === words.length) {
+        setTimeout(() => onComplete(), 400);
+      }
     } else {
       onMistake && onMistake();
       setWrongFlash(true);
