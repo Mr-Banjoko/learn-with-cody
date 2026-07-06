@@ -119,7 +119,7 @@ export default function CVCChampionLevel60({ onBack, lang = "en" }) {
               <PicSliceBoardEasy key={`re-${roundIndex}`} wordPair={rearrangeWordPair} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "missing01" && (
-              <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("jig")} forcedMissingPos={1} forcedDistractors={["a", "e", "o", "u"]} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignMissingSound01Round key={`ms-${roundIndex}`} card={findWord("jig")} forcedMissingPos={1} forcedDistractors={["a", "e", "o"]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "catch" && (
               <CampaignLetterCatchRound key={`catch-${roundIndex}`} word="jug" missingLetter="u" image={findWord("jug").image} audio={findWord("jug").audio} forcedDistractorLetters={["a", "e", "i", "o"]} onComplete={advance} onMistake={onMistake} lang={lang} />
