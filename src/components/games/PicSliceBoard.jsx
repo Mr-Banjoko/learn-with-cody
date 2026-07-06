@@ -43,11 +43,22 @@ function LetterBlocks({ word, activeLetterIndex, color }) {
 
 function buildState(wordPair) {
   const pieces = buildRoundPieces(wordPair);
-  // Shuffle all pieces and randomly assign half to each display row
-  const shuffled = [...pieces].sort(() => Math.random() - 0.5);
-  const half = Math.ceil(shuffled.length / 2);
   const trayAssignment = {};
-  shuffled.forEach((p, i) => { trayAssignment[p.id] = i < half ? 0 : 1; });
+  if (wordPair.length === 2) {
+    // Guarantee each word's pieces are split across both trays, so both
+    // rows always contain a mix of both words' slices (not grouped by word).
+    const byWord = [[], []];
+    pieces.forEach((p) => byWord[p.wordIndex].push(p));
+    byWord.forEach((group) => {
+      const shuffledGroup = [...group].sort(() => Math.random() - 0.5);
+      shuffledGroup.forEach((p, i) => { trayAssignment[p.id] = i % 2; });
+    });
+  } else {
+    // Shuffle all pieces and randomly assign half to each display row
+    const shuffled = [...pieces].sort(() => Math.random() - 0.5);
+    const half = Math.ceil(shuffled.length / 2);
+    shuffled.forEach((p, i) => { trayAssignment[p.id] = i < half ? 0 : 1; });
+  }
   return {
     pieces,
     trayIds: pieces.map((p) => p.id),
