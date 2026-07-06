@@ -93,12 +93,6 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
-      <div style={{ flexShrink: 0, textAlign: "center", padding: "10px 24px 4px" }}>
-        <p style={{ fontSize: 15, color: "#7BACC8", margin: 0, fontWeight: 600 }}>
-          {lang === "zh" ? "点击喇叭，然后配对单词" : "Tap a speaker, then match the word"}
-        </p>
-      </div>
-
       <AnimatePresence mode="wait">
         <motion.div
           key="round"
