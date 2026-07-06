@@ -13,8 +13,8 @@ const SHORT_O_LEARN  = new Set([1, 5, 9, 12, 16]);
 const SHORT_O_REVIEW = new Set([4, 8, 11, 15, 20]);
 
 // CVC Champion tag sets
-const CVC_CHAMPION_LEARN  = new Set([1, 2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50]);
-const CVC_CHAMPION_REVIEW = new Set([5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53]);
+const CVC_CHAMPION_LEARN  = new Set([1, 2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54]);
+const CVC_CHAMPION_REVIEW = new Set([5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57]);
 
 function getTag(levelNum, learnSet, reviewSet) {
   if (reviewSet.has(levelNum)) return "review";
