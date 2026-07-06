@@ -7,6 +7,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../lib/useAudio";
+import { useCorrectSound } from "../../lib/useCorrectSound";
+
+const RAINBOW_BORDER = "3.5px solid transparent";
+const RAINBOW_BG = "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box";
 
 function shuffle(arr) {
   const a = [...arr];
@@ -27,8 +31,6 @@ function SpeakerIcon({ color = "#4ECDC4", size = 28 }) {
   );
 }
 
-const PAIR_COLORS = ["#4ECDC4", "#C77DFF", "#FFD93D", "#FF9F43"];
-
 function buildRound(words) {
   const leftItems = shuffle(words).map((w, i) => ({ ...w, id: `left-${i}-${w.word}` }));
   let rightOrder = shuffle(words);
@@ -48,6 +50,7 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
   const [selectedRight, setSelectedRight] = useState(null);
   const [matchedPairs, setMatchedPairs] = useState([]);
   const [wrongFlash, setWrongFlash] = useState(false);
+  const { play: playCorrect } = useCorrectSound();
 
   useEffect(() => {
     if (!selectedLeft || !selectedRight) return;
@@ -56,13 +59,15 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
     if (!leftWord || !rightWord) return;
 
     if (leftWord === rightWord) {
-      const newMatched = [...matchedPairs, leftWord];
-      setMatchedPairs(newMatched);
-      setSelectedLeft(null);
-      setSelectedRight(null);
-      if (newMatched.length === words.length) {
-        setTimeout(() => onComplete(), 700);
-      }
+      playCorrect(() => {
+        const newMatched = [...matchedPairs, leftWord];
+        setMatchedPairs(newMatched);
+        setSelectedLeft(null);
+        setSelectedRight(null);
+        if (newMatched.length === words.length) {
+          setTimeout(() => onComplete(), 400);
+        }
+      });
     } else {
       onMistake && onMistake();
       setWrongFlash(true);
@@ -85,11 +90,6 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
     if (matchedPairs.includes(item.word)) return;
     setSelectedRight(item.id);
   }, [matchedPairs]);
-
-  const getMatchColor = (word) => {
-    const idx = matchedPairs.indexOf(word);
-    return idx >= 0 ? PAIR_COLORS[idx % PAIR_COLORS.length] : null;
-  };
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
@@ -114,8 +114,6 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
             const isRightMatched = matchedPairs.includes(rightItem.word);
             const isLeftSelected = selectedLeft === leftItem.id;
             const isRightSelected = selectedRight === rightItem.id;
-            const matchColor = getMatchColor(leftItem.word);
-            const rightMatchColor = getMatchColor(rightItem.word);
 
             return (
               <div key={rowIdx} style={{ display: "flex", gap: 16, alignItems: "stretch" }}>
@@ -126,16 +124,16 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
                   transition={{ duration: 0.38 }}
                   style={{
                     flex: 1, height: 96, borderRadius: 22,
-                    border: isLeftMatched ? `3px solid ${matchColor}` : isLeftSelected ? "3.5px solid #4ECDC4" : "2.5px solid rgba(168,208,230,0.35)",
-                    background: isLeftMatched ? `${matchColor}18` : isLeftSelected ? "rgba(78,205,196,0.12)" : "white",
-                    boxShadow: isLeftMatched ? `0 4px 18px ${matchColor}44` : isLeftSelected ? "0 6px 24px rgba(78,205,196,0.28), 0 0 0 5px rgba(78,205,196,0.14)" : "0 4px 16px rgba(30,58,95,0.08)",
+                    border: isLeftSelected ? RAINBOW_BORDER : "2.5px solid rgba(168,208,230,0.35)",
+                    background: isLeftSelected ? RAINBOW_BG : "white",
+                    boxShadow: isLeftSelected ? "0 6px 24px rgba(155,89,182,0.22)" : "0 4px 16px rgba(30,58,95,0.08)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     cursor: isLeftMatched ? "default" : "pointer",
-                    opacity: isLeftMatched ? 0.52 : 1,
+                    opacity: isLeftMatched ? 0.4 : 1,
                     WebkitTapHighlightColor: "transparent",
                   }}
                 >
-                  {isLeftMatched ? <span style={{ fontSize: 30 }}>✓</span> : <SpeakerIcon color={isLeftSelected ? "#4ECDC4" : "#A8D0E6"} size={34} />}
+                  <SpeakerIcon color={isLeftSelected ? "#9B59B6" : "#A8D0E6"} size={34} />
                 </motion.button>
 
                 <motion.button
@@ -145,16 +143,16 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
                   transition={{ duration: 0.38 }}
                   style={{
                     flex: 1, height: 96, borderRadius: 22,
-                    border: isRightMatched ? `3px solid ${rightMatchColor}` : isRightSelected ? "3.5px solid #4D96FF" : "2.5px solid rgba(168,208,230,0.35)",
-                    background: isRightMatched ? `${rightMatchColor}18` : isRightSelected ? "rgba(77,150,255,0.1)" : "white",
-                    boxShadow: isRightMatched ? `0 4px 18px ${rightMatchColor}44` : isRightSelected ? "0 6px 24px rgba(77,150,255,0.28), 0 0 0 5px rgba(77,150,255,0.12)" : "0 4px 16px rgba(30,58,95,0.08)",
+                    border: isRightSelected ? RAINBOW_BORDER : "2.5px solid rgba(168,208,230,0.35)",
+                    background: isRightSelected ? RAINBOW_BG : "white",
+                    boxShadow: isRightSelected ? "0 6px 24px rgba(155,89,182,0.22)" : "0 4px 16px rgba(30,58,95,0.08)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     cursor: isRightMatched ? "default" : "pointer",
-                    opacity: isRightMatched ? 0.52 : 1,
+                    opacity: isRightMatched ? 0.4 : 1,
                     WebkitTapHighlightColor: "transparent",
                   }}
                 >
-                  <span style={{ fontSize: 30, fontWeight: 700, color: isRightMatched ? rightMatchColor : isRightSelected ? "#4D96FF" : "#1E3A5F", fontFamily: "Fredoka, sans-serif", letterSpacing: "-0.5px" }}>
+                  <span style={{ fontSize: 30, fontWeight: 700, color: isRightSelected ? "#9B59B6" : "#1E3A5F", fontFamily: "Fredoka, sans-serif", letterSpacing: "-0.5px" }}>
                     {rightItem.word}
                   </span>
                 </motion.button>
