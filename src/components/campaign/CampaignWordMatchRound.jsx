@@ -9,6 +9,7 @@ import { Volume2, RotateCcw } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
+import { useUserPhoto } from "../../lib/useUserPhoto";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
 import { shortIWords } from "../../lib/shortIWords";
@@ -30,8 +31,9 @@ function buildRound(card, overrideChoices) {
 const RAINBOW_BORDER = "4px solid transparent";
 const RAINBOW_BG = "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box";
 
-export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false, userPhotoUrl, onClearPhoto }) {
+export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [round] = useState(() => buildRound(card, overrideChoices));
+  const { photoUrl, clearPhoto } = useUserPhoto(card.word);
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [audioLocked, setAudioLocked] = useState(true);
@@ -91,10 +93,10 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
           style={{ width: "min(280px, calc(100vw - 48px))", background: "white", borderRadius: 28, padding: 12, boxShadow: "0 12px 48px rgba(30,58,95,0.14)", border: "2px solid #E8E8E8" }}
         >
           <div style={{ position: "relative" }}>
-            <img src={userPhotoUrl || round.card.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
-            {userPhotoUrl && onClearPhoto && (
+            <img src={photoUrl || round.card.image} alt="" style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
+            {photoUrl && (
               <button
-                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onClearPhoto(); }}
+                onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); clearPhoto(); }}
                 style={{ position: "absolute", top: 8, right: 8, width: 36, height: 36, borderRadius: 18, background: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "manipulation" }}
                 aria-label="Reset to original image"
               >

@@ -26,6 +26,8 @@ import { Volume2 } from "lucide-react";
 import { playAudio, playAudioSequence } from "../../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
 import { useTryAgainSound } from "../../../lib/useTryAgainSound";
+import { useUserPhoto } from "../../../lib/useUserPhoto";
+import { RotateCcw } from "lucide-react";
 
 const MATCH_END_URL = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3";
 
@@ -75,6 +77,26 @@ function ConnectorDot({ selected, matched, onTap, dotRef, color }) {
         flexShrink: 0,
       }}
     />
+  );
+}
+
+// ── TopCardImage — picture with shared-memory user photo override ─────────────
+function TopCardImage({ card }) {
+  const { photoUrl, clearPhoto } = useUserPhoto(card.word);
+  return (
+    <div style={{ position: "relative" }}>
+      <img src={photoUrl || card.image} alt={card.word}
+        style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", display: "block", pointerEvents: "none" }} />
+      {photoUrl && (
+        <button
+          onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); clearPhoto(); }}
+          style={{ position: "absolute", top: 4, right: 4, width: 26, height: 26, borderRadius: 13, background: "white", boxShadow: "0 2px 8px rgba(0,0,0,0.2)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10, touchAction: "manipulation" }}
+          aria-label="Reset to original image"
+        >
+          <RotateCcw size={14} color="#A8D0E6" strokeWidth={2.2} />
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -301,8 +323,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                   userSelect: "none", WebkitTapHighlightColor: "transparent",
                 }}
               >
-                <img src={card.image} alt={card.word}
-                  style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", display: "block", pointerEvents: "none" }} />
+                <TopCardImage card={card} />
                 <PartialWord
                   word={card.word}
                   positionType={card.positionType}
