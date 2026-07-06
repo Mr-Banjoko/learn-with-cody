@@ -24,4 +24,5 @@ export const shortESlices = [
   makeWord("hem"),
   makeWord("hen"),
   makeWord("jet"),
+  makeWord("men"),
 ];
