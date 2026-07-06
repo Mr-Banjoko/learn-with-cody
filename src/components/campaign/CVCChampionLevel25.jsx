@@ -12,6 +12,7 @@ import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
 import CampaignWordMatchRound from "./CampaignWordMatchRound";
+import CampaignWordToAudioRound from "./CampaignWordToAudioRound";
 import DictationCampaignRound from "./DictationCampaignRound";
 import IdentifyingRound from "../games/IdentifyingRound";
 import PicSliceBoard from "../games/PicSliceBoard";
@@ -109,7 +110,7 @@ export default function CVCChampionLevel25({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "word_to_audio" && (
-              <CampaignWordMatchRound key={`wta-${roundIndex}`} card={findWord("bog")} overrideChoices={shuffle([findWord("bog"), findWord("bag"), findWord("bug"), findWord("big")])} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordToAudioRound key={`wta-${roundIndex}`} card={findWord("bog")} overrideChoices={[findWord("bog"), findWord("bag"), findWord("bug"), findWord("big")]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "dictation" && (
               <DictationCampaignRound key={`dict-${roundIndex}`} card={findWord("bag")} onComplete={advance} onMistake={onMistake} lang={lang} />

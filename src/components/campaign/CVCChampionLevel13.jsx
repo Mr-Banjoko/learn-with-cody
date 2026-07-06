@@ -14,6 +14,7 @@ import LevelHeader from "./LevelHeader";
 import IdentifyingRound from "../games/IdentifyingRound";
 import DictationCampaignRound from "./DictationCampaignRound";
 import CampaignWordMatchRound from "./CampaignWordMatchRound";
+import CampaignWordToAudioRound from "./CampaignWordToAudioRound";
 import Level1DragV2 from "./Level1DragV2";
 import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
@@ -113,7 +114,7 @@ export default function CVCChampionLevel13({ onBack, lang = "en" }) {
               <DictationCampaignRound key={`dict-${roundIndex}`} card={findWord("cub")} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "word_to_audio" && (
-              <CampaignWordMatchRound key={`wta-${roundIndex}`} card={findWord("kid")} overrideChoices={shuffle([findWord("kid"), findWord("keg"), findWord("cod"), findWord("cab")])} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordToAudioRound key={`wta-${roundIndex}`} card={findWord("kid")} overrideChoices={[findWord("kid"), findWord("keg"), findWord("cod"), findWord("cab")]} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "drag_v2" && (
               <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord("keg")} forcedDistractor="i" onComplete={advance} onMistake={onMistake} lang={lang} />
