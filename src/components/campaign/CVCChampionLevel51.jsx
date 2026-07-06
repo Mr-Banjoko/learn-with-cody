@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
 import IdentifyingRound from "../games/IdentifyingRound";
 import CampaignWordMatchRound from "./CampaignWordMatchRound";
+import CampaignWordToAudioRound from "./CampaignWordToAudioRound";
 import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import CampaignConnectionRound from "./CampaignConnectionRound";
 import Level1DragV2 from "./Level1DragV2";
@@ -121,7 +122,7 @@ export default function CVCChampionLevel51({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "word_to_audio" && (
-              <CampaignWordMatchRound key={`wta-${roundIndex}`} card={findWord("wet")} overrideChoices={shuffle([findWord("wet"), findWord("wed"), findWord("wax"), findWord("wig")])} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordToAudioRound key={`wta-${roundIndex}`} card={findWord("wet")} overrideChoices={shuffle([findWord("wet"), findWord("wed"), findWord("wax"), findWord("wig")])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "identifying" && identifyingRound && (
               <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} onMistake={onMistake} lang={lang} />

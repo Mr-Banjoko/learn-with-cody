@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import LevelHeader from "./LevelHeader";
 import IdentifyingRound from "../games/IdentifyingRound";
 import CampaignWordMatchRound from "./CampaignWordMatchRound";
+import CampaignWordToAudioRound from "./CampaignWordToAudioRound";
 import DrawLineBoard from "../games/drawline/DrawLineBoard";
 import CampaignMissingSound01Round from "./CampaignMissingSound01Round";
 import CampaignConnectionRound from "./CampaignConnectionRound";
@@ -124,7 +125,7 @@ export default function CVCChampionLevel55({ onBack, lang = "en" }) {
               <IdentifyingRound key={`id-${roundIndex}`} round={identifyingRound} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "word_to_audio" && (
-              <CampaignWordMatchRound key={`wta-${roundIndex}`} card={findWord("fix")} overrideChoices={shuffle([findWord("fix"), findWord("fox"), findWord("six"), findWord("gas")])} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordToAudioRound key={`wta-${roundIndex}`} card={findWord("fix")} overrideChoices={shuffle([findWord("fix"), findWord("fox"), findWord("six"), findWord("gas")])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "drawline" && drawLineRound && (
               <DrawLineBoard key={`dl-${roundIndex}`} round={drawLineRound} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
