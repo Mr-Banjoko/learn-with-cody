@@ -30,4 +30,11 @@ export const shortUSlices = [
   makeWord("sun"),
   makeWord("sum"),
   makeWord("nut"),
+  makeWord("jug"),
+  makeWord("mud"),
+  makeWord("mug"),
+  makeWord("pup"),
+  makeWord("rub"),
+  makeWord("rug"),
+  makeWord("sub"),
 ];
