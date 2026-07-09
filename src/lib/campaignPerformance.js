@@ -339,6 +339,12 @@ export const CVC_CHAMPION_SCORED_ROUNDS = {
   82: 8,
   83: 8,
   84: 8,
+  // L85–L87: final challenge levels — 9 rounds, all scored
+  85: 9,
+  86: 9,
+  87: 9,
+  // L88: final champion level — 10 rounds, all scored
+  88: 10,
 };
 
 export function getScoredRounds(vowelKey, levelNum) {

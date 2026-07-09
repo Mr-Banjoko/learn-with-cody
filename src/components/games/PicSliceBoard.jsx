@@ -282,7 +282,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
       const requiredPhoneme = wordData?.phonemes?.[si]?.letter;
       const isCorrect = piece.wordIndex === wi && piece.phoneme === requiredPhoneme;
       if (isCorrect) {
-        playAudio("https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3");
+        playAudio("https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/feedback/match-end.mp3");
         const newPlaced = { ...state.placed, [hitKey]: piece.id };
         const newTrayIds = state.trayIds.filter((id) => id !== piece.id);
         const wordComplete = [0, 1].map((wordIdx) =>

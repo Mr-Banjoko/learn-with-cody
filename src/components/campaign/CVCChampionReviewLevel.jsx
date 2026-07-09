@@ -25,6 +25,8 @@ import CampaignLetterCatchRound from "./CampaignLetterCatchRound";
 import DictationCampaignRound from "./DictationCampaignRound";
 import WriteV2CampaignRound from "./WriteV2CampaignRound";
 import Level1DragV2 from "./Level1DragV2";
+import CampaignOneLetter3Sounds from "./CampaignOneLetter3Sounds";
+import FinalMixedChallengeRound from "./FinalMixedChallengeRound";
 import IdentifyingRound from "../games/IdentifyingRound";
 import PicSliceBoard from "../games/PicSliceBoard";
 import PicSliceBoardEasy from "../games/PicSliceBoardEasy";
@@ -154,8 +156,16 @@ export default function CVCChampionReviewLevel({ levelNum, rounds, onBack, lang 
             {round.type === "rearrange_easy" && (
               <PicSliceBoardEasy key={`re-${roundIndex}`} wordPair={roundData.wordPair} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
             )}
-            {round.type === "rearrange_hard" && (
+            {round.type === "rearrange_hard" && (roundData.wordPair.length === 1 ? (
+              <PicSliceBoardEasy key={`rh-${roundIndex}`} wordPair={roundData.wordPair} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
+            ) : (
               <PicSliceBoard key={`rh-${roundIndex}`} wordPair={roundData.wordPair} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
+            ))}
+            {round.type === "one_letter_3_sounds" && (
+              <CampaignOneLetter3Sounds key={`ol3s-${roundIndex}`} speakers={round.speakers} targetLetter={round.letter} onComplete={advance} onMistake={onMistake} />
+            )}
+            {round.type === "final_challenge" && (
+              <FinalMixedChallengeRound key={`fc-${roundIndex}`} cards={round.words.map(findWord)} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "drawline" && (
               <DrawLineBoard key={`dl-${roundIndex}`} round={roundData.drawRound} onRoundComplete={advance} onMistake={onMistake} lang={lang} />
