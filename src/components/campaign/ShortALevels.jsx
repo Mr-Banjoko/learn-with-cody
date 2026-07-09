@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { getBestStars } from "../../lib/campaignPerformance";
+import { getLevelTag, TAG_STYLES } from "../../lib/levelLabel";
 
 // PERSISTENCE_SENTINEL_2026_05_21_SHORT_A_FINAL_41
 const TOTAL_LEVELS = 41;
@@ -42,8 +43,19 @@ function StarStrip({ stars }) {
 
 function LevelNode({ num, color, onTap, isMilestone, stars, isFinal, lang = "en" }) {
   const size = isFinal ? 82 : isMilestone ? 76 : 68;
+  const tagStyle = isFinal ? null : TAG_STYLES[getLevelTag("short-a", num)];
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {tagStyle && (
+        <div style={{
+          background: tagStyle.bg, color: tagStyle.color,
+          fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
+          borderRadius: 99, padding: "2px 8px", marginBottom: 4,
+          textTransform: "uppercase", fontFamily: "Fredoka, sans-serif",
+        }}>
+          {tagStyle.label}
+        </div>
+      )}
       <motion.div
         whileTap={{ scale: 0.85 }}
         onClick={() => onTap(num)}

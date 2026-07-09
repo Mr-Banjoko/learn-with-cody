@@ -44,6 +44,7 @@ import ShortILevel36 from "./ShortILevel36";
 import ShortILevel37 from "./ShortILevel37";
 import ShortILevel38 from "./ShortILevel38";
 import { getBestStars } from "../../lib/campaignPerformance";
+import { getLevelTag, TAG_STYLES } from "../../lib/levelLabel";
 
 const VOWEL_KEY = "short-i";
 const TOTAL_LEVELS = 38;
@@ -61,31 +62,6 @@ const LEVEL_COMPONENTS = {
   29: ShortILevel29, 30: ShortILevel30, 31: ShortILevel31,
   32: ShortILevel32, 33: ShortILevel33, 34: ShortILevel34, 35: ShortILevel35,
   36: ShortILevel36, 37: ShortILevel37, 38: ShortILevel38,
-};
-
-const LEVEL_TAGS = {
-  1: "Learn", 2: "Practice", 3: "Practice", 4: "Review",
-  5: "Learn", 6: "Practice", 7: "Review", 8: "Practice",
-  9: "Learn", 10: "Learn", 11: "Practice", 12: "Review",
-  13: "Draw", 14: "Learn", 15: "Learn", 16: "Practice",
-  17: "Write", 18: "Write", 19: "Listen", 20: "Review",
-  21: "Learn", 22: "Learn", 23: "Practice", 24: "Draw",
-  25: "Write", 26: "Write", 27: "Review", 28: "Practice",
-  29: "Match", 30: "Catch", 31: "Final",
-  32: "Learn", 33: "Learn", 34: "Learn", 35: "Learn",
-  36: "Practice", 37: "Write", 38: "Write",
-};
-
-const TAG_STYLES = {
-  Learn:    { bg: "#D1FAE5", color: "#065F46" },
-  Practice: { bg: "#DBEAFE", color: "#1E40AF" },
-  Review:   { bg: "#FEF3C7", color: "#92400E" },
-  Draw:     { bg: "#EDE9FE", color: "#5B21B6" },
-  Write:    { bg: "#FCE7F3", color: "#9D174D" },
-  Listen:   { bg: "#E0F2FE", color: "#0369A1" },
-  Match:    { bg: "#FEF9C3", color: "#854D0E" },
-  Catch:    { bg: "#DCFCE7", color: "#166534" },
-  Final:    { bg: "#FEF2F2", color: "#991B1B" },
 };
 
 const PATH_OFFSETS = [-38, -32, -18, 0, 18, 32, 38, 32, 18, 0, -18, -32];
@@ -117,8 +93,7 @@ function LevelNode({ num, stars, onTap, lang }) {
   const isFinal = num === TOTAL_LEVELS;
   const isMilestone = num % 10 === 0 && !isFinal;
   const size = isFinal ? 82 : isMilestone ? 76 : 68;
-  const tag = LEVEL_TAGS[num] || "Practice";
-  const tagStyle = TAG_STYLES[tag] || TAG_STYLES.Practice;
+  const tagStyle = TAG_STYLES[getLevelTag(VOWEL_KEY, num)];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -129,7 +104,7 @@ function LevelNode({ num, stars, onTap, lang }) {
           borderRadius: 99, padding: "2px 8px", marginBottom: 4,
           textTransform: "uppercase", fontFamily: "Fredoka, sans-serif",
         }}>
-          {tag}
+          {tagStyle.label}
         </div>
       )}
       <motion.div

@@ -25,6 +25,7 @@ import ShortULevel18 from "./ShortULevel18";
 import ShortULevel19 from "./ShortULevel19";
 import ShortULevel20 from "./ShortULevel20";
 import { getBestStars } from "../../lib/campaignPerformance";
+import { getLevelTag, TAG_STYLES } from "../../lib/levelLabel";
 
 const VOWEL_KEY = "short-u";
 const TOTAL_LEVELS = 20;
@@ -37,23 +38,6 @@ const LEVEL_COMPONENTS = {
   9: ShortULevel9, 10: ShortULevel10, 11: ShortULevel11, 12: ShortULevel12,
   13: ShortULevel13, 14: ShortULevel14, 15: ShortULevel15, 16: ShortULevel16,
   17: ShortULevel17, 18: ShortULevel18, 19: ShortULevel19, 20: ShortULevel20,
-};
-
-const LEVEL_TAGS = {
-  1: "Learn",  2: "Review", 3: "Learn",  4: "Review",
-  5: "Learn",  6: "Review", 7: "Learn",  8: "Review",
-  9: "Learn",  10: "Review", 11: "Learn", 12: "Review",
-  13: "Learn", 14: "Review", 15: "Learn", 16: "Review",
-  17: "Draw",  18: "Audio",  19: "Build", 20: "Final",
-};
-
-const TAG_STYLES = {
-  Learn:    { bg: "#D1FAE5", color: "#065F46" },
-  Review:   { bg: "#FEF3C7", color: "#92400E" },
-  Draw:     { bg: "#EDE9FE", color: "#5B21B6" },
-  Audio:    { bg: "#DBEAFE", color: "#1E40AF" },
-  Build:    { bg: "#FCE7F3", color: "#9D174D" },
-  Final:    { bg: "#FEF2F2", color: "#991B1B" },
 };
 
 const PATH_OFFSETS = [-38, -32, -18, 0, 18, 32, 38, 32, 18, 0, -18, -32];
@@ -84,8 +68,7 @@ function LevelNode({ num, stars, onTap, lang }) {
   const isFinal = num === TOTAL_LEVELS;
   const isMilestone = num % 10 === 0 && !isFinal;
   const size = isFinal ? 82 : isMilestone ? 76 : 68;
-  const tag = LEVEL_TAGS[num] || "Review";
-  const tagStyle = TAG_STYLES[tag] || TAG_STYLES.Review;
+  const tagStyle = TAG_STYLES[getLevelTag(VOWEL_KEY, num)];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -96,7 +79,7 @@ function LevelNode({ num, stars, onTap, lang }) {
           borderRadius: 99, padding: "2px 8px", marginBottom: 4,
           textTransform: "uppercase", fontFamily: "Fredoka, sans-serif",
         }}>
-          {tag}
+          {tagStyle.label}
         </div>
       )}
       <motion.div

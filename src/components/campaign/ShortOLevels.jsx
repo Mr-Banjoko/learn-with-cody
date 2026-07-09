@@ -2,23 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { getBestStars } from "../../lib/campaignPerformance";
+import { getLevelTag, TAG_STYLES } from "../../lib/levelLabel";
 
 const TOTAL_LEVELS = 20;
 const PATH_OFFSETS = [-38, -32, -18, 0, 18, 32, 38, 32, 18, 0, -18, -32];
-
-// Learn / Practice / Review tags per level (from the lesson plan)
-const LEVEL_TAGS = {
-  1: "learn", 5: "learn", 9: "learn", 12: "learn", 16: "learn",
-  4: "review", 8: "review", 11: "review", 15: "review", 20: "review",
-};
-function getLevelTag(n) {
-  return LEVEL_TAGS[n] || "practice";
-}
-const TAG_STYLES = {
-  learn:    { bg: "#D1FAE5", color: "#065F46", label: "Learn" },
-  practice: { bg: "#DBEAFE", color: "#1E40AF", label: "Practice" },
-  review:   { bg: "#FEF3C7", color: "#92400E", label: "Review" },
-};
 
 function getLeftPct(idx) {
   return 50 + PATH_OFFSETS[idx % PATH_OFFSETS.length];
@@ -47,7 +34,7 @@ function StarStrip({ stars }) {
 
 function LevelNode({ num, color, onTap, isMilestone, stars, isFinal, lang = "en" }) {
   const size = isFinal ? 82 : isMilestone ? 76 : 68;
-  const tag = isFinal ? null : getLevelTag(num);
+  const tag = isFinal ? null : getLevelTag("short-o", num);
   const tagStyle = tag ? TAG_STYLES[tag] : null;
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>

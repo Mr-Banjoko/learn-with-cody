@@ -95,6 +95,7 @@ import CVCChampionLevel86 from "./CVCChampionLevel86";
 import CVCChampionLevel87 from "./CVCChampionLevel87";
 import CVCChampionLevel88 from "./CVCChampionLevel88";
 import { getBestStars } from "../../lib/campaignPerformance";
+import { getLevelTag, TAG_STYLES } from "../../lib/levelLabel";
 
 const VOWEL_KEY = "cvc-champion";
 const TOTAL_LEVELS = 88;
@@ -192,102 +193,6 @@ const LEVEL_COMPONENTS = {
   88: CVCChampionLevel88,
 };
 
-const LEVEL_TAGS = {
-  1: "Learn",
-  2: "Learn",
-  3: "Practice",
-  4: "Practice",
-  5: "Review",
-  6: "Learn",
-  7: "Practice",
-  8: "Practice",
-  9: "Review",
-  10: "Learn",
-  11: "Practice",
-  12: "Practice",
-  13: "Review",
-  14: "Learn",
-  15: "Practice",
-  16: "Practice",
-  17: "Review",
-  18: "Learn",
-  19: "Practice",
-  20: "Practice",
-  21: "Review",
-  22: "Learn",
-  23: "Practice",
-  24: "Practice",
-  25: "Review",
-  26: "Learn",
-  27: "Practice",
-  28: "Practice",
-  29: "Review",
-  30: "Learn",
-  31: "Practice",
-  32: "Practice",
-  33: "Review",
-  34: "Learn",
-  35: "Practice",
-  36: "Practice",
-  37: "Review",
-  38: "Learn",
-  39: "Practice",
-  40: "Practice",
-  41: "Review",
-  42: "Learn",
-  43: "Practice",
-  44: "Practice",
-  45: "Review",
-  46: "Learn",
-  47: "Practice",
-  48: "Practice",
-  49: "Review",
-  50: "Learn",
-  51: "Practice",
-  52: "Practice",
-  53: "Review",
-  54: "Learn",
-  55: "Practice",
-  56: "Practice",
-  57: "Review",
-  58: "Learn",
-  59: "Practice",
-  60: "Practice",
-  61: "Review",
-  62: "Learn",
-  63: "Practice",
-  64: "Practice",
-  65: "Review",
-  66: "Learn",
-  67: "Practice",
-  68: "Practice",
-  69: "Review",
-  70: "Learn",
-  71: "Practice",
-  72: "Practice",
-  73: "Review",
-  74: "Learn",
-  75: "Practice",
-  76: "Practice",
-  77: "Review",
-  78: "Review",
-  79: "Review",
-  80: "Review",
-  81: "Review",
-  82: "Review",
-  83: "Review",
-  84: "Review",
-  85: "Review",
-  86: "Review",
-  87: "Review",
-};
-
-const TAG_STYLES = {
-  Learn:    { bg: "#D1FAE5", color: "#065F46" },
-  Practice: { bg: "#DBEAFE", color: "#1E40AF" },
-  Review:   { bg: "#FEF3C7", color: "#92400E" },
-};
-
 const PATH_OFFSETS = [-38, -32, -18, 0, 18, 32, 38, 32, 18, 0, -18, -32];
 const NODE_COLORS = [
   "#4ECDC4", "#44A08D", "#6BCB77", "#FF9F43", "#4D96FF",
@@ -316,8 +221,7 @@ function LevelNode({ num, stars, onTap, lang, available }) {
   const isFinal = num === TOTAL_LEVELS;
   const isMilestone = num % 10 === 0 && !isFinal;
   const size = isFinal ? 82 : isMilestone ? 76 : 68;
-  const tag = LEVEL_TAGS[num] || "Practice";
-  const tagStyle = TAG_STYLES[tag] || TAG_STYLES.Practice;
+  const tagStyle = TAG_STYLES[getLevelTag(VOWEL_KEY, num)];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", opacity: available ? 1 : 0.4 }}>
@@ -328,7 +232,7 @@ function LevelNode({ num, stars, onTap, lang, available }) {
           borderRadius: 99, padding: "2px 8px", marginBottom: 4,
           textTransform: "uppercase", fontFamily: "Fredoka, sans-serif",
         }}>
-          {tag}
+          {tagStyle.label}
         </div>
       )}
       <motion.div

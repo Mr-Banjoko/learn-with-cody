@@ -29,6 +29,7 @@ import ShortELevel22 from "./ShortELevel22";
 import ShortELevel23 from "./ShortELevel23";
 import ShortELevel24 from "./ShortELevel24";
 import { getBestStars } from "../../lib/campaignPerformance";
+import { getLevelTag, TAG_STYLES } from "../../lib/levelLabel";
 
 const VOWEL_KEY = "short-e";
 const TOTAL_LEVELS = 24;
@@ -42,26 +43,6 @@ const LEVEL_COMPONENTS = {
   13: ShortELevel13, 14: ShortELevel14, 15: ShortELevel15, 16: ShortELevel16,
   17: ShortELevel17, 18: ShortELevel18, 19: ShortELevel19, 20: ShortELevel20,
   21: ShortELevel21, 22: ShortELevel22, 23: ShortELevel23, 24: ShortELevel24,
-};
-
-const LEVEL_TAGS = {
-  1: "Learn", 2: "Learn", 3: "Practice", 4: "Review",
-  5: "Learn", 6: "Learn", 7: "Practice", 8: "Draw",
-  9: "Review", 10: "Learn", 11: "Learn", 12: "Practice",
-  13: "Review", 14: "Learn", 15: "Learn", 16: "Practice",
-  17: "Review", 18: "Review", 19: "Review", 20: "Draw",
-  21: "Catch", 22: "Match", 23: "Write", 24: "Final",
-};
-
-const TAG_STYLES = {
-  Learn:    { bg: "#D1FAE5", color: "#065F46" },
-  Practice: { bg: "#DBEAFE", color: "#1E40AF" },
-  Review:   { bg: "#FEF3C7", color: "#92400E" },
-  Draw:     { bg: "#EDE9FE", color: "#5B21B6" },
-  Write:    { bg: "#FCE7F3", color: "#9D174D" },
-  Catch:    { bg: "#DCFCE7", color: "#166534" },
-  Match:    { bg: "#FEF9C3", color: "#854D0E" },
-  Final:    { bg: "#FEF2F2", color: "#991B1B" },
 };
 
 const PATH_OFFSETS = [-38, -32, -18, 0, 18, 32, 38, 32, 18, 0, -18, -32];
@@ -92,8 +73,7 @@ function LevelNode({ num, stars, onTap, lang }) {
   const isFinal = num === TOTAL_LEVELS;
   const isMilestone = num % 10 === 0 && !isFinal;
   const size = isFinal ? 82 : isMilestone ? 76 : 68;
-  const tag = LEVEL_TAGS[num] || "Practice";
-  const tagStyle = TAG_STYLES[tag] || TAG_STYLES.Practice;
+  const tagStyle = TAG_STYLES[getLevelTag(VOWEL_KEY, num)];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -104,7 +84,7 @@ function LevelNode({ num, stars, onTap, lang }) {
           borderRadius: 99, padding: "2px 8px", marginBottom: 4,
           textTransform: "uppercase", fontFamily: "Fredoka, sans-serif",
         }}>
-          {tag}
+          {tagStyle.label}
         </div>
       )}
       <motion.div
