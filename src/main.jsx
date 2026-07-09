@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 import { warmAllImages } from '@/lib/imageWarmup'
+import { warmAllAudio } from '@/lib/audioWarmup'
 
 // ── Startup ────────────────────────────────────────────────────────────────
 // Unregister any leftover service workers on every load (they cause stale caches).
@@ -20,6 +21,7 @@ if ('caches' in window) {
 
 ["cody_placement_result", "cody_album"].forEach((k) => localStorage.removeItem(k));
 warmAllImages();
+warmAllAudio();
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <App />

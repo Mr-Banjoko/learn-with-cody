@@ -293,19 +293,30 @@ function _stopCurrent() {
 /**
  * playAudio — play a single file.
  * Synchronous fast-path if blob URL is already resolved.
+ * Generation token: if the file isn't cached yet, the async resolution only
+ * plays if no newer playAudio call happened meanwhile — repeated taps can
+ * never stack multiple resolutions into overlapping playback (echo).
  */
+let _playGeneration = 0;
+
 export function playAudio(remoteUrl, gain = 1) {
-  if (!remoteUrl) return;
+  _playGeneration++;
+  if (!remoteUrl) { _stopCurrent(); return; }
   _stopCurrent();
 
   if (resolvedBlobUrls.has(remoteUrl)) {
     _startPlaybackSingle(resolvedBlobUrls.get(remoteUrl), gain);
     return;
   }
-  getCachedAudioUrl(remoteUrl).then(src => _startPlaybackSingle(src, gain));
+  const token = _playGeneration;
+  getCachedAudioUrl(remoteUrl).then(src => {
+    if (token !== _playGeneration) return; // superseded by a newer play request
+    _startPlaybackSingle(src, gain);
+  });
 }
 
 function _startPlaybackSingle(src, gain) {
+  _stopCurrent(); // safety: never allow two singles at once
   const audio = new Audio();
   audio.preload = "auto";
   audio.playbackRate = 1.0;
