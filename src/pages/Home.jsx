@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
+import StreakCard from "../components/home/StreakCard";
+import StreakCalendarOverlay from "../components/home/StreakCalendarOverlay";
 
 const BOX_COLORS = [
   "#4ECDC4",
@@ -9,6 +12,7 @@ const BOX_COLORS = [
 ];
 
 export default function Home({ onNavigate, lang = "en" }) {
+  const [calendarOpen, setCalendarOpen] = useState(false);
   return (
     <div
       style={{
@@ -22,31 +26,29 @@ export default function Home({ onNavigate, lang = "en" }) {
         overflow: "hidden",
       }}
     >
-      {/* Row 1: boxes 1 & 2 */}
+      {/* Row 1: streak calendar + box 2 */}
       <div style={{ display: "flex", gap: 14, flex: "0 0 auto" }}>
-        {[0, 1].map((i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08, type: "spring", stiffness: 280, damping: 22 }}
-            style={{
-              flex: 1,
-              height: 130,
-              borderRadius: 22,
-              background: BOX_COLORS[i],
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: `0 6px 20px ${BOX_COLORS[i]}55`,
-            }}
-          >
-            <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>
-              {i + 1}
-            </span>
-          </motion.div>
-        ))}
+        <StreakCard onOpen={() => setCalendarOpen(true)} lang={lang} />
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, type: "spring", stiffness: 280, damping: 22 }}
+          style={{
+            flex: 1,
+            height: 130,
+            borderRadius: 22,
+            background: BOX_COLORS[1],
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: `0 6px 20px ${BOX_COLORS[1]}55`,
+          }}
+        >
+          <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>2</span>
+        </motion.div>
       </div>
+
+      <StreakCalendarOverlay open={calendarOpen} onClose={() => setCalendarOpen(false)} lang={lang} />
 
       {/* Box 3 */}
       <motion.div

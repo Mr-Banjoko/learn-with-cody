@@ -17,6 +17,8 @@
  *   0 stars otherwise
  */
 
+import { markActiveToday } from "./activityStreak";
+
 // ── Star calculation ─────────────────────────────────────────────────────────
 
 /**
@@ -80,6 +82,7 @@ export function getBestStars(vowelKey, levelNum) {
  * @param {number} mistakes    - mistakes this attempt
  */
 export function saveLevelResult(vowelKey, levelNum, stars, mistakes) {
+  markActiveToday(); // completing a level counts as an active day for the streak
   const data = loadPerf();
   if (!data[vowelKey]) data[vowelKey] = {};
   const prev = data[vowelKey][levelNum] || { bestStars: 0 };
