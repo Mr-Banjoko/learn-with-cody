@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import StreakCard from "../components/home/StreakCard";
 import StreakCalendarOverlay from "../components/home/StreakCalendarOverlay";
+import WordsLearntCard from "../components/home/WordsLearntCard";
 
 const BOX_COLORS = [
   "#4ECDC4",
@@ -50,24 +51,8 @@ export default function Home({ onNavigate, lang = "en" }) {
 
       <StreakCalendarOverlay open={calendarOpen} onClose={() => setCalendarOpen(false)} lang={lang} />
 
-      {/* Box 3 */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.16, type: "spring", stiffness: 280, damping: 22 }}
-        style={{
-          flex: "0 0 auto",
-          height: 100,
-          borderRadius: 22,
-          background: BOX_COLORS[2],
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: `0 6px 20px ${BOX_COLORS[2]}55`,
-        }}
-      >
-        <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>3</span>
-      </motion.div>
+      {/* Box 3 — Words Learnt counter */}
+      <WordsLearntCard lang={lang} />
 
       {/* Box 4 — Campaign Mode entry */}
       <motion.div
