@@ -34,7 +34,10 @@ async function getCachedAudioUrl(remoteUrl) {
       let response = await cache.match(remoteUrl);
       if (!response) {
         const fetched = await fetch(remoteUrl);
-        if (!fetched.ok) return remoteUrl;
+        if (!fetched.ok) {
+          pendingResolution.delete(remoteUrl);
+          return remoteUrl;
+        }
         if (fetched.status === 200) await cache.put(remoteUrl, fetched.clone());
         response = fetched;
       }
