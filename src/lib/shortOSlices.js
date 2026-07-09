@@ -1,5 +1,5 @@
-const SLICE_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/o_slices";
-const AUDIO_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/words/o_words";
+const SLICE_BASE = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/phonics_app_images/cvc_words/o_slices";
+const AUDIO_BASE = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/words/o_words";
 
 function makeWord(word) {
   return {

@@ -1,5 +1,5 @@
-const BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/a_vowel";
-const AUDIO = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/words/a_words";
+const BASE = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/phonics_app_images/cvc_words/a_vowel";
+const AUDIO = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/words/a_words";
 
 export const shortAWords = [
   { word: "cat", image: `${BASE}/cat.webp`, audio: `${AUDIO}/cat.mp3` },

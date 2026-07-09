@@ -11,7 +11,7 @@
  *  - word match                  → folder name has space: "word match"
  */
 
-const GH = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/levels";
+const GH = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/levels";
 
 // Game type constants (matches what LevelHeader receives from each level)
 export const GAME_TYPES = {

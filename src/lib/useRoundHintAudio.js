@@ -101,7 +101,7 @@ export function useRoundHintAudio({ url, onHintComplete }) {
 }
 
 // ── Verified raw GitHub URLs ────────────────────────────────────────────────
-const GH = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/levels";
+const GH = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/levels";
 
 /**
  * Returns the hint audio URL for the given level + roundIndex + lang,

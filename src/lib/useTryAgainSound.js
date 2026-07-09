@@ -7,7 +7,7 @@
 import { useEffect, useRef } from "react";
 
 const TRY_AGAIN_URL =
-  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/Try%20again.mp3";
+  "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/feedback/Try%20again.mp3";
 
 // Module-level blob cache so it's only fetched once across all components
 let cachedBlobUrl = null;

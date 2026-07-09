@@ -12,7 +12,7 @@ import { playAudioSequence } from "./useAudio";
 import { useRef } from "react";
 
 const CORRECT_SOUND_URL =
-  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/correct-sound.mp3";
+  "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/feedback/correct-sound.mp3";
 
 export function useCorrectSound() {
   const cancelRef = useRef(null);

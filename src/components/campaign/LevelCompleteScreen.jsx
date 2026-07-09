@@ -23,14 +23,14 @@ import Lottie from "lottie-react";
 const TROPHY_URL = "https://media.base44.com/files/public/69c4ec00726384fdef1ab181/60db8f70c_Trophy.json";
 
 const COMPLETION_SOUND_URL =
-  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/level_completion_sound.mp3";
+  "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/feedback/level_completion_sound.mp3";
 const STARS_SOUND_URL =
-  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/stars.mp3";
+  "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/feedback/stars.mp3";
 const THREE_STARS_SOUND_URL =
-  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/getting%203%20stars.mp3";
+  "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/feedback/getting%203%20stars.mp3";
 
 const GITHUB_FEEDBACK_BASE =
-  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback";
+  "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/feedback";
 
 // ── Hardcoded performance audio lookup: [levelIndex][starRating] ─────────────
 // levelIndex = levelNum - 1 (0-based), starRating key: 3 | 2 | 1

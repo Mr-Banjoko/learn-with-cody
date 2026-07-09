@@ -15,7 +15,7 @@ import handTapData from "../../lib/handTap.json";
 import { useUserPhoto } from "../../lib/useUserPhoto";
 
 // ── Phase guide audio URLs (GitHub raw) ────────────────────────────────────────
-const GH_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main";
+const GH_BASE = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main";
 function getPhaseAudioUrl(phase, lang) {
   const folder = lang === "zh"
     ? "level1_page1_chinese"

@@ -6,8 +6,8 @@
 import { shortEWords } from "./shortEWords";
 import { getLetterSoundUrl } from "./letterSounds";
 
-const SLICE_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/e_slices";
-const AUDIO_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/words/e_words";
+const SLICE_BASE = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/phonics_app_images/cvc_words/e_slices";
+const AUDIO_BASE = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/words/e_words";
 
 export function buildShortESliceData(word) {
   const wordAsset = shortEWords.find((x) => x.word === word);
