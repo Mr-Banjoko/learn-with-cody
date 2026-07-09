@@ -8,7 +8,7 @@ import { shortOWords } from "./shortOWords";
 import { getLetterSoundUrl } from "./letterSounds";
 
 const SLICE_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/o_slices";
-const AUDIO_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/words/o_words";
+const AUDIO_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/audio-feature/letter_sound/words/o_words";
 
 export function buildShortOSliceData(word) {
   const wordAsset = shortOWords.find((x) => x.word === word);

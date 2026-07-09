@@ -3,7 +3,7 @@
  * R1: word_match     — hug [hug, hag, hig, hog]
  * R2: word_to_audio  — tug [tug, tax, hug, hog]
  * R3: missing01      — ham (middle, missing "a", choices i/o/u)
- * R4: rearrange_hard — dog + hug [hog→dog — no approved slice assets]
+ * R4: rearrange_hard — hog + hug
  * R5: drag_v2        — hen (vowel distractor "a")
  * R6: identifying    — sap [sap, tax, tug, hug]
  * R7: dictation      — hem
@@ -91,7 +91,7 @@ export default function CVCChampionLevel77({ onBack, lang = "en" }) {
     return { target: findWord("sap"), choices: shuffle([findWord("sap"), findWord("tax"), findWord("tug"), findWord("hug")]) };
   }, [roundIndex]); // eslint-disable-line
 
-  const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("dog"), buildWordData("hug")] : null), [roundIndex]); // eslint-disable-line
+  const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("hog"), buildWordData("hug")] : null), [roundIndex]); // eslint-disable-line
   const { photoUrl: henPhotoUrl, clearPhoto: clearHenPhoto } = useUserPhoto("hen");
 
   return (

@@ -1,5 +1,5 @@
 const BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/u_vowel";
-const AUDIO = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/words/u_words";
+const AUDIO = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/audio-feature/letter_sound/words/u_words";
 
 export const shortUWords = [
   { word: "sun", image: `${BASE}/sun.webp`, audio: `${AUDIO}/sun.mp3` },

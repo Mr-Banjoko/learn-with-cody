@@ -7,7 +7,7 @@ import { shortUWords } from "./shortUWords";
 import { getLetterSoundUrl } from "./letterSounds";
 
 const SLICE_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/phonics_app_images/cvc_words/u_slices";
-const AUDIO_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/words/u_words";
+const AUDIO_BASE = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/audio-feature/letter_sound/words/u_words";
 
 export function buildShortUSliceData(word) {
   const wordAsset = shortUWords.find((x) => x.word === word);
