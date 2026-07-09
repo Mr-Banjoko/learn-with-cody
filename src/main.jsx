@@ -13,10 +13,10 @@ if ('serviceWorker' in navigator) {
     .catch(() => {});
 }
 
-// Clear ALL browser caches on every load so stale JS/CSS never survives a publish.
-if ('caches' in window) {
-  caches.keys().then((names) => names.forEach((n) => caches.delete(n))).catch(() => {});
-}
+// NOTE: Do NOT clear Cache API caches here — they store prefetched image/audio
+// assets from GitHub raw. Clearing them on every load forces re-fetching of all
+// assets, which triggers GitHub rate-limiting (429) and breaks all pictures/audio.
+// Vite handles JS/CSS cache-busting via content-hashed filenames.
 
 ["cody_placement_result", "cody_album"].forEach((k) => localStorage.removeItem(k));
 prefetchCoreImages();
