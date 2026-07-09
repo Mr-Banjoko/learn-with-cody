@@ -129,11 +129,12 @@ export default function StreakCalendarOverlay({ open, onClose, lang = "en" }) {
                       boxShadow: active ? "0 3px 10px rgba(255,120,80,0.30)" : "none",
                     }}
                   >
-                    {active ? (
-                      <span style={{ fontSize: 15, lineHeight: 1 }}>🔥</span>
-                    ) : (
-                      <span style={{ fontSize: 13, fontWeight: 600, color: isToday ? "#1E3A5F" : "#94A3B8" }}>{day}</span>
-                    )}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: active ? "white" : isToday ? "#1E3A5F" : "#94A3B8", textShadow: active ? "0 1px 3px rgba(0,0,0,0.2)" : "none", lineHeight: 1 }}>
+                        {day}
+                      </span>
+                      {active && <span style={{ fontSize: 11, lineHeight: 1 }}>🔥</span>}
+                    </div>
                   </div>
                 );
               })}
