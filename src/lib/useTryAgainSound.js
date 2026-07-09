@@ -17,8 +17,12 @@ function preloadTryAgain() {
   if (cachedBlobUrl) return Promise.resolve(cachedBlobUrl);
   if (fetchPromise) return fetchPromise;
   fetchPromise = fetch(TRY_AGAIN_URL)
-    .then((r) => r.blob())
+    .then((r) => {
+      if (!r.ok) throw new Error("fetch failed");
+      return r.blob();
+    })
     .then((blob) => {
+      if (blob.type && !blob.type.startsWith("audio/")) throw new Error("not audio");
       cachedBlobUrl = URL.createObjectURL(blob);
       return cachedBlobUrl;
     })
