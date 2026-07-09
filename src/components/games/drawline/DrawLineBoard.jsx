@@ -29,7 +29,7 @@ import { useTryAgainSound } from "../../../lib/useTryAgainSound";
 import { useUserPhoto } from "../../../lib/useUserPhoto";
 import { RotateCcw } from "lucide-react";
 
-const MATCH_END_URL = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3";
+const MATCH_END_URL = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/feedback/match-end.mp3";
 
 const CARD_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 const CARD_BG     = ["#E8F7FC", "#FDEEF5", "#F3EFFE"];

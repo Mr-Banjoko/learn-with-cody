@@ -331,6 +331,14 @@ export const CVC_CHAMPION_SCORED_ROUNDS = {
   75: 6,
   76: 7,
   77: 7,
+  // L78–L84: full-review levels — 8 rounds, all scored
+  78: 8,
+  79: 8,
+  80: 8,
+  81: 8,
+  82: 8,
+  83: 8,
+  84: 8,
 };
 
 export function getScoredRounds(vowelKey, levelNum) {

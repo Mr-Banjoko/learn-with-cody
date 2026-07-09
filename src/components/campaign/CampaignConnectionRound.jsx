@@ -44,7 +44,7 @@ function buildWordDataWithFallback(word) {
   return data;
 }
 
-const MATCH_END_URL = "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/feedback/match-end.mp3";
+const MATCH_END_URL = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main/letter_sound/feedback/match-end.mp3";
 
 const CARD_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
