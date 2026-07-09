@@ -4,7 +4,7 @@
  * R2: dictation      — mug
  * R3: identifying    — red [red, rid, rod, rat]
  * R4: writev2        — tax
- * R5: rearrange_hard — hug + tug [sub+mug→hug+tug — no slice assets]
+ * R5: rearrange_hard — sub + mug
  * R6: drag_v2        — pen (vowel distractor "i")
  * R7: missing01      — hop (middle, missing "o", choices a/e/i)
  * R8: word_match     — tap [tap, tip, top, tup]
@@ -92,7 +92,7 @@ export default function CVCChampionLevel84({ onBack, lang = "en" }) {
     if (round.type !== "identifying") return null;
     return { target: findWord("red"), choices: shuffle([findWord("red"), findWord("rid"), findWord("rod"), findWord("rat")]) };
   }, [roundIndex]); // eslint-disable-line
-  const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("hug"), buildWordData("tug")] : null), [roundIndex]); // eslint-disable-line
+  const rearrangeWordPair = useMemo(() => (round.type === "rearrange_hard" ? [buildWordData("sub"), buildWordData("mug")] : null), [roundIndex]); // eslint-disable-line
   const { photoUrl: penPhotoUrl, clearPhoto: clearPenPhoto } = useUserPhoto("pen");
 
   return (

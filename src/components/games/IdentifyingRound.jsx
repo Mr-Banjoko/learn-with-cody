@@ -33,10 +33,11 @@ async function preloadAll(urls) {
       if (!url) return [url, url];
       try {
         const resp = await fetch(url);
-        if (!resp.ok) return [url, url];
         const blob = await resp.blob();
-        if (!blob.type.startsWith("image/")) return [url, url];
         const objectUrl = URL.createObjectURL(blob);
+        const img = new Image();
+        img.src = objectUrl;
+        await img.decode().catch(() => {});
         return [url, objectUrl];
       } catch {
         return [url, url];

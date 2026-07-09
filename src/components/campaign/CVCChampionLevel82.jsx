@@ -1,6 +1,6 @@
 /**
  * CVCChampionLevel82 — "Mixed Review 5" (final-mix-level-082)
- * R1: word_to_audio  — sit [sit, sat, jet, hot] [sot→hot, set→jet — no approved asset]
+ * R1: word_to_audio  — sit [sit, sat, set, jot] [sot→jot — no approved asset]
  * R2: dictation      — bag
  * R3: identifying    — bit [bit, bat, bet, hut] [but→hut — no approved asset]
  * R4: writev2        — map
@@ -109,7 +109,7 @@ export default function CVCChampionLevel82({ onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "word_to_audio" && (
-              <CampaignWordToAudioRound key={`wta-${roundIndex}`} card={findWord("sit")} overrideChoices={shuffle([findWord("sit"), findWord("sat"), findWord("jet"), findWord("hot")])} onComplete={advance} onMistake={onMistake} lang={lang} />
+              <CampaignWordToAudioRound key={`wta-${roundIndex}`} card={findWord("sit")} overrideChoices={shuffle([findWord("sit"), findWord("sat"), findWord("set"), findWord("jot")])} onComplete={advance} onMistake={onMistake} lang={lang} />
             )}
             {round.type === "dictation" && (
               <DictationCampaignRound key={`dict-${roundIndex}`} card={findWord("bag")} onComplete={advance} onMistake={onMistake} lang={lang} />
