@@ -102,12 +102,38 @@ export default function TemplateIdeaLevel({ theme, onBack, lang = "en" }) {
     <TemplateShell theme={theme} label={label} gameType={round.type} mistakes={mistakes} progressPct={done ? null : progressPct} onBack={onBack} lang={lang}>
       <AnimatePresence mode="wait">
         {done ? (
-          <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 24 }}>
-            <span style={{ fontSize: 56 }}>🎉</span>
-            <p style={{ margin: 0, fontSize: 22, fontWeight: 700, color: theme.labelColor, textAlign: "center" }}>
-              {lang === "zh" ? "模板测试完成！" : "Template test complete!"}
+          <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 24 }}>
+            {/* World mascot celebration */}
+            <motion.img
+              src={theme.arrowImg}
+              alt=""
+              animate={{ y: [0, -14, 0], rotate: [0, -4, 4, 0] }}
+              transition={{ repeat: Infinity, duration: 1.4, repeatDelay: 0.6 }}
+              style={{ width: 130, height: 82, objectFit: "cover", borderRadius: 20, boxShadow: "0 10px 28px rgba(0,0,0,0.18)" }}
+            />
+            {/* Animated stars */}
+            <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+              {[0, 1, 2].map((i) => (
+                <motion.svg
+                  key={i}
+                  initial={{ scale: 0, rotate: -30 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ delay: 0.25 + i * 0.2, type: "spring", stiffness: 300, damping: 14 }}
+                  width="38" height="38" viewBox="0 0 24 24" fill="#FFD93D" stroke="#F5A623" strokeWidth="1.2"
+                >
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </motion.svg>
+              ))}
+            </div>
+            <p style={{ margin: "6px 0 0", fontSize: 24, fontWeight: 700, color: theme.labelColor, textAlign: "center", lineHeight: 1.2 }}>
+              {lang === "zh"
+                ? `你探索了${theme.worldNameZh}！`
+                : `You explored ${theme.worldName}!`}
             </p>
-            <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: theme.labelColor, opacity: 0.7, textAlign: "center" }}>
+              {lang === "zh" ? "模板测试完成" : "Template test complete"}
+            </p>
+            <div style={{ display: "flex", gap: 12, marginTop: 10 }}>
               <button onClick={restart} style={{ border: "none", borderRadius: 99, padding: "12px 24px", fontSize: 16, fontWeight: 700, fontFamily: "Fredoka, sans-serif", color: "white", background: theme.accent, cursor: "pointer" }}>
                 {lang === "zh" ? "再玩一次" : "Play Again"}
               </button>

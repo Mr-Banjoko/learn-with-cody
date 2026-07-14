@@ -1,7 +1,10 @@
 /**
  * gameTemplates — the 3 visual template ideas being tested for campaign mode.
- * Each theme defines: background, header, label + progress colors, the mascot
- * back-arrow image and a set of background decorations (blobs / stars / dots).
+ * Design principle: "static and tone-on-tone during play" —
+ *  - decorations are few, large, tone-on-tone and pinned to corners/edges
+ *  - each world gets a silhouette horizon strip along the bottom edge
+ *  - the world identity lives in the frame (header, mascot arrow, horizon),
+ *    the play area stays clean.
  */
 
 export const TEMPLATES = {
@@ -9,6 +12,8 @@ export const TEMPLATES = {
     id: "idea1",
     name: "Idea 1",
     tagline: "Deep Ocean",
+    worldName: "The Deep Ocean",
+    worldNameZh: "深海世界",
     arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/3db53a9cc_generated_image.png",
     bg: "#33618D",
     headerBg: "rgba(255,255,255,0.10)",
@@ -17,21 +22,18 @@ export const TEMPLATES = {
     progressTrack: "rgba(255,255,255,0.18)",
     progressFill: "linear-gradient(90deg, #4ECDC4, #2BA89F)",
     accent: "#4ECDC4",
+    horizon: { type: "ocean", color: "#2B5378" },
     decorations: [
-      { shape: "blob", color: "#2E9E8F", size: 380, top: "18%", left: "48%", opacity: 0.45 },
-      { shape: "blob", color: "#2E9E8F", size: 190, top: "72%", left: "-12%", opacity: 0.5 },
-      { shape: "star", color: "#FFD93D", size: 26, top: "6%", left: "8%", opacity: 0.95, rotate: -12 },
-      { shape: "star", color: "#FFD93D", size: 18, top: "62%", left: "88%", opacity: 0.9, rotate: 18 },
-      { shape: "star", color: "#FFD93D", size: 20, top: "88%", left: "6%", opacity: 0.9, rotate: 8 },
-      { shape: "dot", color: "#F5A623", size: 12, top: "10%", left: "78%", opacity: 0.9 },
-      { shape: "dot", color: "#F5A623", size: 9, top: "48%", left: "5%", opacity: 0.8 },
-      { shape: "dot", color: "#F5A623", size: 10, top: "80%", left: "72%", opacity: 0.85 },
+      { shape: "blob", color: "#3E71A1", size: 320, top: "-10%", left: "62%", opacity: 0.45 },
+      { shape: "blob", color: "#3E71A1", size: 260, top: "68%", left: "-28%", opacity: 0.4 },
     ],
   },
   idea2: {
     id: "idea2",
     name: "Idea 2",
     tagline: "Candy Pink",
+    worldName: "Candy Land",
+    worldNameZh: "糖果世界",
     arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/a5ace7e16_generated_image.png",
     bg: "#FBE9F0",
     headerBg: "rgba(255,255,255,0.65)",
@@ -40,20 +42,18 @@ export const TEMPLATES = {
     progressTrack: "rgba(0,0,0,0.06)",
     progressFill: "linear-gradient(90deg, #F27BAA, #B79CE4)",
     accent: "#E8639B",
+    horizon: { type: "candy", color: "#F2CBDA" },
     decorations: [
-      { shape: "blob", color: "#B79CE4", size: 300, top: "12%", left: "-18%", opacity: 0.55 },
-      { shape: "blob", color: "#F6A8C5", size: 260, top: "40%", left: "62%", opacity: 0.55 },
-      { shape: "blob", color: "#B79CE4", size: 160, top: "82%", left: "70%", opacity: 0.45 },
-      { shape: "dot", color: "#F27BAA", size: 12, top: "8%", left: "82%", opacity: 0.9 },
-      { shape: "dot", color: "#FFD93D", size: 10, top: "58%", left: "8%", opacity: 0.9 },
-      { shape: "dot", color: "#9D7BD8", size: 8, top: "88%", left: "16%", opacity: 0.8 },
-      { shape: "dot", color: "#F6A8C5", size: 14, top: "72%", left: "90%", opacity: 0.85 },
+      { shape: "blob", color: "#F3D0DF", size: 300, top: "-12%", left: "-25%", opacity: 0.7 },
+      { shape: "blob", color: "#EBDBF2", size: 260, top: "70%", left: "68%", opacity: 0.7 },
     ],
   },
   idea3: {
     id: "idea3",
     name: "Idea 3",
     tagline: "Sunny Cream",
+    worldName: "Sunny Island",
+    worldNameZh: "阳光岛",
     arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/8365ecabe_generated_image.png",
     bg: "#FBF6E3",
     headerBg: "rgba(255,255,255,0.80)",
@@ -62,15 +62,10 @@ export const TEMPLATES = {
     progressTrack: "rgba(0,0,0,0.06)",
     progressFill: "linear-gradient(90deg, #2E9E8F, #F5A623)",
     accent: "#2E9E8F",
+    horizon: { type: "sunshine", color: "#EFE4C2" },
     decorations: [
-      { shape: "blob", color: "#F5A623", size: 300, top: "10%", left: "52%", opacity: 0.7 },
-      { shape: "blob", color: "#2E9E8F", size: 340, top: "28%", left: "-22%", opacity: 0.6 },
-      { shape: "blob", color: "#FFD93D", size: 200, top: "58%", left: "68%", opacity: 0.7 },
-      { shape: "blob", color: "#2E9E8F", size: 220, top: "84%", left: "-10%", opacity: 0.8 },
-      { shape: "star", color: "#2E9E8F", size: 30, top: "5%", left: "8%", opacity: 0.95, rotate: -14 },
-      { shape: "dot", color: "#FFD93D", size: 14, top: "22%", left: "6%", opacity: 0.95 },
-      { shape: "dot", color: "#2E9E8F", size: 12, top: "4%", left: "88%", opacity: 0.9 },
-      { shape: "dot", color: "#F5A623", size: 10, top: "76%", left: "50%", opacity: 0.85 },
+      { shape: "blob", color: "#F2EACA", size: 320, top: "-12%", left: "58%", opacity: 0.9 },
+      { shape: "blob", color: "#EFE6C5", size: 280, top: "72%", left: "-24%", opacity: 0.9 },
     ],
   },
 };
