@@ -33,6 +33,7 @@ import LetterCatch from "../components/games/LetterCatch";
 import DrawLineGame from "../components/games/DrawLineGame";
 import LetterSoundConnection from "../components/games/LetterSoundConnection";
 import DictationHub from "../components/games/dictation/DictationHub";
+import TemplateHome from "../components/templates/TemplateHome";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 
@@ -96,6 +97,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "test") {
     return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;
+  }
+  if (activeGame === "template") {
+    return <TemplateHome onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "write-short-a") return <ShortAGame onBack={exitGame} />;
   if (activeGame === "write-short-e") return <ShortEGame onBack={exitGame} />;
@@ -271,6 +275,31 @@ export default function Games({ onDeepScreen, lang = "en" }) {
           </div>
         </div>
       </motion.div>
+      </div>
+
+      {/* Template folder card */}
+      <div className="px-4 mt-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: games.length * 0.1 + 0.14 }}
+          onClick={() => enterGame("template")}
+          className="relative rounded-3xl overflow-hidden p-5"
+          style={{ background: "#FFF8E8", border: "2px solid #F5A62344", boxShadow: "0 8px 32px #F5A62315", cursor: "pointer" }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="rounded-2xl text-3xl flex items-center justify-center" style={{ width: 64, height: 64, background: "white", boxShadow: "0 4px 16px #F5A62325", flexShrink: 0 }}>
+              🎨
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>{lang === "zh" ? "模板测试" : "Template"}</h3>
+              <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>{lang === "zh" ? "三个设计方案的游戏测试" : "Test 3 design ideas across every campaign game"}</p>
+              <div className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "#F5A62318", color: "#F5A623" }}>
+                {lang === "zh" ? "立即游玩 🎮" : "Play Now! 🎮"}
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
 
       {/* Cody encouragement */}
