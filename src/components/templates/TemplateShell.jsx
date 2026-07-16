@@ -69,6 +69,35 @@ function Horizon({ h }) {
       </svg>
     );
   }
+  if (h.type === "jungle") {
+    return (
+      <svg style={style} height="72" viewBox="0 0 375 72" preserveAspectRatio="none">
+        <path d="M0 44 Q 30 20 62 40 Q 95 14 130 38 Q 165 18 200 42 Q 240 16 278 40 Q 315 20 345 42 Q 362 32 375 38 L375 72 L0 72 Z" fill={h.color} />
+        <path d="M48 42 C 42 30 52 26 46 14 C 43 8 49 6 48 0" stroke={h.color} strokeWidth="7" fill="none" strokeLinecap="round" />
+        <path d="M318 44 C 324 32 314 28 320 16" stroke={h.color} strokeWidth="6" fill="none" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (h.type === "space") {
+    return (
+      <svg style={style} height="72" viewBox="0 0 375 72" preserveAspectRatio="none">
+        <path d="M0 40 Q 60 26 120 38 Q 190 48 250 36 Q 315 26 375 38 L375 72 L0 72 Z" fill={h.color} />
+        <circle cx="90" cy="52" r="8" fill={h.color} stroke="rgba(255,255,255,0.10)" strokeWidth="2" />
+        <circle cx="270" cy="56" r="6" fill={h.color} stroke="rgba(255,255,255,0.10)" strokeWidth="2" />
+        <circle cx="46" cy="16" r="2" fill="rgba(255,255,255,0.25)" />
+        <circle cx="200" cy="10" r="2.5" fill="rgba(255,255,255,0.22)" />
+        <circle cx="330" cy="18" r="2" fill="rgba(255,255,255,0.25)" />
+      </svg>
+    );
+  }
+  if (h.type === "snow") {
+    return (
+      <svg style={style} height="72" viewBox="0 0 375 72" preserveAspectRatio="none">
+        <path d="M0 52 L 55 18 L 110 48 L 165 12 L 225 46 L 285 20 L 340 46 L 375 34 L375 72 L0 72 Z" fill={h.color} />
+        <path d="M0 60 Q 90 44 188 58 Q 280 68 375 54 L375 72 L0 72 Z" fill={h.color} opacity="0.8" />
+      </svg>
+    );
+  }
   return null;
 }
 

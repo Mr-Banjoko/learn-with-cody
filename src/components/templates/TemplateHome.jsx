@@ -9,7 +9,7 @@ import BackArrow from "../BackArrow";
 import TemplateIdeaLevel from "./TemplateIdeaLevel";
 import { TEMPLATES } from "../../lib/gameTemplates";
 
-const IDEAS = [TEMPLATES.idea1, TEMPLATES.idea2, TEMPLATES.idea3];
+const IDEAS = [TEMPLATES.idea1, TEMPLATES.idea2, TEMPLATES.idea3, TEMPLATES.idea4, TEMPLATES.idea5, TEMPLATES.idea6];
 
 export default function TemplateHome({ onBack, lang = "en" }) {
   const [activeIdea, setActiveIdea] = useState(null);
