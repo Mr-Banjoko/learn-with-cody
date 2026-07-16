@@ -15,6 +15,7 @@ import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
+import { useTemplateLetters } from "../../lib/templateTheme";
 
 const TOP_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A"];
 const DRAG_THRESHOLD = 6;
@@ -64,6 +65,9 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
   const { play: playCorrect } = useCorrectSound();
   const accentColor = "#4A90C4";
   const { play: playTryAgain } = useTryAgainSound();
+  const tTheme = useTemplateLetters();
+  const topColors = tTheme?.colors || TOP_COLORS;
+  const letterText = tTheme?.textColor || "#1E3A5F";
 
   useEffect(() => {
     if (suppressAutoPlay) {
@@ -211,14 +215,14 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
               animate={isWrong ? { x: [0, -10, 10, -7, 7, 0] } : isBouncing ? { y: [0, -20, 0, -10, 0, -4, 0] } : {}}
               transition={{ duration: isWrong ? 0.38 : 0.5 }}
               onPointerDown={!isMissing && !isCompleting && !audioLocked ? (e) => { e.preventDefault(); handleTopLetterTap(letter); } : undefined}
-              style={{ width: "min(108px, 27vw)", height: "min(108px, 27vw)", borderRadius: 26, background: isPlacedHere ? TOP_COLORS[i] : isMissing ? "rgba(255,255,255,0.5)" : TOP_COLORS[i], border: isMissing && !isPlacedHere ? `3px dashed ${accentColor}60` : "3px solid rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isMissing && !isPlacedHere ? "none" : "0 6px 20px rgba(0,0,0,0.10)", cursor: isMissing ? "default" : "pointer", touchAction: "manipulation", transition: "background 0.2s, border 0.2s", flexShrink: 0 }}
+              style={{ width: "min(108px, 27vw)", height: "min(108px, 27vw)", borderRadius: 26, background: isPlacedHere ? topColors[i % topColors.length] : isMissing ? "rgba(255,255,255,0.5)" : topColors[i % topColors.length], border: isMissing && !isPlacedHere ? `3px dashed ${accentColor}60` : "3px solid rgba(255,255,255,0.85)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isMissing && !isPlacedHere ? "none" : "0 6px 20px rgba(0,0,0,0.10)", cursor: isMissing ? "default" : "pointer", touchAction: "manipulation", transition: "background 0.2s, border 0.2s", flexShrink: 0 }}
             >
               {isPlacedHere ? (
-                <motion.span key={`placed-${placedOption.id}`} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 350, damping: 22 }} style={{ fontSize: "min(58px, 14.5vw)", fontWeight: 700, color: "#1E3A5F" }}>{placedOption.letter}</motion.span>
+                <motion.span key={`placed-${placedOption.id}`} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 350, damping: 22 }} style={{ fontSize: "min(58px, 14.5vw)", fontWeight: 700, color: letterText }}>{placedOption.letter}</motion.span>
               ) : isMissing ? (
                 <span style={{ fontSize: "min(34px, 8.5vw)", color: `${accentColor}60`, fontWeight: 700 }}>?</span>
               ) : (
-                <span style={{ fontSize: "min(58px, 14.5vw)", fontWeight: 700, color: "#1E3A5F" }}>{letter}</span>
+                <span style={{ fontSize: "min(58px, 14.5vw)", fontWeight: 700, color: letterText }}>{letter}</span>
               )}
             </motion.div>
           );
@@ -253,7 +257,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
               }
               transition={shouldPulse ? { duration: 1.8, repeat: Infinity, repeatType: "loop", ease: "easeInOut" } : {}}
               onTouchStart={(e) => handleTouchStart(e, option)}
-              style={{ width: "min(74px, 19vw)", height: "min(74px, 19vw)", borderRadius: 20, background: "white", border: shouldPulse ? `2.5px solid ${accentColor}` : "2.5px solid rgba(168,208,230,0.55)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(38px, 9.5vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 3px 12px rgba(30,58,95,0.08)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", flexShrink: 0 }}
+              style={{ width: "min(74px, 19vw)", height: "min(74px, 19vw)", borderRadius: 20, background: "white", border: shouldPulse ? `2.5px solid ${accentColor}` : "2.5px solid rgba(168,208,230,0.55)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(38px, 9.5vw)", fontWeight: 700, color: letterText, boxShadow: "0 3px 12px rgba(30,58,95,0.08)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", flexShrink: 0 }}
             >
               {option.letter}
             </motion.div>
@@ -271,7 +275,7 @@ export default function CampaignMissingSound01Round({ card, onComplete, onMistak
 
       <AnimatePresence>
         {dragState && isActiveDrag && (
-          <div style={{ position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%, -50%)", zIndex: 9999, pointerEvents: "none", width: "min(78px, 20vw)", height: "min(78px, 20vw)", borderRadius: 20, background: "white", border: "2.5px solid rgba(168,208,230,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(40px, 10vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 14px 40px rgba(30,58,95,0.22)" }}>
+          <div style={{ position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%, -50%)", zIndex: 9999, pointerEvents: "none", width: "min(78px, 20vw)", height: "min(78px, 20vw)", borderRadius: 20, background: "white", border: "2.5px solid rgba(168,208,230,0.7)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(40px, 10vw)", fontWeight: 700, color: letterText, boxShadow: "0 14px 40px rgba(30,58,95,0.22)" }}>
             {dragState.letter}
           </div>
         )}

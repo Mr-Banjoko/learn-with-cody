@@ -6,6 +6,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TemplateShell from "./TemplateShell";
+import { TemplateThemeContext } from "../../lib/templateTheme";
 import Level1Phonics from "../campaign/Level1Phonics";
 import Level1DragV2 from "../campaign/Level1DragV2";
 import CampaignMissingSound01Round from "../campaign/CampaignMissingSound01Round";
@@ -98,7 +99,10 @@ export default function TemplateIdeaLevel({ theme, onBack, lang = "en" }) {
     return {};
   }, [roundIndex]); // eslint-disable-line
 
+  const letterTheme = useMemo(() => ({ colors: theme.letterColors, textColor: theme.letterTextColor }), [theme]);
+
   return (
+    <TemplateThemeContext.Provider value={letterTheme}>
     <TemplateShell theme={theme} label={label} gameType={round.type} mistakes={mistakes} progressPct={done ? null : progressPct} onBack={onBack} lang={lang}>
       <AnimatePresence mode="wait">
         {done ? (
@@ -187,5 +191,6 @@ export default function TemplateIdeaLevel({ theme, onBack, lang = "en" }) {
         )}
       </AnimatePresence>
     </TemplateShell>
+    </TemplateThemeContext.Provider>
   );
 }

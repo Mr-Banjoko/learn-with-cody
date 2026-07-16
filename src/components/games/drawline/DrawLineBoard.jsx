@@ -26,6 +26,7 @@ import { Volume2 } from "lucide-react";
 import { playAudio, playAudioSequence } from "../../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
 import { useTryAgainSound } from "../../../lib/useTryAgainSound";
+import { useTemplateLetters } from "../../../lib/templateTheme";
 import { useUserPhoto } from "../../../lib/useUserPhoto";
 import { RotateCcw } from "lucide-react";
 
@@ -36,7 +37,7 @@ const CARD_BG     = ["#E8F7FC", "#FDEEF5", "#F3EFFE"];
 const LINE_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 
 // ── SVG line layer ─────────────────────────────────────────────────────────────
-function LinesLayer({ matches, connectorRects, containerRect, topCards }) {
+function LinesLayer({ matches, connectorRects, containerRect, topCards, colors = LINE_COLORS }) {
   if (!containerRect) return null;
   return (
     <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 5, overflow: "visible" }}>
@@ -52,7 +53,7 @@ function LinesLayer({ matches, connectorRects, containerRect, topCards }) {
         return (
           <motion.line key={m.topCardId}
             x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke={LINE_COLORS[ci >= 0 ? ci : 0]} strokeWidth={4} strokeLinecap="round"
+            stroke={colors[(ci >= 0 ? ci : 0) % colors.length]} strokeWidth={4} strokeLinecap="round"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
@@ -151,6 +152,8 @@ function PartialWord({ word, positionType, isMatched, color, revealedLetter }) {
 export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onMistake }) {
   const { topCards, bottomLetters } = round;
   const { play: playTryAgain } = useTryAgainSound();
+  const tTheme = useTemplateLetters();
+  const cardColors = tTheme?.colors || CARD_COLORS;
 
   const [selected, setSelected] = useState(null);
   const [matches, setMatches] = useState([]);
@@ -293,7 +296,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
     >
       {locked && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
 
-      <LinesLayer matches={matches} connectorRects={connectorRects} containerRect={containerRect} topCards={topCards} />
+      <LinesLayer matches={matches} connectorRects={connectorRects} containerRect={containerRect} topCards={topCards} colors={cardColors} />
 
       {/* ── TOP CARDS ──────────────────────────────────────────────────────── */}
       <div style={{ display: "flex", justifyContent: "center", gap: 10, width: "100%", zIndex: 10 }}>
@@ -302,7 +305,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
           const isSelectedTop = selected === `top-${card.id}`;
           const isWrongTop    = wrongFeedback?.topCardId === card.id;
           const isRevealed    = revealedTopIds.has(card.id);
-          const color         = CARD_COLORS[i];
+          const color         = cardColors[i % cardColors.length];
           const matchedLetter = isRevealed ? (matches.find((m) => m.topCardId === card.id)?.letter || null) : null;
 
           return (
@@ -313,7 +316,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 onClick={() => handleTopCardTap(card)}
                 style={{
                   background: isMatched ? CARD_BG[i] : "white",
-                  border: `2.5px solid ${isSelectedTop ? color : isMatched ? color : CARD_COLORS[i]}`,
+                  border: `2.5px solid ${isSelectedTop ? color : isMatched ? color : color}`,
                   borderRadius: 18, overflow: "hidden",
                   boxShadow: isMatched     ? `0 0 0 5px ${color}55` :
                              isSelectedTop ? `0 0 0 4px ${color}44` :
@@ -354,7 +357,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
           const isWrongBot    = wrongFeedback?.botIdx === botIdx;
           const isRevealed    = revealedBotIdxs.has(botIdx);
           const matchedTopIdx = isMatched ? topCards.findIndex((c) => c.id === matches.find((m) => m.botIdx === botIdx)?.topCardId) : -1;
-          const matchColor    = matchedTopIdx >= 0 ? CARD_COLORS[matchedTopIdx] : null;
+          const matchColor    = matchedTopIdx >= 0 ? cardColors[matchedTopIdx % cardColors.length] : null;
           const matchBg       = matchedTopIdx >= 0 ? CARD_BG[matchedTopIdx]     : null;
 
           return (

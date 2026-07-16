@@ -9,6 +9,7 @@ import { RotateCcw, Volume2 } from "lucide-react";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
+import { useTemplateLetters } from "../../lib/templateTheme";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 
 const ALL_LETTERS = "abcdefghijklmnoprstw".split("");
@@ -54,6 +55,9 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
   const sequenceRef = useRef(null);
   const isDragging = useRef(false);
   const { play: playTryAgain } = useTryAgainSound();
+  const tTheme = useTemplateLetters();
+  const letterColors = tTheme?.colors || LETTER_COLORS;
+  const letterText = tTheme?.textColor || "#1E3A5F";
 
   useEffect(() => {
     if (suppressAutoPlay) {
@@ -125,7 +129,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
     });
     if (hitBox !== -1) {
       const tileIdx = round.tiles.findIndex((t) => t.id === dragState.id);
-      const tileColor = LETTER_COLORS[tileIdx % LETTER_COLORS.length];
+      const tileColor = letterColors[tileIdx % letterColors.length];
       const newPlaced = [...placed];
       newPlaced[hitBox] = dragState.id;
       setPlacedColors((prev) => ({ ...prev, [hitBox]: tileColor }));
@@ -194,7 +198,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
                 transition={{ duration: 0.5 }}
                 style={{ width: "min(88px,23vw)", height: "min(88px,23vw)", borderRadius: 22, background: tileColor || "rgba(255,255,255,0.75)", border: `3px solid ${tileColor ? "rgba(255,255,255,0.85)" : "rgba(74,144,196,0.35)"}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: tileColor ? "0 4px 18px rgba(0,0,0,0.13)" : "inset 0 2px 8px rgba(0,0,0,0.07)", flexShrink: 0 }}>
                 {placedTile
-                  ? <motion.span key={placedTile.id} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ fontSize: "min(48px,12vw)", fontWeight: 700, color: "#1E3A5F" }}>{placedTile.letter}</motion.span>
+                  ? <motion.span key={placedTile.id} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ fontSize: "min(48px,12vw)", fontWeight: 700, color: letterText }}>{placedTile.letter}</motion.span>
                   : <span style={{ fontSize: "min(32px,8vw)", color: "rgba(74,144,196,0.25)", fontWeight: 700 }}>?</span>}
               </motion.div>
             );
@@ -210,14 +214,14 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
                 const isPlaced = placed.includes(tile.id);
                 const isDraggingThis = dragState?.id === tile.id;
                 const isPulsating = pulsatingIds.has(tile.id) && !isPlaced;
-                const bgColor = LETTER_COLORS[globalIdx % LETTER_COLORS.length];
+                const bgColor = letterColors[globalIdx % letterColors.length];
                 if (isPlaced) return <div key={tile.id} style={{ width: "min(86px,21vw)", height: "min(86px,21vw)", visibility: "hidden", flexShrink: 0 }} />;
                 return (
                   <motion.div key={tile.id}
                     animate={isDraggingThis ? { scale: 1.08 } : isPulsating ? { scale: [1, 1.12, 1] } : { scale: 1 }}
                     transition={isPulsating ? { repeat: Infinity, duration: 0.7, ease: "easeInOut" } : {}}
                     onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, tile); }}
-                    style={{ width: "min(86px,21vw)", height: "min(86px,21vw)", borderRadius: 20, background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(46px,11.5vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 12px rgba(0,0,0,0.10)", border: "3px solid rgba(255,255,255,0.75)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1, flexShrink: 0 }}>
+                    style={{ width: "min(86px,21vw)", height: "min(86px,21vw)", borderRadius: 20, background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(46px,11.5vw)", fontWeight: 700, color: letterText, boxShadow: "0 4px 12px rgba(0,0,0,0.10)", border: "3px solid rgba(255,255,255,0.75)", cursor: "grab", touchAction: "none", userSelect: "none", pointerEvents: isDraggingThis ? "none" : "auto", opacity: isDraggingThis ? 0.3 : 1, flexShrink: 0 }}>
                     {tile.letter}
                   </motion.div>
                 );
@@ -244,7 +248,7 @@ export default function DictationCampaignRound({ card, onComplete, onMistake, la
       {/* Drag ghost */}
       <AnimatePresence>
         {dragState && isDragging.current && (
-          <div style={{ position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%,-50%)", zIndex: 9999, pointerEvents: "none", width: "min(80px,20vw)", height: "min(80px,20vw)", borderRadius: 18, background: LETTER_COLORS[round.tiles.findIndex((t) => t.id === dragState.id) % LETTER_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px,11vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 12px 36px rgba(0,0,0,0.25)", border: "3px solid rgba(255,255,255,0.8)" }}>
+          <div style={{ position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%,-50%)", zIndex: 9999, pointerEvents: "none", width: "min(80px,20vw)", height: "min(80px,20vw)", borderRadius: 18, background: letterColors[round.tiles.findIndex((t) => t.id === dragState.id) % letterColors.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px,11vw)", fontWeight: 700, color: letterText, boxShadow: "0 12px 36px rgba(0,0,0,0.25)", border: "3px solid rgba(255,255,255,0.8)" }}>
             {dragState.letter}
           </div>
         )}
