@@ -54,7 +54,7 @@ const PHASE_TEXTS = {
 
 // Hand is always visible during tutorial — it only hides when the user completes the action
 
-export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard = false }) {
+export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard = false, theme = null }) {
   const { photoUrl: customImage, savePhoto, clearPhoto } = useUserPhoto(card.word);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
 
@@ -304,8 +304,8 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       <div style={{ flex: 1, padding: isTutorial ? "80px 24px 16px" : "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
         <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
           {/* Decorative blobs */}
-          <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
-          <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: "#FFF59D", zIndex: 0 }} />
+          <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: theme?.frame?.blobA || "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
+          <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: theme?.frame?.blobB || "#FFF59D", zIndex: 0 }} />
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -314,7 +314,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.94 }}
               transition={{ duration: 0.22 }}
-              style={{ position: "relative", zIndex: 1, background: "white", borderRadius: 28, padding: 14, boxShadow: "0 12px 48px rgba(30,58,95,0.15)", width: "100%" }}
+              style={{ position: "relative", zIndex: 1, background: theme?.frame?.cardBg || "white", border: theme?.frame?.border || "none", borderRadius: 28, padding: 14, boxShadow: theme?.frame?.shadow || "0 12px 48px rgba(30,58,95,0.15)", width: "100%", boxSizing: "border-box" }}
             >
               {/* Phase 1 target: image */}
               <img
@@ -385,6 +385,8 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
               letter={letter}
               index={i}
               isActive={activeLetterIndex === i}
+              colors={theme?.letterColors}
+              textColor={theme?.letterTextColor}
               onClick={() => handleLetterTap(letter, i)}
               style={{
                 pointerEvents: (isTutorial && (tutPhase !== 2 || i !== 0)) ? "none" : "auto",

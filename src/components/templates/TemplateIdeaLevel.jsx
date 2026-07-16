@@ -145,7 +145,7 @@ export default function TemplateIdeaLevel({ theme, onBack, lang = "en" }) {
         ) : (
           <motion.div key={`round-${roundIndex}`} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.22 }} style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
             {round.type === "phonics" && (
-              <Level1Phonics card={findWord(round.word)} onNext={advance} lang={lang} isFirstCard={false} />
+              <Level1Phonics card={findWord(round.word)} theme={theme} onNext={advance} lang={lang} isFirstCard={false} />
             )}
             {round.type === "drag_v2" && (
               <Level1DragV2 key={`dv2-${roundIndex}`} card={findWord(round.word)} forcedDistractor={round.distractor} onComplete={advance} onMistake={onMistake} lang={lang} />

@@ -23,6 +23,9 @@ export const TEMPLATES = {
     progressFill: "linear-gradient(90deg, #4ECDC4, #2BA89F)",
     accent: "#4ECDC4",
     horizon: { type: "ocean", color: "#2B5378" },
+    frame: { cardBg: "#EAF7FF", border: "4px solid #4ECDC4", shadow: "0 12px 44px rgba(0,0,0,0.30)", blobA: "#4ECDC4", blobB: "#3E71A1" },
+    letterColors: ["#6EDCD5", "#93C9F0", "#F6D98A", "#F2A9A0", "#A9E5C3"],
+    letterTextColor: "#0F3550",
     decorations: [
       { shape: "blob", color: "#3E71A1", size: 320, top: "-10%", left: "62%", opacity: 0.45 },
       { shape: "blob", color: "#3E71A1", size: 260, top: "68%", left: "-28%", opacity: 0.4 },
@@ -43,6 +46,9 @@ export const TEMPLATES = {
     progressFill: "linear-gradient(90deg, #F27BAA, #B79CE4)",
     accent: "#E8639B",
     horizon: { type: "candy", color: "#F2CBDA" },
+    frame: { cardBg: "#FFFFFF", border: "4px solid #F2A9C8", shadow: "0 12px 40px rgba(232,99,155,0.22)", blobA: "#F6C6DC", blobB: "#DCC9F0" },
+    letterColors: ["#F9B8D0", "#CBB4EC", "#FBD9A0", "#AEE3E8", "#F6C6EA"],
+    letterTextColor: "#5C2A4A",
     decorations: [
       { shape: "blob", color: "#F3D0DF", size: 300, top: "-12%", left: "-25%", opacity: 0.7 },
       { shape: "blob", color: "#EBDBF2", size: 260, top: "70%", left: "68%", opacity: 0.7 },
@@ -63,6 +69,9 @@ export const TEMPLATES = {
     progressFill: "linear-gradient(90deg, #2E9E8F, #F5A623)",
     accent: "#2E9E8F",
     horizon: { type: "sunshine", color: "#EFE4C2" },
+    frame: { cardBg: "#FFFDF2", border: "4px solid #F5C445", shadow: "0 12px 40px rgba(245,166,35,0.22)", blobA: "#FFE07A", blobB: "#B7E4C7" },
+    letterColors: ["#FFE07A", "#FFC98A", "#B7E4C7", "#A8D8EA", "#F6B8A0"],
+    letterTextColor: "#5C4718",
     decorations: [
       { shape: "blob", color: "#F2EACA", size: 320, top: "-12%", left: "58%", opacity: 0.9 },
       { shape: "blob", color: "#EFE6C5", size: 280, top: "72%", left: "-24%", opacity: 0.9 },
@@ -83,6 +92,9 @@ export const TEMPLATES = {
     progressFill: "linear-gradient(90deg, #A3E635, #65B741)",
     accent: "#8BC34A",
     horizon: { type: "jungle", color: "#285C43" },
+    frame: { cardBg: "#F0FAF0", border: "4px solid #8BC34A", shadow: "0 12px 44px rgba(0,0,0,0.28)", blobA: "#B7E389", blobB: "#3A7A5C" },
+    letterColors: ["#B7E389", "#8FD6A8", "#F2D98A", "#D9B88F", "#A8DCC5"],
+    letterTextColor: "#1E4632",
     decorations: [
       { shape: "blob", color: "#3A7A5C", size: 320, top: "-10%", left: "60%", opacity: 0.5 },
       { shape: "blob", color: "#3A7A5C", size: 260, top: "68%", left: "-26%", opacity: 0.45 },
@@ -103,6 +115,9 @@ export const TEMPLATES = {
     progressFill: "linear-gradient(90deg, #A78BFA, #7C6FE0)",
     accent: "#A78BFA",
     horizon: { type: "space", color: "#262250" },
+    frame: { cardBg: "#EFEAFB", border: "4px solid #A78BFA", shadow: "0 12px 48px rgba(0,0,0,0.35)", blobA: "#8F7FE0", blobB: "#5C4FA8" },
+    letterColors: ["#B9A8F0", "#8FB4F2", "#F2A9D0", "#7FDBD4", "#D9C3F5"],
+    letterTextColor: "#241F52",
     decorations: [
       { shape: "blob", color: "#3A3570", size: 320, top: "-10%", left: "-26%", opacity: 0.55 },
       { shape: "blob", color: "#3A3570", size: 260, top: "70%", left: "64%", opacity: 0.5 },
@@ -123,6 +138,9 @@ export const TEMPLATES = {
     progressFill: "linear-gradient(90deg, #5EB8E8, #3D8FC7)",
     accent: "#3D8FC7",
     horizon: { type: "snow", color: "#D8E9F5" },
+    frame: { cardBg: "#FDFEFF", border: "4px solid #7FC4EA", shadow: "0 12px 40px rgba(61,143,199,0.22)", blobA: "#CBE9FA", blobB: "#B9D9F0" },
+    letterColors: ["#AEDCF5", "#CBE9FA", "#B9C9F0", "#DFF2FB", "#A9D6E8"],
+    letterTextColor: "#1E3A5F",
     decorations: [
       { shape: "blob", color: "#DCEBF6", size: 320, top: "-12%", left: "58%", opacity: 0.9 },
       { shape: "blob", color: "#DEEDF7", size: 270, top: "72%", left: "-24%", opacity: 0.9 },

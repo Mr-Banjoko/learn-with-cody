@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
-const RainbowLetterBlock = forwardRef(function RainbowLetterBlock({ letter, index, isActive, onClick }, ref) {
+const RainbowLetterBlock = forwardRef(function RainbowLetterBlock({ letter, index, isActive, onClick, colors, textColor }, ref) {
   return (
     <motion.div
       ref={ref}
@@ -15,13 +15,13 @@ const RainbowLetterBlock = forwardRef(function RainbowLetterBlock({ letter, inde
         width: 72,
         height: 72,
         borderRadius: 18,
-        background: LETTER_COLORS[index % LETTER_COLORS.length],
+        background: (colors || LETTER_COLORS)[index % (colors || LETTER_COLORS).length],
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         fontSize: 42,
         fontWeight: 700,
-        color: "#1E3A5F",
+        color: textColor || "#1E3A5F",
         fontFamily: "Fredoka, sans-serif",
         boxShadow: isActive
           ? "0 8px 24px rgba(30,58,95,0.22)"
