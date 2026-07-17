@@ -1,8 +1,46 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import Lottie from "lottie-react";
 import bouncingHeartData from "../../lib/BouncingHeart.json";
 import heartOutlineData from "../../lib/HeartOutline.json";
 import brokenHeartData from "../../lib/BrokenHeart.json";
+
+// ── Lottie tinting: replace reddish fill/stroke colors with the theme color ──
+function hexToRgb01(hex) {
+  const h = hex.replace("#", "");
+  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+}
+
+function tintNumberArr(arr, rgb) {
+  // Lottie color arrays: [r, g, b] or [r, g, b, a] in 0–1
+  if (arr.length >= 3 && arr[0] > arr[1] && arr[0] > arr[2]) {
+    arr[0] = rgb[0]; arr[1] = rgb[1]; arr[2] = rgb[2];
+  }
+}
+
+function tintLottie(data, hex) {
+  const rgb = hexToRgb01(hex);
+  const clone = JSON.parse(JSON.stringify(data));
+  const walk = (node) => {
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (!node || typeof node !== "object") return;
+    if ((node.ty === "fl" || node.ty === "st") && node.c && node.c.k) {
+      const k = node.c.k;
+      if (Array.isArray(k) && typeof k[0] === "number") {
+        tintNumberArr(k, rgb);
+      } else if (Array.isArray(k)) {
+        // Keyframed color: each keyframe has s (and possibly e) number arrays
+        k.forEach((kf) => {
+          if (Array.isArray(kf?.s) && typeof kf.s[0] === "number") tintNumberArr(kf.s, rgb);
+          if (Array.isArray(kf?.e) && typeof kf.e[0] === "number") tintNumberArr(kf.e, rgb);
+        });
+      }
+      return;
+    }
+    Object.values(node).forEach(walk);
+  };
+  walk(clone);
+  return clone;
+}
 
 const HEART_PATH = "M50 85 C50 85 5 55 5 28 C5 14 16 5 28 5 C36 5 44 10 50 18 C56 10 64 5 72 5 C84 5 95 14 95 28 C95 55 50 85 50 85Z";
 
@@ -20,6 +58,10 @@ function StaticHeart({ art, variant, color = "#FF4444" }) {
 function HeartSlot({ slotIndex, mistakes, size, isStatic = false, heartColor }) {
   const brokenRef = useRef(null);
   const [brokenDone, setBrokenDone] = useState(false);
+  const themedBrokenData = useMemo(
+    () => (heartColor ? tintLottie(brokenHeartData, heartColor) : brokenHeartData),
+    [heartColor]
+  );
 
   const outlineThreshold = slotIndex * 2 + 1;
   const brokenThreshold = slotIndex * 2 + 2;
@@ -51,7 +93,7 @@ function HeartSlot({ slotIndex, mistakes, size, isStatic = false, heartColor }) 
           <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: art * 2.6, height: art * 2.6, pointerEvents: "none" }}>
             <Lottie
               lottieRef={brokenRef}
-              animationData={brokenHeartData}
+              animationData={themedBrokenData}
               loop={false}
               onComplete={() => setBrokenDone(true)}
               style={{ width: "100%", height: "100%" }}
