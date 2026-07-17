@@ -6,8 +6,9 @@ import { tx } from "../../lib/i18n";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
+import { useTemplateLetters } from "../../lib/templateTheme";
 
-function LetterBlocks({ word, activeLetterIndex, color }) {
+function LetterBlocks({ word, activeLetterIndex, color, textColor = "#1E3A5F" }) {
   const letters = word.toLowerCase().split("");
   return (
     <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
@@ -25,7 +26,7 @@ function LetterBlocks({ word, activeLetterIndex, color }) {
               background: color,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: "min(43px, 11vw)",
-              fontWeight: 700, color: "#1E3A5F",
+              fontWeight: 700, color: textColor,
               boxShadow: isActive
                 ? "0 6px 18px rgba(30,58,95,0.22)"
                 : "0 3px 10px rgba(30,58,95,0.12)",
@@ -95,6 +96,8 @@ function buildCompletionSequence(wordData, onLetterStart, onWordStart) {
  */
 export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", onMistake }) {
   const { play: playTryAgain } = useTryAgainSound();
+  const tTheme = useTemplateLetters();
+  const letterText = tTheme?.textColor || "#1E3A5F";
   const [state, setState] = useState(() => buildState(wordPair));
   const [dragState, setDragState] = useState(null);
 
@@ -398,8 +401,8 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
       }}>
         {wordPair.map((wd, wi) => {
           const done = state.wordComplete[wi];
-          const color = wi === 0 ? "#FFB3C6" : "#A8D8F0";
-          const shadow = wi === 0 ? "rgba(255,130,170,0.30)" : "rgba(60,150,240,0.25)";
+          const color = tTheme ? tTheme.colors[wi % tTheme.colors.length] : (wi === 0 ? "#FFB3C6" : "#A8D8F0");
+          const shadow = tTheme ? `${color}66` : (wi === 0 ? "rgba(255,130,170,0.30)" : "rgba(60,150,240,0.25)");
           // Pieces assigned to this tray row (randomly shuffled across both words)
           const wordPieces = state.pieces.filter((p) => state.trayAssignment[p.id] === wi);
 
@@ -414,7 +417,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                   style={{ display: "flex", justifyContent: "flex-start", paddingLeft: 2, cursor: playbackLocked ? "default" : "pointer" }}
                   onPointerDown={(e) => { e.preventDefault(); handleWordLabelTap(wd); }}
                 >
-                  <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} color={color} />
+                  <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex[wi] ?? null} color={color} textColor={letterText} />
                 </div>
 
                 {/* Drop box */}
@@ -537,7 +540,7 @@ export default function PicSliceBoard({ wordPair, onRoundComplete, lang = "en", 
                           flex: 1, minHeight: 0,
                           borderRadius: 12, overflow: "hidden",
                           boxShadow: "0 4px 14px rgba(30,58,95,0.14)",
-                          border: "none",
+                          border: tTheme ? `2.5px solid ${color}` : "none",
                           cursor: playbackLocked ? "default" : "grab",
                           touchAction: "none",
                           background: "white",
