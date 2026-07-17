@@ -70,9 +70,13 @@ function ConnectorDot({ selected, matched, onTap, dotRef, color }) {
     <div ref={dotRef} onClick={onTap}
       style={{
         width: 28, height: 28, borderRadius: "50%",
-        border: matched ? `3px solid ${color}` : selected ? "3px solid #4A90C4" : "3px solid #CBD5E1",
-        background: matched ? color : selected ? "#4A90C4" : "white",
-        boxShadow: selected || matched ? "0 0 0 4px rgba(74,144,196,0.2)" : "0 2px 6px rgba(0,0,0,0.10)",
+        border: matched ? `3px solid ${color}` : selected ? "3px solid rgba(255,255,255,0.9)" : "3px solid #CBD5E1",
+        background: matched
+          ? color
+          : selected
+          ? "conic-gradient(from 0deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6, #FF6B6B)"
+          : "white",
+        boxShadow: matched ? "0 0 0 4px rgba(74,144,196,0.2)" : selected ? "0 0 0 4px rgba(155,89,182,0.30)" : "0 2px 6px rgba(0,0,0,0.10)",
         cursor: matched ? "default" : "pointer",
         transition: "background 0.18s, border 0.18s",
         flexShrink: 0,
@@ -316,11 +320,9 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 onClick={() => handleTopCardTap(card)}
                 style={{
                   background: isMatched ? CARD_BG[i] : "white",
-                  border: `2.5px solid ${isSelectedTop ? color : isMatched ? color : color}`,
+                  border: `2.5px solid ${color}`,
                   borderRadius: 18, overflow: "hidden",
-                  boxShadow: isMatched     ? `0 0 0 5px ${color}55` :
-                             isSelectedTop ? `0 0 0 4px ${color}44` :
-                             "0 4px 14px rgba(0,0,0,0.09)",
+                  boxShadow: isMatched ? `0 0 0 5px ${color}55` : "0 4px 14px rgba(0,0,0,0.09)",
                   cursor: "pointer", width: "100%",
                   transition: "border 0.18s, background 0.18s, box-shadow 0.18s",
                   userSelect: "none", WebkitTapHighlightColor: "transparent",
@@ -377,12 +379,8 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 style={{
                   width: "100%", height: 80, borderRadius: 18,
                   background: isMatched ? matchBg : "white",
-                  border: isMatched     ? `2.5px solid ${matchColor}` :
-                          isSelectedBot ? "2.5px solid #4A90C4" :
-                          "2.5px solid #CBD5E1",
-                  boxShadow: isMatched     ? `0 0 0 5px ${matchColor}55` :
-                             isSelectedBot ? "0 0 0 4px rgba(74,144,196,0.3)" :
-                             "0 4px 14px rgba(0,0,0,0.09)",
+                  border: isMatched ? `2.5px solid ${matchColor}` : "2.5px solid #CBD5E1",
+                  boxShadow: isMatched ? `0 0 0 5px ${matchColor}55` : "0 4px 14px rgba(0,0,0,0.09)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   cursor: isMatched ? "default" : "pointer",
                   transition: "border 0.18s, background 0.18s, box-shadow 0.18s",
@@ -406,7 +404,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                       exit={{ opacity: 0, scale: 0.5 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
-                      <Volume2 size={32} color={isSelectedBot ? "#4A90C4" : "#A8D0E6"} strokeWidth={2} />
+                      <Volume2 size={32} color="#A8D0E6" strokeWidth={2} />
                     </motion.div>
                   )}
                 </AnimatePresence>
