@@ -126,7 +126,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
             style={{ width: 86, height: 54, objectFit: "cover", borderRadius: 14, cursor: "pointer", WebkitTapHighlightColor: "transparent", flexShrink: 0 }}
           />
           <div style={{ flex: 1 }} />
-          <HeartDisplay mistakes={mistakes} size={76} />
+          <HeartDisplay mistakes={mistakes} size={76} staticHearts />
           <HintButton gameType={gameType} lang={lang} />
         </div>
         <p style={{ margin: "2px 0 0 2px", fontSize: 16, fontWeight: 700, color: theme.labelColor, lineHeight: 1.2, letterSpacing: "0.01em" }}>

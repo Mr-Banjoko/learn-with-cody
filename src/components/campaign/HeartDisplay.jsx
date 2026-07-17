@@ -4,7 +4,20 @@ import bouncingHeartData from "../../lib/BouncingHeart.json";
 import heartOutlineData from "../../lib/HeartOutline.json";
 import brokenHeartData from "../../lib/BrokenHeart.json";
 
-function HeartSlot({ slotIndex, mistakes, size }) {
+const HEART_PATH = "M50 85 C50 85 5 55 5 28 C5 14 16 5 28 5 C36 5 44 10 50 18 C56 10 64 5 72 5 C84 5 95 14 95 28 C95 55 50 85 50 85Z";
+
+// Static heart used in template mode: "full" | "outline" | "grey"
+function StaticHeart({ art, variant }) {
+  const fill = variant === "full" ? "#FF4444" : variant === "grey" ? "#C3CAD4" : "none";
+  const stroke = variant === "grey" ? "#AAB2BE" : "#FF4444";
+  return (
+    <svg width={art} height={art * 0.9} viewBox="0 0 100 90" fill="none">
+      <path d={HEART_PATH} fill={fill} stroke={stroke} strokeWidth="7" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function HeartSlot({ slotIndex, mistakes, size, isStatic = false }) {
   const brokenRef = useRef(null);
   const [brokenDone, setBrokenDone] = useState(false);
 
@@ -27,6 +40,29 @@ function HeartSlot({ slotIndex, mistakes, size }) {
     display: "flex", alignItems: "center", justifyContent: "center",
     overflow: "hidden",
   };
+
+  if (isStatic) {
+    // 20% bigger than the previous visual heart size (0.38 × size), snug so hearts sit next to each other
+    const art = size * 0.46;
+    const wrap = { width: art + 4, height: art + 6, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "visible" };
+    if (isBroken && !brokenDone) {
+      return (
+        <div style={wrap}>
+          <div style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: art * 2.6, height: art * 2.6, pointerEvents: "none" }}>
+            <Lottie
+              lottieRef={brokenRef}
+              animationData={brokenHeartData}
+              loop={false}
+              onComplete={() => setBrokenDone(true)}
+              style={{ width: "100%", height: "100%" }}
+            />
+          </div>
+        </div>
+      );
+    }
+    const variant = isBroken ? "grey" : isOutline ? "outline" : "full";
+    return <div style={wrap}><StaticHeart art={art} variant={variant} /></div>;
+  }
 
   if (!isBroken && !isOutline) {
     return (
@@ -66,11 +102,11 @@ function HeartSlot({ slotIndex, mistakes, size }) {
   );
 }
 
-export default function HeartDisplay({ mistakes = 0, size = 105 }) {
+export default function HeartDisplay({ mistakes = 0, size = 105, staticHearts = false }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: staticHearts ? 4 : 0 }}>
       {[0, 1, 2].map((i) => (
-        <HeartSlot key={i} slotIndex={i} mistakes={mistakes} size={size} />
+        <HeartSlot key={i} slotIndex={i} mistakes={mistakes} size={size} isStatic={staticHearts} />
       ))}
     </div>
   );
