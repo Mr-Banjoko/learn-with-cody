@@ -99,7 +99,7 @@ export default function TemplateIdeaLevel({ theme, onBack, lang = "en" }) {
     return {};
   }, [roundIndex]); // eslint-disable-line
 
-  const letterTheme = useMemo(() => ({ colors: theme.letterColors, textColor: theme.letterTextColor }), [theme]);
+  const letterTheme = useMemo(() => ({ colors: theme.letterColors, textColor: theme.letterTextColor, frame: theme.frame }), [theme]);
 
   return (
     <TemplateThemeContext.Provider value={letterTheme}>

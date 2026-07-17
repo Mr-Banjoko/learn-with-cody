@@ -7,9 +7,9 @@ import brokenHeartData from "../../lib/BrokenHeart.json";
 const HEART_PATH = "M50 85 C50 85 5 55 5 28 C5 14 16 5 28 5 C36 5 44 10 50 18 C56 10 64 5 72 5 C84 5 95 14 95 28 C95 55 50 85 50 85Z";
 
 // Static heart used in template mode: "full" | "outline" | "grey"
-function StaticHeart({ art, variant }) {
-  const fill = variant === "full" ? "#FF4444" : variant === "grey" ? "#C3CAD4" : "none";
-  const stroke = variant === "grey" ? "#AAB2BE" : "#FF4444";
+function StaticHeart({ art, variant, color = "#FF4444" }) {
+  const fill = variant === "full" ? color : variant === "grey" ? "#C3CAD4" : "none";
+  const stroke = variant === "grey" ? "#AAB2BE" : color;
   return (
     <svg width={art} height={art * 0.9} viewBox="0 0 100 90" fill="none">
       <path d={HEART_PATH} fill={fill} stroke={stroke} strokeWidth="7" strokeLinejoin="round" />
@@ -17,7 +17,7 @@ function StaticHeart({ art, variant }) {
   );
 }
 
-function HeartSlot({ slotIndex, mistakes, size, isStatic = false }) {
+function HeartSlot({ slotIndex, mistakes, size, isStatic = false, heartColor }) {
   const brokenRef = useRef(null);
   const [brokenDone, setBrokenDone] = useState(false);
 
@@ -61,7 +61,7 @@ function HeartSlot({ slotIndex, mistakes, size, isStatic = false }) {
       );
     }
     const variant = isBroken ? "grey" : isOutline ? "outline" : "full";
-    return <div style={wrap}><StaticHeart art={art} variant={variant} /></div>;
+    return <div style={wrap}><StaticHeart art={art} variant={variant} color={heartColor || "#FF4444"} /></div>;
   }
 
   if (!isBroken && !isOutline) {
@@ -102,11 +102,11 @@ function HeartSlot({ slotIndex, mistakes, size, isStatic = false }) {
   );
 }
 
-export default function HeartDisplay({ mistakes = 0, size = 105, staticHearts = false }) {
+export default function HeartDisplay({ mistakes = 0, size = 105, staticHearts = false, heartColor }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: staticHearts ? 4 : 0 }}>
       {[0, 1, 2].map((i) => (
-        <HeartSlot key={i} slotIndex={i} mistakes={mistakes} size={size} isStatic={staticHearts} />
+        <HeartSlot key={i} slotIndex={i} mistakes={mistakes} size={size} isStatic={staticHearts} heartColor={heartColor} />
       ))}
     </div>
   );

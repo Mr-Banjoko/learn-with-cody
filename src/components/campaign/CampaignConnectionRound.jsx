@@ -102,9 +102,13 @@ function ConnectorDot({ dotRef, selected, matched, onTap, color }) {
       onClick={onTap}
       style={{
         width: 28, height: 28, borderRadius: "50%",
-        border: matched ? `3px solid ${color}` : selected ? `3px solid #4A90C4` : "3px solid #CBD5E1",
-        background: matched ? color : selected ? "#4A90C4" : "white",
-        boxShadow: (selected || matched) ? `0 0 0 4px ${color}44` : "0 2px 6px rgba(0,0,0,0.10)",
+        border: matched ? `3px solid ${color}` : selected ? "3px solid rgba(255,255,255,0.9)" : "3px solid #CBD5E1",
+        background: matched
+          ? color
+          : selected
+          ? "conic-gradient(from 0deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6, #FF6B6B)"
+          : "white",
+        boxShadow: matched ? `0 0 0 4px ${color}44` : selected ? "0 0 0 4px rgba(155,89,182,0.30)" : "0 2px 6px rgba(0,0,0,0.10)",
         cursor: matched ? "default" : "pointer",
         transition: "background 0.18s, border 0.18s",
         flexShrink: 0,
@@ -148,7 +152,7 @@ function WinScreen({ card, onDone }) {
       transition={{ duration: 0.3 }}
       style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", gap: 20 }}
     >
-      <div style={{ background: "white", borderRadius: 28, padding: 16, boxShadow: "0 12px 48px rgba(30,58,95,0.18)", width: "min(364px, calc(100vw - 48px))" }}>
+      <div style={{ background: tTheme?.frame?.cardBg || "white", border: tTheme?.frame?.border || "none", borderRadius: 28, padding: 16, boxShadow: tTheme?.frame?.shadow || "0 12px 48px rgba(30,58,95,0.18)", width: "min(364px, calc(100vw - 48px))" }}>
         <img src={card.fullImage || card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
       </div>
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -176,15 +180,11 @@ function SliceTile({ sliceSrc, letterAlt, onTap, isWrong, isSelected, isMatched,
           ? `2.5px solid ${dotColor}`
           : isWrong
           ? "2.5px solid #FF6B6B"
-          : isSelected
-          ? "2.5px solid #4A90C4"
           : "2.5px solid rgba(168,208,230,0.5)",
         boxShadow: isMatched
           ? `0 0 0 4px ${dotColor}44`
           : isWrong
           ? "0 0 0 4px rgba(255,107,107,0.2)"
-          : isSelected
-          ? "0 0 0 4px rgba(74,144,196,0.22)"
           : "0 4px 14px rgba(0,0,0,0.09)",
         cursor: "pointer",
         background: "#f8f8f8",

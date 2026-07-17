@@ -168,7 +168,7 @@ export default function Level1DragV2({ card, onComplete, lang = "en", onMistake,
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.25 }}
           onPointerDown={(e) => { e.preventDefault(); round.card.audio && playAudio(round.card.audio); }}
-          style={{ background: "white", borderRadius: 32, padding: 10, boxShadow: "0 10px 40px rgba(30,58,95,0.15)", cursor: round.card.audio ? "pointer" : "default", touchAction: "manipulation", flexShrink: 0, position: "relative" }}
+          style={{ background: tTheme?.frame?.cardBg || "white", border: tTheme?.frame?.border || "none", borderRadius: 32, padding: 10, boxShadow: tTheme?.frame?.shadow || "0 10px 40px rgba(30,58,95,0.15)", cursor: round.card.audio ? "pointer" : "default", touchAction: "manipulation", flexShrink: 0, position: "relative" }}
         >
           <img
             src={userPhotoUrl || round.card.image}
