@@ -319,7 +319,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 transition={{ duration: 0.5 }}
                 onClick={() => handleTopCardTap(card)}
                 style={{
-                  background: isMatched ? CARD_BG[i] : "white",
+                  background: "white",
                   border: `2.5px solid ${color}`,
                   borderRadius: 18, overflow: "hidden",
                   boxShadow: isMatched ? `0 0 0 5px ${color}55` : "0 4px 14px rgba(0,0,0,0.09)",
@@ -378,7 +378,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 onClick={() => !isRevealed && handleBotSpeakerTap(botIdx)}
                 style={{
                   width: "100%", height: 80, borderRadius: 18,
-                  background: isMatched ? matchBg : "white",
+                  background: "white",
                   border: isMatched ? `2.5px solid ${matchColor}` : "2.5px solid #CBD5E1",
                   boxShadow: isMatched ? `0 0 0 5px ${matchColor}55` : "0 4px 14px rgba(0,0,0,0.09)",
                   display: "flex", alignItems: "center", justifyContent: "center",
