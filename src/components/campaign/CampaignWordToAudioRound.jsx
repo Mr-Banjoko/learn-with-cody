@@ -9,10 +9,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
-import { useTemplateLetters } from "../../lib/templateTheme";
+import { useTemplateLetters, rainbowGradient } from "../../lib/templateTheme";
 
 const RAINBOW_BORDER = "3.5px solid transparent";
-const RAINBOW_BG = "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box";
 
 function shuffle(arr) {
   const a = [...arr];
@@ -56,6 +55,8 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
   const { play: playTryAgain } = useTryAgainSound();
   const tTheme = useTemplateLetters();
   const letterText = tTheme?.textColor || "#1E3A5F";
+  const RAINBOW_BG = rainbowGradient(tTheme?.colors);
+  const selAccent = tTheme ? letterText : "#9B59B6";
 
   useEffect(() => {
     if (!selectedLeft || !selectedRight) return;
@@ -132,7 +133,7 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
                     WebkitTapHighlightColor: "transparent",
                   }}
                 >
-                  <SpeakerIcon color={isLeftSelected ? "#9B59B6" : "#A8D0E6"} size={34} />
+                  <SpeakerIcon color={isLeftSelected ? selAccent : "#A8D0E6"} size={34} />
                 </motion.button>
 
                 <motion.button
@@ -151,7 +152,7 @@ export default function CampaignWordToAudioRound({ card, overrideChoices, onComp
                     WebkitTapHighlightColor: "transparent",
                   }}
                 >
-                  <span style={{ fontSize: 30, fontWeight: 700, color: isRightSelected ? "#9B59B6" : letterText, fontFamily: "Fredoka, sans-serif", letterSpacing: "-0.5px" }}>
+                  <span style={{ fontSize: 30, fontWeight: 700, color: isRightSelected ? selAccent : letterText, fontFamily: "Fredoka, sans-serif", letterSpacing: "-0.5px" }}>
                     {rightItem.word}
                   </span>
                 </motion.button>

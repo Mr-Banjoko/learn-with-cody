@@ -10,3 +10,14 @@ export const TemplateThemeContext = createContext(null);
 export function useTemplateLetters() {
   return useContext(TemplateThemeContext);
 }
+
+const DEFAULT_RAINBOW = ["#FF6B6B", "#FFD93D", "#4ECDC4", "#9B59B6"];
+
+/**
+ * Builds the "rainbow" selection border gradient from the world's letter
+ * palette (falls back to the classic rainbow outside template worlds).
+ */
+export function rainbowGradient(colors) {
+  const c = colors && colors.length ? colors : DEFAULT_RAINBOW;
+  return `linear-gradient(white, white) padding-box, linear-gradient(135deg, ${c.join(", ")}) border-box`;
+}
