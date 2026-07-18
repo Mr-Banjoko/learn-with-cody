@@ -7,9 +7,8 @@
  *    the play area stays clean.
  */
 
-// Cody sitting on a back arrow (black arrow, white bg) — background is cut out
-// and the arrow recolored per world at runtime by CodyArrow.
-const CODY_ARROW_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/cfe87a874_263ac4ed-ade4-4367-8034-f38e9d2ab0cd.png";
+// Each world has its own themed Cody-on-arrow image (white bg is cut out at
+// runtime by CodyArrow; the pre-colored arrows are left untouched).
 
 export const TEMPLATES = {
   idea1: {
@@ -18,7 +17,7 @@ export const TEMPLATES = {
     tagline: "Deep Ocean",
     worldName: "The Deep Ocean",
     worldNameZh: "深海世界",
-    arrowImg: CODY_ARROW_IMG,
+    arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/b7928e45c_generated_image.png",
     arrowColor: "#4ECDC4",
     bg: "#33618D",
     headerBg: "rgba(255,255,255,0.10)",
@@ -43,7 +42,7 @@ export const TEMPLATES = {
     tagline: "Candy Pink",
     worldName: "Candy Land",
     worldNameZh: "糖果世界",
-    arrowImg: CODY_ARROW_IMG,
+    arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/cf6afb100_generated_image.png",
     arrowColor: "#E8639B",
     bg: "#FBE9F0",
     headerBg: "rgba(255,255,255,0.65)",
@@ -68,7 +67,7 @@ export const TEMPLATES = {
     tagline: "Sunny Cream",
     worldName: "Sunny Island",
     worldNameZh: "阳光岛",
-    arrowImg: CODY_ARROW_IMG,
+    arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/f0d0f6351_generated_image.png",
     arrowColor: "#F5A623",
     bg: "#FBF6E3",
     headerBg: "rgba(255,255,255,0.80)",
@@ -93,7 +92,7 @@ export const TEMPLATES = {
     tagline: "Emerald Jungle",
     worldName: "The Emerald Jungle",
     worldNameZh: "翡翠丛林",
-    arrowImg: CODY_ARROW_IMG,
+    arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/3cf9dd476_generated_image.png",
     arrowColor: "#8BC34A",
     bg: "#2F6B4F",
     headerBg: "rgba(255,255,255,0.10)",
@@ -118,7 +117,7 @@ export const TEMPLATES = {
     tagline: "Starry Space",
     worldName: "Starry Space",
     worldNameZh: "星空太空",
-    arrowImg: CODY_ARROW_IMG,
+    arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/cade7c0c7_generated_image.png",
     arrowColor: "#A78BFA",
     bg: "#2E2A5E",
     headerBg: "rgba(255,255,255,0.10)",
@@ -143,7 +142,7 @@ export const TEMPLATES = {
     tagline: "Frosty Peaks",
     worldName: "Frosty Peaks",
     worldNameZh: "冰雪山峰",
-    arrowImg: CODY_ARROW_IMG,
+    arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/95a9ef426_generated_image.png",
     arrowColor: "#3D8FC7",
     bg: "#EAF4FB",
     headerBg: "rgba(255,255,255,0.75)",
