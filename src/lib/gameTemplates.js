@@ -42,7 +42,7 @@ export const TEMPLATES = {
     tagline: "Candy Pink",
     worldName: "Candy Land",
     worldNameZh: "糖果世界",
-    arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/6a8974065_generated_image.png",
+    arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/0a419a503_generated_image.png",
     arrowColor: "#E8639B",
     bg: "#FBE9F0",
     headerBg: "rgba(255,255,255,0.65)",
