@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import HeartDisplay from "../campaign/HeartDisplay";
 import HintButton from "../campaign/HintButton";
 import CodyArrow from "./CodyArrow";
+import TopScene from "./TopScene";
 
 function Decoration({ d }) {
   const base = {
@@ -104,17 +105,24 @@ function Horizon({ h }) {
 
 export default function TemplateShell({ theme, label, gameType, mistakes, progressPct, onBack, lang = "en", children }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
-      {/* Themed header */}
+    <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
+      {/* Full-screen world scene — spans behind header, progress and play area */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+        {theme.decorations.map((d, i) => (
+          <Decoration key={i} d={d} />
+        ))}
+        <TopScene s={theme.topScene} />
+        <Horizon h={theme.horizon} />
+      </div>
+
+      {/* Floating header — no bar, no divider; controls sit directly on the scene */}
       <div
         style={{
           flexShrink: 0,
           display: "flex",
           flexDirection: "column",
           padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 6px",
-          borderBottom: `2px solid ${theme.headerBorder}`,
-          background: theme.headerBg,
-          backdropFilter: "blur(10px)",
+          position: "relative",
           zIndex: 2,
         }}
       >
@@ -135,24 +143,25 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
         </p>
       </div>
 
-      {/* Progress bar */}
+      {/* Themed floating progress pill with traveling world icon */}
       {progressPct != null && (
-        <div style={{ height: 6, background: theme.progressTrack, flexShrink: 0, zIndex: 2 }}>
+        <div style={{ position: "relative", zIndex: 2, flexShrink: 0, margin: "2px 20px 4px", height: 12, borderRadius: 99, background: theme.progressTrack }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: theme.progressFill }} />
+          {theme.progressIcon && (
+            <motion.div
+              animate={{ left: `${progressPct}%` }}
+              transition={{ duration: 0.4 }}
+              style={{ position: "absolute", top: "50%", marginTop: -11, marginLeft: -11, fontSize: 18, lineHeight: "22px", width: 22, height: 22, textAlign: "center", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))" }}
+            >
+              {theme.progressIcon}
+            </motion.div>
+          )}
         </div>
       )}
 
-      {/* Decorated body */}
-      <div style={{ flex: 1, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-          {theme.decorations.map((d, i) => (
-            <Decoration key={i} d={d} />
-          ))}
-          <Horizon h={theme.horizon} />
-        </div>
-        <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          {children}
-        </div>
+      {/* Play area — sits on top of the scene */}
+      <div style={{ flex: 1, position: "relative", zIndex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        {children}
       </div>
     </div>
   );
