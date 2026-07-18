@@ -115,7 +115,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
   }, [theme.bg]);
 
   return (
-    <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
+    <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "calc(100% + env(safe-area-inset-top, 0px))", marginTop: "calc(-1 * env(safe-area-inset-top, 0px))", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
       {/* Full-screen world scene — spans behind header, progress and play area */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
         {theme.decorations.map((d, i) => (
