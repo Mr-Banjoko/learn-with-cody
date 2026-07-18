@@ -3,6 +3,7 @@
  * Renders: themed header (mascot back arrow, hearts, hint), round label,
  * progress bar, and a decorated background behind the game content.
  */
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import HeartDisplay from "../campaign/HeartDisplay";
 import HintButton from "../campaign/HintButton";
@@ -104,6 +105,15 @@ function Horizon({ h }) {
 }
 
 export default function TemplateShell({ theme, label, gameType, mistakes, progressPct, onBack, lang = "en", children }) {
+  // Match the phone status bar (time / wifi / battery area) to the world's color
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) return;
+    const previous = meta.getAttribute("content");
+    meta.setAttribute("content", theme.bg);
+    return () => meta.setAttribute("content", previous);
+  }, [theme.bg]);
+
   return (
     <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
       {/* Full-screen world scene — spans behind header, progress and play area */}
