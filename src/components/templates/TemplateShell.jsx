@@ -107,11 +107,25 @@ function Horizon({ h }) {
 export default function TemplateShell({ theme, label, gameType, mistakes, progressPct, onBack, lang = "en", children }) {
   // Match the phone status bar (time / wifi / battery area) to the world's color
   useEffect(() => {
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (!meta) return;
-    const previous = meta.getAttribute("content");
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "theme-color");
+      document.head.appendChild(meta);
+    }
+    const previousMeta = meta.getAttribute("content");
     meta.setAttribute("content", theme.bg);
-    return () => meta.setAttribute("content", previous);
+    // Safari/standalone also derive the status-bar tint from the page root color
+    const html = document.documentElement;
+    const previousHtmlBg = html.style.backgroundColor;
+    const previousBodyBg = document.body.style.backgroundColor;
+    html.style.backgroundColor = theme.bg;
+    document.body.style.backgroundColor = theme.bg;
+    return () => {
+      meta.setAttribute("content", previousMeta || "");
+      html.style.backgroundColor = previousHtmlBg;
+      document.body.style.backgroundColor = previousBodyBg;
+    };
   }, [theme.bg]);
 
   return (
