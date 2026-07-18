@@ -51,10 +51,8 @@ export default function TemplateHome({ onBack, lang = "en" }) {
               cursor: "pointer", WebkitTapHighlightColor: "transparent",
             }}
           >
-            {/* Theme preview swatch */}
-            <div style={{ width: 60, height: 60, borderRadius: 18, background: idea.bg, border: `2px solid ${idea.accent}44`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
-              <CodyArrow src={idea.arrowImg} color={idea.arrowColor || idea.accent} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-            </div>
+            {/* Cody on the world's planet — no box or background */}
+            <CodyArrow src={idea.planetImg} style={{ width: 64, height: 64, objectFit: "contain", flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 20, fontWeight: 700, color: "#1E293B", margin: 0 }}>{idea.name}</p>
               <p style={{ fontSize: 12, color: "#94A3B8", margin: "3px 0 0" }}>
