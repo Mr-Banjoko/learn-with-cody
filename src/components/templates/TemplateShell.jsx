@@ -123,7 +123,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
             alt="Back"
             whileTap={{ scale: 0.85 }}
             onClick={onBack}
-            style={{ width: 86, height: 54, objectFit: "cover", borderRadius: 14, cursor: "pointer", WebkitTapHighlightColor: "transparent", flexShrink: 0 }}
+            style={{ width: 86, height: 54, objectFit: "contain", background: "none", cursor: "pointer", WebkitTapHighlightColor: "transparent", flexShrink: 0 }}
           />
           <div style={{ flex: 1 }} />
           <HeartDisplay mistakes={mistakes} size={76} staticHearts heartColor={theme.heartColor} />

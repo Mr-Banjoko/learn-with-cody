@@ -113,7 +113,7 @@ export default function TemplateIdeaLevel({ theme, onBack, lang = "en" }) {
               alt=""
               animate={{ y: [0, -14, 0], rotate: [0, -4, 4, 0] }}
               transition={{ repeat: Infinity, duration: 1.4, repeatDelay: 0.6 }}
-              style={{ width: 130, height: 82, objectFit: "cover", borderRadius: 20, boxShadow: "0 10px 28px rgba(0,0,0,0.18)" }}
+              style={{ width: 150, height: 94, objectFit: "contain" }}
             />
             {/* Animated stars */}
             <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
