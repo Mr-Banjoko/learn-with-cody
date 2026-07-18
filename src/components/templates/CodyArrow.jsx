@@ -1,14 +1,14 @@
 /**
- * CodyArrow — renders the Cody-on-arrow mascot image with the background
- * "cut out" (removed) and the black arrow recolored to the world's color.
- * Processing happens once per (image, color) on a canvas and is cached.
+ * CodyArrow — renders the Cody-on-arrow mascot image with the white
+ * background "cut out" (removed). The image itself is never recolored.
+ * Processing happens once per image on a canvas and is cached.
  */
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 const cache = new Map();
 
-function processImage(img, hex) {
+function processImage(img) {
   const w = img.naturalWidth, h = img.naturalHeight;
   const c = document.createElement("canvas");
   c.width = w; c.height = h;
@@ -41,59 +41,12 @@ function processImage(img, hex) {
     if (y < h - 1) stack.push(p + w);
   }
 
-  // 2) Recolor ONLY the arrow: near-black, grey-toned (no color tint) pixels
-  //    that form the single largest connected region. Cody's dark features
-  //    (eyes, mouth, outlines) are small separate regions and stay untouched.
-  const isArrow = (i) => {
-    if (d[i + 3] === 0) return false;
-    const pr = d[i], pg = d[i + 1], pb = d[i + 2];
-    const mx = Math.max(pr, pg, pb), mn = Math.min(pr, pg, pb);
-    return mx < 70 && (mx - mn) < 28;
-  };
-  const labels = new Int32Array(w * h); // 0 = unlabeled
-  let nextLabel = 0;
-  const sizes = [];
-  for (let p = 0; p < w * h; p++) {
-    if (labels[p] !== 0 || !isArrow(p * 4)) continue;
-    nextLabel++;
-    let size = 0;
-    const s = [p];
-    labels[p] = nextLabel;
-    while (s.length) {
-      const q = s.pop();
-      size++;
-      const x = q % w, y = (q / w) | 0;
-      const neighbors = [];
-      if (x > 0) neighbors.push(q - 1);
-      if (x < w - 1) neighbors.push(q + 1);
-      if (y > 0) neighbors.push(q - w);
-      if (y < h - 1) neighbors.push(q + w);
-      for (const n of neighbors) {
-        if (labels[n] === 0 && isArrow(n * 4)) { labels[n] = nextLabel; s.push(n); }
-      }
-    }
-    sizes[nextLabel] = size;
-  }
-  let arrowLabel = 0, maxSize = 0;
-  for (let l = 1; l <= nextLabel; l++) {
-    if (sizes[l] > maxSize) { maxSize = sizes[l]; arrowLabel = l; }
-  }
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  for (let p = 0; p < w * h; p++) {
-    if (labels[p] === arrowLabel && arrowLabel !== 0) {
-      const i = p * 4;
-      d[i] = r; d[i + 1] = g; d[i + 2] = b;
-    }
-  }
-
   ctx.putImageData(imageData, 0, 0);
   return c.toDataURL("image/png");
 }
 
-export function useCodyArrow(src, color) {
-  const key = `${src}|${color}`;
+export function useCodyArrow(src) {
+  const key = src;
   const [url, setUrl] = useState(() => cache.get(key) || null);
 
   useEffect(() => {
@@ -103,7 +56,7 @@ export function useCodyArrow(src, color) {
     img.crossOrigin = "anonymous";
     img.onload = () => {
       let out = src;
-      try { out = processImage(img, color); } catch { /* CORS fallback: raw image */ }
+      try { out = processImage(img); } catch { /* CORS fallback: raw image */ }
       cache.set(key, out);
       if (!cancelled) setUrl(out);
     };
@@ -116,7 +69,7 @@ export function useCodyArrow(src, color) {
 }
 
 export default function CodyArrow({ src, color, style, ...motionProps }) {
-  const url = useCodyArrow(src, color);
+  const url = useCodyArrow(src);
   return (
     <motion.img
       src={url || src}
