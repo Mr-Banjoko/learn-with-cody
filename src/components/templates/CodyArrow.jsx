@@ -41,12 +41,49 @@ function processImage(img, hex) {
     if (y < h - 1) stack.push(p + w);
   }
 
-  // 2) Recolor the near-black arrow pixels to the world color
+  // 2) Recolor ONLY the arrow: near-black, grey-toned (no color tint) pixels
+  //    that form the single largest connected region. Cody's dark features
+  //    (eyes, mouth, outlines) are small separate regions and stay untouched.
+  const isArrow = (i) => {
+    if (d[i + 3] === 0) return false;
+    const pr = d[i], pg = d[i + 1], pb = d[i + 2];
+    const mx = Math.max(pr, pg, pb), mn = Math.min(pr, pg, pb);
+    return mx < 70 && (mx - mn) < 28;
+  };
+  const labels = new Int32Array(w * h); // 0 = unlabeled
+  let nextLabel = 0;
+  const sizes = [];
+  for (let p = 0; p < w * h; p++) {
+    if (labels[p] !== 0 || !isArrow(p * 4)) continue;
+    nextLabel++;
+    let size = 0;
+    const s = [p];
+    labels[p] = nextLabel;
+    while (s.length) {
+      const q = s.pop();
+      size++;
+      const x = q % w, y = (q / w) | 0;
+      const neighbors = [];
+      if (x > 0) neighbors.push(q - 1);
+      if (x < w - 1) neighbors.push(q + 1);
+      if (y > 0) neighbors.push(q - w);
+      if (y < h - 1) neighbors.push(q + w);
+      for (const n of neighbors) {
+        if (labels[n] === 0 && isArrow(n * 4)) { labels[n] = nextLabel; s.push(n); }
+      }
+    }
+    sizes[nextLabel] = size;
+  }
+  let arrowLabel = 0, maxSize = 0;
+  for (let l = 1; l <= nextLabel; l++) {
+    if (sizes[l] > maxSize) { maxSize = sizes[l]; arrowLabel = l; }
+  }
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
-  for (let i = 0; i < d.length; i += 4) {
-    if (d[i + 3] > 0 && d[i] < 80 && d[i + 1] < 80 && d[i + 2] < 80) {
+  for (let p = 0; p < w * h; p++) {
+    if (labels[p] === arrowLabel && arrowLabel !== 0) {
+      const i = p * 4;
       d[i] = r; d[i + 1] = g; d[i + 2] = b;
     }
   }
