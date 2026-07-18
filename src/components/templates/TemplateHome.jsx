@@ -7,6 +7,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import TemplateIdeaLevel from "./TemplateIdeaLevel";
+import CodyArrow from "./CodyArrow";
 import { TEMPLATES } from "../../lib/gameTemplates";
 
 const IDEAS = [TEMPLATES.idea1, TEMPLATES.idea2, TEMPLATES.idea3, TEMPLATES.idea4, TEMPLATES.idea5, TEMPLATES.idea6];
@@ -52,7 +53,7 @@ export default function TemplateHome({ onBack, lang = "en" }) {
           >
             {/* Theme preview swatch */}
             <div style={{ width: 60, height: 60, borderRadius: 18, background: idea.bg, border: `2px solid ${idea.accent}44`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, overflow: "hidden" }}>
-              <img src={idea.arrowImg} alt={idea.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <CodyArrow src={idea.arrowImg} color={idea.arrowColor || idea.accent} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 20, fontWeight: 700, color: "#1E293B", margin: 0 }}>{idea.name}</p>

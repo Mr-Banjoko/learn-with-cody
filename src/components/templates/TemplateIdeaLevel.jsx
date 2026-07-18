@@ -6,6 +6,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TemplateShell from "./TemplateShell";
+import CodyArrow from "./CodyArrow";
 import { TemplateThemeContext } from "../../lib/templateTheme";
 import Level1Phonics from "../campaign/Level1Phonics";
 import Level1DragV2 from "../campaign/Level1DragV2";
@@ -108,9 +109,9 @@ export default function TemplateIdeaLevel({ theme, onBack, lang = "en" }) {
         {done ? (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 24 }}>
             {/* World mascot celebration */}
-            <motion.img
+            <CodyArrow
               src={theme.arrowImg}
-              alt=""
+              color={theme.arrowColor || theme.accent}
               animate={{ y: [0, -14, 0], rotate: [0, -4, 4, 0] }}
               transition={{ repeat: Infinity, duration: 1.4, repeatDelay: 0.6 }}
               style={{ width: 150, height: 94, objectFit: "contain" }}

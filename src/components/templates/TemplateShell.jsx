@@ -6,6 +6,7 @@
 import { motion } from "framer-motion";
 import HeartDisplay from "../campaign/HeartDisplay";
 import HintButton from "../campaign/HintButton";
+import CodyArrow from "./CodyArrow";
 
 function Decoration({ d }) {
   const base = {
@@ -118,12 +119,12 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <motion.img
+          <CodyArrow
             src={theme.arrowImg}
-            alt="Back"
+            color={theme.arrowColor || theme.accent}
             whileTap={{ scale: 0.85 }}
             onClick={onBack}
-            style={{ width: 86, height: 54, objectFit: "contain", background: "none", cursor: "pointer", WebkitTapHighlightColor: "transparent", flexShrink: 0 }}
+            style={{ width: 86, height: 54, objectFit: "contain", cursor: "pointer", WebkitTapHighlightColor: "transparent", flexShrink: 0 }}
           />
           <div style={{ flex: 1 }} />
           <HeartDisplay mistakes={mistakes} size={76} staticHearts heartColor={theme.heartColor} />
