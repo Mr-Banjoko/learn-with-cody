@@ -18,11 +18,11 @@ export default function TabBar({ activeTab, onTabChange, language = "en", showCo
         background: "rgba(255,255,255,0.95)",
         backdropFilter: "blur(16px)",
         borderTop: "1.5px solid rgba(78,205,196,0.18)",
-        paddingBottom: "10px",
+        paddingBottom: "max(env(safe-area-inset-bottom), 10px)",
         boxShadow: "0 -4px 32px rgba(78,205,196,0.10)",
       }}
     >
-      <div className="flex items-end justify-around px-2 pt-2 pb-2 max-w-lg mx-auto">
+      <div className="flex items-end justify-around px-2 pt-1 pb-0 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const Icon = tab.icon;
@@ -32,7 +32,7 @@ export default function TabBar({ activeTab, onTabChange, language = "en", showCo
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className="flex flex-col items-center gap-1 min-w-[72px] py-1 px-3 rounded-2xl transition-all duration-200 relative"
+              className="flex flex-col items-center gap-0.5 min-w-[72px] py-0.5 px-3 rounded-2xl transition-all duration-200 relative"
               style={{
                 background: isActive ? "rgba(78,205,196,0.12)" : "transparent",
                 border: "none",
@@ -47,14 +47,14 @@ export default function TabBar({ activeTab, onTabChange, language = "en", showCo
                   animate={{ scale: 1, y: 0, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 22 }}
                   className="relative"
-                  style={{ width: 44, height: 44 }}
+                  style={{ width: 34, height: 34 }}
                 >
                   <img
                     src="https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png"
                     alt="Cody"
                     style={{
-                      width: 44,
-                      height: 44,
+                      width: 34,
+                      height: 34,
                       objectFit: "contain",
                       filter: isActive
                         ? "drop-shadow(0 2px 8px rgba(78,205,196,0.5))"
@@ -74,9 +74,9 @@ export default function TabBar({ activeTab, onTabChange, language = "en", showCo
                   animate={{ scale: isActive ? 1.15 : 1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 14,
+                    width: 34,
+                    height: 34,
+                    borderRadius: 11,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -84,7 +84,7 @@ export default function TabBar({ activeTab, onTabChange, language = "en", showCo
                   }}
                 >
                   <Icon
-                    size={24}
+                    size={20}
                     style={{ color: isActive ? "#ffffff" : "#94A3B8", strokeWidth: isActive ? 2.5 : 1.8 }}
                   />
                   {isActive && !isLearnTab && (
