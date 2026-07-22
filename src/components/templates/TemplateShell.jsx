@@ -135,7 +135,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
       {/* Full-screen world scene — spans behind header, progress and play area */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
         {isStorybookReef ? (
-          <img src={theme.sceneImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <img src={theme.sceneImg} alt="" style={{ position: "absolute", top: "-18%", left: 0, width: "100%", height: "118%", objectFit: "cover", display: "block" }} />
         ) : (
           <>
             {theme.decorations.map((d, i) => <Decoration key={i} d={d} />)}
@@ -152,7 +152,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
           display: "flex",
           flexDirection: "column",
           padding: isStorybookReef
-            ? "18dvh 20px 8px"
+            ? "12px 20px 8px"
             : "calc(env(safe-area-inset-top, 0px) + 8px) 16px 6px",
           justifyContent: isStorybookReef ? "flex-start" : undefined,
           position: "relative",
