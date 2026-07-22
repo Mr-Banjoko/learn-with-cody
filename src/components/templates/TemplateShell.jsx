@@ -131,7 +131,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
   }, [theme.bg]);
 
   return (
-    <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "calc(100% + env(safe-area-inset-top, 0px))", marginTop: "calc(-1 * env(safe-area-inset-top, 0px))", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
+    <div style={{ position: "relative", display: "flex", flexDirection: "column", height: isStorybookReef ? "100%" : "calc(100% + env(safe-area-inset-top, 0px))", marginTop: isStorybookReef ? 0 : "calc(-1 * env(safe-area-inset-top, 0px))", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
       {/* Full-screen world scene — spans behind header, progress and play area */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
         {isStorybookReef ? (
@@ -152,9 +152,9 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
           display: "flex",
           flexDirection: "column",
           padding: isStorybookReef
-            ? "calc(env(safe-area-inset-top, 0px) + 22vh) 20px 16px"
+            ? "clamp(120px, 19dvh, 250px) 20px 12px"
             : "calc(env(safe-area-inset-top, 0px) + 8px) 16px 6px",
-          minHeight: isStorybookReef ? "50vh" : undefined,
+          minHeight: isStorybookReef ? "clamp(250px, 36dvh, 460px)" : undefined,
           justifyContent: isStorybookReef ? "flex-start" : undefined,
           position: "relative",
           zIndex: 2,
@@ -205,7 +205,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
       )}
 
       {/* Play area — sits on top of the scene */}
-      <div style={{ flex: 1, position: "relative", zIndex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div style={{ flex: 1, minHeight: 0, position: "relative", zIndex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {children}
       </div>
     </div>
