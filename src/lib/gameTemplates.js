@@ -22,7 +22,7 @@ export const TEMPLATES = {
     variant: "storybook-reef",
     sceneImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/5aaf1ed9b_generated_image.png",
     arrowColor: "#18315E",
-    bg: "#FFFDF7",
+    bg: "#C9E7F2",
     headerBg: "transparent",
     headerBorder: "transparent",
     labelColor: "#18315E",

@@ -131,7 +131,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
   }, [theme.bg]);
 
   return (
-    <div style={{ position: "relative", display: "flex", flexDirection: "column", height: isStorybookReef ? "100%" : "calc(100% + env(safe-area-inset-top, 0px))", marginTop: isStorybookReef ? 0 : "calc(-1 * env(safe-area-inset-top, 0px))", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
+    <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "calc(100% + env(safe-area-inset-top, 0px))", marginTop: "calc(-1 * env(safe-area-inset-top, 0px))", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
       {/* Full-screen world scene — spans behind header, progress and play area */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
         {isStorybookReef ? (
@@ -152,7 +152,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
           display: "flex",
           flexDirection: "column",
           padding: isStorybookReef
-            ? "12px 20px 8px"
+            ? "calc(env(safe-area-inset-top, 0px) + 12px) 20px 8px"
             : "calc(env(safe-area-inset-top, 0px) + 8px) 16px 6px",
           justifyContent: isStorybookReef ? "flex-start" : undefined,
           position: "relative",
