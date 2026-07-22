@@ -99,7 +99,7 @@ export default function HintButton({ gameType, lang = "en", variant = "image" })
         touchAction: "manipulation",
         userSelect: "none",
         flexShrink: 0,
-        width: variant === "storybook" ? "auto" : 72,
+        width: 72,
         height: variant === "storybook" ? 46 : 72,
         color: "#18315E",
         fontFamily: "Fredoka, sans-serif",

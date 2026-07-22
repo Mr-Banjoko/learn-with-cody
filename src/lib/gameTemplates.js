@@ -20,7 +20,7 @@ export const TEMPLATES = {
     arrowImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/91434eabd_generated_image.png",
     planetImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/9f4992bb5_generated_image.png",
     variant: "storybook-reef",
-    sceneImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/226c4561c_generated_image.png",
+    sceneImg: "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/5aaf1ed9b_generated_image.png",
     arrowColor: "#18315E",
     bg: "#FFFDF7",
     headerBg: "transparent",

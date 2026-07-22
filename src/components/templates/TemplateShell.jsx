@@ -135,7 +135,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
       {/* Full-screen world scene — spans behind header, progress and play area */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
         {isStorybookReef ? (
-          <img src={theme.sceneImg} alt="" style={{ position: "absolute", top: "-18%", left: 0, width: "100%", height: "118%", objectFit: "cover", display: "block" }} />
+          <img src={theme.sceneImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         ) : (
           <>
             {theme.decorations.map((d, i) => <Decoration key={i} d={d} />)}
@@ -164,7 +164,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={onBack}
-              style={{ border: 0, padding: 0, background: "transparent", color: "#18315E", fontFamily: "Fredoka, sans-serif", fontSize: 25, fontWeight: 700, cursor: "pointer" }}
+              style={{ width: 72, height: 46, border: 0, padding: 0, background: "transparent", color: "#18315E", fontFamily: "Fredoka, sans-serif", fontSize: 25, fontWeight: 700, textAlign: "left", cursor: "pointer", flexShrink: 0 }}
             >
               Back
             </motion.button>
@@ -182,7 +182,7 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
           <div style={{ flex: 1 }} />
           <HintButton gameType={gameType} lang={lang} variant={isStorybookReef ? "storybook" : "image"} />
         </div>
-        <p style={{ margin: isStorybookReef ? "24px 0 0" : "2px 0 0 2px", fontSize: isStorybookReef ? 27 : 16, fontWeight: 700, color: theme.labelColor, lineHeight: 1.2, letterSpacing: "0.01em", textAlign: isStorybookReef ? "center" : "left" }}>
+        <p style={{ margin: isStorybookReef ? "12px 0 0" : "2px 0 0 2px", fontSize: isStorybookReef ? 27 : 16, fontWeight: 700, color: theme.labelColor, lineHeight: 1.2, letterSpacing: "0.01em", textAlign: isStorybookReef ? "center" : "left" }}>
           {label}
         </p>
       </div>
