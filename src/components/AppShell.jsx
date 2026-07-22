@@ -501,7 +501,7 @@ export default function AppShell() {
 
   return (
     <div
-      className="fixed inset-0 overflow-hidden"
+      className="absolute inset-0 overflow-hidden"
       data-build-id={BUILD_ID}
       style={{
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",

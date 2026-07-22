@@ -13,9 +13,8 @@ export default function TabBar({ activeTab, onTabChange, language = "en", showCo
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
-      className="fixed left-0 right-0 z-40"
+      className="absolute bottom-0 left-0 right-0 z-40"
       style={{
-        bottom: "calc(-1 * env(safe-area-inset-bottom, 0px))",
         background: "rgba(255,255,255,0.95)",
         backdropFilter: "blur(16px)",
         borderTop: "1.5px solid rgba(78,205,196,0.18)",
