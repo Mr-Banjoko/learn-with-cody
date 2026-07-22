@@ -18,7 +18,7 @@ export default function TabBar({ activeTab, onTabChange, language = "en", showCo
         background: "rgba(255,255,255,0.95)",
         backdropFilter: "blur(16px)",
         borderTop: "1.5px solid rgba(78,205,196,0.18)",
-        paddingBottom: "max(env(safe-area-inset-bottom), 10px)",
+        paddingBottom: "max(calc(env(safe-area-inset-bottom, 0px) - 18px), 6px)",
         boxShadow: "0 -4px 32px rgba(78,205,196,0.10)",
       }}
     >

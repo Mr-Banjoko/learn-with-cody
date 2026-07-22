@@ -536,7 +536,7 @@ export default function AppShell() {
             : "calc(env(safe-area-inset-top, 0px) + 60px)",
           paddingBottom: isDeepScreen
             ? "0"
-            : "calc(80px + env(safe-area-inset-bottom, 0px))",
+            : "calc(58px + max(calc(env(safe-area-inset-bottom, 0px) - 18px), 6px))",
           overflow: isDeepScreen ? "hidden" : "auto",
           display: "flex",
           flexDirection: "column",
