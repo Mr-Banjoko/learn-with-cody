@@ -301,8 +301,8 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "Fredoka, sans-serif", position: "relative" }}
     >
       {/* Card area */}
-      <div style={{ flex: 1, minHeight: 0, padding: isTutorial ? "80px 24px 16px" : theme?.variant === "storybook-reef" ? "8px 20px" : "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: theme?.variant === "storybook-reef" ? 10 : 20, position: "relative" }}>
-        <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: theme?.variant === "storybook-reef" ? "min(340px, 31dvh)" : 340 }}>
+      <div style={{ flex: 1, padding: isTutorial ? "80px 24px 16px" : "20px 24px 16px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, position: "relative" }}>
+        <div className="relative flex items-center justify-center" style={{ width: "100%", maxWidth: 340 }}>
           {/* Decorative blobs */}
           <div style={{ position: "absolute", top: -20, right: -10, width: 160, height: 140, borderRadius: 40, background: theme?.frame?.blobA || "#FFCDD2", zIndex: 0, transform: "rotate(8deg)" }} />
           <div style={{ position: "absolute", bottom: -20, left: -10, width: 140, height: 140, borderRadius: "50%", background: theme?.frame?.blobB || "#FFF59D", zIndex: 0 }} />
@@ -421,7 +421,7 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
       </div>
 
       {/* Next button row */}
-      <div style={{ position: "relative", zIndex: 20, flexShrink: 0, display: "flex", justifyContent: "flex-end", padding: "10px 20px", paddingBottom: "calc(10px + env(safe-area-inset-bottom, 8px))" }}>
+      <div style={{ flexShrink: 0, display: "flex", justifyContent: "flex-end", padding: "12px 28px", paddingBottom: "calc(12px + env(safe-area-inset-bottom, 8px))" }}>
         <button
           ref={refNext}
           onClick={handleNext}

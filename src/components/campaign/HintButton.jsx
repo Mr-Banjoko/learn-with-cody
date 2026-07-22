@@ -39,7 +39,7 @@ function preloadHint(url) {
   return promise;
 }
 
-export default function HintButton({ gameType, lang = "en", variant = "image" }) {
+export default function HintButton({ gameType, lang = "en" }) {
   const audioRef = useRef(null);
 
   // Prefetch the hint audio the moment the round mounts
@@ -100,28 +100,22 @@ export default function HintButton({ gameType, lang = "en", variant = "image" })
         userSelect: "none",
         flexShrink: 0,
         width: 72,
-        height: variant === "storybook" ? 46 : 72,
-        color: "#18315E",
-        fontFamily: "Fredoka, sans-serif",
-        fontSize: 25,
-        fontWeight: 700,
+        height: 72,
       }}
       aria-label="Hint"
     >
-      {variant === "storybook" ? "Hint" : (
-        <img
-          src={HINT_IMG}
-          alt="Hint"
-          style={{
-            width: 72,
-            height: 72,
-            objectFit: "contain",
-            display: "block",
-            pointerEvents: "none",
-          }}
-          draggable={false}
-        />
-      )}
+      <img
+        src={HINT_IMG}
+        alt="Hint"
+        style={{
+          width: 72,
+          height: 72,
+          objectFit: "contain",
+          display: "block",
+          pointerEvents: "none",
+        }}
+        draggable={false}
+      />
     </motion.button>
   );
 }
