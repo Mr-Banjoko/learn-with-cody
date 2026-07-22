@@ -117,13 +117,21 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
     }
     const previousMeta = meta.getAttribute("content");
     meta.setAttribute("content", theme.bg);
+    // Safari/standalone also derive the status-bar tint from the page root color
+    const html = document.documentElement;
+    const previousHtmlBg = html.style.backgroundColor;
+    const previousBodyBg = document.body.style.backgroundColor;
+    html.style.backgroundColor = theme.bg;
+    document.body.style.backgroundColor = theme.bg;
     return () => {
       meta.setAttribute("content", previousMeta || "");
+      html.style.backgroundColor = previousHtmlBg;
+      document.body.style.backgroundColor = previousBodyBg;
     };
   }, [theme.bg]);
 
   return (
-    <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
+    <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "calc(100% + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px))", marginTop: "calc(-1 * env(safe-area-inset-top, 0px))", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
       {/* Full-screen world scene — spans behind header, progress and play area */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
         {isStorybookReef ? (
