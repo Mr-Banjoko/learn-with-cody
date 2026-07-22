@@ -105,6 +105,8 @@ function Horizon({ h }) {
 }
 
 export default function TemplateShell({ theme, label, gameType, mistakes, progressPct, onBack, lang = "en", children }) {
+  const isStorybookReef = theme.variant === "storybook-reef";
+
   // Match the phone status bar (time / wifi / battery area) to the world's color
   useEffect(() => {
     let meta = document.querySelector('meta[name="theme-color"]');
@@ -131,12 +133,16 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
   return (
     <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "calc(100% + env(safe-area-inset-top, 0px))", marginTop: "calc(-1 * env(safe-area-inset-top, 0px))", fontFamily: "Fredoka, sans-serif", background: theme.bg, overflow: "hidden" }}>
       {/* Full-screen world scene — spans behind header, progress and play area */}
-      <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        {theme.decorations.map((d, i) => (
-          <Decoration key={i} d={d} />
-        ))}
-        <TopScene s={theme.topScene} />
-        <Horizon h={theme.horizon} />
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none", overflow: "hidden" }}>
+        {isStorybookReef ? (
+          <img src={theme.sceneImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        ) : (
+          <>
+            {theme.decorations.map((d, i) => <Decoration key={i} d={d} />)}
+            <TopScene s={theme.topScene} />
+            <Horizon h={theme.horizon} />
+          </>
+        )}
       </div>
 
       {/* Floating header — no bar, no divider; controls sit directly on the scene */}
@@ -145,30 +151,45 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
           flexShrink: 0,
           display: "flex",
           flexDirection: "column",
-          padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 6px",
+          padding: isStorybookReef
+            ? "calc(env(safe-area-inset-top, 0px) + 22vh) 20px 16px"
+            : "calc(env(safe-area-inset-top, 0px) + 8px) 16px 6px",
+          minHeight: isStorybookReef ? "50vh" : undefined,
+          justifyContent: isStorybookReef ? "flex-start" : undefined,
           position: "relative",
           zIndex: 2,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <CodyArrow
-            src={theme.arrowImg}
-            color={theme.arrowColor || theme.accent}
-            whileTap={{ scale: 0.85 }}
-            onClick={onBack}
-            style={{ width: 103, height: 65, objectFit: "contain", cursor: "pointer", WebkitTapHighlightColor: "transparent", flexShrink: 0 }}
-          />
+          {isStorybookReef ? (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={onBack}
+              style={{ border: 0, padding: 0, background: "transparent", color: "#18315E", fontFamily: "Fredoka, sans-serif", fontSize: 25, fontWeight: 700, cursor: "pointer" }}
+            >
+              Back
+            </motion.button>
+          ) : (
+            <CodyArrow
+              src={theme.arrowImg}
+              color={theme.arrowColor || theme.accent}
+              whileTap={{ scale: 0.85 }}
+              onClick={onBack}
+              style={{ width: 103, height: 65, objectFit: "contain", cursor: "pointer", WebkitTapHighlightColor: "transparent", flexShrink: 0 }}
+            />
+          )}
           <div style={{ flex: 1 }} />
-          <HeartDisplay mistakes={mistakes} size={76} staticHearts heartColor={theme.heartColor} />
-          <HintButton gameType={gameType} lang={lang} />
+          <HeartDisplay mistakes={mistakes} size={isStorybookReef ? 62 : 76} staticHearts heartColor={theme.heartColor} outlineColor={isStorybookReef ? "#18315E" : undefined} />
+          <div style={{ flex: 1 }} />
+          <HintButton gameType={gameType} lang={lang} variant={isStorybookReef ? "storybook" : "image"} />
         </div>
-        <p style={{ margin: "2px 0 0 2px", fontSize: 16, fontWeight: 700, color: theme.labelColor, lineHeight: 1.2, letterSpacing: "0.01em" }}>
+        <p style={{ margin: isStorybookReef ? "24px 0 0" : "2px 0 0 2px", fontSize: isStorybookReef ? 27 : 16, fontWeight: 700, color: theme.labelColor, lineHeight: 1.2, letterSpacing: "0.01em", textAlign: isStorybookReef ? "center" : "left" }}>
           {label}
         </p>
       </div>
 
       {/* Themed floating progress pill with traveling world icon */}
-      {progressPct != null && (
+      {progressPct != null && !isStorybookReef && (
         <div style={{ position: "relative", zIndex: 2, flexShrink: 0, margin: "2px 20px 4px", height: 12, borderRadius: 99, background: theme.progressTrack }}>
           <motion.div animate={{ width: `${progressPct}%` }} transition={{ duration: 0.4 }} style={{ height: "100%", borderRadius: 99, background: theme.progressFill }} />
           {theme.progressIcon && (
