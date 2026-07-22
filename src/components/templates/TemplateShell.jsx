@@ -152,9 +152,8 @@ export default function TemplateShell({ theme, label, gameType, mistakes, progre
           display: "flex",
           flexDirection: "column",
           padding: isStorybookReef
-            ? "clamp(120px, 19dvh, 250px) 20px 12px"
+            ? "18dvh 20px 8px"
             : "calc(env(safe-area-inset-top, 0px) + 8px) 16px 6px",
-          minHeight: isStorybookReef ? "clamp(250px, 36dvh, 460px)" : undefined,
           justifyContent: isStorybookReef ? "flex-start" : undefined,
           position: "relative",
           zIndex: 2,
