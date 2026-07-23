@@ -26,7 +26,6 @@ import { Volume2 } from "lucide-react";
 import { playAudio, playAudioSequence } from "../../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../../lib/letterSounds";
 import { useTryAgainSound } from "../../../lib/useTryAgainSound";
-import { useTemplateLetters } from "../../../lib/templateTheme";
 import { useUserPhoto } from "../../../lib/useUserPhoto";
 import { RotateCcw } from "lucide-react";
 
@@ -37,7 +36,7 @@ const CARD_BG     = ["#E8F7FC", "#FDEEF5", "#F3EFFE"];
 const LINE_COLORS = ["#7EC8E3", "#F4A7C3", "#B39DDB"];
 
 // ── SVG line layer ─────────────────────────────────────────────────────────────
-function LinesLayer({ matches, connectorRects, containerRect, topCards, colors = LINE_COLORS }) {
+function LinesLayer({ matches, connectorRects, containerRect, topCards }) {
   if (!containerRect) return null;
   return (
     <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 5, overflow: "visible" }}>
@@ -53,7 +52,7 @@ function LinesLayer({ matches, connectorRects, containerRect, topCards, colors =
         return (
           <motion.line key={m.topCardId}
             x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke={colors[(ci >= 0 ? ci : 0) % colors.length]} strokeWidth={4} strokeLinecap="round"
+            stroke={LINE_COLORS[ci >= 0 ? ci : 0]} strokeWidth={4} strokeLinecap="round"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
@@ -70,13 +69,9 @@ function ConnectorDot({ selected, matched, onTap, dotRef, color }) {
     <div ref={dotRef} onClick={onTap}
       style={{
         width: 28, height: 28, borderRadius: "50%",
-        border: matched ? `3px solid ${color}` : selected ? "3px solid rgba(255,255,255,0.9)" : "3px solid #CBD5E1",
-        background: matched
-          ? color
-          : selected
-          ? "conic-gradient(from 0deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6, #FF6B6B)"
-          : "white",
-        boxShadow: matched ? "0 0 0 4px rgba(74,144,196,0.2)" : selected ? "0 0 0 4px rgba(155,89,182,0.30)" : "0 2px 6px rgba(0,0,0,0.10)",
+        border: matched ? `3px solid ${color}` : selected ? "3px solid #4A90C4" : "3px solid #CBD5E1",
+        background: matched ? color : selected ? "#4A90C4" : "white",
+        boxShadow: selected || matched ? "0 0 0 4px rgba(74,144,196,0.2)" : "0 2px 6px rgba(0,0,0,0.10)",
         cursor: matched ? "default" : "pointer",
         transition: "background 0.18s, border 0.18s",
         flexShrink: 0,
@@ -156,8 +151,6 @@ function PartialWord({ word, positionType, isMatched, color, revealedLetter }) {
 export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onMistake }) {
   const { topCards, bottomLetters } = round;
   const { play: playTryAgain } = useTryAgainSound();
-  const tTheme = useTemplateLetters();
-  const cardColors = tTheme?.colors || CARD_COLORS;
 
   const [selected, setSelected] = useState(null);
   const [matches, setMatches] = useState([]);
@@ -300,7 +293,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
     >
       {locked && <div style={{ position: "absolute", inset: 0, zIndex: 100, touchAction: "none", pointerEvents: "all" }} />}
 
-      <LinesLayer matches={matches} connectorRects={connectorRects} containerRect={containerRect} topCards={topCards} colors={cardColors} />
+      <LinesLayer matches={matches} connectorRects={connectorRects} containerRect={containerRect} topCards={topCards} />
 
       {/* ── TOP CARDS ──────────────────────────────────────────────────────── */}
       <div style={{ display: "flex", justifyContent: "center", gap: 10, width: "100%", zIndex: 10 }}>
@@ -309,7 +302,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
           const isSelectedTop = selected === `top-${card.id}`;
           const isWrongTop    = wrongFeedback?.topCardId === card.id;
           const isRevealed    = revealedTopIds.has(card.id);
-          const color         = cardColors[i % cardColors.length];
+          const color         = CARD_COLORS[i];
           const matchedLetter = isRevealed ? (matches.find((m) => m.topCardId === card.id)?.letter || null) : null;
 
           return (
@@ -319,10 +312,12 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 transition={{ duration: 0.5 }}
                 onClick={() => handleTopCardTap(card)}
                 style={{
-                  background: "white",
-                  border: `2.5px solid ${color}`,
+                  background: isMatched ? CARD_BG[i] : "white",
+                  border: `2.5px solid ${isSelectedTop ? color : isMatched ? color : CARD_COLORS[i]}`,
                   borderRadius: 18, overflow: "hidden",
-                  boxShadow: isMatched ? `0 0 0 5px ${color}55` : "0 4px 14px rgba(0,0,0,0.09)",
+                  boxShadow: isMatched     ? `0 0 0 5px ${color}55` :
+                             isSelectedTop ? `0 0 0 4px ${color}44` :
+                             "0 4px 14px rgba(0,0,0,0.09)",
                   cursor: "pointer", width: "100%",
                   transition: "border 0.18s, background 0.18s, box-shadow 0.18s",
                   userSelect: "none", WebkitTapHighlightColor: "transparent",
@@ -359,7 +354,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
           const isWrongBot    = wrongFeedback?.botIdx === botIdx;
           const isRevealed    = revealedBotIdxs.has(botIdx);
           const matchedTopIdx = isMatched ? topCards.findIndex((c) => c.id === matches.find((m) => m.botIdx === botIdx)?.topCardId) : -1;
-          const matchColor    = matchedTopIdx >= 0 ? cardColors[matchedTopIdx % cardColors.length] : null;
+          const matchColor    = matchedTopIdx >= 0 ? CARD_COLORS[matchedTopIdx] : null;
           const matchBg       = matchedTopIdx >= 0 ? CARD_BG[matchedTopIdx]     : null;
 
           return (
@@ -378,9 +373,13 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                 onClick={() => !isRevealed && handleBotSpeakerTap(botIdx)}
                 style={{
                   width: "100%", height: 80, borderRadius: 18,
-                  background: "white",
-                  border: isMatched ? `2.5px solid ${matchColor}` : "2.5px solid #CBD5E1",
-                  boxShadow: isMatched ? `0 0 0 5px ${matchColor}55` : "0 4px 14px rgba(0,0,0,0.09)",
+                  background: isMatched ? matchBg : "white",
+                  border: isMatched     ? `2.5px solid ${matchColor}` :
+                          isSelectedBot ? "2.5px solid #4A90C4" :
+                          "2.5px solid #CBD5E1",
+                  boxShadow: isMatched     ? `0 0 0 5px ${matchColor}55` :
+                             isSelectedBot ? "0 0 0 4px rgba(74,144,196,0.3)" :
+                             "0 4px 14px rgba(0,0,0,0.09)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   cursor: isMatched ? "default" : "pointer",
                   transition: "border 0.18s, background 0.18s, box-shadow 0.18s",
@@ -404,7 +403,7 @@ export default function DrawLineBoard({ round, onRoundComplete, lang = "en", onM
                       exit={{ opacity: 0, scale: 0.5 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     >
-                      <Volume2 size={32} color="#A8D0E6" strokeWidth={2} />
+                      <Volume2 size={32} color={isSelectedBot ? "#4A90C4" : "#A8D0E6"} strokeWidth={2} />
                     </motion.div>
                   )}
                 </AnimatePresence>

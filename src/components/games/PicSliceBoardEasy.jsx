@@ -5,9 +5,8 @@ import { buildRoundPieces } from "../../lib/picSliceGameData";
 import { playAudio, playAudioSequence } from "../../lib/useAudio";
 import { getLetterGain } from "../../lib/letterSounds";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
-import { useTemplateLetters } from "../../lib/templateTheme";
 
-function LetterBlocks({ word, activeLetterIndex, color, textColor = "#1E3A5F" }) {
+function LetterBlocks({ word, activeLetterIndex, color }) {
   const letters = word.toLowerCase().split("");
   return (
     <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
@@ -25,7 +24,7 @@ function LetterBlocks({ word, activeLetterIndex, color, textColor = "#1E3A5F" })
               background: color,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: "min(60px, 15vw)",
-              fontWeight: 700, color: textColor,
+              fontWeight: 700, color: "#1E3A5F",
               boxShadow: isActive ? "0 8px 24px rgba(30,58,95,0.28)" : "0 4px 14px rgba(30,58,95,0.14)",
               border: "3px solid rgba(255,255,255,0.85)",
               transition: "box-shadow 0.15s",
@@ -99,14 +98,7 @@ function PadlockIcon({ size = 28 }) {
 export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "en", onMistake, orderedAudio = false, suppressAutoPlay = false, mistakeGuide = null }) {
   const wd = wordPair[0];
 
-  const tTheme = useTemplateLetters();
-  const palette = useMemo(
-    () => (tTheme
-      ? { bg: tTheme.colors[0], border: tTheme.colors[1] || tTheme.colors[0], shadow: `${tTheme.colors[1] || tTheme.colors[0]}66` }
-      : pickPalette()),
-    [wordPair, tTheme] // eslint-disable-line react-hooks/exhaustive-deps
-  );
-  const letterText = tTheme?.textColor || "#1E3A5F";
+  const palette = useMemo(() => pickPalette(), [wordPair]);
 
   const [state, setState] = useState(() => buildState(wordPair, orderedAudio));
   const [dragState, setDragState] = useState(null);
@@ -378,7 +370,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
       {/* ── WORD LABEL ─────────────────────────────────────────────────────── */}
       {playingSequence ? (
         <div style={{ width: "100%", maxWidth: 300, padding: "10px 16px", flexShrink: 0, display: "flex", justifyContent: "center" }}>
-          <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex} color={bg} textColor={letterText} />
+          <LetterBlocks word={wd.word} activeLetterIndex={activeLetterIndex} color={bg} />
         </div>
       ) : (
         <motion.button
@@ -393,7 +385,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
             borderRadius: 18,
             fontSize: "clamp(26px, 7.5vw, 38px)",
             fontWeight: 700,
-            color: letterText,
+            color: "#1E3A5F",
             letterSpacing: 4,
             textAlign: "center",
             cursor: "pointer",
@@ -642,7 +634,7 @@ export default function PicSliceBoardEasy({ wordPair, onRoundComplete, lang = "e
           borderRadius: 14,
           overflow: "hidden",
           boxShadow: "0 14px 36px rgba(30,58,95,0.28)",
-          border: `3px solid ${border}`,
+          border: "3px solid #4ECDC4",
         }}>
           <img
             src={dragState.piece.sliceSrc || dragState.piece.image || wd.fullImage || wd.image}

@@ -47,7 +47,6 @@ import { playAudio } from "../../lib/useAudio";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
-import { useTemplateLetters } from "../../lib/templateTheme";
 
 const TILE_COLORS = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF", "#FF9F43"];
 const LETTER_BOX_COLORS = ["#FF6B6B", "#4ECDC4", "#FFD93D"];
@@ -215,10 +214,6 @@ export default function CampaignLetterCatchRound({
   const { play: playTryAgain } = useTryAgainSound();
   const letters = word.split("");
   const missingPos = letters.indexOf(missingLetter);
-  const tTheme = useTemplateLetters();
-  const tileColors = tTheme?.colors || TILE_COLORS;
-  const boxColors = tTheme?.colors || LETTER_BOX_COLORS;
-  const tileText = tTheme?.textColor || "white";
 
   const [tiles, setTiles] = useState([]);
   const [codyLane, setCodyLane] = useState(1);
@@ -388,7 +383,7 @@ export default function CampaignLetterCatchRound({
 
         queueIdx.current++;
         const id    = ++tileCounter.current;
-        const color = tileColors[Math.floor(Math.random() * tileColors.length)];
+        const color = TILE_COLORS[Math.floor(Math.random() * TILE_COLORS.length)];
         tilesRef.current = [...tilesRef.current, { id, letter, lane, y: -80, status: "falling", color }];
         nextSpawnAt.current = now + SPAWN_INTERVAL_MS;
       }
@@ -464,7 +459,7 @@ export default function CampaignLetterCatchRound({
             {letters.map((letter, i) => {
               const isMissing  = i === missingPos;
               const showLetter = !isMissing || caughtVisible;
-              const boxColor   = boxColors[i % boxColors.length];
+              const boxColor   = LETTER_BOX_COLORS[i];
               return (
                 <motion.button
                   key={i}
@@ -480,7 +475,7 @@ export default function CampaignLetterCatchRound({
                     border: showLetter ? "none" : "3px dashed #A8D0E6",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 36, fontWeight: 700,
-                    color: showLetter ? tileText : "#A8D0E6",
+                    color: showLetter ? "white" : "#A8D0E6",
                     cursor: showLetter ? "pointer" : "default",
                     boxShadow: showLetter ? `0 4px 14px ${boxColor}55` : "none",
                     fontFamily: "Fredoka, sans-serif",
@@ -528,7 +523,7 @@ export default function CampaignLetterCatchRound({
                   width: 136, height: 136, borderRadius: 32,
                   background: tile.color,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 102, fontWeight: 700, color: tileText,
+                  fontSize: 102, fontWeight: 700, color: "white",
                   fontFamily: "Fredoka, sans-serif",
                   boxShadow: isWrong
                     ? "0 0 0 6px rgba(255,80,80,0.55), 0 0 24px rgba(255,80,80,0.40)"

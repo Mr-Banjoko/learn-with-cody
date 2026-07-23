@@ -9,7 +9,6 @@ import { Volume2, RotateCcw } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
-import { useTemplateLetters, rainbowGradient } from "../../lib/templateTheme";
 import { useUserPhoto } from "../../lib/useUserPhoto";
 import { shortAWords } from "../../lib/shortAWords";
 import { shortEWords } from "../../lib/shortEWords";
@@ -30,6 +29,7 @@ function buildRound(card, overrideChoices) {
 
 // Rainbow border matching IdentifyingRound style
 const RAINBOW_BORDER = "4px solid transparent";
+const RAINBOW_BG = "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box";
 
 export default function CampaignWordMatchRound({ card, overrideChoices, onComplete, onMistake, lang = "en", suppressAutoPlay = false }) {
   const [round] = useState(() => buildRound(card, overrideChoices));
@@ -40,9 +40,6 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
   const autoPlayedRef = useRef(false);
   const { play: playCorrect } = useCorrectSound();
   const { play: playTryAgain } = useTryAgainSound();
-  const tTheme = useTemplateLetters();
-  const letterText = tTheme?.textColor || "#1E3A5F";
-  const RAINBOW_BG = rainbowGradient(tTheme?.colors);
 
   // Auto-play on mount (suppressed on Round 1 when hint audio handles sequencing)
   useEffect(() => {
@@ -135,7 +132,7 @@ export default function CampaignWordMatchRound({ card, overrideChoices, onComple
                 borderRadius: 20,
                 background: showRainbow ? RAINBOW_BG : "white",
                 border: showRainbow ? RAINBOW_BORDER : "2px solid #A8D0E6",
-                color: letterText,
+                color: "#1E3A5F",
                 fontSize: 28,
                 fontWeight: 700,
                 fontFamily: "Fredoka, sans-serif",

@@ -8,13 +8,14 @@ import { RotateCcw } from "lucide-react";
 import { playAudio } from "../../lib/useAudio";
 import { useCorrectSound } from "../../lib/useCorrectSound";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
-import { useTemplateLetters, rainbowGradient } from "../../lib/templateTheme";
 
 const CHOICE_COLORS = [
   { border: "#4ECDC4", shadow: "rgba(78,205,196,0.35)", ring: "rgba(78,205,196,0.28)" },
   { border: "#FF6B9D", shadow: "rgba(255,107,157,0.35)", ring: "rgba(255,107,157,0.28)" },
   { border: "#FFD93D", shadow: "rgba(255,217,61,0.35)", ring: "rgba(255,217,61,0.28)" },
 ];
+
+const RAINBOW_GRADIENT = "linear-gradient(white, white) padding-box, linear-gradient(135deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6) border-box";
 
 function SpeakerIcon({ color = "#4ECDC4", size = 26 }) {
   return (
@@ -47,9 +48,6 @@ async function preloadAll(urls) {
 }
 
 export default function IdentifyingRound({ round, onComplete, lang = "en", onMistake, suppressAutoPlay = false, userPhotoUrl, onClearPhoto }) {
-  const tTheme = useTemplateLetters();
-  const letterText = tTheme?.textColor || "#1E3A5F";
-  const RAINBOW_GRADIENT = rainbowGradient(tTheme?.colors);
   const [selected, setSelected]     = useState(null);
   const [wrongShake, setWrongShake]  = useState(false);
   const [imagesReady, setImagesReady] = useState(false);
@@ -140,7 +138,7 @@ export default function IdentifyingRound({ round, onComplete, lang = "en", onMis
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
             style={{ background: "white", borderRadius: 20, padding: "14px 40px", boxShadow: "0 8px 32px rgba(78,205,196,0.20), 0 2px 10px rgba(30,58,95,0.08)", border: "3px solid rgba(78,205,196,0.22)", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            <span style={{ fontSize: 52, fontWeight: 700, color: letterText, fontFamily: "Fredoka, sans-serif" }}>
+            <span style={{ fontSize: 52, fontWeight: 700, color: "#1E3A5F", fontFamily: "Fredoka, sans-serif" }}>
               {round.target.word}
             </span>
           </motion.div>

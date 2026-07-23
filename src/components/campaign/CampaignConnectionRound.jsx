@@ -17,7 +17,6 @@ import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import RainbowLetterBlock from "../RainbowLetterBlock";
 import { useTryAgainSound } from "../../lib/useTryAgainSound";
-import { useTemplateLetters } from "../../lib/templateTheme";
 import { buildWordData } from "../../lib/picSliceGameData";
 import { buildShortOSliceData } from "../../lib/buildShortOSliceData";
 import { buildShortISliceData } from "../../lib/buildShortISliceData";
@@ -69,7 +68,7 @@ function buildShuffledOrder() {
   return order;
 }
 
-function LinesLayer({ matches, connectorRects, containerRect, colors = CARD_COLORS }) {
+function LinesLayer({ matches, connectorRects, containerRect }) {
   if (!containerRect) return null;
   return (
     <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 5, overflow: "visible" }}>
@@ -83,7 +82,7 @@ function LinesLayer({ matches, connectorRects, containerRect, colors = CARD_COLO
         const y2 = botR.top + botR.height / 2 - containerRect.top;
         return (
           <motion.line key={m.topIdx} x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke={colors[m.topIdx % colors.length]}
+            stroke={CARD_COLORS[m.topIdx % CARD_COLORS.length]}
             strokeWidth={4} strokeLinecap="round"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: 1 }}
@@ -102,13 +101,9 @@ function ConnectorDot({ dotRef, selected, matched, onTap, color }) {
       onClick={onTap}
       style={{
         width: 28, height: 28, borderRadius: "50%",
-        border: matched ? `3px solid ${color}` : selected ? "3px solid rgba(255,255,255,0.9)" : "3px solid #CBD5E1",
-        background: matched
-          ? color
-          : selected
-          ? "conic-gradient(from 0deg, #FF6B6B, #FFD93D, #4ECDC4, #9B59B6, #FF6B6B)"
-          : "white",
-        boxShadow: matched ? `0 0 0 4px ${color}44` : selected ? "0 0 0 4px rgba(155,89,182,0.30)" : "0 2px 6px rgba(0,0,0,0.10)",
+        border: matched ? `3px solid ${color}` : selected ? `3px solid #4A90C4` : "3px solid #CBD5E1",
+        background: matched ? color : selected ? "#4A90C4" : "white",
+        boxShadow: (selected || matched) ? `0 0 0 4px ${color}44` : "0 2px 6px rgba(0,0,0,0.10)",
         cursor: matched ? "default" : "pointer",
         transition: "background 0.18s, border 0.18s",
         flexShrink: 0,
@@ -118,7 +113,6 @@ function ConnectorDot({ dotRef, selected, matched, onTap, color }) {
 }
 
 function WinScreen({ card, onDone }) {
-  const tTheme = useTemplateLetters();
   const seqRef = useRef(null);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
 
@@ -152,12 +146,12 @@ function WinScreen({ card, onDone }) {
       transition={{ duration: 0.3 }}
       style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px", gap: 20 }}
     >
-      <div style={{ background: tTheme?.frame?.cardBg || "white", border: tTheme?.frame?.border || "none", borderRadius: 28, padding: 16, boxShadow: tTheme?.frame?.shadow || "0 12px 48px rgba(30,58,95,0.18)", width: "min(364px, calc(100vw - 48px))" }}>
+      <div style={{ background: "white", borderRadius: 28, padding: 16, boxShadow: "0 12px 48px rgba(30,58,95,0.18)", width: "min(364px, calc(100vw - 48px))" }}>
         <img src={card.fullImage || card.image} alt={card.word} style={{ width: "100%", aspectRatio: "1/1", objectFit: "cover", borderRadius: 18, display: "block" }} />
       </div>
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         {card.word.split("").map((letter, i) => (
-          <RainbowLetterBlock key={i} letter={letter} index={i} isActive={activeLetterIndex === i} colors={tTheme?.colors} textColor={tTheme?.textColor} />
+          <RainbowLetterBlock key={i} letter={letter} index={i} isActive={activeLetterIndex === i} />
         ))}
       </div>
     </motion.div>
@@ -180,11 +174,15 @@ function SliceTile({ sliceSrc, letterAlt, onTap, isWrong, isSelected, isMatched,
           ? `2.5px solid ${dotColor}`
           : isWrong
           ? "2.5px solid #FF6B6B"
+          : isSelected
+          ? "2.5px solid #4A90C4"
           : "2.5px solid rgba(168,208,230,0.5)",
         boxShadow: isMatched
           ? `0 0 0 4px ${dotColor}44`
           : isWrong
           ? "0 0 0 4px rgba(255,107,107,0.2)"
+          : isSelected
+          ? "0 0 0 4px rgba(74,144,196,0.22)"
           : "0 4px 14px rgba(0,0,0,0.09)",
         cursor: "pointer",
         background: "#f8f8f8",
@@ -206,9 +204,6 @@ function SliceTile({ sliceSrc, letterAlt, onTap, isWrong, isSelected, isMatched,
 
 function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeakerTap }) {
   const letters = card.word.split("");
-  const tTheme = useTemplateLetters();
-  const letterColors = tTheme?.colors || LETTER_COLORS;
-  const letterText = tTheme?.textColor || "#1E3A5F";
   const [shuffledOrder] = useState(() => buildShuffledOrder());
   const [selected, setSelected] = useState(null);
   const [matches, setMatches] = useState([]);
@@ -322,7 +317,7 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
 
   return (
     <div ref={containerRef} style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", padding: "8px 16px 16px", minHeight: 0, userSelect: "none" }}>
-      <LinesLayer matches={matches} connectorRects={connectorRects} containerRect={containerRect} colors={letterColors} />
+      <LinesLayer matches={matches} connectorRects={connectorRects} containerRect={containerRect} />
 
       {/* Row 1: Letters + Row 2: Top dots */}
       <div style={{ display: "flex", justifyContent: "center", gap: 12, width: "100%", zIndex: 20, transform: "translateY(20px)" }}>
@@ -331,7 +326,7 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
             <motion.div
               animate={wrongFeedback?.topIdx === i ? { x: [0, -8, 8, -6, 6, 0] } : {}}
               transition={{ duration: 0.4 }}
-              style={{ width: "100%", height: "min(80px, 22vw)", borderRadius: 20, background: letterColors[i % letterColors.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px, 12vw)", fontWeight: 700, color: letterText, boxShadow: "0 4px 16px rgba(0,0,0,0.10)" }}
+              style={{ width: "100%", height: "min(80px, 22vw)", borderRadius: 20, background: LETTER_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "min(44px, 12vw)", fontWeight: 700, color: "#1E3A5F", boxShadow: "0 4px 16px rgba(0,0,0,0.10)" }}
             >
               {letter}
             </motion.div>
@@ -340,7 +335,7 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
               selected={selected === `top-${i}`}
               matched={matchedTopIdxs.has(i)}
               onTap={() => handleTopDot(i)}
-              color={letterColors[i % letterColors.length]}
+              color={CARD_COLORS[i]}
             />
           </div>
         ))}
@@ -365,7 +360,7 @@ function ConnectionRound({ card, onComplete, onMistake, onWrongAnswer, onSpeaker
           const isSelectedBot = selected === `bot-${botSlot}`;
           const isWrongBot = wrongFeedback?.botIdx === botSlot;
           const matchedTopIdx = isMatched ? matches.find((m) => m.botIdx === botSlot)?.topIdx : null;
-          const dotColor = matchedTopIdx != null ? letterColors[matchedTopIdx % letterColors.length] : letterColors[letterIdx % letterColors.length];
+          const dotColor = matchedTopIdx != null ? CARD_COLORS[matchedTopIdx] : CARD_COLORS[letterIdx];
           const revealedLetter = letters[letterIdx];
 
           return (
