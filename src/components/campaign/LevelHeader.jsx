@@ -23,17 +23,13 @@ export default function LevelHeader({ levelNum, mistakes, onBack, lang = "en", g
         display: "flex",
         flexDirection: "column",
         padding: "calc(env(safe-area-inset-top, 0px) + 8px) 16px 6px",
-        borderBottom: "1.5px solid rgba(0,0,0,0.06)",
-        background: "rgba(255,255,255,0.75)",
-        backdropFilter: "blur(10px)",
       }}
     >
-      {/* Row: back arrow | spacer | hearts | hint button */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      {/* Row: back arrow | hint button | hearts */}
+      <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
         <BackArrow onPress={onBack} />
-        <div style={{ flex: 1 }} />
-        <HeartDisplay mistakes={mistakes} size={76} />
         <HintButton gameType={gameType} lang={lang} />
+        <HeartDisplay mistakes={mistakes} size={46} />
       </div>
 
       {/* Label directly below back arrow */}
