@@ -1,0 +1,17 @@
+export const GAME_FIX_TYPES = [
+  { id: "phonics", label: "Phonics", emoji: "🔊" },
+  { id: "drag_v2", label: "Drag Letters", emoji: "🔤" },
+  { id: "identifying", label: "Identify the Word", emoji: "👀" },
+  { id: "missing01", label: "Missing Sound", emoji: "❓" },
+  { id: "catch", label: "Letter Catch", emoji: "🧺" },
+  { id: "connection", label: "Sound Connection", emoji: "🔗" },
+  { id: "rearrange_easy", label: "Picture Slice — Easy", emoji: "🧩" },
+  { id: "rearrange_hard", label: "Picture Slice — Hard", emoji: "🧩" },
+  { id: "drawline", label: "Draw a Line", emoji: "✏️" },
+  { id: "word_match", label: "Word Match", emoji: "🖼️" },
+  { id: "word_to_audio", label: "Word to Audio", emoji: "🎧" },
+  { id: "dictation", label: "Dictation", emoji: "🎙️" },
+  { id: "writev2", label: "Write", emoji: "✍️" },
+  { id: "one_letter_3_sounds", label: "One Letter, Three Sounds", emoji: "🔉" },
+  { id: "final_challenge", label: "Final Mixed Challenge", emoji: "🏆" },
+];

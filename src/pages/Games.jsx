@@ -33,6 +33,7 @@ import LetterCatch from "../components/games/LetterCatch";
 import DrawLineGame from "../components/games/DrawLineGame";
 import LetterSoundConnection from "../components/games/LetterSoundConnection";
 import DictationHub from "../components/games/dictation/DictationHub";
+import GameFixHub from "../components/gamefix/GameFixHub";
 
 const CODY_IMG = "https://media.base44.com/images/public/69c4ec00726384fdef1ab181/93a5cd462_transparent_cody.png";
 
@@ -96,6 +97,9 @@ export default function Games({ onDeepScreen, lang = "en" }) {
   }
   if (activeGame === "test") {
     return <TestHub onBack={exitGame} onDeepScreen={onDeepScreen} lang={lang} />;
+  }
+  if (activeGame === "game-fix") {
+    return <GameFixHub onBack={exitGame} lang={lang} />;
   }
   if (activeGame === "write-short-a") return <ShortAGame onBack={exitGame} />;
   if (activeGame === "write-short-e") return <ShortEGame onBack={exitGame} />;
@@ -232,6 +236,26 @@ export default function Games({ onDeepScreen, lang = "en" }) {
               <div className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "#FF6B6B18", color: "#FF6B6B" }}>
                 {lang === "zh" ? "立即游玩 🎮" : "Play Now! 🎮"}
               </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Game Fix folder card */}
+      <div className="px-4 mt-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={() => enterGame("game-fix")}
+          className="relative rounded-3xl overflow-hidden p-5"
+          style={{ background: "#EFF6FF", border: "2px solid #4D96FF44", boxShadow: "0 8px 32px #4D96FF15", cursor: "pointer" }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="rounded-2xl text-3xl flex items-center justify-center" style={{ width: 64, height: 64, background: "white", flexShrink: 0 }}>🛠️</div>
+            <div>
+              <h3 className="text-xl font-semibold" style={{ color: "#1E293B" }}>Game Fix</h3>
+              <p className="text-sm" style={{ color: "#64748B", marginTop: 2 }}>One shared example of every campaign game type</p>
+              <div className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "#4D96FF18", color: "#4D96FF" }}>Open Folder</div>
             </div>
           </div>
         </motion.div>
