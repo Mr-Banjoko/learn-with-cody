@@ -70,12 +70,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
           overscrollBehaviorY: "contain",
           WebkitOverflowScrolling: "touch",
-          backgroundColor: "#2A969C",
-          backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/42ea61392_generated_image.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          backgroundAttachment: "scroll",
+          background: "linear-gradient(180deg, #D9FFFA 0%, #A9E6E1 52%, #62C9C4 100%)",
         }}
       >
         <div
