@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useLayoutEffect, useRef } from "react";
 import { ArrowLeft, Zap } from "lucide-react";
 import { getBestStars } from "../../lib/campaignPerformance";
 import CandyLevelNode from "./CandyLevelNode";
@@ -17,7 +17,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
 
   const scrollRef = useRef(null);
 
-  const [starMap, setStarMap] = useState(() => {
+  const [starMap] = useState(() => {
     const map = {};
     for (let i = 1; i <= TOTAL_LEVELS; i++) {
       map[i] = getBestStars("short-a", i);
@@ -28,34 +28,16 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   const activeLevel = Math.min(lastCompletedLevel + 1, TOTAL_LEVELS);
   const pathPoints = levels.slice().reverse().map((level, index) => ({ x: getLeftPct(index) * 10, y: TOP_OFFSET + index * NODE_SPACING + 52 }));
 
-  useEffect(() => {
-    const map = {};
-    for (let i = 1; i <= TOTAL_LEVELS; i++) {
-      map[i] = getBestStars("short-a", i);
-    }
-    setStarMap(map);
-
-    const lastCompleted = Object.keys(map)
-      .map(Number)
-      .filter((lvl) => map[lvl] > 0)
-      .reduce((max, lvl) => Math.max(max, lvl), 0);
-
-    const activeLevel = Math.min(lastCompleted + 1, TOTAL_LEVELS);
-    const focusLevel = Math.max(activeLevel, 1);
-
-    const activeIdx = TOTAL_LEVELS - focusLevel;
-    const nodeTopPx = TOP_OFFSET + activeIdx * NODE_SPACING;
-
+  useLayoutEffect(() => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer) return;
 
-    const viewportHeight = scrollContainer.clientHeight;
-    const targetScrollTop = nodeTopPx - viewportHeight / 2 + NODE_SPACING / 2;
+    const activeIdx = TOTAL_LEVELS - activeLevel;
+    const nodeTopPx = TOP_OFFSET + activeIdx * NODE_SPACING;
+    const targetScrollTop = nodeTopPx - scrollContainer.clientHeight / 2 + NODE_SPACING / 2;
 
-    requestAnimationFrame(() => {
-      scrollContainer.scrollTo({ top: Math.max(0, targetScrollTop), behavior: "smooth" });
-    });
-  }, []);
+    scrollContainer.scrollTop = Math.max(0, targetScrollTop);
+  }, [activeLevel]);
 
   return (
     <div
