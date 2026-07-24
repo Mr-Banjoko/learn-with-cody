@@ -26,12 +26,6 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   });
   const lastCompletedLevel = Object.keys(starMap).map(Number).filter((level) => starMap[level] > 0).reduce((max, level) => Math.max(max, level), 0);
   const activeLevel = Math.min(lastCompletedLevel + 1, TOTAL_LEVELS);
-  const [celebrateLevel] = useState(() => {
-    const key = "short-a-last-celebrated-level";
-    const lastCelebrated = Number(localStorage.getItem(key));
-    if (!lastCelebrated) localStorage.setItem(key, String(activeLevel));
-    return lastCelebrated && activeLevel > lastCelebrated ? activeLevel : null;
-  });
   const pathPoints = levels.slice().reverse().map((level, index) => ({ x: getLeftPct(index) * 10, y: TOP_OFFSET + index * NODE_SPACING + 52 }));
 
   useLayoutEffect(() => {
@@ -54,7 +48,6 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
         fontFamily: "Fredoka, sans-serif",
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
         overflow: "hidden",
-        position: "relative",
       }}
     >
       <div style={{ flexShrink: 0, minHeight: 108, display: "grid", gridTemplateColumns: "64px 1fr 92px", alignItems: "center", gap: 4, padding: "12px calc(env(safe-area-inset-right, 0px) + 14px) 12px calc(env(safe-area-inset-left, 0px) + 14px)", background: "#137F86", borderBottom: "6px solid #F47A2A", boxShadow: "0 2px 0 #A94721", color: "#FFFFFF" }}>
@@ -100,8 +93,6 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
                   isFinal={lvl === TOTAL_LEVELS}
                   isActive={lvl === activeLevel}
                   isCompleted={(starMap[lvl] ?? 0) > 0}
-                  playUnlock={lvl === celebrateLevel}
-                  onUnlockStart={() => localStorage.setItem("short-a-last-celebrated-level", String(lvl))}
                   onTap={onSelectLevel || (() => {})}
                   stars={starMap[lvl] ?? 0}
                   lang={lang}
