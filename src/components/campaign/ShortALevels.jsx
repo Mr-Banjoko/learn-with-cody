@@ -64,7 +64,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
         style={{
           position: "fixed",
           inset: 0,
-          backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/89ff750fd_generated_image.png)",
+          backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/1be873aee_generated_image.png)",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
