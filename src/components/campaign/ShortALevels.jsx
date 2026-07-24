@@ -3,6 +3,7 @@ import { ArrowLeft, Zap } from "lucide-react";
 import { getBestStars } from "../../lib/campaignPerformance";
 import CandyLevelNode from "./CandyLevelNode";
 import CandyTrailPath from "./CandyTrailPath";
+import CandyMapBackground from "./CandyMapBackground";
 
 // PERSISTENCE_SENTINEL_2026_05_21_SHORT_A_FINAL_41
 const TOTAL_LEVELS = 41;
@@ -67,9 +68,6 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
           overflowX: "hidden",
           position: "relative",
           backgroundColor: "#FFF8E8",
-          backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/18c697bad_generated_image.png)",
-          backgroundSize: "100% auto",
-          backgroundRepeat: "repeat-y",
         }}
       >
         <div
@@ -77,9 +75,10 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
             position: "relative",
             width: "100%",
             height: TOP_OFFSET + TOTAL_LEVELS * NODE_SPACING + 80,
-          }}
-        >
-          <CandyTrailPath points={pathPoints} />
+            }}
+            >
+            <CandyMapBackground />
+            <CandyTrailPath points={pathPoints} />
           {levels.map((lvl) => {
             const pathIndex = TOTAL_LEVELS - lvl;
             const leftPct = getLeftPct(pathIndex);
