@@ -36,7 +36,7 @@ export default function ShortAActiveStage({ playUnlock, onSequenceStart }) {
       ) : (
         <Lottie lottieRef={stageRef} animationData={assets.winner} loop={false} autoplay initialSegment={playUnlock ? undefined : [356, 357]} onComplete={finishStage} style={{ width: "100%", height: "100%" }} />
       )}
-      {showCody && <motion.div initial={playUnlock ? { opacity: 0, scale: 0, y: 35 } : false} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 220, damping: 15 }} style={{ position: "absolute", left: "33%", top: "18%", width: "34%", height: "34%" }}><Lottie animationData={assets.cody} loop autoplay /></motion.div>}
+      {showCody && <motion.div initial={playUnlock ? { opacity: 0, scale: 0, y: 35 } : false} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 220, damping: 15 }} style={{ position: "absolute", zIndex: 5, left: "26%", top: "2%", width: "48%", height: "48%" }}><Lottie animationData={assets.cody} loop autoplay style={{ width: "100%", height: "100%" }} /></motion.div>}
     </div>
   );
 }
