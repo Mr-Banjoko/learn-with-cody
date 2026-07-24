@@ -67,8 +67,8 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
           overflowX: "hidden",
           position: "relative",
           backgroundColor: "#FFF8E8",
-          backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/18c697bad_generated_image.png)",
-          backgroundSize: "100% auto",
+          backgroundImage: "radial-gradient(ellipse 42% 14% at -5% 16%, #FFFDF5 0 72%, #E7D7B8 73% 75%, transparent 76%), radial-gradient(ellipse 43% 18% at 104% 19%, #F47A2A 0 72%, #C95C25 73% 75%, transparent 76%), radial-gradient(ellipse 38% 16% at -4% 46%, #FFD33D 0 72%, #E4A72B 73% 75%, transparent 76%), radial-gradient(ellipse 40% 17% at 104% 70%, #35C9C2 0 72%, #188F91 73% 75%, transparent 76%), radial-gradient(ellipse 42% 14% at -5% 84%, #F47A2A 0 72%, #C95C25 73% 75%, transparent 76%), radial-gradient(ellipse 60% 20% at 50% 31%, rgba(53,201,194,0.2) 0 38%, transparent 70%), radial-gradient(ellipse 58% 18% at 48% 81%, rgba(53,201,194,0.18) 0 38%, transparent 70%)",
+          backgroundSize: "100% 920px",
           backgroundRepeat: "repeat-y",
         }}
       >
