@@ -9,7 +9,7 @@ const TOTAL_LEVELS = 41;
 // Winding path: 5 columns across the screen, offset left%
 // Values chosen so nothing goes off-screen on a 375px phone
 // Smooth S-curve: sweeps fully left → right → left across the screen
-const PATH_OFFSETS = [-30, -24, -12, 4, 20, 30, 24, 10, -6, -22, -30, -18];
+const PATH_OFFSETS = [-28, 18, 30, -12, -30, 8, 30, 16, -28, -16, 26, 30];
 
 function getLeftPct(idx) {
   return 50 + PATH_OFFSETS[idx % PATH_OFFSETS.length];
@@ -73,13 +73,13 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
         overflow: "hidden",
       }}
     >
-      <div style={{ flexShrink: 0, minHeight: 108, display: "grid", gridTemplateColumns: "64px 1fr 92px", alignItems: "center", gap: 4, padding: "calc(env(safe-area-inset-top, 0px) + 12px) 14px 12px", background: "#EF4444", borderBottom: "6px solid #C7C5D0", boxShadow: "0 2px 0 #8F8C9B", color: "#FFFFFF" }}>
+      <div style={{ flexShrink: 0, minHeight: 108, display: "grid", gridTemplateColumns: "64px 1fr 92px", alignItems: "center", gap: 4, padding: "calc(env(safe-area-inset-top, 0px) + 12px) 14px 12px", background: "#137F86", borderBottom: "6px solid #F47A2A", boxShadow: "0 2px 0 #A94721", color: "#FFFFFF" }}>
         <button type="button" onClick={onBack} aria-label="Back" style={{ width: 54, height: 54, display: "flex", alignItems: "center", justifyContent: "center", border: 0, background: "transparent", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 3px 0 rgba(145,36,36,0.45))" }}><ArrowLeft size={46} strokeWidth={4} /></button>
         <div style={{ textAlign: "center", minWidth: 0 }}>
           <p style={{ margin: 0, fontSize: 25, lineHeight: 1.15, fontWeight: 800 }}>🍎 {lang === "zh" ? "短元音 A" : "Short a"}</p>
-          <p style={{ margin: "5px 0 0", fontSize: 15, color: "#FFE4E4" }}>{lang === "zh" ? "41 关卡冒险" : "41-level adventure"}</p>
+          <p style={{ margin: "5px 0 0", fontSize: 15, color: "#D9FFFA" }}>{lang === "zh" ? "41 关卡冒险" : "41-level adventure"}</p>
         </div>
-        <div style={{ height: 46, borderRadius: 23, background: "#C9363B", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, color: "#FFD52A", fontWeight: 800, fontSize: 17 }}><Zap size={25} fill="#FFD52A" />0 XP</div>
+        <div style={{ height: 46, borderRadius: 23, background: "#F47A2A", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, color: "#FFD33D", fontWeight: 800, fontSize: 17 }}><Zap size={25} fill="#FFD33D" />0 XP</div>
       </div>
 
       <div
@@ -89,8 +89,8 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
           overflowY: "auto",
           overflowX: "hidden",
           position: "relative",
-          backgroundColor: "#FFFDF8",
-          backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/9580f5ecd_generated_image.png)",
+          backgroundColor: "#FFF8E8",
+          backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/18c697bad_generated_image.png)",
           backgroundSize: "100% auto",
           backgroundRepeat: "repeat-y",
         }}

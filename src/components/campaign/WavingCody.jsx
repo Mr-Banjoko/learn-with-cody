@@ -13,13 +13,15 @@ export default function WavingCody({ onSelect, level }) {
   if (!animationData) return null;
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       aria-label={`Play level ${level}`}
       onClick={(event) => { event.stopPropagation(); onSelect(level); }}
-      style={{ position: "absolute", left: "50%", bottom: "calc(100% - 9px)", zIndex: 5, width: 92, height: 88, padding: 0, border: 0, background: "transparent", transform: "translateX(-50%)", cursor: "pointer", WebkitTapHighlightColor: "transparent" }}
+      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(level); } }}
+      style={{ position: "absolute", left: "50%", bottom: -3, zIndex: 5, width: 76, height: 74, transform: "translateX(-50%)", cursor: "pointer", WebkitTapHighlightColor: "transparent" }}
     >
       <Lottie animationData={animationData} loop autoplay style={{ width: "100%", height: "100%" }} />
-    </button>
+    </div>
   );
 }
