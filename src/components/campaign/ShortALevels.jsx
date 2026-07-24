@@ -72,7 +72,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
           WebkitOverflowScrolling: "touch",
           backgroundColor: "#2A969C",
           backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/42ea61392_generated_image.png)",
-          backgroundSize: "contain",
+          backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           backgroundAttachment: "scroll",
