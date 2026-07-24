@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import BackArrow from "../BackArrow";
 import { getBestStars } from "../../lib/campaignPerformance";
 import { getLevelTag, TAG_STYLES } from "../../lib/levelLabel";
+import WavingCody from "./WavingCody";
 
 // PERSISTENCE_SENTINEL_2026_05_21_SHORT_A_FINAL_41
 const TOTAL_LEVELS = 41;
@@ -41,7 +42,7 @@ function StarStrip({ stars }) {
   );
 }
 
-function LevelNode({ num, color, onTap, isMilestone, stars, isFinal, lang = "en" }) {
+function LevelNode({ num, color, onTap, isMilestone, stars, isFinal, isActive, lang = "en" }) {
   const size = isFinal ? 82 : isMilestone ? 76 : 68;
   const tagStyle = isFinal ? null : TAG_STYLES[getLevelTag("short-a", num)];
   return (
@@ -80,6 +81,7 @@ function LevelNode({ num, color, onTap, isMilestone, stars, isFinal, lang = "en"
           flexShrink: 0,
         }}
       >
+        {isActive && <WavingCody level={num} onSelect={onTap} />}
         {isFinal ? (
           <span style={{ fontSize: 36, pointerEvents: "none", lineHeight: 1 }}>🏆</span>
         ) : (
@@ -119,6 +121,8 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
     }
     return map;
   });
+  const lastCompletedLevel = Object.keys(starMap).map(Number).filter((level) => starMap[level] > 0).reduce((max, level) => Math.max(max, level), 0);
+  const activeLevel = Math.min(lastCompletedLevel + 1, TOTAL_LEVELS);
 
   useEffect(() => {
     const map = {};
@@ -240,6 +244,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
                   color={color}
                   isMilestone={isMilestone}
                   isFinal={lvl === TOTAL_LEVELS}
+                  isActive={lvl === activeLevel}
                   onTap={onSelectLevel || (() => {})}
                   stars={starMap[lvl] ?? 0}
                   lang={lang}
