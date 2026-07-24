@@ -67,6 +67,9 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
           overflowX: "hidden",
           position: "relative",
           backgroundColor: "#FFF8E8",
+          backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/18c697bad_generated_image.png)",
+          backgroundSize: "100% auto",
+          backgroundRepeat: "repeat-y",
         }}
       >
         <div
@@ -76,8 +79,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
             height: TOP_OFFSET + TOTAL_LEVELS * NODE_SPACING + 80,
           }}
         >
-        <div aria-hidden="true" style={{ position: "sticky", top: 0, width: "100%", height: "100dvh", zIndex: 0, backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/18c697bad_generated_image.png)", backgroundSize: "100% 100%", backgroundPosition: "center", backgroundRepeat: "no-repeat" }} />
-        <CandyTrailPath points={pathPoints} />
+          <CandyTrailPath points={pathPoints} />
           {levels.map((lvl) => {
             const pathIndex = TOTAL_LEVELS - lvl;
             const leftPct = getLeftPct(pathIndex);
