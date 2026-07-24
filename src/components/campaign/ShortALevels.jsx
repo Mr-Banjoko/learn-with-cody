@@ -1,9 +1,8 @@
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useState, useLayoutEffect, useRef } from "react";
 import { ArrowLeft, Zap } from "lucide-react";
 import { getBestStars } from "../../lib/campaignPerformance";
 import CandyLevelNode from "./CandyLevelNode";
 import CandyTrailPath from "./CandyTrailPath";
-import ShortALevelUnlockCelebration from "./ShortALevelUnlockCelebration";
 
 // PERSISTENCE_SENTINEL_2026_05_21_SHORT_A_FINAL_41
 const TOTAL_LEVELS = 41;
@@ -17,7 +16,6 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   const TOP_OFFSET = 96;
 
   const scrollRef = useRef(null);
-  const [celebrateLevel, setCelebrateLevel] = useState(null);
 
   const [starMap] = useState(() => {
     const map = {};
@@ -28,14 +26,13 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   });
   const lastCompletedLevel = Object.keys(starMap).map(Number).filter((level) => starMap[level] > 0).reduce((max, level) => Math.max(max, level), 0);
   const activeLevel = Math.min(lastCompletedLevel + 1, TOTAL_LEVELS);
-  const pathPoints = levels.slice().reverse().map((level, index) => ({ x: getLeftPct(index) * 10, y: TOP_OFFSET + index * NODE_SPACING + 52 }));
-
-  useEffect(() => {
+  const [celebrateLevel] = useState(() => {
     const key = "short-a-last-celebrated-level";
     const lastCelebrated = Number(localStorage.getItem(key));
     if (!lastCelebrated) localStorage.setItem(key, String(activeLevel));
-    else if (activeLevel > lastCelebrated) setCelebrateLevel(activeLevel);
-  }, [activeLevel]);
+    return lastCelebrated && activeLevel > lastCelebrated ? activeLevel : null;
+  });
+  const pathPoints = levels.slice().reverse().map((level, index) => ({ x: getLeftPct(index) * 10, y: TOP_OFFSET + index * NODE_SPACING + 52 }));
 
   useLayoutEffect(() => {
     const scrollContainer = scrollRef.current;
@@ -103,6 +100,8 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
                   isFinal={lvl === TOTAL_LEVELS}
                   isActive={lvl === activeLevel}
                   isCompleted={(starMap[lvl] ?? 0) > 0}
+                  playUnlock={lvl === celebrateLevel}
+                  onUnlockStart={() => localStorage.setItem("short-a-last-celebrated-level", String(lvl))}
                   onTap={onSelectLevel || (() => {})}
                   stars={starMap[lvl] ?? 0}
                   lang={lang}
@@ -112,12 +111,6 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
           })}
         </div>
       </div>
-      {celebrateLevel && (
-        <ShortALevelUnlockCelebration
-          onStart={() => localStorage.setItem("short-a-last-celebrated-level", String(celebrateLevel))}
-          onComplete={() => setCelebrateLevel(null)}
-        />
-      )}
     </div>
   );
 }
