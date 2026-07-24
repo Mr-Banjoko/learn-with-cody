@@ -60,6 +60,18 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
       </div>
 
       <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/18c697bad_generated_image.png)",
+          backgroundSize: "100% 100%",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          zIndex: 0,
+        }}
+      />
+      <div
         ref={scrollRef}
         style={{
           flex: 1,
@@ -74,10 +86,6 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
             position: "relative",
             width: "100%",
             height: TOP_OFFSET + TOTAL_LEVELS * NODE_SPACING + 80,
-            backgroundImage: "url(https://media.base44.com/images/public/69c4ec00726384fdef1ab181/9c4fe83f3_generated_image.png)",
-            backgroundSize: "100% 100%",
-            backgroundPosition: "center top",
-            backgroundRepeat: "no-repeat",
           }}
         >
           <CandyTrailPath points={pathPoints} />
