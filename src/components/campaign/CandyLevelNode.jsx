@@ -20,12 +20,17 @@ export default function CandyLevelNode({ num, onTap, stars, isActive, isComplete
     <div style={{ width: size + 30, minHeight: 126, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
       <motion.button aria-label={`Play level ${num}`} whileTap={{ scale: 0.9 }} onClick={() => onTap(num)} style={{ position: "relative", width: size, height, marginTop, border: `3px solid ${border}`, borderRadius: "50%", background: top, boxShadow: `0 ${depth}px 0 ${side}, 0 ${depth + 6}px 0 rgba(45,75,75,0.2)`, cursor: "pointer", WebkitTapHighlightColor: "transparent", zIndex: 2 }}>
         {!isActive && <span style={{ position: "absolute", inset: isCompleted || isFinal ? 9 : 7, border: `3px solid ${isCompleted || isFinal ? "#FFF2A1" : "#ECFFFC"}`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: isCompleted || isFinal ? "#A94B1F" : "#256F73", fontWeight: 800, fontSize: isMilestone ? 16 : 22 }}>
-          {isMilestone && !isCompleted ? "BOSS" : isFinal && isCompleted ? <Trophy size={32} /> : isCompleted ? <Check size={34} strokeWidth={4} /> : <Lock size={24} fill="#6CBAB6" />}
+          {isMilestone && !isCompleted ? "BOSS" : isFinal && isCompleted ? <Trophy size={32} /> : isCompleted ? <Check size={34} strokeWidth={4} /> : isLocked ? (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
+              <Lock size={18} fill="#6CBAB6" />
+              <span style={{ fontSize: 13, lineHeight: 1, fontWeight: 800, color: "#256F73", marginTop: 1 }}>{num}</span>
+            </div>
+          ) : <Lock size={24} fill="#6CBAB6" />}
         </span>}
         {isActive && <WavingCody level={num} onSelect={onTap} />}
       </motion.button>
       <div style={{ marginTop: depth + 10, minHeight: 25, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {isCompleted ? <Rating stars={stars} /> : !isActive && <span style={{ color: isLocked ? "#256F73" : "#9A5A00", fontSize: 15, fontWeight: 800 }}>{isFinal ? (lang === "zh" ? "完成！" : "Complete!") : num}</span>}
+        {isCompleted && <Rating stars={stars} />}
       </div>
     </div>
   );
