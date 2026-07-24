@@ -6,13 +6,8 @@ import CandyTrailPath from "./CandyTrailPath";
 
 // PERSISTENCE_SENTINEL_2026_05_21_SHORT_A_FINAL_41
 const TOTAL_LEVELS = 41;
-// Winding path: 5 columns across the screen, offset left%
-// Values chosen so nothing goes off-screen on a 375px phone
-// Smooth S-curve: sweeps fully left → right → left across the screen
-const PATH_OFFSETS = [-28, 18, 30, -12, -30, 8, 30, 16, -28, -16, 26, 30];
-
 function getLeftPct(idx) {
-  return 50 + PATH_OFFSETS[idx % PATH_OFFSETS.length];
+  return 50 + Math.sin((idx * Math.PI) / 3) * 29;
 }
 
 export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
@@ -31,7 +26,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   });
   const lastCompletedLevel = Object.keys(starMap).map(Number).filter((level) => starMap[level] > 0).reduce((max, level) => Math.max(max, level), 0);
   const activeLevel = Math.min(lastCompletedLevel + 1, TOTAL_LEVELS);
-  const pathPoints = levels.slice().reverse().map((level, index) => ({ x: getLeftPct(index) * 10, y: TOP_OFFSET + index * NODE_SPACING + 42 }));
+  const pathPoints = levels.slice().reverse().map((level, index) => ({ x: getLeftPct(index) * 10, y: TOP_OFFSET + index * NODE_SPACING + 52 }));
 
   useEffect(() => {
     const map = {};

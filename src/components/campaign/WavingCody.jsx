@@ -19,7 +19,7 @@ export default function WavingCody({ onSelect, level }) {
       aria-label={`Play level ${level}`}
       onClick={(event) => { event.stopPropagation(); onSelect(level); }}
       onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(level); } }}
-      style={{ position: "absolute", left: "50%", bottom: -3, zIndex: 5, width: 76, height: 74, transform: "translateX(-50%)", cursor: "pointer", WebkitTapHighlightColor: "transparent" }}
+      style={{ position: "absolute", left: "50%", bottom: 18, zIndex: 5, width: 88, height: 86, transform: "translateX(-50%)", cursor: "pointer", WebkitTapHighlightColor: "transparent" }}
     >
       <Lottie animationData={animationData} loop autoplay style={{ width: "100%", height: "100%" }} />
     </div>
