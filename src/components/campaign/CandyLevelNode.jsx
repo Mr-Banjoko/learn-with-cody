@@ -6,7 +6,7 @@ function Rating({ stars }) {
   return <div style={{ display: "flex", alignItems: "center", gap: 2, padding: "2px 7px", border: "2px solid #A45A00", borderRadius: 8, background: "#FFD34D", color: "#A45A00", boxShadow: "0 3px 0 #C87500", fontSize: 13 }}><Trophy size={13} fill="#FFF2A8" />{[1, 2, 3].map((star) => <span key={star} style={{ color: stars >= star ? "#FFF4A3" : "#D68A12", textShadow: "0 1px 0 #A45A00" }}>★</span>)}</div>;
 }
 
-export default function CandyLevelNode({ num, onTap, stars, isActive, isCompleted, isMilestone, isFinal, lang = "en" }) {
+export default function CandyLevelNode({ num, onTap, stars, isActive, isCompleted, isMilestone, isFinal, hideLabel = false, lang = "en" }) {
   const isLocked = !isActive && !isCompleted;
   const size = isActive ? 116 : isFinal ? 104 : isMilestone ? 96 : isCompleted ? 88 : 74;
   const height = isActive ? 44 : size;
@@ -25,7 +25,7 @@ export default function CandyLevelNode({ num, onTap, stars, isActive, isComplete
         {isActive && <WavingCody level={num} onSelect={onTap} />}
       </motion.button>
       <div style={{ marginTop: depth + 10, minHeight: 25, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {isCompleted ? <Rating stars={stars} /> : !isActive && <span style={{ color: isLocked ? "#256F73" : "#9A5A00", fontSize: 15, fontWeight: 800 }}>{isFinal ? (lang === "zh" ? "完成！" : "Complete!") : num}</span>}
+        {isCompleted ? <Rating stars={stars} /> : !isActive && !hideLabel && <span style={{ color: isLocked ? "#256F73" : "#9A5A00", fontSize: 15, fontWeight: 800 }}>{isFinal ? (lang === "zh" ? "完成！" : "Complete!") : num}</span>}
       </div>
     </div>
   );

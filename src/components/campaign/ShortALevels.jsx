@@ -93,6 +93,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
                   isFinal={lvl === TOTAL_LEVELS}
                   isActive={lvl === activeLevel}
                   isCompleted={(starMap[lvl] ?? 0) > 0}
+                  hideLabel={lvl === activeLevel + 1}
                   onTap={onSelectLevel || (() => {})}
                   stars={starMap[lvl] ?? 0}
                   lang={lang}
