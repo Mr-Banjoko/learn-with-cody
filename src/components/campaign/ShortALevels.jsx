@@ -1,8 +1,9 @@
-import { useState, useLayoutEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { ArrowLeft, Zap } from "lucide-react";
 import { getBestStars } from "../../lib/campaignPerformance";
 import CandyLevelNode from "./CandyLevelNode";
 import CandyTrailPath from "./CandyTrailPath";
+import ShortALevelUnlockCelebration from "./ShortALevelUnlockCelebration";
 
 // PERSISTENCE_SENTINEL_2026_05_21_SHORT_A_FINAL_41
 const TOTAL_LEVELS = 41;
@@ -16,6 +17,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   const TOP_OFFSET = 96;
 
   const scrollRef = useRef(null);
+  const [celebrateLevel, setCelebrateLevel] = useState(null);
 
   const [starMap] = useState(() => {
     const map = {};
@@ -27,6 +29,13 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
   const lastCompletedLevel = Object.keys(starMap).map(Number).filter((level) => starMap[level] > 0).reduce((max, level) => Math.max(max, level), 0);
   const activeLevel = Math.min(lastCompletedLevel + 1, TOTAL_LEVELS);
   const pathPoints = levels.slice().reverse().map((level, index) => ({ x: getLeftPct(index) * 10, y: TOP_OFFSET + index * NODE_SPACING + 52 }));
+
+  useEffect(() => {
+    const key = "short-a-last-celebrated-level";
+    const lastCelebrated = Number(localStorage.getItem(key));
+    if (!lastCelebrated) localStorage.setItem(key, String(activeLevel));
+    else if (activeLevel > lastCelebrated) setCelebrateLevel(activeLevel);
+  }, [activeLevel]);
 
   useLayoutEffect(() => {
     const scrollContainer = scrollRef.current;
@@ -48,6 +57,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
         fontFamily: "Fredoka, sans-serif",
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
         overflow: "hidden",
+        position: "relative",
       }}
     >
       <div style={{ flexShrink: 0, minHeight: 108, display: "grid", gridTemplateColumns: "64px 1fr 92px", alignItems: "center", gap: 4, padding: "12px calc(env(safe-area-inset-right, 0px) + 14px) 12px calc(env(safe-area-inset-left, 0px) + 14px)", background: "#137F86", borderBottom: "6px solid #F47A2A", boxShadow: "0 2px 0 #A94721", color: "#FFFFFF" }}>
@@ -102,6 +112,12 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
           })}
         </div>
       </div>
+      {celebrateLevel && (
+        <ShortALevelUnlockCelebration
+          onStart={() => localStorage.setItem("short-a-last-celebrated-level", String(celebrateLevel))}
+          onComplete={() => setCelebrateLevel(null)}
+        />
+      )}
     </div>
   );
 }
