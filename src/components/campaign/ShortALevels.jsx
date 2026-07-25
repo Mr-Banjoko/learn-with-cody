@@ -7,7 +7,7 @@ import CandyTrailPath from "./CandyTrailPath";
 // PERSISTENCE_SENTINEL_2026_05_21_SHORT_A_FINAL_41
 const TOTAL_LEVELS = 41;
 function getLeftPct(idx) {
-  return 50 + Math.sin((idx * Math.PI) / 3) * 24;
+  return 50 + Math.sin((idx * Math.PI) / 2) * 24;
 }
 
 export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
