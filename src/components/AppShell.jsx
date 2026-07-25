@@ -92,6 +92,7 @@ export default function AppShell() {
 
   const isCampaignFlow = activeTab === "home" && DEEP_HOME_SCREENS.has(homeSubScreen);
   const isDeepScreen = isCampaignFlow || childDeepScreen;
+  const isFullBleedLevelMap = homeSubScreen === "campaign-short-a";
 
   // Key drives AnimatePresence transitions
   const pageKey = `${activeTab}:${homeSubScreen ?? "root"}`;
@@ -533,7 +534,7 @@ export default function AppShell() {
         className="absolute inset-0"
         style={{
           paddingTop: isDeepScreen
-            ? "env(safe-area-inset-top, 0px)"
+            ? (isFullBleedLevelMap ? "0" : "env(safe-area-inset-top, 0px)")
             : "calc(env(safe-area-inset-top, 0px) + 60px)",
           paddingBottom: isDeepScreen
             ? "0"

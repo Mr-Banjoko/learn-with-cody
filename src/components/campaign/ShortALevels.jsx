@@ -51,7 +51,7 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
         overflow: "hidden",
       }}
     >
-      <button type="button" onClick={onBack} aria-label="Back" style={{ position: "absolute", top: 8, left: "calc(env(safe-area-inset-left, 0px) + 14px)", zIndex: 10, width: 54, height: 54, display: "flex", alignItems: "center", justifyContent: "center", border: 0, background: "transparent", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 3px 0 rgba(19,127,134,0.75))" }}><ArrowLeft size={46} strokeWidth={4} /></button>
+      <button type="button" onClick={onBack} aria-label="Back" style={{ position: "absolute", top: "calc(env(safe-area-inset-top, 0px) + 8px)", left: "calc(env(safe-area-inset-left, 0px) + 14px)", zIndex: 10, width: 54, height: 54, display: "flex", alignItems: "center", justifyContent: "center", border: 0, background: "transparent", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 3px 0 rgba(19,127,134,0.75))" }}><ArrowLeft size={46} strokeWidth={4} /></button>
 
       <div
         ref={scrollRef}
