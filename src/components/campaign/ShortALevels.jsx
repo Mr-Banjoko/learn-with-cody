@@ -44,15 +44,14 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
       style={{
         display: "flex",
         flexDirection: "column",
+        position: "relative",
         height: "100%",
         fontFamily: "Fredoka, sans-serif",
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
         overflow: "hidden",
       }}
     >
-      <div style={{ flexShrink: 0, minHeight: 78, display: "flex", alignItems: "center", padding: "8px calc(env(safe-area-inset-right, 0px) + 14px) 8px calc(env(safe-area-inset-left, 0px) + 14px)", background: "transparent" }}>
-        <button type="button" onClick={onBack} aria-label="Back" style={{ width: 54, height: 54, display: "flex", alignItems: "center", justifyContent: "center", border: 0, background: "transparent", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 3px 0 rgba(19,127,134,0.75))" }}><ArrowLeft size={46} strokeWidth={4} /></button>
-      </div>
+      <button type="button" onClick={onBack} aria-label="Back" style={{ position: "absolute", top: 8, left: "calc(env(safe-area-inset-left, 0px) + 14px)", zIndex: 10, width: 54, height: 54, display: "flex", alignItems: "center", justifyContent: "center", border: 0, background: "transparent", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 3px 0 rgba(19,127,134,0.75))" }}><ArrowLeft size={46} strokeWidth={4} /></button>
 
       <div
         ref={scrollRef}
