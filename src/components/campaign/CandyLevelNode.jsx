@@ -3,7 +3,7 @@ import { Check, Lock, Trophy } from "lucide-react";
 import WavingCody from "./WavingCody";
 
 function Rating({ stars }) {
-  return <div style={{ display: "flex", alignItems: "center", gap: 2, padding: "2px 7px", border: "2px solid #A45A00", borderRadius: 8, background: "#FFD34D", color: "#A45A00", boxShadow: "0 3px 0 #C87500", fontSize: 13 }}><Trophy size={13} fill="#FFF2A8" />{[1, 2, 3].map((star) => <span key={star} style={{ color: stars >= star ? "#FFF4A3" : "#D68A12", textShadow: "0 1px 0 #A45A00" }}>★</span>)}</div>;
+  return <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 19 }}>{[1, 2, 3].map((star) => <span key={star} style={{ color: stars >= star ? "#FFD33D" : "#8ACBC7", textShadow: stars >= star ? "0 1px 0 #A45A00" : "none" }}>★</span>)}</div>;
 }
 
 export default function CandyLevelNode({ num, onTap, stars, isActive, isCompleted, isMilestone, isFinal, lang = "en" }) {
