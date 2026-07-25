@@ -1,5 +1,5 @@
 import { useState, useLayoutEffect, useRef } from "react";
-import { ArrowLeft, Zap } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { getBestStars } from "../../lib/campaignPerformance";
 import CandyLevelNode from "./CandyLevelNode";
 import CandyTrailPath from "./CandyTrailPath";
@@ -50,13 +50,8 @@ export default function ShortALevels({ onBack, onSelectLevel, lang = "en" }) {
         overflow: "hidden",
       }}
     >
-      <div style={{ flexShrink: 0, minHeight: 108, display: "grid", gridTemplateColumns: "64px 1fr 92px", alignItems: "center", gap: 4, padding: "12px calc(env(safe-area-inset-right, 0px) + 14px) 12px calc(env(safe-area-inset-left, 0px) + 14px)", background: "#137F86", borderBottom: "6px solid #F47A2A", boxShadow: "0 2px 0 #A94721", color: "#FFFFFF" }}>
-        <button type="button" onClick={onBack} aria-label="Back" style={{ width: 54, height: 54, display: "flex", alignItems: "center", justifyContent: "center", border: 0, background: "transparent", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 3px 0 rgba(145,36,36,0.45))" }}><ArrowLeft size={46} strokeWidth={4} /></button>
-        <div style={{ textAlign: "center", minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 25, lineHeight: 1.15, fontWeight: 800 }}>🍎 {lang === "zh" ? "短元音 A" : "Short a"}</p>
-          <p style={{ margin: "5px 0 0", fontSize: 15, color: "#D9FFFA" }}>{lang === "zh" ? "41 关卡冒险" : "41-level adventure"}</p>
-        </div>
-        <div style={{ height: 46, borderRadius: 23, background: "#F47A2A", display: "flex", alignItems: "center", justifyContent: "center", gap: 5, color: "#FFD33D", fontWeight: 800, fontSize: 17 }}><Zap size={25} fill="#FFD33D" />0 XP</div>
+      <div style={{ flexShrink: 0, minHeight: 78, display: "flex", alignItems: "center", padding: "8px calc(env(safe-area-inset-right, 0px) + 14px) 8px calc(env(safe-area-inset-left, 0px) + 14px)", background: "transparent" }}>
+        <button type="button" onClick={onBack} aria-label="Back" style={{ width: 54, height: 54, display: "flex", alignItems: "center", justifyContent: "center", border: 0, background: "transparent", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 3px 0 rgba(19,127,134,0.75))" }}><ArrowLeft size={46} strokeWidth={4} /></button>
       </div>
 
       <div
