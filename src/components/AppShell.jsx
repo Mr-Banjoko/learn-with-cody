@@ -536,9 +536,7 @@ export default function AppShell() {
           paddingTop: isDeepScreen
             ? (isFullBleedLevelMap ? "0" : "env(safe-area-inset-top, 0px)")
             : "calc(env(safe-area-inset-top, 0px) + 60px)",
-          paddingBottom: isDeepScreen
-            ? "0"
-            : "calc(80px + env(safe-area-inset-bottom, 0px))",
+          paddingBottom: "0",
           overflow: isDeepScreen ? "hidden" : "auto",
           display: "flex",
           flexDirection: "column",
