@@ -8,9 +8,9 @@ function Rating({ stars }) {
 
 export default function CandyLevelNode({ num, onTap, stars, isActive, isCompleted, isMilestone, isFinal, lang = "en" }) {
   const isLocked = !isActive && !isCompleted;
-  const size = isActive ? 116 : isFinal ? 104 : isMilestone ? 96 : isCompleted ? 88 : 74;
-  const height = isActive ? 44 : size;
-  const depth = isActive ? 12 : 9;
+  const size = isFinal ? 104 : isMilestone ? 96 : isCompleted ? 88 : 74;
+  const height = size;
+  const depth = 9;
   const marginTop = Math.max(0, 52 - height / 2);
   const top = isActive ? "#35C9C2" : isCompleted || isFinal ? "#FFD33D" : isMilestone ? "#F47A2A" : "#CBEFEB";
   const side = isActive ? "#137F86" : isCompleted || isFinal ? "#F47A2A" : isMilestone ? "#C84C22" : "#6CBAB6";
@@ -20,9 +20,9 @@ export default function CandyLevelNode({ num, onTap, stars, isActive, isComplete
     <div style={{ width: size + 74, minHeight: 126, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
       {!isCompleted && !isFinal && <span style={{ position: "absolute", left: 8, top: marginTop + height / 2, transform: "translateY(-50%)", color: isLocked ? "#256F73" : "#9A5A00", fontSize: 17, fontWeight: 800 }}>{num}</span>}
       <motion.button aria-label={`Play level ${num}`} whileTap={{ scale: 0.9 }} onClick={() => onTap(num)} style={{ position: "relative", width: size, height, marginTop, border: `3px solid ${border}`, borderRadius: "50%", background: top, boxShadow: `0 ${depth}px 0 ${side}, 0 ${depth + 6}px 0 rgba(45,75,75,0.2)`, cursor: "pointer", WebkitTapHighlightColor: "transparent", zIndex: 2 }}>
-        {!isActive && <span style={{ position: "absolute", inset: isCompleted || isFinal ? 9 : 7, border: `3px solid ${isCompleted || isFinal ? "#FFF2A1" : "#ECFFFC"}`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: isCompleted || isFinal ? "#A94B1F" : "#256F73", fontWeight: 800, fontSize: isMilestone ? 16 : 22 }}>
-          {isMilestone && !isCompleted ? "BOSS" : isFinal && isCompleted ? <Trophy size={32} /> : isCompleted ? <Check size={34} strokeWidth={4} /> : <Lock size={24} fill="#6CBAB6" />}
-        </span>}
+        <span style={{ position: "absolute", inset: isCompleted || isFinal ? 9 : 7, border: `3px solid ${isCompleted || isFinal ? "#FFF2A1" : "#ECFFFC"}`, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: isCompleted || isFinal ? "#A94B1F" : "#256F73", fontWeight: 800, fontSize: isMilestone ? 16 : 22 }}>
+          {!isActive && (isMilestone && !isCompleted ? "BOSS" : isFinal && isCompleted ? <Trophy size={32} /> : isCompleted ? <Check size={34} strokeWidth={4} /> : <Lock size={24} fill="#6CBAB6" />)}
+        </span>
         {isActive && <WavingCody level={num} onSelect={onTap} />}
       </motion.button>
       <div style={{ marginTop: depth + 10, minHeight: 25, display: "flex", alignItems: "center", justifyContent: "center" }}>
