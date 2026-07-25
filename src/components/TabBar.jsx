@@ -15,11 +15,10 @@ export default function TabBar({ activeTab, onTabChange, language = "en", showCo
       transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
       className="fixed bottom-0 left-0 right-0 z-40"
       style={{
-        background: "rgba(255,255,255,0.95)",
-        backdropFilter: "blur(16px)",
-        borderTop: "1.5px solid rgba(78,205,196,0.18)",
+        background: "transparent",
+        borderTop: "none",
         paddingBottom: "env(safe-area-inset-bottom, 8px)",
-        boxShadow: "0 -4px 32px rgba(78,205,196,0.10)",
+        boxShadow: "none",
       }}
     >
       <div className="flex items-end justify-around px-2 pt-2 pb-2 max-w-lg mx-auto">
