@@ -12,7 +12,6 @@ export default function PhonicsSoundBoard({ letters, activeIndex, onLetter, onPl
           <Volume2 size={29} strokeWidth={3} />
         </motion.button>
       </div>
-      <div className="sound-track">•••</div>
     </div>
   );
 }
