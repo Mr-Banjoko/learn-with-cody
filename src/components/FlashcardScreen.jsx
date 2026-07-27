@@ -7,22 +7,8 @@ import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/useAudio";
 import { captureFlashcard } from "../lib/captureFlashcard";
-
-// Persistent storage key prefix — keyed per word so cards never overwrite each other
-const STORAGE_PREFIX = "cody_photo_";
-const storageKey = (word) => `${STORAGE_PREFIX}${word}`;
-
-function loadPhoto(word) {
-  try { return localStorage.getItem(storageKey(word)) || null; } catch { return null; }
-}
-
-function savePhoto(word, dataUrl) {
-  try { localStorage.setItem(storageKey(word), dataUrl); } catch {}
-}
-
-function clearPhoto(word) {
-  try { localStorage.removeItem(storageKey(word)); } catch {}
-}
+import { useUserPhoto } from "../lib/useUserPhoto";
+import { saveFlashcardToVault } from "../lib/userFlashcardVault";
 
 const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1"];
 
@@ -41,18 +27,6 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const [index, setIndex] = useState(0);
   const [activeLetterIndex, setActiveLetterIndex] = useState(null);
 
-  // Per-card custom photo, loaded from localStorage on mount and when card changes.
-  // Keyed by word string so it's stable across card index changes.
-  const [photos, setPhotos] = useState(() => {
-    // Pre-load all persisted photos on first render
-    const map = {};
-    wordList.forEach((c) => {
-      const stored = loadPhoto(c.word);
-      if (stored) map[c.word] = stored;
-    });
-    return map;
-  });
-
   const sequenceRef = useRef(null);
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -62,7 +36,10 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
 
   const card = wordList[index];
   const total = wordList.length;
-  const customPhoto = photos[card.word] || null;
+  // Shared user-photo store (same IndexedDB store the campaign uses), so a photo
+  // taken or reset anywhere — campaign games or here — applies to this word
+  // across all of them. Capture also writes to the permanent vault.
+  const { photoUrl: customPhoto, savePhoto, clearPhoto } = useUserPhoto(card.word);
   const hasCustomPhoto = customPhoto !== null;
   const displayImage = customPhoto || card.image;
 
@@ -120,26 +97,22 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const targetWord = fileInputWordRef.current;
+    const targetWord = fileInputWordRef.current || card.word;
     const reader = new FileReader();
     reader.onload = (ev) => {
       const dataUrl = ev.target.result;
-      // Persist to localStorage keyed by word
-      savePhoto(targetWord, dataUrl);
-      setPhotos((prev) => ({ ...prev, [targetWord]: dataUrl }));
+      // Persist to the shared store (applies across all games/levels) and to
+      // the permanent vault (Your Flashcards).
+      savePhoto(dataUrl);
+      saveFlashcardToVault(targetWord, dataUrl);
     };
     reader.readAsDataURL(file);
     // Do NOT reset e.target.value — breaks subsequent picks on iOS Safari.
   };
 
   const handleReset = () => {
-    const word = card.word;
-    clearPhoto(word);
-    setPhotos((prev) => {
-      const next = { ...prev };
-      delete next[word];
-      return next;
-    });
+    // Clears the shared store for this word → resets across all games + Learn.
+    clearPhoto();
   };
 
   const handleSave = useCallback(async () => {

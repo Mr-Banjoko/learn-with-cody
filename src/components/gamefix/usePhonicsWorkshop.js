@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getLetterGain, getLetterSoundUrl } from "@/lib/letterSounds";
 import { playAudio, playAudioSequence, preloadAudio, warmupAudio } from "@/lib/useAudio";
 import { useUserPhoto } from "@/lib/useUserPhoto";
+import { saveFlashcardToVault } from "@/lib/userFlashcardVault";
 
 export default function usePhonicsWorkshop(card) {
   const { photoUrl, savePhoto, clearPhoto } = useUserPhoto(card.word);
@@ -37,7 +38,10 @@ export default function usePhonicsWorkshop(card) {
 
   const handleFile = (event) => {
     const file = event.target.files[0]; if (!file) return;
-    const reader = new FileReader(); reader.onload = ({ target }) => savePhoto(target.result); reader.readAsDataURL(file);
+    const reader = new FileReader(); reader.onload = ({ target }) => {
+      savePhoto(target.result);
+      saveFlashcardToVault(card.word, target.result);
+    }; reader.readAsDataURL(file);
   };
 
   return { letters: card.word.split(""), image: photoUrl || card.image, hasPhoto: Boolean(photoUrl), activeIndex, fileInputRef, playLetter, playSequence, playWord: () => card.audio && playAudio(card.audio), openCamera: () => fileInputRef.current?.click(), handleFile, clearPhoto };
