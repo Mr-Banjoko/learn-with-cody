@@ -501,10 +501,10 @@ export default function AppShell() {
 
   return (
     <div
-      className="app-shell fixed inset-0 overflow-hidden"
+      className="fixed top-0 left-0 right-0 overflow-hidden"
       data-build-id={BUILD_ID}
       style={{
-        minHeight: "100dvh",
+        height: "100dvh",
         background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)",
       }}
     >
