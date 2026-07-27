@@ -7,6 +7,26 @@ const DB_NAME = "cody_user_photos";
 const STORE_NAME = "photos";
 const DB_VERSION = 1;
 
+// ── Cross-instance pub/sub ───────────────────────────────────────────────────
+// When one useUserPhoto instance saves/clears a word's photo, every other
+// mounted useUserPhoto instance for the same word is notified and refreshes —
+// without waiting for a `word` prop change. This fixes consecutive rounds that
+// share a word (e.g. phonics → drag) where the photo taken in round 1 would
+// otherwise not appear in round 2.
+const listeners = new Map();
+function emitPhotoChange(word) {
+  const set = listeners.get(word);
+  if (set) [...set].forEach((fn) => { try { fn(); } catch {} });
+}
+export function subscribePhoto(word, fn) {
+  if (!listeners.has(word)) listeners.set(word, new Set());
+  listeners.get(word).add(fn);
+  return () => {
+    const s = listeners.get(word);
+    if (s) { s.delete(fn); if (s.size === 0) listeners.delete(word); }
+  };
+}
+
 function openDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -57,7 +77,7 @@ export async function savePhoto(word, dataUrl) {
     return new Promise((resolve) => {
       const tx = db.transaction(STORE_NAME, "readwrite");
       tx.objectStore(STORE_NAME).put(compressed, word);
-      tx.oncomplete = () => resolve(compressed);
+      tx.oncomplete = () => { emitPhotoChange(word); resolve(compressed); };
       tx.onerror = () => resolve(dataUrl);
     });
   } catch {
@@ -71,7 +91,7 @@ export async function clearPhoto(word) {
     return new Promise((resolve) => {
       const tx = db.transaction(STORE_NAME, "readwrite");
       tx.objectStore(STORE_NAME).delete(word);
-      tx.oncomplete = () => resolve();
+      tx.oncomplete = () => { emitPhotoChange(word); resolve(); };
       tx.onerror = () => resolve();
     });
   } catch {}

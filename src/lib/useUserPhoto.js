@@ -4,7 +4,7 @@
  * Returns { photoUrl, savePhoto, clearPhoto, loading }
  */
 import { useState, useEffect, useCallback } from "react";
-import { getPhoto, savePhoto as dbSave, clearPhoto as dbClear } from "./userPhotoDB";
+import { getPhoto, savePhoto as dbSave, clearPhoto as dbClear, subscribePhoto } from "./userPhotoDB";
 
 export function useUserPhoto(word) {
   const [photoUrl, setPhotoUrl] = useState(null);
@@ -13,13 +13,20 @@ export function useUserPhoto(word) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    getPhoto(word).then((url) => {
-      if (!cancelled) {
-        setPhotoUrl(url);
-        setLoading(false);
-      }
-    });
-    return () => { cancelled = true; };
+    const load = () =>
+      getPhoto(word).then((url) => {
+        if (!cancelled) {
+          setPhotoUrl(url);
+          setLoading(false);
+        }
+      });
+    load();
+    // Refresh when any other instance saves/clears this word's photo.
+    const unsubscribe = subscribePhoto(word, load);
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, [word]);
 
   const savePhoto = useCallback(async (dataUrl) => {
