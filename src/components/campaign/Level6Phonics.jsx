@@ -9,6 +9,7 @@ import RainbowLetterBlock from "../RainbowLetterBlock";
 import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import { useUserPhoto } from "../../lib/useUserPhoto";
+import { saveFlashcardToVault } from "../../lib/userFlashcardVault";
 
 export default function Level6Phonics({ card, onNext, lang = "en" }) {
   const { photoUrl: customImage, savePhoto: saveUserPhoto, clearPhoto: clearUserPhoto } = useUserPhoto(card.word);
@@ -71,6 +72,8 @@ export default function Level6Phonics({ card, onNext, lang = "en" }) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       saveUserPhoto(ev.target.result);
+      // Also persist to the permanent flashcard vault (never cleared by reset)
+      saveFlashcardToVault(card.word, ev.target.result);
     };
     reader.readAsDataURL(file);
   };

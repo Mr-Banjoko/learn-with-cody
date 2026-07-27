@@ -13,6 +13,7 @@ import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
 import handTapData from "../../lib/handTap.json";
 import { useUserPhoto } from "../../lib/useUserPhoto";
+import { saveFlashcardToVault } from "../../lib/userFlashcardVault";
 
 // ── Phase guide audio URLs (GitHub raw) ────────────────────────────────────────
 const GH_BASE = "https://cdn.jsdelivr.net/gh/Mr-Banjoko/learn-with-cody@main";
@@ -265,6 +266,8 @@ export default function Level1Phonics({ card, onNext, lang = "en", isFirstCard =
     const reader = new FileReader();
     reader.onload = async (ev) => {
       await savePhoto(ev.target.result);
+      // Also persist to the permanent flashcard vault (never cleared by reset)
+      saveFlashcardToVault(card.word, ev.target.result);
       // Advance to phase 5 only after the photo has been saved
       if (tutPhaseRef.current === 4) setTimeout(() => advancePhase(), 400);
     };
