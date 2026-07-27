@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, RotateCcw } from "lucide-react";
+import { Camera, RotateCcw, Download } from "lucide-react";
 import BackArrow from "./BackArrow";
 import { shortAWords } from "../lib/shortAWords";
 import { getLetterSoundUrl, getLetterGain } from "../lib/letterSounds";
 import RainbowLetterBlock from "./RainbowLetterBlock";
 import { playAudio, preloadAudio, playAudioSequence, warmupAudio } from "../lib/useAudio";
+import { captureFlashcard } from "../lib/captureFlashcard";
 
 // Persistent storage key prefix — keyed per word so cards never overwrite each other
 const STORAGE_PREFIX = "cody_photo_";
@@ -56,6 +57,8 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
   const activeTimerRef = useRef(null);
   const fileInputRef = useRef(null);
   const fileInputWordRef = useRef("");
+  const savingRef = useRef(false);
+  const [saving, setSaving] = useState(false);
 
   const card = wordList[index];
   const total = wordList.length;
@@ -139,6 +142,38 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
     });
   };
 
+  const handleSave = useCallback(async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      const dataUrl = await captureFlashcard({
+        word: card.word,
+        photoDataUrl: hasCustomPhoto ? customPhoto : null,
+        cardImageUrl: card.image,
+        includePlayButton: false,
+      });
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `${card.word}.png`, { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: card.word });
+      } else {
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = `${card.word}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    } catch (e) {
+      console.error("save flashcard failed", e);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
+  }, [card, customPhoto, hasCustomPhoto]);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", flex: 1, background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif", overflow: "hidden" }}>
       {/* Header */}
@@ -197,6 +232,23 @@ export default function FlashcardScreen({ onBack, words, title, enableLetterSoun
               </motion.button>
             )}
           </AnimatePresence>
+
+          {/* Download flashcard button — saves a clean flashcard (no UI chrome) to the gallery */}
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            aria-label="Save flashcard"
+            style={{
+              position: "absolute", top: 8, right: 8,
+              width: 48, height: 48, borderRadius: 24,
+              background: "white", boxShadow: "0 4px 16px rgba(0,0,0,0.18)",
+              border: "none", cursor: saving ? "wait" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              zIndex: 20, touchAction: "manipulation",
+            }}
+          >
+            <Download size={24} color="#4A90C4" strokeWidth={2.2} />
+          </button>
 
           {/* Camera button */}
           <button

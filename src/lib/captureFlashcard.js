@@ -72,7 +72,7 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-export async function captureFlashcard({ word, photoDataUrl, cardImageUrl }) {
+export async function captureFlashcard({ word, photoDataUrl, cardImageUrl, includePlayButton = true }) {
   await waitForFont();
 
   // ── Canvas dimensions ────────────────────────────────────────────────────
@@ -90,14 +90,14 @@ export async function captureFlashcard({ word, photoDataUrl, cardImageUrl }) {
   const LETTERS = word.split("");
   const N_LETTERS = LETTERS.length;
   // Total width of letter row: N blocks + gaps + play button + margin
-  const LETTER_ROW_W =
-    N_LETTERS * LETTER_BLOCK_SIZE +
-    (N_LETTERS - 1) * LETTER_GAP +
-    LETTER_GAP + 6 + PLAY_BTN_SIZE;
+  const LETTERS_W = N_LETTERS * LETTER_BLOCK_SIZE + (N_LETTERS - 1) * LETTER_GAP;
+  const LETTER_ROW_W = includePlayButton
+    ? LETTERS_W + LETTER_GAP + 6 + PLAY_BTN_SIZE
+    : LETTERS_W;
   const LETTER_ROW_X = (W - LETTER_ROW_W) / 2;
   const LETTER_ROW_Y = CARD_Y + CARD_FRAME_H + 40;
   const PLAY_BTN_Y = LETTER_ROW_Y;
-  const PLAY_BTN_X = LETTER_ROW_X + N_LETTERS * (LETTER_BLOCK_SIZE + LETTER_GAP) + 6;
+  const PLAY_BTN_X = LETTER_ROW_X + LETTERS_W + LETTER_GAP + 6;
 
   const H = LETTER_ROW_Y + LETTER_BLOCK_SIZE + 60; // bottom padding
 
@@ -196,6 +196,9 @@ export async function captureFlashcard({ word, photoDataUrl, cardImageUrl }) {
   });
 
   // ── Play button ───────────────────────────────────────────────────────────
+  if (!includePlayButton) {
+    return canvas.toDataURL("image/png");
+  }
   // Shadow
   ctx.save();
   ctx.shadowColor = "rgba(255,193,7,0.45)";
