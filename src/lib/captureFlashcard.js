@@ -116,26 +116,37 @@ export async function captureFlashcard({ word, photoDataUrl, cardImageUrl, inclu
   ctx.fillRect(0, 0, W, H);
 
   // ── Decorative blobs ─────────────────────────────────────────────────────
-  // Pink blob (top-right of card)
+  // Match the on-screen frame decoration: a pink rounded rect peeking at the
+  // card's top-right (top:-20, right:-10, rotate 8°) and a yellow circle peeking
+  // at the card's bottom-left (left:-10, bottom:-20).
+  const CARD_X = (W - CARD_W) / 2;
+  const cardRight = CARD_X + CARD_W;
+  const cardBottom = CARD_Y + CARD_FRAME_H;
+
+  // Pink rounded-rect blob (top-right), rotated about its own centre
+  const pinkW = 160, pinkH = 140;
+  const pinkX = cardRight + 10 - pinkW;
+  const pinkY = CARD_Y - 20;
   ctx.save();
-  ctx.translate(W - 48 + CARD_W - 10 + 10, CARD_Y - 20);
+  ctx.translate(pinkX + pinkW / 2, pinkY + pinkH / 2);
   ctx.rotate((8 * Math.PI) / 180);
-  ctx.beginPath();
-  roundRect(ctx, 0, 0, 160, 140, 40);
+  roundRect(ctx, -pinkW / 2, -pinkH / 2, pinkW, pinkH, 40);
   ctx.fillStyle = "#FFCDD2";
   ctx.fill();
   ctx.restore();
 
-  // Yellow circle (bottom-left of card)
+  // Yellow circle blob (bottom-left)
+  const yellowR = 70;
+  const yellowCx = CARD_X - 10 + yellowR;
+  const yellowCy = cardBottom + 20 - yellowR;
   ctx.save();
   ctx.beginPath();
-  ctx.arc(48 - 10, CARD_Y + CARD_FRAME_H + 20, 70, 0, Math.PI * 2);
+  ctx.arc(yellowCx, yellowCy, yellowR, 0, Math.PI * 2);
   ctx.fillStyle = "#FFF59D";
   ctx.fill();
   ctx.restore();
 
   // ── White card frame ─────────────────────────────────────────────────────
-  const CARD_X = (W - CARD_W) / 2;
   ctx.save();
   // Shadow
   ctx.shadowColor = "rgba(30,58,95,0.15)";
