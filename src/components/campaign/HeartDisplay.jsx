@@ -1,9 +1,40 @@
-import { useRef, useState, useEffect } from "react";
-import Lottie from "lottie-react";
-import brokenHeartData from "../../lib/BrokenHeart.json";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+
+function BrokenHeartAnim({ size, onDone }) {
+  const dim = size * 0.78;
+  const heartPath =
+    "M50 85 C50 85 5 55 5 28 C5 14 16 5 28 5 C36 5 44 10 50 18 C56 10 64 5 72 5 C84 5 95 14 95 28 C95 55 50 85 50 85Z";
+  return (
+    <svg width={dim} height={dim} viewBox="0 0 100 90" aria-hidden="true">
+      <defs>
+        <clipPath id="bh-left"><rect x="0" y="0" width="50" height="90" /></clipPath>
+        <clipPath id="bh-right"><rect x="50" y="0" width="50" height="90" /></clipPath>
+      </defs>
+      <motion.g
+        clipPath="url(#bh-left)"
+        style={{ transformBox: "fill-box", transformOrigin: "center" }}
+        initial={{ rotate: 0, x: 0, y: 0, opacity: 1 }}
+        animate={{ rotate: -24, x: -6, y: 6, opacity: 0.45 }}
+        transition={{ duration: 0.55, ease: "easeIn" }}
+        onAnimationComplete={onDone}
+      >
+        <path d={heartPath} fill="#FF4444" />
+      </motion.g>
+      <motion.g
+        clipPath="url(#bh-right)"
+        style={{ transformBox: "fill-box", transformOrigin: "center" }}
+        initial={{ rotate: 0, x: 0, y: 0, opacity: 1 }}
+        animate={{ rotate: 24, x: 6, y: 6, opacity: 0.45 }}
+        transition={{ duration: 0.55, ease: "easeIn" }}
+      >
+        <path d={heartPath} fill="#FF4444" />
+      </motion.g>
+    </svg>
+  );
+}
 
 function HeartSlot({ slotIndex, mistakes, size }) {
-  const brokenRef = useRef(null);
   const [brokenDone, setBrokenDone] = useState(false);
 
   const outlineThreshold = slotIndex * 2 + 1;
@@ -15,6 +46,8 @@ function HeartSlot({ slotIndex, mistakes, size }) {
   useEffect(() => {
     if (!isBroken) setBrokenDone(false);
   }, [isBroken]);
+
+  const dim = size * 0.78;
 
   // Each animation has a different canvas size, so we correct with transform:scale
   // BouncingHeart: 512×512 canvas — baseline, no scaling needed
@@ -58,7 +91,7 @@ function HeartSlot({ slotIndex, mistakes, size }) {
   if (brokenDone) {
     return (
       <div style={wrapStyle}>
-        <svg width={size * 0.78} height={size * 0.78} viewBox="0 0 100 90" aria-hidden="true">
+        <svg width={dim} height={dim} viewBox="0 0 100 90" aria-hidden="true">
           <path d="M50 85 C50 85 5 55 5 28 C5 14 16 5 28 5 C36 5 44 10 50 18 C56 10 64 5 72 5 C84 5 95 14 95 28 C95 55 50 85 50 85Z" fill="#AEB8C4" />
           <path d="M52 18 L43 39 L55 48 L45 69" fill="none" stroke="#7B8794" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -68,14 +101,7 @@ function HeartSlot({ slotIndex, mistakes, size }) {
 
   return (
     <div style={wrapStyle}>
-      <Lottie
-        lottieRef={brokenRef}
-        animationData={brokenHeartData}
-        loop={false}
-        autoplay
-        onComplete={() => setBrokenDone(true)}
-        style={{ width: size * 1.67, height: size * 1.67, transform: "scale(0.78)", transformOrigin: "center" }}
-      />
+      <BrokenHeartAnim size={size} onDone={() => setBrokenDone(true)} />
     </div>
   );
 }
