@@ -1,4 +1,5 @@
-import BackArrow from "@/components/BackArrow";
+import { useState } from "react";
+import GameFixHeader from "@/components/gamefix/GameFixHeader";
 import Level6Phonics from "@/components/campaign/Level6Phonics";
 import Level1DragV2 from "@/components/campaign/Level1DragV2";
 import CampaignMissingSound01Round from "@/components/campaign/CampaignMissingSound01Round";
@@ -23,8 +24,9 @@ const drawCards = ["map", "can", "hat"].map((word, index) => ({ ...card(word), i
 const drawRound = { topCards: drawCards, bottomLetters: drawCards.map((item, botIdx) => ({ letter: item.targetLetter, topCardId: item.id, botIdx })) };
 
 export default function GameFixRunner({ game, onBack, lang = "en" }) {
+  const [mistakes, setMistakes] = useState(0);
   const done = onBack;
-  const mistake = () => {};
+  const mistake = () => setMistakes((count) => count + 1);
   const props = { onComplete: done, onMistake: mistake, lang };
   let activity = null;
 
@@ -44,5 +46,5 @@ export default function GameFixRunner({ game, onBack, lang = "en" }) {
   if (game.id === "one_letter_3_sounds") activity = <CampaignOneLetter3Sounds speakers={["a", "e", "i"]} targetLetter="i" onComplete={done} onMistake={mistake} />;
   if (game.id === "final_challenge") activity = <FinalMixedChallengeRound cards={choices} {...props} />;
 
-  return <div className="flex h-full flex-col overflow-hidden" style={{ background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)" }}><div className="flex shrink-0 items-center px-2"><BackArrow onPress={onBack} /><h1 className="text-xl font-bold text-foreground">{game.label}</h1></div><div className="flex min-h-0 flex-1 flex-col overflow-hidden">{activity}</div></div>;
+  return <div className="flex h-full flex-col overflow-hidden" style={{ background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)" }}><GameFixHeader game={game} mistakes={mistakes} onBack={onBack} lang={lang} /><div className="flex min-h-0 flex-1 flex-col overflow-hidden">{activity}</div></div>;
 }
