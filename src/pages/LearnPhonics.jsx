@@ -49,12 +49,12 @@ export default function LearnPhonics({ onDeepScreen, lang = "en" }) {
   return (
     <div
       className="min-h-full pb-32"
-      style={{ background: "#D6EEFF", fontFamily: "Fredoka, sans-serif" }}
+      style={{ background: "linear-gradient(160deg, #E8FFFE 0%, #FFF9E6 60%, #F5F0FF 100%)", fontFamily: "Fredoka, sans-serif" }}
     >
       {/* Header */}
       <div
         style={{
-          background: "#A8D0E6",
+          background: "#A9E6E1",
           borderBottomLeftRadius: 28,
           borderBottomRightRadius: 28,
           padding: "16px 20px 24px",
