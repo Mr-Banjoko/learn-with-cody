@@ -15,8 +15,8 @@ function BrokenHeartAnim({ size, onDone }) {
         clipPath="url(#bh-left)"
         style={{ transformBox: "fill-box", transformOrigin: "center" }}
         initial={{ rotate: 0, x: 0, y: 0, opacity: 1 }}
-        animate={{ rotate: -24, x: -6, y: 6, opacity: 0.45 }}
-        transition={{ duration: 0.55, ease: "easeIn" }}
+        animate={{ rotate: [0, 0, -28], x: [0, 0, -8], y: [0, 0, 12], opacity: [1, 1, 0.4] }}
+        transition={{ duration: 1.1, ease: "easeIn", times: [0, 0.3, 1] }}
         onAnimationComplete={onDone}
       >
         <path d={heartPath} fill="#FF4444" />
@@ -25,8 +25,8 @@ function BrokenHeartAnim({ size, onDone }) {
         clipPath="url(#bh-right)"
         style={{ transformBox: "fill-box", transformOrigin: "center" }}
         initial={{ rotate: 0, x: 0, y: 0, opacity: 1 }}
-        animate={{ rotate: 24, x: 6, y: 6, opacity: 0.45 }}
-        transition={{ duration: 0.55, ease: "easeIn" }}
+        animate={{ rotate: [0, 0, 28], x: [0, 0, 8], y: [0, 0, 12], opacity: [1, 1, 0.4] }}
+        transition={{ duration: 1.1, ease: "easeIn", times: [0, 0.3, 1] }}
       >
         <path d={heartPath} fill="#FF4444" />
       </motion.g>
