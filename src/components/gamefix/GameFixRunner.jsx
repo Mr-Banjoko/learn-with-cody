@@ -1,6 +1,6 @@
 import { useState } from "react";
 import GameFixHeader from "@/components/gamefix/GameFixHeader";
-import Level6Phonics from "@/components/campaign/Level6Phonics";
+import GameFixPhonics from "@/components/gamefix/GameFixPhonics";
 import Level1DragV2 from "@/components/campaign/Level1DragV2";
 import CampaignMissingSound01Round from "@/components/campaign/CampaignMissingSound01Round";
 import CampaignLetterCatchRound from "@/components/campaign/CampaignLetterCatchRound";
@@ -30,7 +30,7 @@ export default function GameFixRunner({ game, onBack, lang = "en" }) {
   const props = { onComplete: done, onMistake: mistake, lang };
   let activity = null;
 
-  if (game.id === "phonics") activity = <Level6Phonics card={card("cat")} onNext={done} lang={lang} />;
+  if (game.id === "phonics") activity = <GameFixPhonics card={card("cat")} onNext={done} lang={lang} />;
   if (game.id === "drag_v2") activity = <Level1DragV2 card={card("map")} {...props} />;
   if (game.id === "identifying") activity = <IdentifyingRound round={{ target: card("cat"), choices }} {...props} />;
   if (game.id === "missing01") activity = <CampaignMissingSound01Round card={card("pan")} forcedMissingPos={1} forcedDistractors={["e", "i", "o"]} {...props} />;
