@@ -1,0 +1,348 @@
+/**
+ * Placement round — "Letter is… Sound is…"
+ * Two situations:
+ *   situation 1 = letter missing (sound given) → drag the matching LETTER
+ *   situation 2 = sound missing (letter given) → drag the matching SOUND
+ * Fixed round (from props), campaign-round interface: onComplete / onMistake.
+ */
+import { useState, useRef, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { getLetterSoundUrl, getLetterGain } from "../../lib/letterSounds";
+import { playAudio, playAudioSequence, warmupAudio } from "../../lib/useAudio";
+
+const LETTER_COLORS = ["#FFAFC5", "#A8D8EA", "#FFE57A", "#B5EAD7", "#FFDAC1", "#FFAFC5"];
+const SPEAKER_COLORS = [
+  { main: "#4ECDC4", shadow: "rgba(78,205,196,0.35)" },
+  { main: "#FF6B6B", shadow: "rgba(255,107,107,0.35)" },
+  { main: "#FFD93D", shadow: "rgba(255,217,61,0.35)" },
+];
+
+const SPEECH_BASE =
+  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/speech%20prompt";
+const LETTER_NAMES_BASE =
+  "https://raw.githubusercontent.com/Mr-Banjoko/learn-with-cody/main/letter_sound/letter%20names";
+
+function getSpeechUrl(phrase, lang) {
+  const suffix = lang === "zh" ? "chinese" : "english";
+  return `${SPEECH_BASE}/${phrase}/${phrase}_${suffix}.mp3`;
+}
+function getLetterNameUrl(letter) {
+  return `${LETTER_NAMES_BASE}/${letter.toLowerCase()}.mp3`;
+}
+
+function SpeakerIcon({ color = "white", size = 44 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 52 52" fill="none">
+      <path d="M18 21h-4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h4l8 6V15l-8 6z" fill={color} />
+      <path d="M30 20.5a8 8 0 0 1 0 11" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      <path d="M33.5 17a13 13 0 0 1 0 18" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.6" />
+    </svg>
+  );
+}
+
+function PlayIcon({ onPress }) {
+  return (
+    <div
+      onPointerDown={(e) => { e.stopPropagation(); onPress(); }}
+      style={{
+        width: 40, height: 40, borderRadius: 20, flexShrink: 0,
+        background: "rgba(255,255,255,0.85)", border: "2px solid rgba(78,205,196,0.35)",
+        boxShadow: "0 2px 10px rgba(78,205,196,0.18)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#4ECDC4">
+        <polygon points="5,3 19,12 5,21" />
+      </svg>
+    </div>
+  );
+}
+
+const DRAG_THRESHOLD = 12;
+
+export default function PlacementLetterIsSoundIs({ round, onComplete, onMistake, lang = "en" }) {
+  const { situation, letter, choices } = round;
+  const correctIdx = choices.indexOf(letter);
+
+  const [placedIdx, setPlacedIdx] = useState(null);
+  const [wrongShake, setWrongShake] = useState(false);
+  const [dragState, setDragState] = useState(null);
+
+  const dropZoneRef = useRef(null);
+  const isDragging = useRef(false);
+  const sequenceRef = useRef(null);
+  const shakeTimeout = useRef(null);
+
+  const cancelAudio = useCallback(() => {
+    if (sequenceRef.current) { sequenceRef.current(); sequenceRef.current = null; }
+  }, []);
+
+  // Intro audio on each new round
+  useEffect(() => {
+    const letterIsUrl = getSpeechUrl("letter_is", lang);
+    const soundIsUrl = getSpeechUrl("sound_is", lang);
+    const letterNameUrl = getLetterNameUrl(letter);
+    const letterSoundUrl = getLetterSoundUrl(letter);
+    const letterGain = getLetterGain(letter);
+
+    warmupAudio([letterIsUrl, soundIsUrl, letterNameUrl, letterSoundUrl].filter(Boolean));
+    cancelAudio();
+
+    const steps =
+      situation === 1
+        ? [{ url: letterIsUrl }, { url: soundIsUrl }, ...(letterSoundUrl ? [{ url: letterSoundUrl, gain: letterGain }] : [])]
+        : [{ url: letterIsUrl }, { url: letterNameUrl }, { url: soundIsUrl }];
+
+    sequenceRef.current = playAudioSequence(steps, () => { sequenceRef.current = null; });
+    return () => cancelAudio();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round]);
+
+  // Correct → play completion audio, then advance the level
+  const playCompletion = useCallback(() => {
+    cancelAudio();
+    const steps = [
+      { url: getSpeechUrl("letter_is", lang) },
+      { url: getLetterNameUrl(letter) },
+      { url: getSpeechUrl("sound_is", lang) },
+      ...(getLetterSoundUrl(letter) ? [{ url: getLetterSoundUrl(letter), gain: getLetterGain(letter) }] : []),
+    ];
+    sequenceRef.current = playAudioSequence(steps, () => {
+      sequenceRef.current = null;
+      onComplete?.();
+    });
+  }, [letter, lang, cancelAudio, onComplete]);
+
+  const handleLetterIsLabelTap = useCallback((e) => {
+    e.stopPropagation();
+    playAudio(getSpeechUrl("letter_is", lang));
+  }, [lang]);
+
+  const handleSoundIsLabelTap = useCallback((e) => {
+    e.stopPropagation();
+    playAudio(getSpeechUrl("sound_is", lang));
+  }, [lang]);
+
+  const handleRow1Play = useCallback(() => {
+    cancelAudio();
+    const letterIsUrl = getSpeechUrl("letter_is", lang);
+    const displayedLetter = situation === 2 ? letter : (placedIdx !== null ? choices[placedIdx] : null);
+    if (displayedLetter) {
+      sequenceRef.current = playAudioSequence([{ url: letterIsUrl }, { url: getLetterNameUrl(displayedLetter) }], () => { sequenceRef.current = null; });
+    } else {
+      playAudio(letterIsUrl);
+    }
+  }, [lang, situation, letter, placedIdx, choices, cancelAudio]);
+
+  const handleRow2Play = useCallback(() => {
+    cancelAudio();
+    const soundIsUrl = getSpeechUrl("sound_is", lang);
+    const displayedLetter = situation === 1 ? letter : (placedIdx !== null ? choices[placedIdx] : null);
+    const soundUrl = displayedLetter ? getLetterSoundUrl(displayedLetter) : null;
+    const gain = displayedLetter ? getLetterGain(displayedLetter) : 1;
+    if (soundUrl) {
+      sequenceRef.current = playAudioSequence([{ url: soundIsUrl }, { url: soundUrl, gain }], () => { sequenceRef.current = null; });
+    } else {
+      playAudio(soundIsUrl);
+    }
+  }, [lang, situation, letter, placedIdx, choices, cancelAudio]);
+
+  const handleTouchStart = useCallback((e, choiceIdx) => {
+    if (placedIdx === choiceIdx) return;
+    isDragging.current = false;
+    const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    setDragState({ choiceIdx, x: cx, y: cy, startX: touch.clientX, startY: touch.clientY, originX: cx, originY: cy });
+  }, [placedIdx]);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!dragState) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const dx = touch.clientX - dragState.startX;
+    const dy = touch.clientY - dragState.startY;
+    if (!isDragging.current && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+      isDragging.current = true;
+    }
+    setDragState((prev) => prev ? { ...prev, x: prev.originX + dx, y: prev.originY + dy } : null);
+  }, [dragState]);
+
+  const handleTouchEnd = useCallback((e) => {
+    if (!dragState) return;
+    if (!isDragging.current) {
+      if (situation === 2) {
+        const tappedLetter = choices[dragState.choiceIdx];
+        const url = getLetterSoundUrl(tappedLetter);
+        if (url) playAudio(url, getLetterGain(tappedLetter));
+      }
+      setDragState(null);
+      return;
+    }
+    const touch = e.changedTouches[0];
+    const ref = dropZoneRef.current;
+    let hit = false;
+    if (ref) {
+      const rect = ref.getBoundingClientRect();
+      hit = touch.clientX >= rect.left && touch.clientX <= rect.right && touch.clientY >= rect.top && touch.clientY <= rect.bottom;
+    }
+    if (hit && placedIdx === null) setPlacedIdx(dragState.choiceIdx);
+    setDragState(null);
+    isDragging.current = false;
+  }, [dragState, situation, choices, placedIdx]);
+
+  const handleBoxTap = useCallback((e) => {
+    e.stopPropagation();
+    setPlacedIdx(null);
+  }, []);
+
+  const handleSubmit = useCallback(() => {
+    if (placedIdx === null) return;
+    if (placedIdx === correctIdx) {
+      playCompletion();
+    } else {
+      onMistake?.();
+      clearTimeout(shakeTimeout.current);
+      setWrongShake(true);
+      setPlacedIdx(null);
+      shakeTimeout.current = setTimeout(() => setWrongShake(false), 600);
+    }
+  }, [placedIdx, correctIdx, playCompletion, onMistake]);
+
+  const placedChoice = placedIdx !== null ? choices[placedIdx] : null;
+  const placedColor = placedIdx !== null ? LETTER_COLORS[placedIdx % LETTER_COLORS.length] : null;
+  const placedSpeakerColorSet = placedIdx !== null ? SPEAKER_COLORS[placedIdx % SPEAKER_COLORS.length] : null;
+
+  const labelLetterIs = lang === "zh" ? "信是" : "letter is";
+  const labelSoundIs = lang === "zh" ? "声音是" : "sound is";
+
+  const boxBase = {
+    width: 110, height: 110, borderRadius: 24,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    border: "3px solid rgba(74,144,196,0.35)", boxShadow: "0 6px 24px rgba(30,58,95,0.10)",
+  };
+
+  return (
+    <div
+      style={{ display: "flex", flexDirection: "column", height: "100%", fontFamily: "Fredoka, sans-serif", touchAction: "none", userSelect: "none" }}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 24px", gap: 28 }}>
+        {/* Row 1: letter is */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <span onPointerDown={handleLetterIsLabelTap} style={{ fontSize: 28, fontWeight: 700, color: "#1E3A5F", minWidth: 120, flexShrink: 0, cursor: "pointer", WebkitTapHighlightColor: "transparent" }}>
+            {labelLetterIs}
+          </span>
+          {situation === 1 ? (
+            <div ref={dropZoneRef} onPointerDown={placedChoice ? handleBoxTap : undefined} style={{ ...boxBase, background: placedChoice ? (placedColor || "white") : "rgba(255,255,255,0.55)", cursor: placedChoice ? "pointer" : "default", border: `3px solid rgba(74,144,196,${placedChoice ? "0.5" : "0.35"})` }}>
+              {placedChoice && (
+                <motion.span initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ fontSize: 62, fontWeight: 700, color: "#1E3A5F", lineHeight: 1 }}>
+                  {placedChoice}
+                </motion.span>
+              )}
+            </div>
+          ) : (
+            <div style={{ ...boxBase, background: "white" }}>
+              <span style={{ fontSize: 62, fontWeight: 700, color: "#1E3A5F", lineHeight: 1 }}>{letter}</span>
+            </div>
+          )}
+          <PlayIcon onPress={handleRow1Play} />
+        </div>
+
+        {/* Row 2: sound is */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <span onPointerDown={handleSoundIsLabelTap} style={{ fontSize: 28, fontWeight: 700, color: "#1E3A5F", minWidth: 120, flexShrink: 0, cursor: "pointer", WebkitTapHighlightColor: "transparent" }}>
+            {labelSoundIs}
+          </span>
+          {situation === 2 ? (
+            <div ref={dropZoneRef} onPointerDown={placedChoice ? handleBoxTap : undefined} style={{ ...boxBase, background: placedChoice ? placedSpeakerColorSet.main : "rgba(255,255,255,0.55)", border: `3px solid ${placedChoice ? placedSpeakerColorSet.main : "rgba(74,144,196,0.35)"}`, boxShadow: placedChoice ? `0 8px 28px ${placedSpeakerColorSet.shadow}` : "0 6px 24px rgba(30,58,95,0.10)", cursor: placedChoice ? "pointer" : "default" }}>
+              {placedChoice && (
+                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                  <SpeakerIcon color="white" size={52} />
+                </motion.div>
+              )}
+            </div>
+          ) : (
+            <div style={{ ...boxBase, background: "white" }}>
+              <SpeakerIcon color="#4ECDC4" size={52} />
+            </div>
+          )}
+          <PlayIcon onPress={handleRow2Play} />
+        </div>
+
+        {/* Row 3: draggable choices */}
+        <motion.div animate={wrongShake ? { x: [0, -10, 10, -8, 8, 0] } : { x: 0 }} transition={{ duration: 0.45 }} style={{ display: "flex", justifyContent: "center", gap: 18, marginTop: 8 }}>
+          {choices.map((choice, idx) => {
+            const isPlaced = placedIdx === idx;
+            const isDraggingThis = dragState?.choiceIdx === idx;
+            const speakerSet = SPEAKER_COLORS[idx % SPEAKER_COLORS.length];
+            if (isPlaced) return <div key={idx} style={{ width: 104, height: 104, visibility: "hidden", flexShrink: 0 }} />;
+            return (
+              <motion.div
+                key={idx}
+                animate={isDraggingThis ? { scale: 1.08, opacity: 0.3 } : { scale: 1, opacity: 1 }}
+                onTouchStart={(e) => { e.stopPropagation(); handleTouchStart(e, idx); }}
+                style={{
+                  width: 104, height: 104, borderRadius: 28,
+                  background: situation === 1 ? LETTER_COLORS[idx % LETTER_COLORS.length] : "white",
+                  border: situation === 1 ? "3px solid rgba(255,255,255,0.7)" : `3px solid ${speakerSet.main}55`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "grab", touchAction: "none", userSelect: "none",
+                  pointerEvents: isDraggingThis ? "none" : "auto",
+                  boxShadow: situation === 1 ? "0 4px 16px rgba(0,0,0,0.12)" : `0 6px 20px ${speakerSet.shadow}`,
+                  flexShrink: 0,
+                }}
+              >
+                {situation === 1 ? (
+                  <span style={{ fontSize: 52, fontWeight: 700, color: "#1E3A5F", lineHeight: 1 }}>{choice}</span>
+                ) : (
+                  <SpeakerIcon color={speakerSet.main} size={48} />
+                )}
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </div>
+
+      <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", padding: "0 24px 20px" }}>
+        <motion.button
+          onClick={handleSubmit}
+          whileTap={placedIdx !== null ? { scale: 0.95 } : {}}
+          style={{
+            background: placedIdx !== null ? "linear-gradient(135deg, #4ECDC4, #44A08D)" : "#D1D5DB",
+            color: placedIdx !== null ? "white" : "#9CA3AF", border: "none", borderRadius: 999, padding: "16px 56px",
+            fontSize: 22, fontWeight: 700, cursor: placedIdx !== null ? "pointer" : "not-allowed", fontFamily: "Fredoka, sans-serif",
+            boxShadow: placedIdx !== null ? "0 8px 28px rgba(78,205,196,0.4)" : "none",
+            transition: "background 0.2s, color 0.2s, box-shadow 0.2s", WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          submit ✓
+        </motion.button>
+      </div>
+      <div style={{ flexShrink: 0, height: "calc(20px + env(safe-area-inset-bottom, 0px))" }} />
+
+      <AnimatePresence>
+        {dragState && isDragging.current && (
+          <div
+            style={{
+              position: "fixed", left: dragState.x, top: dragState.y, transform: "translate(-50%, -50%)",
+              zIndex: 9999, pointerEvents: "none", width: 108, height: 108, borderRadius: 24,
+              background: situation === 1 ? LETTER_COLORS[dragState.choiceIdx % LETTER_COLORS.length] : "white",
+              border: situation === 1 ? "3px solid rgba(255,255,255,0.8)" : `3px solid ${SPEAKER_COLORS[dragState.choiceIdx % SPEAKER_COLORS.length].main}`,
+              display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 36px rgba(0,0,0,0.25)",
+            }}
+          >
+            {situation === 1 ? (
+              <span style={{ fontSize: 56, fontWeight: 700, color: "#1E3A5F", lineHeight: 1 }}>{choices[dragState.choiceIdx]}</span>
+            ) : (
+              <SpeakerIcon color={SPEAKER_COLORS[dragState.choiceIdx % SPEAKER_COLORS.length].main} size={52} />
+            )}
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

@@ -34,18 +34,27 @@ export default function Home({ onNavigate, lang = "en" }) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, type: "spring", stiffness: 280, damping: 22 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => onNavigate?.("placement-test")}
           style={{
             flex: 1,
             height: 130,
             borderRadius: 22,
             background: BOX_COLORS[1],
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             boxShadow: `0 6px 20px ${BOX_COLORS[1]}55`,
+            cursor: "pointer",
+            WebkitTapHighlightColor: "transparent",
+            gap: 2,
           }}
         >
-          <span style={{ fontSize: 40, fontWeight: 700, color: "white", opacity: 0.9 }}>2</span>
+          <span style={{ fontSize: 26 }}>🧪</span>
+          <span style={{ fontSize: 17, fontWeight: 700, color: "white" }}>
+            {lang === "zh" ? "分班测试" : "Placement Test"}
+          </span>
         </motion.div>
       </div>
 

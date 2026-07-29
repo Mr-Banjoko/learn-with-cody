@@ -7,6 +7,7 @@ import Home from "../pages/Home";
 import LearnPhonics from "../pages/LearnPhonics";
 import Games from "../pages/Games";
 import CampaignHome from "./campaign/CampaignHome.jsx";
+import PlacementTest from "./placement/PlacementTest.jsx";
 import ShortALevels from "./campaign/ShortALevels.jsx";
 import ShortOLevels from "./campaign/ShortOLevels.jsx";
 import ShortILevels from "./campaign/ShortILevels.jsx";
@@ -79,7 +80,7 @@ import Level41 from "./campaign/Level41";
 const SHORT_I_DEEP = Array.from({ length: 38 }, (_, i) => `campaign-short-i-level-${i + 1}`);
 const SHORT_E_DEEP = Array.from({ length: 24 }, (_, i) => `campaign-short-e-level-${i + 1}`);
 const SHORT_U_DEEP = Array.from({ length: 20 }, (_, i) => `campaign-short-u-level-${i + 1}`);
-const DEEP_HOME_SCREENS = new Set(["campaign", "campaign-cvc-champion", "campaign-short-i", ...SHORT_I_DEEP, "campaign-short-e", ...SHORT_E_DEEP, "campaign-short-u", ...SHORT_U_DEEP, "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15", "campaign-short-a-level-16", "campaign-short-a-level-17", "campaign-short-a-level-18", "campaign-short-a-level-19", "campaign-short-a-level-20", "campaign-short-a-level-21", "campaign-short-a-level-22", "campaign-short-a-level-23", "campaign-short-a-level-24", "campaign-short-a-level-25", "campaign-short-a-level-26", "campaign-short-a-level-27", "campaign-short-a-level-28", "campaign-short-a-level-29", "campaign-short-a-level-30", "campaign-short-a-level-31", "campaign-short-a-level-32", "campaign-short-a-level-33", "campaign-short-a-level-34", "campaign-short-a-level-35", "campaign-short-a-level-36", "campaign-short-a-level-37", "campaign-short-a-level-38", "campaign-short-a-level-39", "campaign-short-a-level-40", "campaign-short-a-level-41", "campaign-short-o", "campaign-short-o-level-1", "campaign-short-o-level-2", "campaign-short-o-level-3", "campaign-short-o-level-4", "campaign-short-o-level-5", "campaign-short-o-level-6", "campaign-short-o-level-7", "campaign-short-o-level-8", "campaign-short-o-level-9", "campaign-short-o-level-10", "campaign-short-o-level-11", "campaign-short-o-level-12", "campaign-short-o-level-13", "campaign-short-o-level-14", "campaign-short-o-level-15", "campaign-short-o-level-16", "campaign-short-o-level-17", "campaign-short-o-level-18", "campaign-short-o-level-19", "campaign-short-o-level-20"]);
+const DEEP_HOME_SCREENS = new Set(["placement-test", "campaign", "campaign-cvc-champion", "campaign-short-i", ...SHORT_I_DEEP, "campaign-short-e", ...SHORT_E_DEEP, "campaign-short-u", ...SHORT_U_DEEP, "campaign-short-a", "campaign-short-a-level-1", "campaign-short-a-level-2", "campaign-short-a-level-3", "campaign-short-a-level-4", "campaign-short-a-level-5", "campaign-short-a-level-6", "campaign-short-a-level-7", "campaign-short-a-level-8", "campaign-short-a-level-9", "campaign-short-a-level-10", "campaign-short-a-level-11", "campaign-short-a-level-12", "campaign-short-a-level-13", "campaign-short-a-level-14", "campaign-short-a-level-15", "campaign-short-a-level-16", "campaign-short-a-level-17", "campaign-short-a-level-18", "campaign-short-a-level-19", "campaign-short-a-level-20", "campaign-short-a-level-21", "campaign-short-a-level-22", "campaign-short-a-level-23", "campaign-short-a-level-24", "campaign-short-a-level-25", "campaign-short-a-level-26", "campaign-short-a-level-27", "campaign-short-a-level-28", "campaign-short-a-level-29", "campaign-short-a-level-30", "campaign-short-a-level-31", "campaign-short-a-level-32", "campaign-short-a-level-33", "campaign-short-a-level-34", "campaign-short-a-level-35", "campaign-short-a-level-36", "campaign-short-a-level-37", "campaign-short-a-level-38", "campaign-short-a-level-39", "campaign-short-a-level-40", "campaign-short-a-level-41", "campaign-short-o", "campaign-short-o-level-1", "campaign-short-o-level-2", "campaign-short-o-level-3", "campaign-short-o-level-4", "campaign-short-o-level-5", "campaign-short-o-level-6", "campaign-short-o-level-7", "campaign-short-o-level-8", "campaign-short-o-level-9", "campaign-short-o-level-10", "campaign-short-o-level-11", "campaign-short-o-level-12", "campaign-short-o-level-13", "campaign-short-o-level-14", "campaign-short-o-level-15", "campaign-short-o-level-16", "campaign-short-o-level-17", "campaign-short-o-level-18", "campaign-short-o-level-19", "campaign-short-o-level-20"]);
 
 export default function AppShell() {
   useBuildGuard();
@@ -466,6 +467,14 @@ export default function AppShell() {
               if (id === "short-u") setHomeSubScreen("campaign-short-u");
               if (id === "cvc-champion") setHomeSubScreen("campaign-cvc-champion");
             }}
+            lang={language}
+          />
+        );
+
+      case "placement-test":
+        return (
+          <PlacementTest
+            onBack={() => setHomeSubScreen(null)}
             lang={language}
           />
         );
